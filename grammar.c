@@ -1,0 +1,17 @@
+/* grammar.c
+ * Linden Ralph */
+
+#include "grammar.h"
+#include <stdio.h>
+#include <string.h>
+
+void gram_a(char *c, char *ret)
+{
+    char intermediate[128] = {0,};
+    if (is_in("AEIOUaeiou", c[0]))
+        sprintf(intermediate, "an %s", c);
+    else
+        sprintf(intermediate, "a %s", c);
+    strcpy(ret, intermediate);
+}
+
