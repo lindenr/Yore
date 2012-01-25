@@ -141,8 +141,19 @@ void set_colour(uint32_t col)
 
 void write_con(uint32_t *n, char *s, uint32_t len)
 {
+    int i;
     s[len] = 0;
-    printf("%s", s);
+    for (i = 0; s[i]; ++ i)
+    {
+        uint32_t u = n[i]>>8;
+        printf("%c[0m", CHR_ESC);
+        if(u&1) printf("%c[%dm", CHR_ESC, ACTUAL_COLOURS[0]);
+        u >>= 1;
+        if (!u&7) printf("%c[37m", CHR_ESC);
+        else printf("%c[%dm", CHR_ESC, 30+(u&7));
+        u >>= 3;
+        printf("%c", s[i]);
+    }
 }
 
 void refresh()
@@ -152,7 +163,7 @@ void refresh()
     {
         uint32_t ybuf = to_buffer(y,0);
         uint32_t firstc = -1u, lastc = 0;
-        char line[80];
+        char line[81];
         for(x = 0; x < 80; ++ x)
         {
             if(New_buffer[ybuf + x] != Current_buffer[ybuf+x])
