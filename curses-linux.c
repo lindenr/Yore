@@ -1,4 +1,4 @@
-/* linux-curses.c
+/* curses-linux.c
  * Linden Ralph */
 
 #include "mycurses.h"

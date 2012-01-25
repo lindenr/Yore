@@ -1,4 +1,4 @@
-/* mycurses.c
+/* curses-win.c
  * Linden Ralph */
 
 #include "all.h"
