@@ -13,6 +13,7 @@ void printw    (const char *,...);
 void mvprintw  (uint32_t,uint32_t,const char *,...);
 void initscr   (void);
 void noecho    (void);
+void echo      (void);
 void endwin    (void);
 void refresh   (void);
 char getch     (void);

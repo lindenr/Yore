@@ -97,6 +97,7 @@ void initscr()
         New_buffer[i] = ' ';
     }
 
+	tcgetattr(STDIN_FILENO, &tm_old);
     refresh();
 }
 
@@ -104,9 +105,16 @@ void noecho()
 {
 	struct termios tm;
 	tcgetattr(STDIN_FILENO, &tm);
-	tcgetattr(STDIN_FILENO, &tm_old);
 	tm.c_lflag &= ~(ICANON|ECHO);
 	tcsetattr(STDIN_FILENO, TCSANOW, &tm);
+}
+
+void echo()
+{
+    struct termios tm;
+    tcgetattr(STDIN_FILENO, &tm);
+    tm.c_lflag |= ICANON|ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &tm);
 }
 
 void endwin()
@@ -175,7 +183,9 @@ char getch()
 
 char *getstr(char *str)
 {
-	return fgets(str, 80, stdin);
+	fgets(str, 80, stdin);
+    str[strlen(str)-1] = 0;
+    return str;
 }
 
 #endif /* FOONIX */

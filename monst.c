@@ -303,29 +303,7 @@ bool mons_wear(struct Monster *self, struct Item *it)
 	/* message */
 }
 
-#define COL(cl) cl
-#define MONST(nm,ch,sp,at,cl) {nm,ch,sp,at,COL(cl)}
-#define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}
-#define A(a,b,c) {a,b,c}
-#define AT_NONE {0,0,0}
-
-const struct monster_struct mons[] = {
-MONST("gnome", 'G', 10,
-      ATTK(A(1,3,ATTK_HIT), AT_NONE, AT_NONE,
-           AT_NONE, AT_NONE, AT_NONE), COL_TXT_RED|COL_TXT_GREEN),
-MONST("human", '@', 12,
-      ATTK(A(1,4,ATTK_HIT), AT_NONE, AT_NONE,
-           AT_NONE, AT_NONE, AT_NONE), COL_TXT_BLUE|COL_TXT_RED|COL_TXT_GREEN),
-MONST("dwarf", 'h', 10,
-      ATTK(A(1,3,ATTK_HIT), AT_NONE, AT_NONE,
-           AT_NONE, AT_NONE, AT_NONE), COL_TXT_RED),
-MONST("hobbit", 'h', 10,
-      ATTK(A(1,3,ATTK_HIT), AT_NONE, AT_NONE,
-           AT_NONE, AT_NONE, AT_NONE), COL_TXT_GREEN),
-MONST("lich", 'L', 8,
-      ATTK(A(2,4,ATTK_HIT), A(2,2,ATTK_MAGIC), AT_NONE,
-           AT_NONE, AT_NONE, AT_NONE), COL_TXT_RED|COL_TXT_BLUE)
-};
+#include "all_mon.h"
 
 inline void apply_attack(struct Monster *from, struct Monster *to)
 {
@@ -333,8 +311,21 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
 
     for (t = 0; t < A_NUM; ++ t)
 	{
-        if (!mons[from->type].attacks[t][0]) break;
-		switch(mons[from->type].attacks[t][2])
+        if (mons[to->type].attacks[t][2]&0xFFFF == ATTK_PASS)
+        {
+            switch(mons[to->type].attacks[t][2]>>16)
+            {
+                case ATYP_ACID:
+                {
+                    if (to->name[0] == '_') pline("You splash the %s with your acid!", mons[from->type].name);
+                    else if (from->name[0] == '_') pline("The %s splashes you with acid!", mons[to->type].name);
+                    else pline("ACID!!!");
+                    break;
+                }
+            }
+        }
+        if (!mons[from->type].attacks[t][0]) continue;
+		switch(mons[from->type].attacks[t][2]&0xFFFF)
 		{
 			case ATTK_HIT:
 			{
@@ -343,24 +334,20 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
 				{
                     to->HP -= RN(from->attr[AB_ST]);
 				    if (from->name[0] == '_') pline("You hit the %s!", mons[to->type].name);
-				    else pline("The %s hits you!", mons[from->type].name);
+				    else if (to->name[0] == '_') pline("The %s hits you!", mons[from->type].name);
                     break;
 				}
 				struct item_struct is = items[(*it)->type];
 				to->HP -= RND(is.attr&15, (is.attr>>4)&15);
 				if (from->name[0] == '_') pline("You smite the %s!", mons[to->type].name);
-				else pline("The %s hits you!", mons[from->type].name);
+				else if (to->name[0] == '_') pline("The %s hits you!", mons[from->type].name);
 				break;
 			}
 			case ATTK_TOUCH:
 			{
 				to->HP -= RND(mons[from->type].attacks[t][0], mons[from->type].attacks[t][1]);
 				if (from->name[0] == '_') pline("You touch the %s!", mons[to->type].name);
-				else pline("The %s touches you!", mons[from->type].name);
-				break;
-			}
-			case ATTK_PASS:
-			{pline("Passive attack not implemented");
+				else if (to->name[0] == '_') pline("The %s touches you!", mons[from->type].name);
 				break;
 			}
 			case ATTK_MAGIC:

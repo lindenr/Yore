@@ -30,13 +30,28 @@ enum ABLTY /* ability */
 
 typedef uint32_t monst_attr[6];
 
-enum ATTK_TYPES
+/* The physical method of attack (bite, claw etc) */
+enum ATTK_METHOD
 {
     ATTK_NONE = 0, /* placeholder */
-    ATTK_HIT,      /* weapon/hand */
-    ATTK_TOUCH,    /* touch       */
-    ATTK_PASS,     /* passive     */
-    ATTK_MAGIC     /* magic       */
+    ATTK_HIT,
+    ATTK_TOUCH,
+    ATTK_PASS,     /* passive */
+    ATTK_MAGIC,    /* purely magical, not physical at all */
+    ATTK_BITE,
+    ATTK_CLAW
+};
+
+/* The magical method of attack (fire, acid etc -- phys is *not* magical) */
+enum ATTK_TYPE
+{
+    ATYP_PHYS = 0, /* no magic attack, purely physical (like a soldier with a sword - nothing special) */
+    ATYP_COLD,
+    ATYP_FIRE,
+    ATYP_HEAL,
+    ATYP_CURS,
+    ATYP_ACID,
+    ATYP_BEAM
 };
 
 struct monster_struct

@@ -21,9 +21,9 @@
 
 #endif /* !AMERICAN */
 
-/* Player options go here (none so far) */
+/* Player options go here */
 
-
+#define USING_COL
 
 
 

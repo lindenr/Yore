@@ -64,13 +64,13 @@ void game_intro()
 	mvprintw(11, 18,  "with  the people; it was a time when anything");
 	mvprintw(12, 25,         "and everything  was possible...");
 	refresh();
-	getch();
+	noecho();getch();echo();
 	unscreenshot();
 }
 
 /* END INTRO */
 struct Item i[] = {{0, 0, NULL}, {3, ITEM_BLES, NULL}};
-struct Monster m[] = {{1, 0, 20, 0, 0, 0, 0}, {0,0,10,0," ",0,0,0}};
+struct Monster m[] = {{1, 0, 20, 0, 0, 0, 0}, {5,0,10,0," ",0,0,0}};
 
 int main ()
 {
