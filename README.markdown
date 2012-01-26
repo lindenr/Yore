@@ -23,4 +23,6 @@ At the moment Yore is capable of running only on Windows and Linux systems.
  *  Ubuntu 11.10
  *  Windows XP
  *  Windows 7
+
 Feel free to add to the list if you have a different operating system handy.
+
