@@ -290,7 +290,7 @@ bool mons_wear(struct Monster *self, struct Item *it)
 		case IT_GLOVES:
 		{
 			self->wearing.hands = it;
-			break;
+            break;
 		}
 		default:
 		{
@@ -305,26 +305,30 @@ bool mons_wear(struct Monster *self, struct Item *it)
 
 #include "all_mon.h"
 
+void mons_passive_attack (struct Monster *self, struct Monster *to)
+{
+    uint32_t t;
+    char *posv;
+    for (t = 0; t < A_NUM; ++ t)
+        if ((mons[self->type].attacks[t][2]&0xFFFF) == ATTK_PASS) break;
+    if (t == A_NUM) return;
+    switch(mons[self->type].attacks[t][2]>>16)
+    {
+        case ATYP_ACID:
+        {
+            if (self->name[0] == '_') pline("You splash the %s with your acid!", mons[to->type].name);
+            else if (to->name[0] == '_') pline("You are splashed by the %s acid!", mons[self->type].name);
+        }
+    }
+}
+
 inline void apply_attack(struct Monster *from, struct Monster *to)
 {
 	uint32_t t;
 
     for (t = 0; t < A_NUM; ++ t)
 	{
-        if (mons[to->type].attacks[t][2]&0xFFFF == ATTK_PASS)
-        {
-            switch(mons[to->type].attacks[t][2]>>16)
-            {
-                case ATYP_ACID:
-                {
-                    if (to->name[0] == '_') pline("You splash the %s with your acid!", mons[from->type].name);
-                    else if (from->name[0] == '_') pline("The %s splashes you with acid!", mons[to->type].name);
-                    else pline("ACID!!!");
-                    break;
-                }
-            }
-        }
-        if (!mons[from->type].attacks[t][0]) continue;
+        if (!mons[from->type].attacks[t][0]) break;
 		switch(mons[from->type].attacks[t][2]&0xFFFF)
 		{
 			case ATTK_HIT:
@@ -335,12 +339,14 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
                     to->HP -= RN(from->attr[AB_ST]);
 				    if (from->name[0] == '_') pline("You hit the %s!", mons[to->type].name);
 				    else if (to->name[0] == '_') pline("The %s hits you!", mons[from->type].name);
+                    mons_passive_attack (to, from);
                     break;
 				}
 				struct item_struct is = items[(*it)->type];
 				to->HP -= RND(is.attr&15, (is.attr>>4)&15);
 				if (from->name[0] == '_') pline("You smite the %s!", mons[to->type].name);
 				else if (to->name[0] == '_') pline("The %s hits you!", mons[from->type].name);
+                mons_passive_attack (to, from);
 				break;
 			}
 			case ATTK_TOUCH:
@@ -348,6 +354,7 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
 				to->HP -= RND(mons[from->type].attacks[t][0], mons[from->type].attacks[t][1]);
 				if (from->name[0] == '_') pline("You touch the %s!", mons[to->type].name);
 				else if (to->name[0] == '_') pline("The %s touches you!", mons[from->type].name);
+                mons_passive_attack (to, from);
 				break;
 			}
 			case ATTK_MAGIC:

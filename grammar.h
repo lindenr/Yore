@@ -3,6 +3,7 @@
 
 #include "all.h"
 
-void gram_a(char *, char *);
+void gram_a   (char *, char *); /* singular */
+void gram_pos (char *, char *); /* possessive */
 
 #endif /* GRAMMAR_H_INCLUDED */

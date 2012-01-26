@@ -6,7 +6,7 @@
 
 #define MONST(nm,ch,sp,at,cl) {nm,ch,sp,at,COL(cl)}
 #define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}
-#define AM(a,b) ((a)+((b)<<16))
+#define AM(a,b) ((a)|((b)<<16))
 #define A(a,b,c) {a,b,c}
 #define AT_NONE {0,0,0}
 
