@@ -36,15 +36,16 @@ uint32_t even_prob(struct RNGStruct *r, uint32_t n)
 
 uint32_t RNG_get_seed ()
 {
-    uint32_t tm = SSSRTT_32(), m = clock();
+    uint32_t tm = SSSRTT_32(), m = clock(), ret = 323596;
     uint32_t *times = malloc(sizeof(uint32_t)*(10));
 	times[0] = tm; times[1] = m; times[8] = 0x86b4e8fd; /* completely arbitrary */
-    return SuperFastHash((const char *)times, 40);
+    ret ^= SuperFastHash((const char *)times, 40);
+    return ret;
 }
 
 uint32_t SSSRTT_32 ()
 {
-    return (clock()<<3)^(CLOCKS_PER_SEC<<2)^(time(NULL)>>1)^(time(NULL)<<3);
+    return (clock()<<3)^(CLOCKS_PER_SEC<<2)^(time(NULL)>>1)^(time(NULL));
 }
 
 /* Paul Hsieh */

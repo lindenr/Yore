@@ -75,8 +75,10 @@ struct Monster m[] = {{1, 0, 20, 0, 0, 0, 0}, {5,0,10,0," ",0,0,0}};
 int main ()
 {
     int I;
+    uint32_t rseed;
     initscr();
-	RNG_main = RNG_INIT(RNG_get_seed());
+    rseed = RNG_get_seed();
+	RNG_main = RNG_INIT(rseed);
 
 #if 0
 	screenshot();

@@ -1,12 +1,19 @@
 #if !defined(ALL_H_INCLUDED)
 #define ALL_H_INCLUDED
 
-/* #define LIST_TEST */
+#include "debug.h"
+
+/* Player options go here */
+
+/* operating system: either FOONIX or WINDOWS */
+#define FOONIX
 
 /* #define AMERICAN */
+#define USING_COL
 
+/* debugging only */
+/* #define LIST_TEST */
 
-#include "debug.h"
 
 /* These crazy spellings... */
 #if !defined(AMERICAN)
@@ -20,11 +27,5 @@
 #define COLOUR "color"
 
 #endif /* !AMERICAN */
-
-/* Player options go here */
-
-#define USING_COL
-
-
 
 #endif /* ALL_H_INCLUDED */

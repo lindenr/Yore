@@ -1,8 +1,7 @@
 #ifndef MYCURSES_H_INCLUDED
 #define MYCURSES_H_INCLUDED
 
-#define FOONIX
-/* #define WINDOWS */
+#include "all.h"
 #define CHR_ESC 0x1b
 
 #include <stdint.h>
