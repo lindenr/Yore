@@ -11,13 +11,13 @@ At the moment Yore is capable of running only on Windows and Linux systems.
 1.  you must have make and gcc installed;
 2.  [optional:] get rid of the -ggdb flags in makefile;
 3.  [optional:] open build-linux (if you leave it, game_binary will be copied to ~/Desktop/) and comment out lines 3-4;
-4.  run <re>bash build-linux<re>.
+4.  run <pre>bash build-linux</pre>.
 
 ####For Windows:
 
 1.  you must have MinGW installed;
-2.  run <re>PATH <your_mingw_install_path>\bin</re>;
-3.  run <re>makefile.bat</re>.
+2.  run <pre>PATH <your_mingw_install_path>\bin</pre>;
+3.  run <pre>makefile.bat</pre>.
 
 
 ##Yore runs (tested) on the following platforms:
