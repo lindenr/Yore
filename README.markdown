@@ -3,7 +3,9 @@
 Yore is an under-developement roguelike console game.
 
 ##Build instructions:
+
 At the moment Yore is capable of running only on Windows and Linux systems.
+
 ####To build for Linux:
 
 1.  you must have make and gcc installed;
