@@ -16,7 +16,7 @@ At the moment Yore is capable of running only on Windows and Linux systems.
 ####For Windows:
 
 1.  you must have MinGW installed;
-2.  run <pre>PATH <your_mingw_install_path>\bin</pre>;
+2.  run <pre>PATH &lt;your_mingw_install_path&gt;\bin</pre>;
 3.  run <pre>makefile.bat</pre>.
 
 
