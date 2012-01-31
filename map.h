@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define M_OPQ  0
+#define M_TSPT 1
+
 struct map_item_struct
 {
     char name[20];
@@ -11,6 +14,6 @@ struct map_item_struct
 };
 
 extern struct map_item_struct map_items[];
-extern int             GETMAPITEMID(char);
+int             GETMAPITEMID(char);
 
 #endif /* MAP_H_INCLUDED */

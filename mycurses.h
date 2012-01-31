@@ -18,6 +18,8 @@ void refresh   (void);
 char getch     (void);
 char*getstr    (char *);
 
+uint32_t get_buffter(uint32_t,uint32_t);
+
 #define CLR(n) ((n)<<8)
 
 #if defined(FOONIX)

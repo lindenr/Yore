@@ -4,7 +4,7 @@
 #include "bool.h"
 #include <malloc.h>
 
-#define LIST_INIT (struct List){&list_beg,&list_end}
+#define LIST_INIT {&list_beg,&list_end}
 
 struct list_iter
 {

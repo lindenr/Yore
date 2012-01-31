@@ -10,6 +10,22 @@
 #include "mycurses.h"
 
 struct List all_things = LIST_INIT;
+uint8_t sq_attr[1680] = {0,};
+uint8_t sq_seen[1680] = {0,};
+
+inline void set_can_see(int yloc, int xloc, uint32_t *us)
+{
+    int y,x,w;
+    int I;
+    bres_start (yloc, xloc, sq_seen, sq_attr);
+    for (y = 0; y < 21; ++ y)
+        for (x = 0; x < 80; ++ x)
+            bres_draw(y,x);
+    for (w = 0; w < 1680; ++ w)
+    {
+        if (!sq_seen[w]) us[w] = ' ';
+    }
+}
 
 inline struct list_iter *get_iter(void *data)
 {
@@ -49,7 +65,7 @@ struct Thing *new_thing(uint32_t type, uint32_t y, uint32_t x, void *actual_thin
 /* returns an array of 1680 integers (characters with colour) */
 /* 0   1   2   3 ...                  -
  * 80  81  82 ...                     |
- * 160 161 ...                        22
+ * 160 161 ...                        21
  * 240 ...                            |
  * ...                       ...      -
  *  					... 1679
@@ -61,6 +77,7 @@ int* visualise_map ()
 {
 	int I;
 	struct list_iter *i;
+    struct Thing *player = NULL;
     uint32_t *map = malloc(sizeof(uint32_t)*1680);
     uint32_t *type = malloc(sizeof(uint32_t)*1680);
     for (I = 0; I < 1680; ++ I)
@@ -75,7 +92,7 @@ int* visualise_map ()
         unsigned at = ((((T->yloc)<<2)+(T->yloc))<<4) + T->xloc;
 		struct Thing th = *T;
         bool changed = false;
-        assert(at < 1680);
+        /* assert(at < 1680); */
         switch(th.type)
         {
             case THING_MONS:
@@ -83,7 +100,10 @@ int* visualise_map ()
 				struct Monster *m = th.thing;
                 changed = true;
 				if (m->name[0] == '_')
+                {
 					map[at] = mons[m->type].col | mons[m->type].ch | COL_TXT_BRIGHT;
+                    player = T;
+                }
                 else
 					map[at] = mons[m->type].col | mons[m->type].ch;
                 break;
@@ -104,7 +124,8 @@ int* visualise_map ()
 				{
 					struct map_item_struct *m = th.thing;
                     map[at] = (uint32_t)((unsigned char)(m->ch));
-					changed = true;
+                    sq_attr[at] = m->attr&1;
+                    changed = true;
 				}
                 break;
             }
@@ -115,6 +136,7 @@ int* visualise_map ()
 		}
     }
 	free(type);
+    set_can_see(player->yloc, player->xloc, map);
     return map;
 }
 

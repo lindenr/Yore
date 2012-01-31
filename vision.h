@@ -4,6 +4,6 @@
 #include "bool.h"
 #include "thing.h"
 
-bool can_see (struct Thing*, struct Thing*);
+bool line_passes_through(int,int,int,int,int,int);
 
 #endif /* VISON_H_INCLUDED */

@@ -38,7 +38,7 @@ uint32_t get_square_attr(uint32_t yloc, uint32_t xloc, int level)
     uint32_t mvbl = 1;
     struct list_iter *i;
 
-    if (yloc>20 || xloc>79) return -1;
+    if (yloc>20  || xloc>79) return -1;
     for(i = all_things.beg; iter_good(i); next_iter(&i))
     {
 		struct Thing *th = i->data;
@@ -72,22 +72,22 @@ uint32_t can_move_to(uint32_t attr)
 #define MAPITEM(nm,ch,at,cl) {nm,ch,at}
 
 struct map_item_struct map_items[] = {
-MAPITEM("lit space", ACS_BULLET, 1,0),
-MAPITEM("wall", ACS_VLINE, 0,      0),
-MAPITEM("wall", ACS_HLINE, 0,      0),
-MAPITEM("wall", ACS_ULCORNER, 0,   0),
-MAPITEM("wall", ACS_LLCORNER, 0,   0),
-MAPITEM("wall", ACS_URCORNER, 0,   0),
-MAPITEM("wall", ACS_LRCORNER, 0,   0),
-MAPITEM("wall", ACS_RTEE, 0,       0),
-MAPITEM("wall", ACS_LTEE, 0,       0),
-MAPITEM("wall", ACS_TTEE, 0,       0),
-MAPITEM("wall", ACS_BTEE, 0,       0),
-MAPITEM("wall", ACS_PLUS, 0,       0),
-MAPITEM("tree", '+',      0,       0),
-MAPITEM("flower", '*', 1,          0),
-MAPITEM("dark space", ' ', 1,      0),
-MAPITEM("_end_",'\0', 0,           0)
+MAPITEM("lit space", ACS_BULLET, M_TSPT,0),
+MAPITEM("wall", ACS_VLINE,       M_OPQ ,0), 
+MAPITEM("wall", ACS_HLINE,       M_OPQ ,0),
+MAPITEM("wall", ACS_ULCORNER,    M_OPQ ,0),
+MAPITEM("wall", ACS_LLCORNER,    M_OPQ ,0),
+MAPITEM("wall", ACS_URCORNER,    M_OPQ ,0),
+MAPITEM("wall", ACS_LRCORNER,    M_OPQ ,0),
+MAPITEM("wall", ACS_RTEE,        M_OPQ ,0),
+MAPITEM("wall", ACS_LTEE,        M_OPQ ,0),
+MAPITEM("wall", ACS_TTEE,        M_OPQ ,0),
+MAPITEM("wall", ACS_BTEE,        M_OPQ ,0),
+MAPITEM("wall", ACS_PLUS,        M_OPQ ,0),
+MAPITEM("tree", '+',             M_OPQ ,0),
+MAPITEM("flower", '*',           M_TSPT,0),
+MAPITEM("dark space", ' ',       M_TSPT,0),
+MAPITEM("_end_",'\0',            M_OPQ ,0)
 };
 
 int GETMAPITEMID(char i)

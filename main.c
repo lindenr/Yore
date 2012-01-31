@@ -8,7 +8,7 @@
 #include "monst.h"
 
 #include "rand.h"
-
+#include "vision.h"
 #include "loop.h"
 #include "pline.h"
 #include "generate.h"

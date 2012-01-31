@@ -5,7 +5,7 @@
 #include "all.h"
 #include "list.h"
 
-struct list_iter list_beg = (struct list_iter){0,0,0}, list_end = (struct list_iter){0,0,0};
+struct list_iter list_beg = {0,0,0}, list_end = {0,0,0};
 extern struct List all_things;
 
 struct list_iter *next_iter(struct list_iter **li)
@@ -68,7 +68,9 @@ void list_rem(struct List *list, struct list_iter *li)
         prev->next = next;
         next->prev = prev;
     }
-    free(li);
+    li->next = 0;
+    li->prev = 0;
+    li->data = 0;
 }
 
 bool is_valid (struct list_iter *li)
