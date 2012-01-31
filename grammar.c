@@ -15,3 +15,9 @@ void gram_a(char *c, char *ret)
     strcpy(ret, intermediate);
 }
 
+void gram_pos(char *end, char *in)
+{
+    strcpy(end, in);
+    strcat(end, "'s");
+}
+

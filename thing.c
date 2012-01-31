@@ -8,22 +8,106 @@
 #include "monst.h"
 #include "map.h"
 #include "mycurses.h"
+#include "generate.h"
 
 struct List all_things = LIST_INIT;
 uint8_t sq_attr[1680] = {0,};
 uint8_t sq_seen[1680] = {0,};
 
-inline void set_can_see(int yloc, int xloc, uint32_t *us)
+uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k, uint32_t l, uint32_t b, uint32_t n)
 {
-    int y,x,w;
+    if (h == DOT || h == ' ')
+    {
+        if (k == DOT || k == ' ')
+        {
+            if (l == DOT || l == ' ')
+            {
+                if (j == DOT || j == ' ') return DOT;
+                else          return ACS_VLINE;
+            }
+            else
+            {
+                if (j == DOT || j == ' ') return ACS_HLINE;
+                else          return ACS_ULCORNER;
+            }
+        }
+        else
+        {
+            if (l == DOT || l == ' ')     return ACS_VLINE;
+            else
+            {
+                if (j == DOT || j == ' ') return ACS_LLCORNER;
+                else          return ACS_LTEE;
+            }
+        }
+    }
+    else
+    {
+        if (k == DOT || k == ' ')
+        {
+            if (l == DOT || l == ' ')
+            {
+                if (j == DOT || j == ' ') return ACS_HLINE;
+                else          return ACS_URCORNER;
+            }
+            else
+            {
+                if (j == DOT || j == ' ') return ACS_HLINE;
+                else          return ACS_TTEE;
+            }
+        }
+        else
+        {
+            if (l == DOT || l == ' ')
+            {
+                if (j == DOT || j == ' ') return ACS_LRCORNER;
+                else          return ACS_RTEE;
+            }
+            else
+            {
+                if (j == DOT || j == ' ') return ACS_BTEE;
+                else
+                {
+                    if (y == DOT || u == DOT || b == DOT || n == DOT)
+                              return ACS_PLUS;
+                    else      return ' ';
+                }
+            }
+        }
+    }
+}
+
+#define US(w) (sq_attr[w]?DOT:'W')
+
+inline void set_can_see(int Yloc, int Xloc, uint32_t *us)
+{
+    int Y,X,w;
     int I;
-    bres_start (yloc, xloc, sq_seen, sq_attr);
-    for (y = 0; y < 21; ++ y)
-        for (x = 0; x < 80; ++ x)
-            bres_draw(y,x);
+    bres_start (Yloc, Xloc, sq_seen, sq_attr);
+    for (Y = 0; Y < 21; ++ Y)
+        for (X = 0; X < 80; ++ X)
+            bres_draw(Y,X);
     for (w = 0; w < 1680; ++ w)
     {
         if (!sq_seen[w]) us[w] = ' ';
+    }
+    for (Y = 0; Y < 21; ++ Y)
+    {
+        for (X = 0; X < 80; ++ X)
+        {
+            w = to_buffer(Y,X);
+            if (sq_attr[w] == 1 || us[w] == ' ') continue;
+            uint32_t y='.', u='.', h='.', j='.', k='.', l='.', b='.', n='.';
+            if(X) h = US(w-1);
+            if(Y) k = US(w-80);
+            if(X<79) l = US(w+1);
+            if(Y<20) l = US(w+80);
+            if(X && Y) y = US(w-81);
+            if(X<79 && Y) y = US(w-79);
+            if(X && Y<20) y = US(w+79);
+            if(X<79 && Y<20) y = US(w+81);
+            us[w] = WALL_TYPE(y,u,h,j,k,l,b,n);
+        }
     }
 }
 

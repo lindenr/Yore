@@ -1,21 +1,5 @@
 #include "vision.h"
 #include <math.h>
-/*
-#define HIGHEST_BIT(x) ((x)&(((-1u)>>1)+1))
-#define LINE_THRESHOLD 0.5
-
-bool line_passes_through(int fy, int fx, int ty, int tx, int py, int px)
-{
-    if ((ty < py && fy < py) ||
-    (ty > py && fy > py) ||
-    (tx < px && fx < px) ||
-    (tx > px && fx > px)) return false;
-    return true;
-    float d1 = sqrt((ty-fy)*(ty-fy) + (tx-fx)*(tx-fx));
-    float d2 = sqrt((ty-py)*(ty-py) + (tx-px)*(tx-px));
-    float d3 = sqrt((py-fy)*(py-fy) + (px-fx)*(px-fx));
-    return(fabs(d1-d2-d3) < LINE_THRESHOLD);
-}*/
 
 int fromy, fromx;
 uint8_t *grid, *grid_t;
@@ -55,7 +39,7 @@ void bres_draw(int ty, int tx)
             fy += sy;
         }
         if (fy == ty && fx == tx) break;
-        if (grid_t[to_buffer(fy,fx)] == 0) return; /* can't see :( */
+        if (grid_t[to_buffer(fy,fx)] == 0) return; /* can't see B( */
     }
     grid[to_buffer(fy,fx)] = 1;
 }

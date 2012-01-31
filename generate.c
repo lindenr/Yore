@@ -7,68 +7,6 @@
 #include "thing.h"
 #include "map.h"
 
-int WALL_TYPE(int y, int u, int h, int j, int k, int l, int b, int n)
-{
-    if (h == DOT || h == ' ')
-    {
-        if (k == DOT || k == ' ')
-        {
-            if (l == DOT || l == ' ')
-            {
-                if (j == DOT || j == ' ') return DOT;
-                else          return ACS_VLINE;
-            }
-            else
-            {
-                if (j == DOT || j == ' ') return ACS_HLINE;
-                else          return ACS_ULCORNER;
-            }
-        }
-        else
-        {
-            if (l == DOT || l == ' ')     return ACS_VLINE;
-            else
-            {
-                if (j == DOT || j == ' ') return ACS_LLCORNER;
-                else          return ACS_LTEE;
-            }
-        }
-    }
-    else
-    {
-        if (k == DOT || k == ' ')
-        {
-            if (l == DOT || l == ' ')
-            {
-                if (j == DOT || j == ' ') return ACS_HLINE;
-                else          return ACS_URCORNER;
-            }
-            else
-            {
-                if (j == DOT || j == ' ') return ACS_HLINE;
-                else          return ACS_TTEE;
-            }
-        }
-        else
-        {
-            if (l == DOT || l == ' ')
-            {
-                if (j == DOT || j == ' ') return ACS_LRCORNER;
-                else          return ACS_RTEE;
-            }
-            else
-            {
-                if (j == DOT || j == ' ') return ACS_BTEE;
-                else
-                {
-                    if (y == DOT || u == DOT || b == DOT || n == DOT)
-                              return ACS_PLUS;
-                    else      return 'D';
-                }
-            }
-        }
-    }
-}
 
 int is_wall (int y, int u, int h, int j, int k, int l, int b, int n)
 {
@@ -102,7 +40,7 @@ void generate_map(enum LEVEL_TYPE type)
                                          ||(buffer[buf+80]==DOT)||(buffer[buf-80]==DOT)))
                 buffer[buf]=DOT;
             else
-				t++;
+                t++;
         }
         for (i = 0; i < 1680; ++ i)
             if (80<=i && i<1600)if(buffer[i] != DOT) buffer[i] = 'W';
@@ -139,7 +77,7 @@ void generate_map(enum LEVEL_TYPE type)
                 }
                 buffer[buf] = is_wall(y,u,h,j,k,l,b,n);
             }
-        }
+        }/*
         for (x = 0; x < 80; ++ x)
         {
             for (Y = 0; Y < 21; ++ Y)
@@ -150,7 +88,7 @@ void generate_map(enum LEVEL_TYPE type)
                 if (buffer[buf] != 'W') continue;
                 if (x == 0)      { y = h = b = DOT; both = false;}
                 else if (x == 79){ u = l = n = DOT; both = false;}
-                /* x-middle */
+                / * x-middle * /
                 else
                 {
                     h = buffer[buf-1];
@@ -158,7 +96,7 @@ void generate_map(enum LEVEL_TYPE type)
                 }
                 if (Y == 0)      { y = k = u = DOT; both = false;}
                 else if (Y == 20){ b = j = n = DOT; both = false;}
-                /* y-middle */
+                / * y-middle * /
                 else
                 {
                     k = buffer[buf-80];
@@ -173,9 +111,7 @@ void generate_map(enum LEVEL_TYPE type)
                 }
                 buffer[buf] = WALL_TYPE(y,u,h,j,k,l,b,n);
             }
-        }
-       /* move(1,0); */
-       /* for(int i = 0; i < 2000; ++ i) addch(buffer[i]); */
+        }*/
 		for(i = 0; i < 1680; ++ i)
 		{
 			struct map_item_struct *mis = malloc(sizeof(struct map_item_struct));

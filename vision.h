@@ -4,6 +4,7 @@
 #include "bool.h"
 #include "thing.h"
 
-bool line_passes_through(int,int,int,int,int,int);
+void bres_start(int, int, uint8_t *, uint8_t *);
+void bres_draw (int, int);
 
 #endif /* VISON_H_INCLUDED */

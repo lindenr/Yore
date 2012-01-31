@@ -316,8 +316,10 @@ void mons_passive_attack (struct Monster *self, struct Monster *to)
     {
         case ATYP_ACID:
         {
+            posv = malloc(strlen(mons[self->type].name)+5);
+            gram_pos(posv, mons[self->type].name);
             if (self->name[0] == '_') pline("You splash the %s with your acid!", mons[to->type].name);
-            else if (to->name[0] == '_') pline("You are splashed by the %s acid!", mons[self->type].name);
+            else if (to->name[0] == '_') pline("You are splashed by the %s acid!", posv);
         }
     }
 }
