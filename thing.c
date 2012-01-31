@@ -22,7 +22,7 @@ uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k, u
         {
             if (l == DOT || l == ' ')
             {
-                if (j == DOT || j == ' ') return DOT;
+                if (j == DOT || j == ' ') return ACS_HLINE;
                 else          return ACS_VLINE;
             }
             else
@@ -77,7 +77,7 @@ uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k, u
     }
 }
 
-#define US(w) (sq_attr[w]?DOT:'W')
+#define US(w) (sq_seen[w]?(sq_attr[w]?DOT:'W'):DOT)
 
 inline void set_can_see(int Yloc, int Xloc, uint32_t *us)
 {
@@ -101,11 +101,11 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t *us)
             if(X) h = US(w-1);
             if(Y) k = US(w-80);
             if(X<79) l = US(w+1);
-            if(Y<20) l = US(w+80);
+            if(Y<20) j = US(w+80);
             if(X && Y) y = US(w-81);
-            if(X<79 && Y) y = US(w-79);
-            if(X && Y<20) y = US(w+79);
-            if(X<79 && Y<20) y = US(w+81);
+            if(X<79 && Y) u = US(w-79);
+            if(X && Y<20) b = US(w+79);
+            if(X<79 && Y<20) n = US(w+81);
             us[w] = WALL_TYPE(y,u,h,j,k,l,b,n);
         }
     }
