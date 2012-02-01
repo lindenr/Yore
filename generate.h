@@ -5,17 +5,19 @@
 
 enum LEVEL_TYPE
 {
-    LEVEL_NORMAL = 0,
+    LEVEL_NONE = 0,
+    LEVEL_NORMAL,
     LEVEL_MINES,
-	LEVEL_FOREST,
-	LEVEL_THE_WOLF,
-	LEVEL_THE_RABBIT,
-	LEVEL_BRRH, /* Big Red Riding Hood */
-	LEVEL_BLIND_MICE,
+    LEVEL_FOREST,
+    LEVEL_THE_WOLF,
+    LEVEL_THE_RABBIT,
+    LEVEL_BRRH, /* Big Red Riding Hood */
+    LEVEL_BLIND_MICE,
     LEVEL_END
 };
 
-extern void generate_map(enum LEVEL_TYPE);
+void generate_map (enum LEVEL_TYPE);
+void mons_gen     (int32_t);
 #define DOT ACS_BULLET
 
 #endif /* GENERATE_H_INCLUDED */

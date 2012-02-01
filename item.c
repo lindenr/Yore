@@ -25,6 +25,7 @@ ITEM("gloves",        ITEM_ARMOUR, IT_GLOVES,       70,     0    , COL_TXT_GREEN
 ITEM("lich corpse",   ITEM_CORPSE, IT_CORPSE,    30000,     0    , COL_TXT_BLUE),
 ITEM("hobbit corpse", ITEM_CORPSE, IT_CORPSE,    15000,     0    , COL_TXT_GREEN),
 ITEM("gnome corpse",  ITEM_CORPSE, IT_CORPSE,    15000,     0    , COL_TXT_RED|COL_TXT_GREEN),
+ITEM("acid blob corpse",ITEM_CORPSE,IT_CORPSE,   15000,     0    , COL_TXT_GREEN),
 ITEM(      "",            0,           0,            0,     0    ,      0      )
 /*     item name          display     type       weight attributes     colour (default=0)    */
 };

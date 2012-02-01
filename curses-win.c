@@ -118,6 +118,7 @@ void initscr()
 
 /* Just a placeholder */
 void noecho(){}
+void echo(){}
 void endwin(){}
 
 #define GET_COLOUR_ATTR(x) ((x)>>8)

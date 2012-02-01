@@ -75,7 +75,7 @@ struct Monster
     struct Pack pack;    /* inventory                    */
 	struct WoW  wearing; /* stuff wielding/wearing/using */
 	monst_attr attr;     /* st, co, ch, etc              */
-};
+} __attribute__((__packed__));
 
 void mons_attack    (struct Monster*,int, int);         /* attack in direction                      */
 int  mons_move      (struct Monster*,int, int);         /* move in given directions                 */

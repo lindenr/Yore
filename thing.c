@@ -28,7 +28,7 @@ uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k, u
             else
             {
                 if (j == DOT || j == ' ') return ACS_HLINE;
-                else          return ACS_ULCORNER;
+                else                      return ACS_ULCORNER;
             }
         }
         else
@@ -181,15 +181,16 @@ int* visualise_map ()
         {
             case THING_MONS:
             {
-				struct Monster *m = th.thing;
+				struct Monster *m = th.thing;//pline("%d", m);getch();
                 changed = true;
-				if (m->name[0] == '_')
-                {
-					map[at] = mons[m->type].col | mons[m->type].ch | COL_TXT_BRIGHT;
-                    player = T;
-                }
-                else
-					map[at] = mons[m->type].col | mons[m->type].ch;
+				map[at] = mons[m->type].col | mons[m->type].ch;
+				if (m->name)
+                    if (m->name[0] == '_')
+                    {
+					    map[at] |= COL_TXT_BRIGHT;
+                        player = T;
+                    }
+                sq_attr[at] = 1;
                 break;
             }
             case THING_ITEM:
@@ -200,6 +201,7 @@ int* visualise_map ()
                     map[at] = items[t->type].col | items[t->type].ch;
                     changed = true;
                 }
+                sq_attr[at] = 1;
                 break;
             }
             case THING_DGN:
@@ -270,14 +272,16 @@ struct Thing *get_thing(void *data)
 struct Thing* get_player()
 {
     struct list_iter* i;
+    struct Thing *t;
 	for(i = all_things.beg; iter_good(i); next_iter(&i))
     {
-        if (((struct Thing*)(i->data))->type == THING_MONS)
+        t = i->data;
+        if (t->type == THING_MONS)
         {
-            struct Monster* mon = (struct Monster*)(((struct Thing*)(i->data))->thing);
+            struct Monster* mon = (struct Monster*)(t->thing);
             if(mon->name[0] == '_') /* player */
             {
-                return((struct Thing*)(i->data));
+                return(t);
             }
         }
     }

@@ -72,23 +72,13 @@ uint32_t can_move_to(uint32_t attr)
 #define MAPITEM(nm,ch,at,cl) {nm,ch,at}
 
 struct map_item_struct map_items[] = {
-MAPITEM("lit space", ACS_BULLET, M_TSPT,0),
-MAPITEM("wall", ACS_VLINE,       M_OPQ ,0), 
-MAPITEM("wall", ACS_HLINE,       M_OPQ ,0),
-MAPITEM("wall", ACS_ULCORNER,    M_OPQ ,0),
-MAPITEM("wall", ACS_LLCORNER,    M_OPQ ,0),
-MAPITEM("wall", ACS_URCORNER,    M_OPQ ,0),
-MAPITEM("wall", ACS_LRCORNER,    M_OPQ ,0),
-MAPITEM("wall", ACS_RTEE,        M_OPQ ,0),
-MAPITEM("wall", ACS_LTEE,        M_OPQ ,0),
-MAPITEM("wall", ACS_TTEE,        M_OPQ ,0),
-MAPITEM("wall", ACS_BTEE,        M_OPQ ,0),
-MAPITEM("wall", ACS_PLUS,        M_OPQ ,0),
-MAPITEM("wall", 'W',             M_OPQ ,0),
-MAPITEM("tree", '+',             M_OPQ ,0),
-MAPITEM("flower", '*',           M_TSPT,0),
-MAPITEM("dark space", ' ',       M_TSPT,0),
-MAPITEM("_end_",'\0',            M_OPQ ,0)
+MAPITEM("lit space", ACS_BULLET, M_TSPT, 0),
+MAPITEM("wall",     'W',         M_OPQ , 0),
+MAPITEM("downstair",'>',         M_TSPT, 0),
+MAPITEM("upstair",  '<',         M_TSPT, 0),
+MAPITEM("tree",     '+',         M_OPQ , 0),
+MAPITEM("flower",   '*',         M_TSPT, 0),
+MAPITEM("_end_",    '\0',        M_OPQ , 0)
 };
 
 int GETMAPITEMID(char i)

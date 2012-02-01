@@ -5,132 +5,94 @@
 #include "generate.h"
 #include "rand.h"
 #include "thing.h"
+#include "monst.h"
 #include "map.h"
 
-
-int is_wall (int y, int u, int h, int j, int k, int l, int b, int n)
-{
-    if ((y != DOT) && (u != DOT) && (h != DOT) && (j != DOT)
-        && (k != DOT) && (l != DOT) && (b != DOT) && (n != DOT))
-        return ' ';
-    return 'W';
-}
+char nm[30] = {'_', 'L', 0,};
+struct Monster Pl[] = {{1, 0, 20, 0, nm, {0,}, {0,}, {5,5,5,5,5,5}}};
 
 void generate_map(enum LEVEL_TYPE type)
 {
-	int i, x, Y;
+    int i, x, Y, start;
     int buffer[1680];
     for (i = 0; i < 1680; ++ i)
     {
         buffer[i] = ' ';
     }
-    /* slightly better :/ */
+    /* much better 8) */
     if (type == LEVEL_MINES)
     {
         int t = 200;
-        while (t--) buffer[even_prob(&RNG_main, 1520)+79]=DOT;
+        start = RN(1520)+79;start=85;
+        new_thing(THING_MONS, start/80, start%80, Pl);
+        buffer[start] = DOT;
+        while (t--) buffer[RN(1520)+79]=DOT;
 
         t = 800;
         while (t--)
         {
-            int buf = even_prob(&RNG_main, 1520)+79;
-
-            /* printw("%d\n", buf);refresh(); */
+            int buf = RN(1520)+79;
             if ((buffer[buf] != DOT) && ((buffer[buf+1]==DOT)||(buffer[buf-1]==DOT)
                                          ||(buffer[buf+80]==DOT)||(buffer[buf-80]==DOT)))
                 buffer[buf]=DOT;
             else
                 t++;
         }
-        for (i = 0; i < 1680; ++ i)
-            if (80<=i && i<1600)if(buffer[i] != DOT) buffer[i] = 'W';
-        for (x = 0; x < 80; ++ x)
+        for (i = 80; i < 1680; ++ i)
+            if(buffer[i] != DOT) buffer[i] = 'W';
+        for(i = 0; i < 1680; ++ i)
         {
-            for (Y = 0; Y < 21; ++ Y)
-            {
-                bool both = true;
-                int y=DOT,u=DOT,h=DOT,j=DOT,k=DOT,l=DOT,b=DOT,n=DOT;
-                int buf = x + 80*Y;
-                if (buffer[buf] == DOT) continue;
-                if (x == 0){       y = h = b = DOT; both = false;}
-                else if (x == 79){ u = l = n = DOT; both = false;}
-                /* x-middle */
-                else
-                {
-                    h = buffer[buf-1];
-                    l = buffer[buf+1];
-                }
-                if (Y == 0){       y = k = u = DOT; both = false;}
-                else if (Y == 20){ b = j = n = DOT; both = false;}
-                /* y-middle */
-                else
-                {
-                    k = buffer[buf-80];
-                    j = buffer[buf+80];
-                }
-                if(both)
-                {
-                    y = buffer[buf-81];
-                    u = buffer[buf-79];
-                    b = buffer[buf+79];
-                    n = buffer[buf+81];
-                }
-                buffer[buf] = is_wall(y,u,h,j,k,l,b,n);
-            }
-        }/*
-        for (x = 0; x < 80; ++ x)
-        {
-            for (Y = 0; Y < 21; ++ Y)
-            {
-                int both = true;
-                int y=DOT,u=DOT,h=DOT,j=DOT,k=DOT,l=DOT,b=DOT,n=DOT;
-                int buf = x + 80*Y;
-                if (buffer[buf] != 'W') continue;
-                if (x == 0)      { y = h = b = DOT; both = false;}
-                else if (x == 79){ u = l = n = DOT; both = false;}
-                / * x-middle * /
-                else
-                {
-                    h = buffer[buf-1];
-                    l = buffer[buf+1];
-                }
-                if (Y == 0)      { y = k = u = DOT; both = false;}
-                else if (Y == 20){ b = j = n = DOT; both = false;}
-                / * y-middle * /
-                else
-                {
-                    k = buffer[buf-80];
-                    j = buffer[buf+80];
-                }
-                if (both)
-                {
-                    y = buffer[buf-81];
-                    u = buffer[buf-79];
-                    b = buffer[buf+79];
-                    n = buffer[buf+81];
-                }
-                buffer[buf] = WALL_TYPE(y,u,h,j,k,l,b,n);
-            }
-        }*/
-		for(i = 0; i < 1680; ++ i)
-		{
-			struct map_item_struct *mis = malloc(sizeof(struct map_item_struct));
-			memcpy(mis, &(map_items[GETMAPITEMID(buffer[i])]), sizeof(struct map_item_struct));
-			new_thing(THING_DGN, i/80, i%80, mis);
-		}
+            struct map_item_struct *mis = malloc(sizeof(struct map_item_struct));
+            memcpy(mis, &(map_items[GETMAPITEMID(buffer[i])]), sizeof(struct map_item_struct));
+            new_thing(THING_DGN, i/80, i%80, mis);
+        }
     }
     else if (type == LEVEL_NORMAL)
     {
 
     }
     else if (type == LEVEL_FOREST)
-	{/*
-		struct List lis = get_level_as_list("level_forest");
-		struct list_iter *li;
+    {/*
+        struct List lis = get_level_as_list("level_forest");
+        struct list_iter *li;
 
-		for (li = lis.beg; iter_good(li); next_iter(&li))
-		{
-			
-		}*/ /* Do all that later */
-	}
+        for (li = lis.beg; iter_good(li); next_iter(&li))
+        {
+            
+        }*/ /* Do all that later */
+    }
+}
+
+/* can a monster be generated here? */
+bool is_safe(uint32_t yloc, uint32_t xloc)
+{
+    struct list_iter *i;
+    struct Thing *T;
+    struct map_item_struct *m;
+    for (i = all_things.beg; iter_good(i); next_iter(&i))
+    {
+        T = i->data;
+        if (T->type == THING_MONS && T->yloc == yloc && T->xloc == xloc) return false;
+        if (T->type == THING_DGN  && T->yloc == yloc && T->xloc == xloc)
+        {
+            m = T->thing;
+            if (!m->attr&1) return false;
+        }
+    }
+    return true;
+}
+
+void mons_gen(int32_t luck)
+{
+    if (RN(50) < (10-luck))
+    {
+        struct Monster *p = malloc(sizeof(struct Monster));
+        memset(p, 0, sizeof(struct Monster));
+        p->type = 2;
+        p->HP = 2;
+        p->name = "";
+        uint32_t xloc = RN(75), yloc = RN(15);
+        if (is_safe(yloc, xloc))
+            new_thing(THING_MONS, yloc, xloc, p);
+    }
 }

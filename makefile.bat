@@ -1,3 +1,4 @@
+PATH F:\Fun\minGW\bin
 mingw32-make -j4 -B
 pause
 rem gdb game_binary

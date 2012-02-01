@@ -69,66 +69,36 @@ void game_intro()
 }
 
 /* END INTRO */
-struct Item i[] = {{0, 0, NULL}, {3, ITEM_BLES, NULL}};
-struct Monster m[] = {{1, 0, 20, 0, 0, 0, 0}, {5,0,10,0," ",0,0,0}};
+//struct Item i[] = {{0, 0, NULL}, {3, ITEM_BLES, NULL}};
+//struct Monster m[] = {{1, 0, 20, 0, 0, 0, 0}, {5,0,10,0," ",0,0,0}};
 
 int main ()
 {
+    char input[30];
     int I;
     uint32_t rseed;
     initscr();
     rseed = RNG_get_seed();
 	RNG_main = RNG_INIT(rseed);
 
-#if 0
-	screenshot();
-	//mvaddch(0,2,COL_TXT_GREEN|'H');
-	mvaddch(0,1,COL_TXT_BLUE |'i');
-	mvaddch(0,3,COL_TXT_BLUE |'i');
-	getch();
-	mvline(10, 20, "hello");
-	mvline(8, 75, "hi");
-	mvline(23, 7, "qwer");
-	mvline(1, 10, "asdf");
-getch();
-	unscreenshot();
-#endif
-
 #if defined(DEBUGGING)
 	debug_init("debug_out.txt");
 #endif
 
-#if defined(LIST_TEST) 
-	struct List lis = LIST_INIT;
-	push_back (&lis, "hello");
-	push_back (&lis, " world");
-	struct list_iter *li;
-	printf("\n%d", lis.beg);
-	for (li = lis.beg; iter_good(li); next_iter(&li))
-		printf("%s", li->data);
-	printf("\n%d", lis.beg);
-	for (li = lis.beg; iter_good(li); next_iter(&li))
-		printf("%s", li->data);
-	printf("\n%d", lis.beg);
-	for (li = lis.beg; iter_good(li); next_iter(&li))
-		printf("%s", li->data);
-	printf("\n%d", lis.beg);
-	return 0;
-#endif
-    
-	game_intro();
-	generate_map(LEVEL_MINES);
-    init_map();
-	m[0].name = malloc(30);
 
+	game_intro();
+    generate_map(LEVEL_MINES);
+    init_map();
+/*	m[0].name = malloc(30);
+m[0].name[0] = '_';*/
     print_intro();
-	m[0].name[0] = '_';
     mvprintw(8, 6, "Who are you? ");
 	refresh();
-    getstr(m[0].name+1);
+    //getstr(m[0].name+1);
+    getstr(input);
     noecho();
 
-    new_thing(THING_ITEM, 15, 44, &i[0]);
+    /*new_thing(THING_ITEM, 15, 44, &i[0]);
 	m->pack.items[0] = &(i[1]);
     for (I = 0; I < 6; ++ I)
     {
@@ -136,9 +106,9 @@ getch();
     }
 	new_thing(THING_MONS, 15, 45, &m[0]);
 	new_thing(THING_MONS, 14, 45, &m[1]);
-
+*/
     update_map();
-	
+
 	pline_check();
     while(main_loop())
     {
