@@ -84,6 +84,8 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t *us)
     int Y,X,w;
     int I;
     bres_start (Yloc, Xloc, sq_seen, sq_attr);
+    for (w = 0; w < 1680; ++ w)
+        if(sq_seen[w] == 2) sq_seen[w] = 1;
     for (Y = 0; Y < 21; ++ Y)
         for (X = 0; X < 80; ++ X)
             bres_draw(Y,X);
@@ -155,7 +157,8 @@ struct Thing *new_thing(uint32_t type, uint32_t y, uint32_t x, void *actual_thin
  *  					... 1679
  *  |-------------80-------------|     */
 /* The bottom three lines of the 80*25 console are used for HP, stats, time, etc
- * the top is used for pline() */
+ * the top is used for pline(). A null character signifies nothing - the character
+ * already there should not be overwritten. */
 
 int* visualise_map ()
 {

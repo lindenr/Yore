@@ -41,6 +41,6 @@ void bres_draw(int ty, int tx)
         if (fy == ty && fx == tx) break;
         if (grid_t[to_buffer(fy,fx)] == 0) return; /* can't see B( */
     }
-    grid[to_buffer(fy,fx)] = 1;
+    grid[to_buffer(fy,fx)] = 2;
 }
 

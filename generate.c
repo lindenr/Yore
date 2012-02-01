@@ -84,11 +84,11 @@ bool is_safe(uint32_t yloc, uint32_t xloc)
 
 void mons_gen(int32_t luck)
 {
-    if (RN(50) < (10-luck))
+    if (RN(100) < (10-luck))
     {
         struct Monster *p = malloc(sizeof(struct Monster));
         memset(p, 0, sizeof(struct Monster));
-        p->type = 2;
+        p->type = RN(5)-1;
         p->HP = 2;
         p->name = "";
         uint32_t xloc = RN(75), yloc = RN(15);
