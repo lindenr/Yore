@@ -14,6 +14,9 @@ struct List all_things = LIST_INIT;
 uint8_t sq_attr[1680] = {0,};
 uint8_t sq_seen[1680] = {0,};
 
+uint8_t *get_sq_attr() {return sq_attr;}
+uint8_t *get_sq_seen() {return sq_seen;}
+
 uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k, uint32_t l, uint32_t b, uint32_t n)
 {
     if (h == DOT || h == ' ')

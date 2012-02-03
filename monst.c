@@ -394,13 +394,20 @@ void player_dead(const char *msg, ...)
 int AI_Attack(int fromy, int fromx, int toy, int tox, struct Monster *monst)
 {
     int xmove = 0, ymove = 0;
+    bres_start(fromy, fromx, NULL, get_sq_attr());
+    if (!bres_draw(toy, tox))
+    {
+        mons_move(monst, RN(3)-2, RN(3)-2);
+        return;
+    }
     if (fromy<toy) ymove = 1;
     else if (fromy>toy) ymove = -1;
     if (fromx<tox) xmove = 1;
     else if (fromx>tox) xmove = -1;
     if (!mons_move(monst, ymove, xmove))
         if (!mons_move(monst, ymove, 0))
-            if (!mons_move(monst, 0, xmove)) {}
+            if (!mons_move(monst, 0, xmove))
+                if (!mons_move(monst, -ymove, xmove)){}
     return 1;
 }
 

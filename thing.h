@@ -21,6 +21,8 @@ struct Thing
     void *thing;
 };
 
+uint8_t             *get_sq_attr(void);
+uint8_t             *get_sq_seen(void);
 extern void          rem_by_data(void*);
 extern struct list_iter *get_iter(void*);
 extern struct List   all_things;
