@@ -113,8 +113,9 @@ uint32_t mons_gen(int type, int32_t param)
         {
             struct Monster *p = malloc(sizeof(struct Monster));
             memset(p, 0, sizeof(struct Monster));
-            p->type = RN(5)-1;
-            p->HP = 2;
+            p->type = RN(6)-1;
+            p->HP = 20;
+            p->HP_max = 20;
             p->name = "";
             p->attr[AB_ST] = 5;
             uint32_t xloc = RN(75), yloc = RN(15);

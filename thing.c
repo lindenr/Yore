@@ -101,9 +101,9 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t *us)
         for (X = 0; X < 80; ++ X)
         {
             w = to_buffer(Y,X);
-            if (sq_attr[w] == 2) us[w] |= COL_TXT_BRIGHT;
+            if (sq_seen[w] == 2) us[w] |= COL_TXT_BRIGHT;
             if (sq_attr[w] != 0 || us[w] == ' ') continue;
-            uint32_t y='.', u='.', h='.', j='.', k='.', l='.', b='.', n='.';
+            uint32_t y=DOT, u=DOT, h=DOT, j=DOT, k=DOT, l=DOT, b=DOT, n=DOT;
             if(X) h = US(w-1);
             if(Y) k = US(w-80);
             if(X<79) l = US(w+1);
@@ -112,7 +112,7 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t *us)
             if(X<79 && Y) u = US(w-79);
             if(X && Y<20) b = US(w+79);
             if(X<79 && Y<20) n = US(w+81);
-            if (us[w] == COL_TXT_BRIGHT) us[w] |= WALL_TYPE(y,u,h,j,k,l,b,n);
+            if (us[w]&COL_TXT_BRIGHT) us[w] = WALL_TYPE(y,u,h,j,k,l,b,n)|COL_TXT_BRIGHT;
             else us[w] = WALL_TYPE(y,u,h,j,k,l,b,n);
         }
     }
@@ -197,8 +197,8 @@ int* visualise_map ()
                     {
 					    map[at] |= COL_TXT_BRIGHT;
                         player = T;
+                        sq_attr[at] = 1;
                     }
-                sq_attr[at] = 1;
                 break;
             }
             case THING_ITEM:

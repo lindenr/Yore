@@ -17,8 +17,8 @@ struct item_struct items[] = {
 /*     item name          display     type       weight attributes     colour (default=0)    */
 ITEM("long sword",    ITEM_WEAPON, IT_LONGSWORD,  2000, DMG(1, 5), COL_TXT_RED|COL_TXT_GREEN),
 ITEM("fencing sword", ITEM_WEAPON, IT_LONGSWORD,  1500, DMG(1, 5), COL_TXT_RED|COL_TXT_BLUE),
-ITEM("axe",           ITEM_WEAPON, IT_AXE,        3000, DMG(1, 3), COL_TXT_RED|COL_TXT_GREEN),
-ITEM("battle-axe",    ITEM_WEAPON, IT_AXE,        5000, DMG(1, 5), COL_TXT_RED|COL_TXT_GREEN),
+ITEM("axe",           ITEM_WEAPON, IT_AXE,        3000, DMG(1, 4), COL_TXT_RED|COL_TXT_GREEN),
+ITEM("battle-axe",    ITEM_WEAPON, IT_AXE,        5000, DMG(1, 7), COL_TXT_RED|COL_TXT_GREEN),
 ITEM("dagger",        ITEM_WEAPON, IT_DAGGER,      100, DMG(1, 3), COL_TXT_GREEN),
 ITEM("short sword",   ITEM_WEAPON, IT_SHORTSWORD, 2000, DMG(1, 4), COL_TXT_RED|COL_TXT_GREEN),
 ITEM("gloves",        ITEM_ARMOUR, IT_GLOVES,       70,     0    , COL_TXT_GREEN),
