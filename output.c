@@ -33,9 +33,10 @@ void update_map()
 	{
 		line1[i] = line2[i] = ' ';
 	}
-    sprintf(line1, "%s the %s", mn->name+1, "<ranking>");
-	sprintf(line1+26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d", mn->attr[AB_ST], mn->attr[AB_DX], mn->attr[AB_CO],
-			mn->attr[AB_IN], mn->attr[AB_WI], mn->attr[AB_CH]);
+    sprintf(line1, "%s the %s                  ", mn->name+1, "<ranking>");
+	sprintf(line1+26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d                ", mn->attr[AB_ST], mn->attr[AB_DX],
+            mn->attr[AB_CO],mn->attr[AB_IN], mn->attr[AB_WI], mn->attr[AB_CH]);
+    sprintf(line1+60, "Health: %d     ", mn->HP);
 	
 	/* etc */
 	

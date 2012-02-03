@@ -15,14 +15,14 @@
 
 void mons_attack (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
 {
-	struct Thing *th = get_thing(self);
+    struct Thing *th = get_thing(self);
     apply_attack(self, get_square_monst(th->yloc+y, th->xloc+x, self->level));
 }
 
 int  mons_move (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
 {
     if (self->name[0] != '_')
-	if (!(x|y)) return false;
+    if (!(x|y)) return false;
     struct Thing* t = get_thing(self);
     int can = can_move_to(get_square_attr(t->yloc+y, t->xloc+x, self->level));
     /* like a an unmoveable boulder or something */
@@ -45,7 +45,7 @@ int  mons_move (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
     else if (can == -1)
     {
         /* nothing to do except return false (move not allowed) */
-		return false;
+        return false;
     }
     /* shouldn't get to here
      * been a mistake */
@@ -54,57 +54,58 @@ int  mons_move (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
 
 inline char escape(char a)
 {
-	if (a < 0x20)
-		return a+0x40;
-	else
-		return a;
+    if (a < 0x20)
+        return a+0x40;
+    else
+        return a;
 }
 
 inline bool mons_take_input(struct Thing *th, char in)
 {
-	int xmove=0, ymove=0;
-	if (in == 'h') xmove = -1;
-	else if (in == 'j') ymove = 1;
-	else if (in == 'k') ymove = -1;
-	else if (in == 'l') xmove = 1;
-	else if (in == 'y'){ymove=-1;xmove=-1;}
-	else if (in == 'u'){ymove=-1;xmove=1;}
-	else if (in == 'n'){ymove=1;xmove=1;}
-	else if (in == 'b'){ymove=1;xmove=-1;}
-	else return(-1);
+    int xmove=0, ymove=0;
+    if (in == 'h') xmove = -1;
+    else if (in == 'j') ymove = 1;
+    else if (in == 'k') ymove = -1;
+    else if (in == 'l') xmove = 1;
+    else if (in == 'y'){ymove=-1;xmove=-1;}
+    else if (in == 'u'){ymove=-1;xmove=1;}
+    else if (in == 'n'){ymove=1;xmove=1;}
+    else if (in == 'b'){ymove=1;xmove=-1;}
+    else return(-1);
 
-	return(mons_move(th->thing, ymove, xmove));
+    return(mons_move(th->thing, ymove, xmove));
 }
 
 int  mons_take_move(struct Monster *self)
 {
-	struct Thing *th = get_thing(self);
-	bool screenshotted = false;
+    if(self->HP < self->HP_max && RN(50) < self->attr[AB_CO]) self->HP += (self->level+10)/10;
+    struct Thing *th = get_thing(self);
+    bool screenshotted = false;
     if (self->name[0] == '_')
     {
         while(1)
         {
-			refresh();
-			move(th->yloc+1, th->xloc);
+            refresh();
+            move(th->yloc+1, th->xloc);
             char in = getch();
-			if (pline_check()) line_reset();
-			if (screenshotted)
-			{
-				screenshotted = false;
-				unscreenshot();
-			}
+            if (pline_check()) line_reset();
+            if (screenshotted)
+            {
+                screenshotted = false;
+                unscreenshot();
+            }
             if (in == 'Q') 
             {
                 if (!quit()) return false;
                 continue;
             }
-			//if (in == 'S') return save();
+            //if (in == 'S') return save();
             
-			bool mv = mons_take_input(th, in);
-			if (mv != -1)
-			{
-				if (mv) break;
-			}
+            bool mv = mons_take_input(th, in);
+            if (mv != -1)
+            {
+                if (mv) break;
+            }
             else if (in == '.') break;
             else if (in == ',')
             {
@@ -164,50 +165,50 @@ int  mons_take_move(struct Monster *self)
                 struct list_iter *n;
                 int k = 0;
                 for(n = all_things.beg; iter_good(n); next_iter(&n))
-				{
+                {
                     struct Thing *t_ = n->data;
-					if (t_->type != THING_ITEM) continue;
+                    if (t_->type != THING_ITEM) continue;
                     if (t_->xloc == th->xloc &&
-					    t_->yloc == th->yloc)
-				    {
+                        t_->yloc == th->yloc)
+                    {
                         pline("You%s see here %s. ", ((k++==0)?"":" also"), get_inv_line(((struct Thing*)(n->data))->thing));
                     }
-				}
-				if (k == 0) pline("You see nothing here. ");
-				continue;
-			}
-			else if (in == 'w')
-			{
-				retry:
-				pline("Wield what?");
-				in = getch();
-				if (in == ' ')
-				{
-					line_reset();
-					pline("Never mind.");
-					continue;
-				}
-				struct Item *it = get_Itemc(self->pack, in);
-				if (it == NULL)
-				{
-					pline("No such item.");
-					goto retry;
-				}
-				if (mons_unwield(self))
-					mons_wield(self, it);
-			}
+                }
+                if (k == 0) pline("You see nothing here. ");
+                continue;
+            }
+            else if (in == 'w')
+            {
+                retry:
+                pline("Wield what?");
+                in = getch();
+                if (in == ' ')
+                {
+                    line_reset();
+                    pline("Never mind.");
+                    continue;
+                }
+                struct Item *it = get_Itemc(self->pack, in);
+                if (it == NULL)
+                {
+                    pline("No such item.");
+                    goto retry;
+                }
+                if (mons_unwield(self))
+                    mons_wield(self, it);
+            }
             else
             {
-				screenshot();
-				screenshotted = true;
-				pline ("Unknown command '%s%c'. ", (escape(in)==in?"":"^"), escape(in));
+                screenshot();
+                screenshotted = true;
+                pline ("Unknown command '%s%c'. ", (escape(in)==in?"":"^"), escape(in));
                 continue;
             }
         }
     }
     else
     {
-		struct Thing *pl = get_player();
+        struct Thing *pl = get_player();
         AI_Attack(th->yloc, th->xloc, pl->yloc, pl->xloc, self);
     }
     return true;
@@ -215,15 +216,15 @@ int  mons_take_move(struct Monster *self)
 
 void mons_dead(struct Monster *from, struct Monster* to)
 {
-	if (to->name[0] == '_')
-	{
-		player_dead("");
-		return;
-	}
+    if (to->name[0] == '_')
+    {
+        player_dead("");
+        return;
+    }
     if (from->name[0] == '_')
         pline("You kill the %s!", mons[to->type].name);
     else
-        pline("The %s dies...", mons[to->type].name);
+        pline("The %s kills the %s!", mons[from->type].name, mons[to->type].name);
     uint32_t u = find_corpse(mons[to->type].name);
     if (u != -1)
     {
@@ -240,67 +241,67 @@ void mons_dead(struct Monster *from, struct Monster* to)
 
 inline struct Item **mons_get_weap(struct Monster *self)
 {
-	return &self->wearing.rweap;
+    return &self->wearing.rweap;
 }
 
 bool mons_unwield(struct Monster *self)
 {
-	struct Item **pweap = mons_get_weap(self);
-	struct Item *weap = *pweap;
-	if (weap == NULL) return true;
-	if (weap->attr&ITEM_CURS)
-	{
-		if (self->name[0] == '_')
-		{
-			line_reset();
-			pline("You can't. It's cursed.");
-		}
-		return false;
-	}
-	weap->attr ^= ITEM_WIELDED;
-	*pweap = NULL;
-	return true;
+    struct Item **pweap = mons_get_weap(self);
+    struct Item *weap = *pweap;
+    if (weap == NULL) return true;
+    if (weap->attr&ITEM_CURS)
+    {
+        if (self->name[0] == '_')
+        {
+            line_reset();
+            pline("You can't. It's cursed.");
+        }
+        return false;
+    }
+    weap->attr ^= ITEM_WIELDED;
+    *pweap = NULL;
+    return true;
 }
 
 bool mons_wield(struct Monster *self, struct Item *it)
 {
-	self->wearing.rweap = it;
-	it->attr ^= ITEM_WIELDED;
-	if (self->name[0] == '_')
-	{
-		line_reset();
-		item_look(it);
-	}
-	return true;
+    self->wearing.rweap = it;
+    it->attr ^= ITEM_WIELDED;
+    if (self->name[0] == '_')
+    {
+        line_reset();
+        item_look(it);
+    }
+    return true;
 }
 
 bool mons_wear(struct Monster *self, struct Item *it)
 {
-	if(items[it->type].ch != ITEM_ARMOUR)
-	{
-		if (self->name[0] == '_')
-		{
-			line_reset();
-			pline("You can't wear that!");
-		}
-		return false;
-	}
-	switch(it->type)
-	{
-		case IT_GLOVES:
-		{
-			self->wearing.hands = it;
+    if(items[it->type].ch != ITEM_ARMOUR)
+    {
+        if (self->name[0] == '_')
+        {
+            line_reset();
+            pline("You can't wear that!");
+        }
+        return false;
+    }
+    switch(it->type)
+    {
+        case IT_GLOVES:
+        {
+            self->wearing.hands = it;
             break;
-		}
-		default:
-		{
+        }
+        default:
+        {
 #define DEBUGGING
 #if defined(DEBUGGING)
-			pline("_ERR: "ARMOUR" not recognised: %s", items[it->type].name);
+            pline("_ERR: "ARMOUR" not recognised: %s", items[it->type].name);
 #endif /* DEBUGGING */
-		}
-	}
-	/* message */
+        }
+    }
+    /* message */
 }
 
 #include "all_mon.h"
@@ -326,60 +327,63 @@ void mons_passive_attack (struct Monster *self, struct Monster *to)
 
 inline void apply_attack(struct Monster *from, struct Monster *to)
 {
-	uint32_t t;
+    uint32_t t;
+    char ton[128];
 
     for (t = 0; t < A_NUM; ++ t)
-	{
+    {
         if (!mons[from->type].attacks[t][0]) break;
-		switch(mons[from->type].attacks[t][2]&0xFFFF)
-		{
-			case ATTK_HIT:
-			{
-				struct Item **it = mons_get_weap(from);
-				if (!it || !(*it))
-				{
+        switch(mons[from->type].attacks[t][2]&0xFFFF)
+        {
+            case ATTK_HIT:
+            {
+                struct Item **it = mons_get_weap(from);
+                if (!it || !(*it))
+                {
                     to->HP -= RN(from->attr[AB_ST]);
-				    if (from->name[0] == '_') pline("You hit the %s!", mons[to->type].name);
-				    else if (to->name[0] == '_') pline("The %s hits you!", mons[from->type].name);
+                    if (from->name[0] == '_') pline("You hit the %s!", mons[to->type].name);
+                    else pline("The %s hits %s!", mons[from->type].name,
+                               to->name[0]=='_'?"you":(gram_the(ton, mons[to->type].name), ton)); 
                     mons_passive_attack (to, from);
                     break;
-				}
-				struct item_struct is = items[(*it)->type];
-				to->HP -= RND(is.attr&15, (is.attr>>4)&15);
-				if (from->name[0] == '_') pline("You smite the %s!", mons[to->type].name);
-				else if (to->name[0] == '_') pline("The %s hits you!", mons[from->type].name);
+                }
+                struct item_struct is = items[(*it)->type];
+                to->HP -= RND(is.attr&15, (is.attr>>4)&15);
+                if (from->name[0] == '_') pline("You smite the %s!", mons[to->type].name);
+                else pline("The %s hits %s!", mons[from->type].name,
+                           to->name[0]=='_'?"you":(gram_the(ton, mons[to->type].name), ton));
                 mons_passive_attack (to, from);
-				break;
-			}
-			case ATTK_TOUCH:
-			{
-				to->HP -= RND(mons[from->type].attacks[t][0], mons[from->type].attacks[t][1]);
-				if (from->name[0] == '_') pline("You touch the %s!", mons[to->type].name);
-				else if (to->name[0] == '_') pline("The %s touches you!", mons[from->type].name);
+                break;
+            }
+            case ATTK_TOUCH:
+            {
+                to->HP -= RND(mons[from->type].attacks[t][0], mons[from->type].attacks[t][1]);
+                if (from->name[0] == '_') pline("You touch the %s!", mons[to->type].name);
+                else if (to->name[0] == '_') pline("The %s touches you!", mons[from->type].name);
                 mons_passive_attack (to, from);
-				break;
-			}
-			case ATTK_MAGIC:
-			{pline("Magic attack not implemented");
-				break;
-			}
-		}
-	}
+                break;
+            }
+            case ATTK_MAGIC:
+            {pline("Magic attack not implemented");
+                break;
+            }
+        }
+    }
     if (to->HP <= 0) mons_dead(from, to);
 }
 
 void player_dead(const char *msg, ...)
 {
-	va_list args;
-	char *actual = malloc(sizeof(char)*80);
-	
-	va_start(args, msg);
-	if (msg == "") msg = "You die...";
-	vsprintf(actual, msg, args);
-	line_reset();
-	pline(actual);
-	getch();
-	va_end(args);
+    va_list args;
+    char *actual = malloc(sizeof(char)*80);
+    
+    va_start(args, msg);
+    if (msg == "") msg = "You die...";
+    vsprintf(actual, msg, args);
+    line_reset();
+    pline(actual);
+    getch();
+    va_end(args);
 }
 
 /* END MONSTERS */
@@ -395,8 +399,8 @@ int AI_Attack(int fromy, int fromx, int toy, int tox, struct Monster *monst)
     if (fromx<tox) xmove = 1;
     else if (fromx>tox) xmove = -1;
     if (!mons_move(monst, ymove, xmove))
-		if (!mons_move(monst, ymove, 0))
-			if (!mons_move(monst, 0, xmove)) {}
+        if (!mons_move(monst, ymove, 0))
+            if (!mons_move(monst, 0, xmove)) {}
     return 1;
 }
 

@@ -17,7 +17,7 @@ enum LEVEL_TYPE
 };
 
 void generate_map (enum LEVEL_TYPE);
-void mons_gen     (int32_t);
+uint32_t mons_gen     (int, int32_t);
 #define DOT ACS_BULLET
 
 #endif /* GENERATE_H_INCLUDED */

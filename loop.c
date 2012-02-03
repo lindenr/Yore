@@ -20,7 +20,7 @@ bool main_loop()
     struct list_iter* i;
     ++Time;
     mvprintw(23, 0, "Time: %d", Time);
-    mons_gen(-15); /* certain to generate monsters - TODO change me! */
+    mons_gen(2, -15); /* certain to generate monsters - TODO change me! */
     for(i = all_things.beg; iter_good(i); next_iter(&i))
     {
         if (((struct Thing*)(i->data))->type == THING_MONS)

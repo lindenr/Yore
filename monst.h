@@ -68,14 +68,15 @@ extern const struct monster_struct mons[];
 struct Monster
 {
     uint32_t type;       /* monster type                 */
-    int32_t  level;      /* dungeon level                */
-    int      HP;         /* HP                           */
+    int32_t  level;      /* EXP level                    */
+    int32_t  HP;         /* current HP                   */
+    int32_t HP_max;      /* maximum HP                   */
     uint32_t cur_speed;  /* current speed-state          */
     char    *name;       /* label                        */
     struct Pack pack;    /* inventory                    */
 	struct WoW  wearing; /* stuff wielding/wearing/using */
 	monst_attr attr;     /* st, co, ch, etc              */
-} __attribute__((__packed__));
+};
 
 void mons_attack    (struct Monster*,int, int);         /* attack in direction                      */
 int  mons_move      (struct Monster*,int, int);         /* move in given directions                 */

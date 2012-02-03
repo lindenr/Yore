@@ -98,7 +98,8 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t *us)
         for (X = 0; X < 80; ++ X)
         {
             w = to_buffer(Y,X);
-            if (sq_attr[w] == 1 || us[w] == ' ') continue;
+            if (sq_attr[w] == 2) us[w] |= COL_TXT_BRIGHT;
+            if (sq_attr[w] != 0 || us[w] == ' ') continue;
             uint32_t y='.', u='.', h='.', j='.', k='.', l='.', b='.', n='.';
             if(X) h = US(w-1);
             if(Y) k = US(w-80);
@@ -108,7 +109,8 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t *us)
             if(X<79 && Y) u = US(w-79);
             if(X && Y<20) b = US(w+79);
             if(X<79 && Y<20) n = US(w+81);
-            us[w] = WALL_TYPE(y,u,h,j,k,l,b,n);
+            if (us[w] == COL_TXT_BRIGHT) us[w] |= WALL_TYPE(y,u,h,j,k,l,b,n);
+            else us[w] = WALL_TYPE(y,u,h,j,k,l,b,n);
         }
     }
 }
