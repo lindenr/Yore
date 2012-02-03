@@ -52,6 +52,22 @@ int  mons_move (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
     return false;
 }
 
+void thing_go_up(struct Thing *th)
+{
+    uint32_t yloc, xloc;
+    get_upstair(&yloc, &xloc);
+    if (th->yloc == yloc && th->xloc == xloc) {}//thing_move_level(th, -1);
+    else pline("You can't go up here.");
+}
+
+void thing_go_down(struct Thing *th)
+{
+    uint32_t yloc, xloc;
+    get_downstair(&yloc, &xloc);
+    if (th->yloc == yloc && th->xloc == xloc) {}//thing_move_level(th, 1);
+    else pline("You can't go down here.");
+}
+
 inline char escape(char a)
 {
     if (a < 0x20)
@@ -157,6 +173,14 @@ int  mons_take_move(struct Monster *self)
                 screenshotted = true;
                 show_contents(self->pack);
                 continue;
+            }
+            else if (in == '<')
+            {
+                thing_go_up(th);
+            }
+            else if (in == '>')
+            {
+                thing_go_down(th);
             }
             else if (in == ':')
             {

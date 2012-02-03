@@ -149,9 +149,10 @@ void write_con(uint32_t *n, char *s, uint32_t len)
         printf("%c[0m", CHR_ESC);
         if(u&1) printf("%c[%dm", CHR_ESC, ACTUAL_COLOURS[0]);
         u >>= 1;
-        if (!u&7) printf("%c[37m", CHR_ESC);
-        else printf("%c[%dm", CHR_ESC, 30+(u&7));
+        if (u&7)
+            printf("%c[%dm", CHR_ESC, 30+(u&7));
         u >>= 3;
+        if (u&8) printf("%c[%dm", CHR_ESC, ACTUAL_COLOURS[7]);
         printf("%c", s[i]);
     }
 }

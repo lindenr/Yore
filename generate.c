@@ -8,6 +8,20 @@
 #include "monst.h"
 #include "map.h"
 
+uint32_t upsy, upsx, downsy, downsx;
+
+void get_upstair(uint32_t *yloc, uint32_t *xloc)
+{
+    *yloc = upsy;
+    *xloc = upsx;
+}
+
+void get_downstair(uint32_t *yloc, uint32_t *xloc)
+{
+    *yloc = downsy;
+    *xloc = downsx;
+}
+
 void generate_map(enum LEVEL_TYPE type)
 {
     int i, x, Y, start;
@@ -16,14 +30,13 @@ void generate_map(enum LEVEL_TYPE type)
     {
         buffer[i] = ' ';
     }
-    /* much better 8) */
     if (type == LEVEL_MINES)
     {
         int t = 200;
-        start = RN(1520)+79;start=85;
-        buffer[start] = ' ';
-        buffer[mons_gen(0, RN(1520))] = ' ';
-        while (t--) buffer[RN(1520)+79]=DOT;
+        start = RN(1520) + 79;
+        mons_gen(0, start);
+        buffer[mons_gen(1, start)] = DOT;
+        while (t--) buffer[RN(1520)+79]  = DOT;
 
         t = 800;
         while (t--)
@@ -35,11 +48,10 @@ void generate_map(enum LEVEL_TYPE type)
             else
                 t++;
         }
-        for (i = 80; i < 1680; ++ i)
-            if(buffer[i] != DOT) buffer[i] = 'W';
+        for (i = 0; i < 1680; ++ i)
+            if (buffer[i] != DOT || ((i+1)%80) <= 1) buffer[i] = 'W'; /* will be a wall if it is at edge of screen, or if it is not a space */
         for(i = 0; i < 1680; ++ i)
         {
-            if (buffer[i] == ' ') continue;
             struct map_item_struct *mis = malloc(sizeof(struct map_item_struct));
             memcpy(mis, &(map_items[GETMAPITEMID(buffer[i])]), sizeof(struct map_item_struct));
             new_thing(THING_DGN, i/80, i%80, mis);
@@ -84,8 +96,7 @@ bool is_safe(uint32_t yloc, uint32_t xloc)
  * 0 = initialised at start of game,
  * 1 = generated at start of level,
  * 2 = randomly throughout level    */
-char nm[30] = {'_', 'L', 0,};
-struct Monster Pl[] = {{1, 0, 20, 20, 0, nm, {0,}, {0,}, {5,5,5,5,5,5}}};
+struct Monster Pl[] = {{1, 0, 20, 20, 0, "_Linden", {0,}, {0,}, {5,5,5,5,5,5}}};
 
 uint32_t mons_gen(int type, int32_t param)
 {
@@ -95,15 +106,22 @@ uint32_t mons_gen(int type, int32_t param)
     if (type == 0)
     {
         start = param;
-        new_thing(THING_MONS, start/80, start%80, Pl);
+        upsy = start/80; upsx = start%80;
+        new_thing(THING_MONS, upsy, upsx, Pl);
+    }
+    else if (type == 1)
+    {
+        start = param;
+        upsy = start/80; upsx = start%80;
         mis = malloc(sizeof(struct map_item_struct));
         memcpy(mis, &(map_items[GETMAPITEMID('<')]), sizeof(struct map_item_struct));
-        new_thing(THING_DGN, start/80, start%80, mis);
-        do end = RN(1520);
+        new_thing(THING_DGN, upsy, upsx, mis);
+        do end = RN(1520) + 79;
         while(end == start);
+        downsy = end/80; downsx = end%80;
         mise = malloc(sizeof(struct map_item_struct));
         memcpy(mise, &(map_items[GETMAPITEMID('>')]), sizeof(struct map_item_struct));
-        new_thing(THING_DGN, end/80, end%80, mise);
+        new_thing(THING_DGN, downsy, downsx, mise);
         return end;
     }
     else if (type == 2)
