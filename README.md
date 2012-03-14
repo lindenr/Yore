@@ -10,8 +10,7 @@ At the moment Yore is capable of running only on Windows and Linux systems.
 
 1.  you must have make and gcc installed;
 2.  [optional:] get rid of the -ggdb flags in makefile;
-3.  [optional:] open build-linux (if you leave it, game_binary will be copied to ~/Desktop/) and comment out lines 3-4;
-4.  run <pre>bash build-linux</pre>
+3.  run <pre>bash build-linux</pre>
 
 ####For Windows:
 
@@ -29,12 +28,16 @@ Feel free to add to the list if you have a different operating system handy.
 
 ##Gameplay
 
-Movement in Yore is largely similar to NetHack, so NetHack players have to relearn the m
+Gameplay in Yore is largely similar to NetHack. 
 
 ###Movement
 
 Movement with the hjkl set (yubn for diagonals) is supported; running using a capital letter (HJKLYUBN) is not implemented yet.
-You may also use the arrow keys to move, but you can't move diagonally. Also, don't try moving through typed text with the arrow
-keys - they have been mapped directly to hjkl for movement.
+On windows you may also use the arrow keys to move, but you win't be able to move diagonally. Also, don't try moving through typed commands with the arrow keys - on Windows they have been mapped to hjkl and on Linux to ABCD.
 
+###Miscellaneous
+
+Various other commands are (in no particular order):
+<pre>e      eat
+,      pick up</pre>
 
