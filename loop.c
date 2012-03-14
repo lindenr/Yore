@@ -11,6 +11,12 @@
 
 uint64_t Time = 0;
 
+void next_time()
+{
+    ++ Time;
+    if (digesting()) ++ U.hunger;
+}
+
 bool main_loop()
 {
     char *msg = 0;
@@ -18,9 +24,8 @@ bool main_loop()
     struct Thing *pl = get_player();
     struct Monster *mn = pl->thing;
     struct list_iter* i;
-    ++Time;
-    mvprintw(23, 0, "Time: %d", Time);
-    mons_gen(2, -15); /* certain to generate monsters - TODO change me! */
+    next_time();
+    mons_gen(2, -15);
     for(i = all_things.beg; iter_good(i); next_iter(&i))
     {
         if (((struct Thing*)(i->data))->type == THING_MONS)
@@ -36,12 +41,14 @@ bool main_loop()
             }
             move(pl->yloc+1, pl->xloc);
             if (mn->HP <= 0) return false;
+            /* The player can live with no dexterity and/or charisma, but there are
+             * other penalties (fumbling, aggravation etc). */
             if (mn->attr[AB_ST] <= 0) msg = "weakness";
             if (mn->attr[AB_CO] <= 0) msg = "flabbiness";
             if (mn->attr[AB_IN] <= 0) msg = "brainlessness";
             if (mn->attr[AB_WI] <= 0) msg = "foolishness";
-            /* The player can live with no dexterity and/or charisma, but there are
-             * other penalties (fumbling, aggravation etc). */
+			if (U.hunger > ABSOLUTE_HUNGER_LIMIT) msg = "hunger";
+			if (U.hunger <= 1) msg = "consumption";
             if (msg)
             {
                 player_dead("You die of %s.", msg);

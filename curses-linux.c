@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
 
 #include <termios.h>
 #include <unistd.h>
@@ -56,6 +57,13 @@ void vprintw(const char *str, va_list args)
     for(i = 0; i < length; ++ i)
         New_buffer[buf+i] = buffer[i];
     move((buf+length)/80, (buf+length)%80);
+}
+
+uint32_t tout_num = 0;
+void in_tout(uint32_t n)
+{
+    tout_num = n;
+    toutify(n!=0);
 }
 
 void printw(const char *str, ...)
@@ -114,6 +122,14 @@ void echo()
     struct termios tm;
     tcgetattr(STDIN_FILENO, &tm);
     tm.c_lflag |= ICANON|ECHO;
+    tcsetattr(STDIN_FILENO, TCSANOW, &tm);
+}
+
+void toutify(int n)
+{
+	struct termios tm;
+	tcgetattr(STDIN_FILENO, &tm);
+    tm.c_cc[VMIN] = !n;
     tcsetattr(STDIN_FILENO, TCSANOW, &tm);
 }
 
@@ -185,17 +201,21 @@ void refresh()
 
 char getch()
 {
-	char ret;
+    if (!tout_num) return getchar();
+    char ret;
+    clock_t end;
 
     refresh();
-    ret = getchar();
+    end = tout_num*CLOCKS_PER_SEC/1000 + clock();
+    do ret = getchar();
+    while(clock() < end && ret == EOF);
 
     return ret;
 }
 
 char *getstr(char *str)
 {
-	fgets(str, 80, stdin);
+    fgets(str, 80, stdin);
     str[strlen(str)-1] = 0;
     return str;
 }

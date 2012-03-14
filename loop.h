@@ -20,6 +20,6 @@ in = getch();
 
 bool     main_loop (void);
 char     in;
-uint64_t Time;
+extern uint64_t Time;
 
 #endif /* LOOP_H_INCLUDED */

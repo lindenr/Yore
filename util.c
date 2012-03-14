@@ -4,6 +4,7 @@
 #include "all.h"
 #include "util.h"
 #include "pline.h"
+#include "save.h"
 
 uint32_t Abs(int32_t i)
 {
@@ -20,7 +21,12 @@ char *get_name (char *n)
 // false is quit, true is stay
 bool quit()
 {
-    return(pask("yn", "Are you sure you want to quit?") == 'n');
+    if (pask("yn", "Are you sure you want to quit -- permanently?") == 'y')
+    {
+        destroy_save_file();
+        return false;
+    }
+    return true;
 }
 
 bool is_in (const char*str, char q)

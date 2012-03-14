@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
+
 #include <windows.h>
 #include <wincon.h>
 
@@ -55,6 +57,12 @@ void mvaddch(uint32_t y, uint32_t x, uint32_t ch)
     cursor.xloc = x;
 
     addch(ch);
+}
+
+uint32_t tout_num = 0;
+void in_tout(uint32_t n)
+{
+	tout_num = n;
 }
 
 void vprintw(const char *str, va_list args)
@@ -191,14 +199,18 @@ char getch()
     char ret;
     DWORD n;
     INPUT_RECORD i;
+    clock_t end = tout_num*CLOCKS_PER_SEC/1000 + clock();
 
     try_again:
-    ReadConsoleInput(rHnd, &i, 1, &n);
-    while(i.EventType != KEY_EVENT)
+    do
     {
         Sleep(20);
+        PeekConsoleInput(rHnd, &i, 1, &n);
+		if (n==0 && tout_num) continue;
         ReadConsoleInput(rHnd, &i, 1, &n);
     }
+    while(i.EventType != KEY_EVENT && clock() < end);
+	if(clock() >= end && tout_num) return EOF;
 
 	KEY_EVENT_RECORD k = i.Event.KeyEvent;
 	if((k.bKeyDown == TRUE) && (k.wRepeatCount > 0) && (k.wVirtualKeyCode > 0)
@@ -209,8 +221,7 @@ char getch()
 		ret = k.uChar.AsciiChar;
 	else if (k.bKeyDown == TRUE && 0x24 < k.wVirtualKeyCode && k.wVirtualKeyCode < 0x29)
 		ret = KEYS[k.wVirtualKeyCode-0x25];
-	else
-		goto try_again;
+	else goto try_again;
     return ret;
 }
 

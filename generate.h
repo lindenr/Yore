@@ -2,6 +2,7 @@
 #define GENERATE_H_INCLUDED
 
 #include "mycurses.h"
+#include "bool.h"
 
 enum LEVEL_TYPE
 {
@@ -16,10 +17,10 @@ enum LEVEL_TYPE
     LEVEL_END
 };
 
-void get_upstair  (uint32_t*, uint32_t*);
-void get_downstair(uint32_t*, uint32_t*);
-void generate_map (enum LEVEL_TYPE);
+void     generate_map (enum LEVEL_TYPE);
 uint32_t mons_gen     (int, int32_t);
+bool     is_safe_gen  (uint32_t, uint32_t);
+
 #define DOT ACS_BULLET
 
 #endif /* GENERATE_H_INCLUDED */

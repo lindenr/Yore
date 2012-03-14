@@ -74,7 +74,7 @@ void generate_map(enum LEVEL_TYPE type)
 }
 
 /* can a monster be generated here? */
-bool is_safe(uint32_t yloc, uint32_t xloc)
+bool is_safe_gen(uint32_t yloc, uint32_t xloc)
 {
     struct list_iter *i;
     struct Thing *T;
@@ -96,7 +96,7 @@ bool is_safe(uint32_t yloc, uint32_t xloc)
  * 0 = initialised at start of game,
  * 1 = generated at start of level,
  * 2 = randomly throughout level    */
-struct Monster Pl[] = {{1, 0, 20, 20, 0, "_Linden", {0,}, {0,}, {5,5,5,5,5,5}}};
+struct Monster Pl[] = {{1, 0, 20, 20, 0, "_Linden", {0,}, {0,}, {5,5,5,5,5,5}, 0, 0}};
 
 uint32_t mons_gen(int type, int32_t param)
 {
@@ -108,6 +108,7 @@ uint32_t mons_gen(int type, int32_t param)
         start = param;
         upsy = start/80; upsx = start%80;
         new_thing(THING_MONS, upsy, upsx, Pl);
+        U.player = get_player();
     }
     else if (type == 1)
     {
@@ -137,7 +138,7 @@ uint32_t mons_gen(int type, int32_t param)
             p->name = "";
             p->attr[AB_ST] = 5;
             uint32_t xloc = RN(75), yloc = RN(15);
-            if (is_safe(yloc, xloc))
+            if (is_safe_gen(yloc, xloc))
                 new_thing(THING_MONS, yloc, xloc, p);
         }
     }

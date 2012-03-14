@@ -18,6 +18,27 @@ struct WoW /* Wielded or Worn */
 	bool two_weaponing;
 };
 
+#define M_EATING 1
+#define M_POLY   2
+
+enum S_HUN
+{
+    S_HUN_FULL = 0,
+    S_HUN_NOT,
+    S_HUN_GRY,
+    S_HUN_VERY,
+    S_HUN_STA
+};
+
+#define ABSOLUTE_HUNGER_LIMIT 1000
+extern char *s_hun[];
+
+struct player_status
+{
+    uint32_t hunger;
+    struct Thing *player;
+} extern U;
+
 enum ABLTY /* ability */
 {
 	AB_ST = 0,
@@ -76,18 +97,29 @@ struct Monster
     struct Pack pack;    /* inventory                    */
 	struct WoW  wearing; /* stuff wielding/wearing/using */
 	monst_attr attr;     /* st, co, ch, etc              */
+	uint32_t status;     /* is it eating polymorphed etc */
+    struct Item *eating; /* eating something (0 if not)  */
 };
 
+/* general monster functions */
 void mons_attack    (struct Monster*,int, int);         /* attack in direction                      */
 int  mons_move      (struct Monster*,int, int);         /* move in given directions                 */
 void mons_dead      (struct Monster*,struct Monster*);  /* this monster is dead                     */
 int  mons_take_move (struct Monster*);                  /* give a move (AI or player)               */
 bool mons_unwield   (struct Monster*);                  /* unwield what is currently wielded        */
 bool mons_wield     (struct Monster*,struct Item*);     /* wield an item (any item)                 */
+void mons_eat       (struct Monster*,struct Item*);     /* eat something                            */
+bool mons_eating    (struct Monster*);                  /* continue eating something                */
 bool mons_can_hear  (struct Monster*);                  /* has ears? no?                            */
 struct Item **mons_get_weap(struct Monster *);          /* what weapon is wielded?                  */
-void player_dead    (const char *, ...);                /* the player is dead - absolute end of game (AoLS will *not* trigger this) */
+
+/* player functions */
+void player_dead    (const char *, ...);                /* the player is dead; absolute end of game */
 void player_exc     (enum ABLTY, uint32_t);             /* exercise a given ablty by a given amount */
+
+/* player_status functions */
+char *get_hungerstr  (void);                            /* get the hunger-string ("Starved" etc) of the player */
+bool  digesting      (void);                            /* is the player digesting? */
 
 void            apply_attack    (struct Monster*, struct Monster*);
 struct Monster *get_square_monst(uint32_t, uint32_t, int);

@@ -15,10 +15,13 @@ void noecho    (void);
 void echo      (void);
 void endwin    (void);
 void refresh   (void);
+void wait_ms   (unsigned);
+void in_tout   (unsigned);
+void toutify   (int);
 char getch     (void);
 char*getstr    (char *);
 
-uint32_t get_buffter(uint32_t,uint32_t);
+uint32_t get_buffer(uint32_t,uint32_t);
 
 #define CLR(n) ((n)<<8)
 

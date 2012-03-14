@@ -35,7 +35,8 @@ enum ITEM_TYPE
 #define ITEM_TOOL    '('
 #define ITEM_STRANGE ']'
 #define ITEM_ARMOUR  '['
-#define ITEM_CORPSE  '%'
+#define ITEM_FOOD    '%'
+#define ITEM_CORPSE  ITEM_FOOD
 
 #define ITEM_INIT = {0,0,""}
 
@@ -55,6 +56,7 @@ struct Item
 {
 	int32_t  type;
 	uint32_t attr;
+	uint32_t cur_weight;
 	char    *name;
 };
 

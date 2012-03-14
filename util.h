@@ -3,9 +3,9 @@
 
 #include "bool.h"
 
-extern uint32_t Abs(int32_t);
-extern char    *get_name(char*);
-extern bool     quit();
-extern bool     is_in(const char*, char);
+uint32_t Abs(int32_t);
+char    *get_name(char*);
+bool     quit();
+bool     is_in(const char*, char);
 
 #endif // UTIL_H_INCLUDED

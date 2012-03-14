@@ -109,7 +109,7 @@ void mvline(uint32_t yloc, uint32_t xloc, const char *txt, ...)
 void pline(const char* out, ...)
 {
 	va_list args;
-	char *actual = malloc(sizeof(char)*80);
+	char *actual = malloc(sizeof(char)*500);
 	plined = true;
 
 	va_start(args, out);
@@ -122,6 +122,11 @@ void pline(const char* out, ...)
 void aline(const char*out)
 {
 	plined = true;
+	if (strlen(out) > 75)
+	{
+		/* TODO change */
+		out = "pline length exceeded";
+	}
 	if (msg_size_pline + strlen(out) >= 71)
 	{
 		mvprintw(line_pline,msg_size_pline,"--more--");

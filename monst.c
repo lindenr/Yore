@@ -11,7 +11,32 @@
 #include "mycurses.h"
 #include "bool.h"
 #include "loop.h"
+#include "save.h"
 #include <stdarg.h>
+
+struct player_status U;
+char *s_hun[] = {
+    "Full   ",
+    "       ",
+    "Hungry ",
+    "Hungry!",
+    "Starved",
+    "Dead   "};
+
+char *get_hungerstr()
+{
+	if (U.hunger < 100) return s_hun[0];
+	if (U.hunger < 125) return s_hun[1];
+	if (U.hunger < 500) return s_hun[2];
+	if (U.hunger < 730) return s_hun[3];
+	if (U.hunger < 1000) return s_hun[4];
+	return s_hun[5];
+}
+
+bool digesting()
+{
+	return true;
+}
 
 void mons_attack (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
 {
@@ -52,22 +77,6 @@ int  mons_move (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
     return false;
 }
 
-void thing_go_up(struct Thing *th)
-{
-    uint32_t yloc, xloc;
-    get_upstair(&yloc, &xloc);
-    if (th->yloc == yloc && th->xloc == xloc) {}//thing_move_level(th, -1);
-    else pline("You can't go up here.");
-}
-
-void thing_go_down(struct Thing *th)
-{
-    uint32_t yloc, xloc;
-    get_downstair(&yloc, &xloc);
-    if (th->yloc == yloc && th->xloc == xloc) {}//thing_move_level(th, 1);
-    else pline("You can't go down here.");
-}
-
 inline char escape(char a)
 {
     if (a < 0x20)
@@ -92,15 +101,39 @@ inline bool mons_take_input(struct Thing *th, char in)
     return(mons_move(th->thing, ymove, xmove));
 }
 
+void thing_move_level(struct Thing *th, int32_t where)
+{
+    uint32_t wh;
+    if(where == 0) /* Uncontrolled teleport within level */
+    {
+        do wh = RN(1680);
+        while(!is_safe_gen(wh/80, wh%80));
+        th->yloc = wh/80;
+        th->xloc = wh%80;
+    }
+    else if (where == 1) /* go up stairs */
+    {
+    }
+    else if (where == -1) /* go down stairs */
+    {
+    }
+    else /* levelport -- always uncontrolled, see thing_move_level_c(TODO) for controlled teleportation */
+    {
+        where >>= 1; /* LSB is unused */
+    }
+}
+
 int  mons_take_move(struct Monster *self)
 {
     if(self->HP < self->HP_max && RN(50) < self->attr[AB_CO]) self->HP += (self->level+10)/10;
+	if (mons_eating(self)) return true;
     struct Thing *th = get_thing(self);
     bool screenshotted = false;
     if (self->name[0] == '_')
     {
         while(1)
         {
+            if (mons_eating(self)) return true;
             refresh();
             move(th->yloc+1, th->xloc);
             char in = getch();
@@ -115,7 +148,11 @@ int  mons_take_move(struct Monster *self)
                 if (!quit()) return false;
                 continue;
             }
-            //if (in == 'S') return save();
+            if (in == 'S')
+            {
+                save();
+                return false;
+            }
             
             bool mv = mons_take_input(th, in);
             if (mv != -1)
@@ -144,7 +181,16 @@ int  mons_take_move(struct Monster *self)
                     pack_add(&self->pack, ((struct Thing*)(Li.beg->data))->thing);
                     rem_by_data(((struct Thing*)(Li.beg->data))->thing);
                 }
+                else
+                {
+                    // TODO add support for multiple items
+                }
             }
+			else if (in == 'e')
+			{
+				mons_eat(self, self->pack.items[0]);
+                break;
+			}
             else if (in == 'd')
             {
                 char *cs;
@@ -168,19 +214,13 @@ int  mons_take_move(struct Monster *self)
                     new_thing(THING_ITEM, th->yloc, th->xloc, it);
                 }
             }
+            else if (in == '>') thing_move_level(th, 0);
+            else if (in == '<') thing_move_level(th, -1);
             else if (in == 'i')
             {
                 screenshotted = true;
                 show_contents(self->pack);
                 continue;
-            }
-            else if (in == '<')
-            {
-                thing_go_up(th);
-            }
-            else if (in == '>')
-            {
-                thing_go_down(th);
             }
             else if (in == ':')
             {
@@ -258,9 +298,61 @@ void mons_dead(struct Monster *from, struct Monster* to)
         it->type = u;
         it->attr = 0;
         it->name = NULL;
+        it->cur_weight = 0;
         new_thing(THING_ITEM, t->yloc, t->xloc, it);
     }
     rem_by_data(to);
+}
+
+/* TODO is it polymorphed? */
+inline bool mons_edible(struct Monster *self, struct Item *item)
+{
+	return (items[item->type].ch == ITEM_FOOD);
+}
+
+bool mons_eating(struct Monster *self)
+{
+	int hunger_loss;
+    struct Item *item = self->eating;
+    if (!item) return false;
+	if (item->cur_weight < 500)
+	{
+		if (self->name[0] == '_')
+		{
+			if (U.hunger > (item->cur_weight>>3)) U.hunger -= item->cur_weight>>3;
+			else U.hunger = 0; /* death by overeating */
+			pline("You finish eating.");
+		}
+        self->status &= ~M_EATING;
+        self->eating = NULL;
+		rem_by_data(item);
+		return false;
+	}
+    hunger_loss = RN(50) + 200;
+    //pline("B4: %d", item->cur_weight);
+    item->cur_weight -= hunger_loss<<1;
+    //pline("After: %d", item->cur_weight);
+    if (self->name[0] == '_') U.hunger -= hunger_loss>>2;
+	return true;
+}
+
+void mons_eat(struct Monster *self, struct Item *item)
+{
+    if (!mons_edible(self, item)) 
+    {
+        if (self->name[0] == '_') pline("You can't eat that!");
+        return;
+    }
+	if ((self->status)&M_EATING)
+	{
+		if (self->name[0] == '_') pline("You're already eating!");
+		return;
+	}
+	self->status |= M_EATING;
+    self->eating = item;
+	if (!item->cur_weight)
+		item->cur_weight = items[item->type].wt;
+//    mons_eating(self);
 }
 
 inline struct Item **mons_get_weap(struct Monster *self)
@@ -321,7 +413,7 @@ bool mons_wear(struct Monster *self, struct Item *it)
         {
 #define DEBUGGING
 #if defined(DEBUGGING)
-            pline("_ERR: "ARMOUR" not recognised: %s", items[it->type].name);
+            pline("_ERR: " ARMOUR " not recognised: %s", items[it->type].name);
 #endif /* DEBUGGING */
         }
     }

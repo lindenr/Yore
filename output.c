@@ -6,6 +6,7 @@
 #include "thing.h"
 #include "mycurses.h"
 #include "monst.h"
+#include "loop.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -37,9 +38,12 @@ void update_map()
 	sprintf(line1+26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d                ", mn->attr[AB_ST], mn->attr[AB_DX],
             mn->attr[AB_CO],mn->attr[AB_IN], mn->attr[AB_WI], mn->attr[AB_CH]);
     sprintf(line1+60, "Health: %d     ", mn->HP);
-	
-	/* etc */
-	
+    if (INT_32)
+        sprintf(line2, "Time: %qu                   ", Time);
+    else if (INT_64)
+        sprintf(line2, "Time: %u         ", Time);
+
+    if (U.hunger != 1) sprintf(line2+25, "%s", get_hungerstr());
 	for (i = 0; i < 80; ++ i)
 	{
 		new_buffer[i+1680] = line1[i];

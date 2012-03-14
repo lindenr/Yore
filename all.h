@@ -14,6 +14,9 @@
 /* debugging only */
 /* #define LIST_TEST */
 
+/* Permanent - DO NOT CHANGE */
+#define INT_32 ((sizeof(int)<<3) == 32)
+#define INT_64 ((sizeof(int)<<3) == 64)
 
 /* These crazy spellings... */
 #if !defined(AMERICAN)

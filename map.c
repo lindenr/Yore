@@ -1,8 +1,6 @@
 /* map.c
  * Linden Ralph */
 
-/* MAP */
-
 #include "all.h"
 #include <stdint.h>
 #include "mycurses.h"
@@ -92,4 +90,3 @@ int GETMAPITEMID(char i)
     return n;
 }
 
-/* END MAP */
