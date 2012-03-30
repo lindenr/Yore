@@ -8,11 +8,11 @@ At the moment Yore is capable of running only on Windows and Linux systems.
 
 ####To build for Linux:
 
-1.  you must have make and gcc installed;
+1.  you must have make and gcc installed (you probably will anyway);
 2.  [optional:] get rid of the -ggdb flags in makefile;
-3.  run <pre>bash build-linux</pre>
+3.  run <pre>bash build-linux.bash</pre>
 
-####For Windows:
+####To build for Windows:
 
 1.  you must have MinGW installed;
 2.  run <pre>PATH &lt;your_mingw_install_path&gt;\bin<br />makefile.bat</pre>
@@ -39,5 +39,9 @@ On windows you may also use the arrow keys to move, but you win't be able to mov
 
 Various other commands are (in no particular order):
 <pre>e      eat
-,      pick up</pre>
+,      pick up
+:      look down
+i      check your inventory
+w      wield a weapon
+Q      quit permanently</pre>
 

@@ -133,9 +133,15 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t *us, uint32_t *unseen)
         for (X = 0; X < 80; ++ X, ++ w)
         {
             uint32_t y=DOT, u=DOT, h=DOT, j=DOT, k=DOT, l=DOT, b=DOT, n=DOT;
-            if (sq_seen[w] == 2) us[w] |= COL_TXT_BRIGHT;
-            if (sq_seen[w] == 1 && sq_attr[w] == 2) us[w] = unseen[w];
-            if (sq_attr[w] != 0 || us[w] == ' ') continue;
+
+            if (sq_seen[w] == 2)
+                us[w] |= COL_TXT_BRIGHT; /* Brighten what you can see. */
+
+            if (sq_seen[w] == 1 && sq_attr[w] == 2)
+                us[w] = unseen[w]; /* Replace something unseeable with what's behind it. */
+
+            if (sq_attr[w] != 0 || us[w] == ' ')
+                continue; /* Only keep going if it is a wall. */
 
             /* Again, not especially neat, but I don't think there is much I can do */
             if (X)            h = US(w -  1);
@@ -147,6 +153,7 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t *us, uint32_t *unseen)
             if (X && Y<20)    b = US(w + 79);
             if (X<79 && Y<20) n = US(w + 81);
 
+            /* Finally, do the actual drawing of the wall. */
             if (us[w]&COL_TXT_BRIGHT) us[w] = WALL_TYPE(y,u,h,j,k,l,b,n)|COL_TXT_BRIGHT;
             else us[w] = WALL_TYPE(y,u,h,j,k,l,b,n);
         }
