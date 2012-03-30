@@ -7,7 +7,6 @@
 #include <stdio.h>
 
 #include "monst.h"
-
 #include "rand.h"
 #include "vision.h"
 #include "loop.h"
@@ -19,8 +18,8 @@
 void print_intro()
 {
     mvprintw(1, 00, "Welcome to Yore v0.0.5 pre-alpha");
-    mvprintw(2, 10, "* A game guide is not yet in place.");
-    mvprintw(3, 10, "* A wiki is not yet in place.");
+    mvprintw(2, 10,           "* A game guide is not yet in place.");
+    mvprintw(3, 10,           "* A wiki is not yet in place.");
     refresh();
 }
 
