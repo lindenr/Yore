@@ -7,13 +7,15 @@
 
 enum ITEM_TYPE
 {
+    IT_NONE = 0, /* placeholder - always useful */
 	IT_LONGSWORD,
 	IT_AXE,
 	IT_DAGGER,
 	IT_SHORTSWORD,
 	IT_CHEST,
 	IT_GLOVES,
-    IT_CORPSE
+    IT_CORPSE,
+    IT_MONEY
 };
 
 /* BUC status */
@@ -36,6 +38,7 @@ enum ITEM_TYPE
 #define ITEM_STRANGE ']'
 #define ITEM_ARMOUR  '['
 #define ITEM_FOOD    '%'
+#define ITEM_DOSH    '$'
 #define ITEM_CORPSE  ITEM_FOOD
 
 #define ITEM_INIT = {0,0,""}
@@ -43,7 +46,7 @@ enum ITEM_TYPE
 /* type of item */
 struct item_struct
 {
-	char     name[20]; /* short name - must be multiple of 4 because using uint32_t for comparison */
+	char     name[20]; /* name of that type of item */
 	char     ch;       /* for the display */
 	enum     ITEM_TYPE type;
 	uint32_t wt;       /* weight */

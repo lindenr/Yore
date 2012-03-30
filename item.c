@@ -14,18 +14,19 @@
 #define DMG(a,b) (((a)<<4)+(b))
 
 struct item_struct items[] = {
-/*     item name          display     type       weight attributes     colour (default=0)    */
-ITEM("long sword",    ITEM_WEAPON, IT_LONGSWORD,  2000, DMG(1, 5), COL_TXT_RED|COL_TXT_GREEN),
-ITEM("fencing sword", ITEM_WEAPON, IT_LONGSWORD,  1500, DMG(1, 5), COL_TXT_RED|COL_TXT_BLUE),
-ITEM("axe",           ITEM_WEAPON, IT_AXE,        3000, DMG(1, 4), COL_TXT_RED|COL_TXT_GREEN),
-ITEM("battle-axe",    ITEM_WEAPON, IT_AXE,        5000, DMG(1, 7), COL_TXT_RED|COL_TXT_GREEN),
-ITEM("dagger",        ITEM_WEAPON, IT_DAGGER,      100, DMG(1, 3), COL_TXT_GREEN),
-ITEM("short sword",   ITEM_WEAPON, IT_SHORTSWORD, 2000, DMG(1, 4), COL_TXT_RED|COL_TXT_GREEN),
-ITEM("gloves",        ITEM_ARMOUR, IT_GLOVES,       70,     0    , COL_TXT_GREEN),
-ITEM("lich corpse",   ITEM_CORPSE, IT_CORPSE,    600,     0    , COL_TXT_BLUE),
-ITEM("hobbit corpse", ITEM_CORPSE, IT_CORPSE,    600,     0    , COL_TXT_GREEN),
-ITEM("gnome corpse",  ITEM_CORPSE, IT_CORPSE,    600,     0    , COL_TXT_RED|COL_TXT_GREEN),
-ITEM("acid blob corpse",ITEM_CORPSE,IT_CORPSE,   600,     0    , COL_TXT_GREEN),
+/*     item name              display      type       weight attributes     colour (default=0)    */
+ITEM("long sword",         ITEM_WEAPON,  IT_LONGSWORD, 2000, DMG(1, 5), COL_TXT_RED|COL_TXT_GREEN),
+ITEM("fencing sword",      ITEM_WEAPON,  IT_LONGSWORD, 1500, DMG(1, 5), COL_TXT_RED|COL_TXT_BLUE),
+ITEM("axe",                ITEM_WEAPON,        IT_AXE, 3000, DMG(1, 4), COL_TXT_RED|COL_TXT_GREEN),
+ITEM("battle-axe",         ITEM_WEAPON,        IT_AXE, 5000, DMG(1, 7), COL_TXT_RED|COL_TXT_GREEN),
+ITEM("dagger",             ITEM_WEAPON,     IT_DAGGER,  100, DMG(1, 3), COL_TXT_GREEN),
+ITEM("short sword",        ITEM_WEAPON, IT_SHORTSWORD, 2000, DMG(1, 4), COL_TXT_RED|COL_TXT_GREEN),
+ITEM("gloves",             ITEM_ARMOUR,     IT_GLOVES,   70,     0    , COL_TXT_GREEN),
+ITEM("lich corpse",        ITEM_CORPSE,     IT_CORPSE,  600,     0    , COL_TXT_BLUE),
+ITEM("hobbit corpse",      ITEM_CORPSE,     IT_CORPSE,  600,     0    , COL_TXT_GREEN),
+ITEM("gnome corpse",       ITEM_CORPSE,     IT_CORPSE,  600,     0    , COL_TXT_RED|COL_TXT_GREEN),
+ITEM("acid blob corpse",   ITEM_CORPSE,     IT_CORPSE,  600,     0    , COL_TXT_GREEN),
+ITEM("gold",                 ITEM_DOSH,      IT_MONEY,    1,     0    , COL_TXT_RED|COL_TXT_GREEN|COL_TXT_BRIGHT),
 ITEM(      "",            0,           0,            0,     0    ,      0      )
 /*     item name          display     type       weight attributes     colour (default=0)    */
 };
