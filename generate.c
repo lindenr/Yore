@@ -48,8 +48,11 @@ void generate_map(enum LEVEL_TYPE type)
             else
                 t++;
         }
+
+        /* Will be a wall if it is at edge of screen, or if it is not a space. */
         for (i = 0; i < 1680; ++ i)
-            if (buffer[i] != DOT || ((i+1)%80) <= 1) buffer[i] = 'W'; /* will be a wall if it is at edge of screen, or if it is not a space */
+            if (buffer[i] != DOT || ((i+1)%80) <= 1) buffer[i] = 'W'; 
+
         for(i = 0; i < 1680; ++ i)
         {
             struct map_item_struct *mis = malloc(sizeof(struct map_item_struct));

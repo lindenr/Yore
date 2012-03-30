@@ -21,7 +21,7 @@
 HANDLE wHnd;    /* Handle to write to the console.  */
 HANDLE rHnd;    /* Handle to read from the console. */
 
-uint32_t Current_buffer[2000], New_buffer[2000], Old_buffer[2000];
+uint32_t Current_buffer[2000], New_buffer[2000];//, Old_buffer[2000];
 
 struct Thing cursor = {THING_CURS, 0, 0, 0};
 
@@ -99,17 +99,22 @@ void mvprintw(uint32_t y, uint32_t x, const char *str, ...)
     va_end(args);
 }
 
-void initscr()
+void full_refresh()
 {
 	int i;
-    /* initialise the buffers */
+
     for (i = 0; i < 2000; ++ i)
     {
         Current_buffer[i] = '/';
         New_buffer[i] = ' ';
-		Old_buffer[i] = ' ';
+//		Old_buffer[i] = ' ';
     }
 
+    refresh();
+}
+
+void initscr()
+{
     /* Set up the handles for reading/writing: */
     wHnd = GetStdHandle(STD_OUTPUT_HANDLE);
     rHnd = GetStdHandle(STD_INPUT_HANDLE);
@@ -121,7 +126,8 @@ void initscr()
     COORD bufferSize = {80, 25};
     SetConsoleScreenBufferSize(wHnd, bufferSize);
 
-	refresh();
+    /* Initialise the buffers. */
+    full_refresh();
 }
 
 /* Just a placeholder */

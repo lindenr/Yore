@@ -116,19 +116,10 @@ int main (int argc, char *argv[])
     print_intro();
     mvprintw(8, 6, "Who are you? ");
 	refresh();
-    //getstr(m[0].name+1);
     getstr(real_player_name+1);
     noecho();
 
-    /*new_thing(THING_ITEM, 15, 44, &i[0]);
-	m->pack.items[0] = &(i[1]);
-    for (I = 0; I < 6; ++ I)
-    {
-        m[0].attr[I] = m[1].attr[I] = 5;
-    }
-	new_thing(THING_MONS, 15, 45, &m[0]);
-	new_thing(THING_MONS, 14, 45, &m[1]);
-*/
+    full_clear();
     update_map();
 
 	pline_check();
@@ -137,13 +128,6 @@ int main (int argc, char *argv[])
         update_map();
     }
 
-/*
-    mvprintw(1,60,"     ");
-    mvprintw(1,60,"%d", monsters_on_level[1].HP);
-    LOOP_AGAIN;
-    while (main_loop());*/
-
-/*    endwin(); */
   quit_game:
 #if defined(DEBUGGING)
 	debug_end();

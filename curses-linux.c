@@ -94,19 +94,24 @@ void clear_screen()
     }
 }
 
-void initscr()
+void full_clear()
 {
-	int i;
+    int i;
 
-    /* initialise the buffers */
     for (i = 0; i < 2000; ++ i)
     {
         Current_buffer[i] = ';';
         New_buffer[i] = ' ';
     }
 
-	tcgetattr(STDIN_FILENO, &tm_old);
     refresh();
+}
+
+void initscr()
+{
+    /* initialise the buffers */
+    full_clear();
+	tcgetattr(STDIN_FILENO, &tm_old);
 }
 
 void noecho()
