@@ -17,63 +17,72 @@ uint8_t sq_seen[1680] = {0,};
 uint8_t *get_sq_attr() {return sq_attr;}
 uint8_t *get_sq_seen() {return sq_seen;}
 
+/* This is very ugly and inelegant. A better/neater solution would be very welcome.
+ * What this function does is purely cosmetic - given whether or not the squares surrounding are walles or spaces,
+ * this function returns what character should be displayed (corner, straight line, tee, etc).
+ * The nested if's make my eyes hurt, but I can't think of a simpler alternative. */
 uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k, uint32_t l, uint32_t b, uint32_t n)
 {
-    if (h == DOT || h == ' ')
+    int H = (h==DOT || h==' '),
+        J = (j==DOT || j==' '),
+        K = (k==DOT || k==' '),
+        L = (l==DOT || l==' ');
+    if (H)
     {
-        if (k == DOT || k == ' ')
+        if (K)
         {
-            if (l == DOT || l == ' ')
+            if (L)
             {
-                if (j == DOT || j == ' ') return ACS_HLINE;
-                else          return ACS_VLINE;
+                if (J) return ACS_HLINE;
+                else   return ACS_VLINE;
             }
             else
             {
-                if (j == DOT || j == ' ') return ACS_HLINE;
-                else                      return ACS_ULCORNER;
+                if (J) return ACS_HLINE;
+                else   return ACS_ULCORNER;
             }
         }
         else
         {
-            if (l == DOT || l == ' ')     return ACS_VLINE;
+            if (L)     return ACS_VLINE;
             else
             {
-                if (j == DOT || j == ' ') return ACS_LLCORNER;
-                else          return ACS_LTEE;
+                if (J) return ACS_LLCORNER;
+                else   return ACS_LTEE;
             }
         }
     }
     else
     {
-        if (k == DOT || k == ' ')
+        if (K)
         {
-            if (l == DOT || l == ' ')
+            if (L)
             {
-                if (j == DOT || j == ' ') return ACS_HLINE;
-                else          return ACS_URCORNER;
+                if (J) return ACS_HLINE;
+                else   return ACS_URCORNER;
             }
             else
             {
-                if (j == DOT || j == ' ') return ACS_HLINE;
-                else          return ACS_TTEE;
+                if (J) return ACS_HLINE;
+                else   return ACS_TTEE;
             }
         }
         else
         {
-            if (l == DOT || l == ' ')
+            if (L)
             {
-                if (j == DOT || j == ' ') return ACS_LRCORNER;
-                else          return ACS_RTEE;
+                if (J) return ACS_LRCORNER;
+                else   return ACS_RTEE;
             }
             else
             {
-                if (j == DOT || j == ' ') return ACS_BTEE;
+                if (J) return ACS_BTEE;
                 else
                 {
                     if (y == DOT || u == DOT || b == DOT || n == DOT)
-                              return ACS_PLUS;
-                    else      return ' ';
+                        return ACS_PLUS;
+                    else
+                        return ' ';
                 }
             }
         }
