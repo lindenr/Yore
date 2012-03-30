@@ -12,6 +12,7 @@ void bres_start(int fry, int frx, uint8_t *g, uint8_t *g_t)
     grid_t = g_t;
 }
 
+/* adapted from wikipedia */
 bool bres_draw(int ty, int tx)
 {
     int dy, dx, sy, sx, err, e2, fy, fx;
@@ -39,9 +40,9 @@ bool bres_draw(int ty, int tx)
             fy += sy;
         }
         if (fy == ty && fx == tx) break;
-        if (grid_t[to_buffer(fy,fx)] == 0) return false; /* can't see B( */
+        if (grid_t[to_buffer(fy,fx)] == 0) return false; /* can't see it :( */
     }
-    if (grid) grid[to_buffer(fy,fx)] = 2;
+    if (grid) grid[to_buffer(fy,fx)] = 2; /* can see it :) */
     return true;
 }
 
