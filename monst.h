@@ -127,4 +127,5 @@ uint32_t        get_square_attr (uint32_t, uint32_t, int);
 uint32_t        can_move_to     (uint32_t);
 
 int             AI_Attack(int,int,int,int,struct Monster*);
+
 #endif /* MONST_H_INCLUDED */

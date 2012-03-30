@@ -17,6 +17,7 @@ enum LEVEL_TYPE
     LEVEL_END
 };
 
+extern char real_player_name[20];
 void     generate_map (enum LEVEL_TYPE);
 uint32_t mons_gen     (int, int32_t);
 bool     is_safe_gen  (uint32_t, uint32_t);

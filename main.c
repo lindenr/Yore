@@ -116,13 +116,11 @@ int main (int argc, char *argv[])
     }
     generate_map(LEVEL_MINES);
     init_map();
-/*	m[0].name = malloc(30);
-m[0].name[0] = '_';*/
     print_intro();
     mvprintw(8, 6, "Who are you? ");
 	refresh();
     //getstr(m[0].name+1);
-    getstr(input);
+    getstr(real_player_name+1);
     noecho();
 
     /*new_thing(THING_ITEM, 15, 44, &i[0]);
