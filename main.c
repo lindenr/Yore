@@ -119,7 +119,7 @@ int main (int argc, char *argv[])
     getstr(real_player_name+1);
     noecho();
 
-    full_clear();
+    clear_screen();
     update_map();
 
 	pline_check();

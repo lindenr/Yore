@@ -25,17 +25,17 @@ char *s_hun[] = {
 
 char *get_hungerstr()
 {
-	if (U.hunger < 100) return s_hun[0];
-	if (U.hunger < 125) return s_hun[1];
-	if (U.hunger < 500) return s_hun[2];
-	if (U.hunger < 730) return s_hun[3];
-	if (U.hunger < 1000) return s_hun[4];
-	return s_hun[5];
+    if (U.hunger <  100) return s_hun[0];
+    if (U.hunger <  125) return s_hun[1];
+    if (U.hunger <  500) return s_hun[2];
+    if (U.hunger <  730) return s_hun[3];
+    if (U.hunger < 1000) return s_hun[4];
+    return s_hun[5];
 }
 
 bool digesting()
 {
-	return true;
+    return true;
 }
 
 void mons_attack (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
@@ -123,12 +123,44 @@ void thing_move_level(struct Thing *th, int32_t where)
     }
 }
 
+struct Item *player_use_pack(struct Thing *player, char *msg, bool *psc)
+{
+    struct Item *It;
+    char cs[MAX_ITEMS_IN_PACK+4];
+    struct Monster *self = player->thing;
+
+    redo:
+    line_reset();
+    pack_get_letters(self->pack, cs);
+    in = pask(cs, msg);
+    if (in == '?') return NULL; // TODO change
+    if (in == ' ' || in == 0x1B) return NULL;
+    if (in == '*')
+    {
+        if (!*psc)
+        {
+            *psc = true;
+            show_contents(self->pack);
+        }
+        goto redo;
+    }
+
+    It = get_Itemc(self->pack, in);
+    if (It == NULL)
+    {
+        pline("No such item.");
+        goto redo;
+    }
+    return It;
+}
+
 int  mons_take_move(struct Monster *self)
 {
     if(self->HP < self->HP_max && RN(50) < self->attr[AB_CO]) self->HP += (self->level+10)/10;
-	if (mons_eating(self)) return true;
+    if (mons_eating(self)) return true;
     struct Thing *th = get_thing(self);
     bool screenshotted = false;
+    char *cs; /* just a temp variable */
     if (self->name[0] == '_')
     {
         while(1)
@@ -186,16 +218,21 @@ int  mons_take_move(struct Monster *self)
                     // TODO add support for multiple items
                 }
             }
-			else if (in == 'e')
-			{
-				mons_eat(self, self->pack.items[0]);
-                break;
-			}
+            else if (in == 'e')
+            {
+                struct Item *It = player_use_pack(th, "Eat what?", &screenshotted);
+                if (It == NULL) continue;
+                mons_eat(self, It);
+            }
             else if (in == 'd')
             {
-                char *cs;
-                redo:
-                cs = pack_get_letters(self->pack);
+                struct Item *It = player_use_pack(th, "Drop what?", &screenshotted);
+                if (It == NULL) continue;
+                unsigned u = get_Itref(self->pack, It);
+                self->pack.items[u] = NULL;
+                new_thing(THING_ITEM, th->yloc, th->xloc, It);
+                /*drop_redo:
+                pack_get_letters(self->pack, cs);
                 in = pask(cs, "Drop what?");
                 free(cs);
                 if (in == '?') continue;
@@ -206,13 +243,13 @@ int  mons_take_move(struct Monster *self)
                         screenshotted = true;
                         show_contents(self->pack);
                     }
-                    goto redo;
+                    goto drop_redo;
                 }
                 else
                 {
                     struct Item *it = pack_rem(&self->pack, in);
                     new_thing(THING_ITEM, th->yloc, th->xloc, it);
-                }
+                }*/
             }
             else if (in == '>') thing_move_level(th, 0);
             else if (in == '<') thing_move_level(th, -1);
@@ -235,7 +272,9 @@ int  mons_take_move(struct Monster *self)
                     if (t_->xloc == th->xloc &&
                         t_->yloc == th->yloc)
                     {
-                        pline("You%s see here %s. ", ((k++==0)?"":" also"), get_inv_line(((struct Thing*)(n->data))->thing));
+                        pline("You%s see here %s. ",
+                              ((k++)?" also":""),
+                              get_inv_line(((struct Thing*)(n->data))->thing));
                     }
                 }
                 if (k == 0) pline("You see nothing here. ");
@@ -244,6 +283,7 @@ int  mons_take_move(struct Monster *self)
             else if (in == 'w')
             {
                 retry:
+                line_reset();
                 pline("Wield what?");
                 in = getch();
                 if (in == ' ')
@@ -307,33 +347,34 @@ void mons_dead(struct Monster *from, struct Monster* to)
 /* TODO is it polymorphed? */
 inline bool mons_edible(struct Monster *self, struct Item *item)
 {
-	return (items[item->type].ch == ITEM_FOOD);
+    return (items[item->type].ch == ITEM_FOOD);
 }
 
 bool mons_eating(struct Monster *self)
 {
-	int hunger_loss;
+    int hunger_loss;
     struct Item *item = self->eating;
     if (!item) return false;
-	if (item->cur_weight < 500)
-	{
-		if (self->name[0] == '_')
-		{
-			if (U.hunger > (item->cur_weight>>3)) U.hunger -= item->cur_weight>>3;
-			else U.hunger = 0; /* death by overeating */
-			pline("You finish eating.");
-		}
+    if (item->cur_weight < 500)
+    {
+        if (self->name[0] == '_')
+        {
+            if (U.hunger > (item->cur_weight>>3)) U.hunger -= item->cur_weight>>3;
+            else U.hunger = 0; /* death by overeating */
+            pline("You finish eating.");
+        }
         self->status &= ~M_EATING;
         self->eating = NULL;
-		rem_by_data(item);
-		return false;
-	}
+        rem_by_data(item);
+        self->pack.items[get_Itref(self->pack, item)] = NULL;
+        return false;
+    }
     hunger_loss = RN(50) + 200;
     //pline("B4: %d", item->cur_weight);
     item->cur_weight -= hunger_loss<<1;
     //pline("After: %d", item->cur_weight);
     if (self->name[0] == '_') U.hunger -= hunger_loss>>2;
-	return true;
+    return true;
 }
 
 void mons_eat(struct Monster *self, struct Item *item)
@@ -343,16 +384,15 @@ void mons_eat(struct Monster *self, struct Item *item)
         if (self->name[0] == '_') pline("You can't eat that!");
         return;
     }
-	if ((self->status)&M_EATING)
-	{
-		if (self->name[0] == '_') pline("You're already eating!");
-		return;
-	}
-	self->status |= M_EATING;
+    if ((self->status)&M_EATING)
+    {
+        if (self->name[0] == '_') pline("You're already eating!");
+        return;
+    }
+    self->status |= M_EATING;
     self->eating = item;
-	if (!item->cur_weight)
-		item->cur_weight = items[item->type].wt;
-//    mons_eating(self);
+    if (!item->cur_weight)
+        item->cur_weight = items[item->type].wt;
 }
 
 inline struct Item **mons_get_weap(struct Monster *self)

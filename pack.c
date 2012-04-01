@@ -36,9 +36,8 @@ void show_contents(struct Pack pack)
     getch();
 }
 
-char *pack_get_letters(struct Pack pack)
+void pack_get_letters(struct Pack pack, char *ret)
 {
-    char *ret = malloc(sizeof(char)*(MAX_ITEMS_IN_PACK+2));
     unsigned k, u;
     for (u = 0, k = 0; u < MAX_ITEMS_IN_PACK; ++ u)
     {
@@ -48,10 +47,10 @@ char *pack_get_letters(struct Pack pack)
             ++ k;
         }
     }
-    ret[k+0] = '?';
-    ret[k+1] = '*';
-    ret[k+2] = 0;
-    return ret;
+    ret[k+0] = ' ';
+    ret[k+1] = '?';
+    ret[k+2] = '*';
+    ret[k+3] = 0;
 }
 
 struct Item *pack_rem(struct Pack *pack, char it)

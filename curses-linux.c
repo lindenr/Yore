@@ -13,6 +13,8 @@
 
 #include <termios.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
+#include <fcntl.h>
 
 const int ACTUAL_COLOURS[8] = {1, 31, 32, 34, 41, 42, 44, 4}; /* Numbers for ^[[asdf;qwer;zxcvm. */
 
@@ -94,23 +96,30 @@ void clear_screen()
     }
 }
 
-void full_clear()
+void surf_clear(unsigned size)
 {
     int i;
 
-    for (i = 0; i < 2000; ++ i)
-    {
-        Current_buffer[i] = ';';
-        New_buffer[i] = ' ';
-    }
-
-    refresh();
+    move(0,0);
+    for (i = 0; i < size; ++ i)
+        fprintf(stdout, " ");
 }
 
 void initscr()
 {
+    struct winsize W;
+    int i;
+    
+    /* get the size of the screen */
+    ioctl(open("/dev/stdout", O_NONBLOCK), TIOCGWINSZ, &W);
+    
     /* initialise the buffers */
-    full_clear();
+    for (i = 0; i < 2000; ++ i) New_buffer[i] = Current_buffer[i] = ' ';
+
+    /* clear the *whole* screen (not just the 80x25 portion we work with) */
+    surf_clear(((unsigned)W.ws_row) * W.ws_col);
+
+    /* save whatever attributes you currently have */
 	tcgetattr(STDIN_FILENO, &tm_old);
 }
 

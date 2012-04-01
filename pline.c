@@ -30,8 +30,8 @@ char pask(const char *in, const char* out, ...)
 	where += 2;
 	memcpy(o+where, in, strlen(in));
 	where += strlen(in);
-	memcpy(o+where, ") ", 2);
-	where += 2;
+	memcpy(o+where, ")", 1);
+	where += 1;
 	o[where] = '\0'; /* terminating null character */
 
 	/* print the question */
@@ -39,7 +39,7 @@ char pask(const char *in, const char* out, ...)
 
 	/* wait for answer */
 	do c = getch();
-	while(!is_in(in, c));
+	while((!is_in(in, c)) && c != ' ' && c != 0x1B);
 	return c;
 }
 

@@ -15,7 +15,7 @@ void noecho    (void);
 void echo      (void);
 void endwin    (void);
 void refresh   (void);
-void full_clear(void);
+void surf_clear(unsigned);
 void wait_ms   (unsigned);
 void in_tout   (unsigned);
 void toutify   (int);

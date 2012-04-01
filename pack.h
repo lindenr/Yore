@@ -22,7 +22,7 @@ struct Bag
     struct Item* items[MAX_ITEMS_IN_BAG];
 };
 
-char        *pack_get_letters(struct Pack);
+void         pack_get_letters(struct Pack, char*);
 struct Item *pack_rem(struct Pack*, char);
 bool         pack_add(struct Pack*, struct Item*);
 unsigned     PACK_AT(char);
