@@ -48,12 +48,6 @@ void draw_box_fill(uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs, uint32_t 
 	for (x = 1; x < xs; ++ x) for (y = 1; y < ys; ++ y) mvaddch(yl+y, xl+x, fill);
 	draw_box(yl, xl, ys, xs);
 }
-/*
-void sync_for_ch(char c, int ms)
-{
-    uint32_t cur = (uint32_t)ms;
-    uint32_t start = clock();
-}*/
 
 bool game_intro()
 {
@@ -88,50 +82,62 @@ bool game_intro()
     return true;
 }
 
-//struct Item i[] = {{0, 0, NULL}, {3, ITEM_BLES, NULL}};
-//struct Monster m[] = {{1, 0, 20, 0, 0, 0, 0}, {5,0,10,0," ",0,0,0}};
-
 int main (int argc, char *argv[])
 {
     char input[100];
-    int I;
+    int i;
     uint32_t rseed;
+
     initscr();
     rseed = RNG_get_seed();
 	RNG_main = RNG_INIT(rseed);
     setup_U();
 
-#if defined(DEBUGGING)
-	debug_init("debug_out.txt");
-#endif
+	if (!game_intro()) goto quit_game;
 
-
-	if (!game_intro())
-    {
-        pline("Exiting...");
-        goto quit_game;
-    }
     generate_map(LEVEL_MINES);
     init_map();
     print_intro();
     mvprintw(8, 6, "Who are you? ");
 	refresh();
-    getstr(real_player_name+1);
+
+    for (i = 0,    *(real_player_name+1)  = '\0';
+         i < 10 && *(real_player_name+1) == '\0';
+         ++ i)
+    {
+        if (i) mvprintw(9, 6, "Please type in your name.");
+        refresh();
+        move(8, 19);
+        getstr(real_player_name+1);
+    }
+
+    if (*(real_player_name+1) == '\0') goto quit_game;
+
+    /* So you really want to play? */
     noecho();
 
     clear_screen();
-    update_map();
-
 	pline_check();
-    while(main_loop())
+    start_gameplay();
+
+    do
     {
         update_map();
+        main_loop();
     }
+    while(U.playing == PLAYER_PLAYING);
 
   quit_game:
-#if defined(DEBUGGING)
-	debug_end();
-#endif
     endwin();
-    printf("Goodbye %s...\n", ((struct Monster *)U.player->thing)->name+1);
+
+    if (U.playing == PLAYER_LOSTGAME)
+        printf("Goodbye %s...\n", get_pmonster()->name+1);
+    else if (U.playing == PLAYER_SAVEGAME)
+        printf("See you soon...\n");
+    else if (U.playing == PLAYER_STARTING)
+        printf("Give it a try next time...\n");
+    else if (U.playing == PLAYER_WONGAME)
+        printf("Congrtulations %s...\n", get_pmonster()->name+1);
+
+    exit(0);
 }

@@ -18,8 +18,9 @@ in = getch();
 #define CLEAR_AT(p) mvaddch(p,' ')
 #define CLEAR_LINE(y) mvprintw(y,0,LINE_OF_SPACES)
 
-bool     main_loop (void);
-char     in;
+void     main_loop (void);
+//char     in;
+
 extern uint64_t Time;
 
 #endif /* LOOP_H_INCLUDED */

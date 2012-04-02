@@ -18,7 +18,7 @@ char *get_name (char *n)
     return n+1;
 }
 
-// false is quit, true is stay
+/* false is quit, true is stay */
 bool quit()
 {
     if (pask("yn", "Are you sure you want to quit -- permanently?") == 'y')

@@ -111,8 +111,7 @@ uint32_t mons_gen(int type, int32_t param)
     {
         start = param;
         upsy = start/80; upsx = start%80;
-        new_thing(THING_MONS, upsy, upsx, Pl);
-        U.player = get_player();
+        U.player = new_thing(THING_MONS, upsy, upsx, Pl);
     }
     else if (type == 1)
     {

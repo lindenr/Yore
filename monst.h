@@ -33,11 +33,19 @@ enum S_HUN
 #define ABSOLUTE_HUNGER_LIMIT 1000
 extern char *s_hun[];
 
+/* For U.playing: */
+#define PLAYER_STARTING (-1)
+#define PLAYER_PLAYING  0
+#define PLAYER_LOSTGAME 1
+#define PLAYER_WONGAME  2
+#define PLAYER_SAVEGAME 3
+
 struct player_status
 {
     uint32_t hunger;
     struct Thing *player;
     int role;
+    int playing;
 } extern U;
 
 enum ABLTY /* ability */

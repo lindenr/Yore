@@ -1,12 +1,21 @@
 /* save.c
  * Linden Ralph */
 
-int save()
+#include "save.h"
+
+bool save()
 {
-    pline("Saving...");
+    if (pask("yn", "Save and quit?") == 'y')
+    {
+        pline("Saving...");
+        /* TODO save the game */
+        return false;
+    }
+    return true;
 }
 
 void destroy_save_file()
 {
+    /* TODO unsave the game */
 }
 

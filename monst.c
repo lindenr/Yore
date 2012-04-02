@@ -42,6 +42,12 @@ void setup_U()
 {
     U.hunger = 100;
     U.role   = 1; /* Soldier -- TODO ask the player*/
+    U.playing = PLAYER_STARTING;
+}
+
+void start_gameplay()
+{
+    U.playing = PLAYER_PLAYING;
 }
 
 void mons_attack (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
@@ -132,7 +138,7 @@ void thing_move_level(struct Thing *th, int32_t where)
 struct Item *player_use_pack(struct Thing *player, char *msg, bool *psc)
 {
     struct Item *It;
-    char cs[MAX_ITEMS_IN_PACK+4];
+    char in, cs[MAX_ITEMS_IN_PACK+4];
     struct Monster *self = player->thing;
 
     redo:
@@ -183,13 +189,21 @@ int  mons_take_move(struct Monster *self)
             }
             if (in == 'Q') 
             {
-                if (!quit()) return false;
+                if (!quit())
+                {
+                    U.playing = PLAYER_LOSTGAME;
+                    return false;
+                }
                 continue;
             }
             if (in == 'S')
             {
-                save();
-                return false;
+                if (!save())
+                {
+                    U.playing = PLAYER_SAVEGAME;
+                    return false;
+                }
+                continue;
             }
             
             bool mv = mons_take_input(th, in);

@@ -291,24 +291,3 @@ struct Thing *get_thing(void *data)
     return NULL;
 }
 
-struct Thing* get_player()
-{
-    struct list_iter* i;
-    struct Thing *t;
-    for(i = all_things.beg; iter_good(i); next_iter(&i))
-    {
-        t = i->data;
-        if (t->type == THING_MONS)
-        {
-            struct Monster* mon = (struct Monster*)(t->thing);
-            if(mon->name[0] == '_') /* player */
-            {
-                return(t);
-            }
-        }
-    }
-    /* no player
-     * crash - what else to do? */
-    panic("player not found");
-    return(NULL);
-}

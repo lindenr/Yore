@@ -17,10 +17,9 @@ void next_time()
     if (digesting()) ++ U.hunger;
 }
 
-bool main_loop()
+void main_loop()
 {
-    char *msg = 0;
-    char in;
+    char  *msg = 0;
     struct Thing *pl = get_player();
     struct Monster *mn = pl->thing;
     struct list_iter* i;
@@ -36,11 +35,16 @@ bool main_loop()
             {
                 move(pl->yloc+1, pl->xloc);
                 mon->cur_speed -= 12;
-                if(!mons_take_move(mon)) return false;
+                /* U.player == PLAYER_LOSTGAME if this happens */
+                if(!mons_take_move(mon)) return;
                 update_map();
             }
             move(pl->yloc+1, pl->xloc);
-            if (mn->HP <= 0) return false;
+            if (mn->HP <= 0)
+            {
+                U.playing = PLAYER_LOSTGAME;
+                return;
+            }
             /* The player can live with no dexterity and/or charisma, but there are
              * other penalties (fumbling, aggravation etc). */
             if (mn->attr[AB_ST] <= 0) msg = "weakness";
@@ -52,9 +56,9 @@ bool main_loop()
             if (msg)
             {
                 player_dead("You die of %s.", msg);
-                return false;
+                U.playing = PLAYER_LOSTGAME;
+                return;
             }
         }
     }
-    return true;
 }
