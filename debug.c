@@ -3,9 +3,8 @@
 
 #include "debug.h"
 
-#if defined(DEBUGGING)
-
 #include <stdio.h>
+#include <stdlib.h>
 
 FILE *fp;
 
@@ -14,9 +13,12 @@ void debug_init(const char *filename)
 	fp = fopen(filename, "w");
 }
 
-void debug_log_error(enum DEBUG_ERROR_REASON der, const char *reason)
+void panic(const char *reason)
 {
-	fprintf(fp, "Error %d: %s\n", der, reason);
+	fprintf(fp, "Error: %s\n", reason);
+    fclose(fp);
+    exit(1);
+    abort();
 }
 
 void debug_end()
@@ -24,4 +26,3 @@ void debug_end()
 	fclose(fp);
 }
 
-#endif /* DEBUGGING */

@@ -309,8 +309,6 @@ struct Thing* get_player()
     }
     /* no player
      * crash - what else to do? */
-#if defined(DEBUGGING)
-    debug_log_error(DEBUG_PLAYER_NOT_FOUND, "player not found");
-#endif /* DEBUGGING */
-    return((struct Thing*)NULL);
+    panic("player not found");
+    return(NULL);
 }
