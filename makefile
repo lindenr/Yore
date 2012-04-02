@@ -1,7 +1,7 @@
 C_FILES := $(wildcard *.c)
 OBJ_FILES := $(C_FILES:%=obj/%.o)
-LD_FLAGS := -lm -O2
-CC_FLAGS := -lm -O2
+LD_FLAGS := -lm -ggdb
+CC_FLAGS := -lm -ggdb
 
 Yore: $(OBJ_FILES)
 	gcc -o $@ $(OBJ_FILES) $(LD_FLAGS)

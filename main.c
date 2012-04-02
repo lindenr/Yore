@@ -99,7 +99,7 @@ int main (int argc, char *argv[])
     initscr();
     rseed = RNG_get_seed();
 	RNG_main = RNG_INIT(rseed);
-    U.hunger = 100;
+    setup_U();
 
 #if defined(DEBUGGING)
 	debug_init("debug_out.txt");

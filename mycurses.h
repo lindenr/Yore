@@ -21,8 +21,11 @@ void in_tout   (unsigned);
 void toutify   (int);
 char getch     (void);
 char*getstr    (char *);
+void reset_col (void);
 
 uint32_t get_buffer(uint32_t,uint32_t);
+
+extern int console_width, console_height;
 
 #define CLR(n) ((n)<<8)
 

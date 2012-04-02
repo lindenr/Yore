@@ -37,6 +37,7 @@ struct player_status
 {
     uint32_t hunger;
     struct Thing *player;
+    int role;
 } extern U;
 
 enum ABLTY /* ability */
@@ -77,11 +78,11 @@ enum ATTK_TYPE
 
 struct monster_struct
 {
-    const char *name;    /* name */
-    char ch;             /* display character */
-    uint32_t speed;      /* normal speed */
+    const char *name;    /* name                 */
+    char ch;             /* display character    */
+    uint32_t speed;      /* normal speed         */
     uint32_t attacks[A_NUM][A_PARAM]; /* attacks */
-    uint32_t col;        /* colour */
+    uint32_t col;        /* colour               */
 };
 
 extern const struct monster_struct mons[];
@@ -91,14 +92,14 @@ struct Monster
     uint32_t type;       /* monster type                 */
     int32_t  level;      /* EXP level                    */
     int32_t  HP;         /* current HP                   */
-    int32_t HP_max;      /* maximum HP                   */
+    int32_t  HP_max;     /* maximum HP                   */
     uint32_t cur_speed;  /* current speed-state          */
     char    *name;       /* label                        */
     struct Pack pack;    /* inventory                    */
 	struct WoW  wearing; /* stuff wielding/wearing/using */
-	monst_attr attr;     /* st, co, ch, etc              */
-	uint32_t status;     /* is it eating polymorphed etc */
-    struct Item *eating; /* eating something (0 if not)  */
+	monst_attr  attr;    /* st, co, ch, etc              */
+	uint32_t    status;  /* is it eating polymorphed etc */
+    struct Item*eating;  /* eating something (0 if not)  */
 };
 
 /* general monster functions */
@@ -120,6 +121,7 @@ void player_exc     (enum ABLTY, uint32_t);             /* exercise a given ablt
 /* player_status functions */
 char *get_hungerstr  (void);                            /* get the hunger-string ("Starved" etc) of the player */
 bool  digesting      (void);                            /* is the player digesting? */
+void  setup_U        (void);
 
 void            apply_attack    (struct Monster*, struct Monster*);
 struct Monster *get_square_monst(uint32_t, uint32_t, int);

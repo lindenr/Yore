@@ -38,6 +38,12 @@ bool digesting()
     return true;
 }
 
+void setup_U()
+{
+    U.hunger = 100;
+    U.role   = 1; /* Soldier -- TODO ask the player*/
+}
+
 void mons_attack (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
 {
     struct Thing *th = get_thing(self);

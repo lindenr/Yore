@@ -95,13 +95,13 @@ bool is_safe_gen(uint32_t yloc, uint32_t xloc)
     return true;
 }
 
+char real_player_name[20] = "_";
+struct Monster Pl[] = {{1, 1, 20, 20, 0, real_player_name, {0,}, {0,}, {5,5,5,5,5,5}, 0, 0}};
+
 /* type:
  * 0 = initialised at start of game,
  * 1 = generated at start of level,
  * 2 = randomly throughout level    */
-char real_player_name[20] = "_";
-struct Monster Pl[] = {{1, 0, 20, 20, 0, real_player_name, {0,}, {0,}, {5,5,5,5,5,5}, 0, 0}};
-
 uint32_t mons_gen(int type, int32_t param)
 {
     int32_t luck, start;

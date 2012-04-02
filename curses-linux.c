@@ -21,10 +21,16 @@ const int ACTUAL_COLOURS[8] = {1, 31, 32, 34, 41, 42, 44, 4}; /* Numbers for ^[[
 uint32_t Current_buffer[2000], New_buffer[2000];
 struct termios tm_old;
 uint32_t curs_x = 0, curs_y = 0;
+int console_width, console_height;
 
 uint32_t to_buffer(uint32_t y, uint32_t x)
 {
     return (((y<<2)+y)<<4)+x;
+}
+
+void reset_col()
+{
+    fprintf(stdout, "%c[0m", CHR_ESC);
 }
 
 void move(uint32_t y, uint32_t x)
@@ -117,7 +123,9 @@ void initscr()
     for (i = 0; i < 2000; ++ i) New_buffer[i] = Current_buffer[i] = ' ';
 
     /* clear the *whole* screen (not just the 80x25 portion we work with) */
-    surf_clear(((unsigned)W.ws_row) * W.ws_col);
+    console_width = W.ws_col;
+    console_height = W.ws_row;
+    surf_clear(((unsigned)console_width) * console_height);
 
     /* save whatever attributes you currently have */
 	tcgetattr(STDIN_FILENO, &tm_old);
@@ -210,6 +218,7 @@ void refresh()
         move(y,firstc);
         write_con(&(Current_buffer[ybuf+firstc]), line, lastc-firstc);
     }
+    reset_col();
     move(prevy, prevx);
 }
 
@@ -229,8 +238,13 @@ char getch()
 
 char *getstr(char *str)
 {
-    fgets(str, 80, stdin);
-    str[strlen(str)-1] = 0;
+    char *res;
+
+    res = fgets(str, 80, stdin);
+    if (res != str) /* error'd! */
+        fprintf(stderr, "READ FAILED.\n");
+
+    str[strlen(str)-1] = '\0';
     return str;
 }
 
