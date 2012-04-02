@@ -95,10 +95,11 @@ void mvprintw(uint32_t y, uint32_t x, const char *str, ...)
 
 void clear_screen()
 {
-	int x, y;
-    for(x = 0; x < 80; ++ x) for(y = 0; y < 25; ++ y)
+	int i;
+    for(i = 0; i < 2000; ++ i)
     {
-        mvaddch(y,x,' ');
+        New_buffer[i] = ' ';
+        Current_buffer[i] = ';';
     }
 }
 
