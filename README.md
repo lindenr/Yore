@@ -45,3 +45,7 @@ i      check your inventory
 w      wield a weapon
 Q      quit permanently</pre>
 
+##License
+
+Yore is distributed under the GNU LGPL (Lesser General Public License).
+
