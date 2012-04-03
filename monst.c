@@ -51,8 +51,9 @@ void get_cinfo()
     mvprintw(0, 0, "What role would you like to take up?");
     move(0, console_width-11);
     fprintf(stdout, "(q to quit)");
-    mvprintw(2, 0, "[d] --- Doctor");
-    mvprintw(3, 0, "[s] --- Soldier");
+    mvprintw(2, 3, "d     Doctor");
+    mvprintw(3, 3, "s     Soldier");
+    move(0, 37);
 
     do
     {

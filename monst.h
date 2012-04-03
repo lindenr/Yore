@@ -90,6 +90,7 @@ struct monster_struct
     char ch;             /* display character    */
     uint32_t speed;      /* normal speed         */
     uint32_t attacks[A_NUM][A_PARAM]; /* attacks */
+    uint32_t flags;      /* physical flags       */
     uint32_t col;        /* colour               */
 };
 
