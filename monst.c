@@ -41,12 +41,32 @@ bool digesting()
 void setup_U()
 {
     U.hunger = 100;
-    U.role   = 1; /* Soldier -- TODO ask the player*/
     U.playing = PLAYER_STARTING;
 }
 
-void start_gameplay()
+void get_cinfo()
 {
+    char in;
+
+    mvprintw(0, 0, "What role would you like to take up?");
+    move(0, console_width-11);
+    fprintf(stdout, "(q to quit)");
+    mvprintw(2, 0, "[d] --- Doctor");
+    mvprintw(3, 0, "[s] --- Soldier");
+
+    do
+    {
+        in = getch();
+        if (in == 'q' || in == 0x1B) return;
+    }
+    while (in != 'd' && in != 's');
+    
+    if (in == 'd') U.role = 2;
+    else if (in == 's') U.role = 1;
+
+    move(0, console_width-11);
+    fprintf(stdout, "           ");
+
     U.playing = PLAYER_PLAYING;
 }
 

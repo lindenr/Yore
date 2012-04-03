@@ -57,7 +57,7 @@ void vprintw(const char *str, va_list args)
     char buffer[200];
     uint32_t length;
     uint32_t buf = to_buffer(curs_y, curs_x);
-	uint32_t i;
+    uint32_t i;
 
     vsprintf(buffer, str, args);
     length = strlen(buffer);
@@ -95,7 +95,7 @@ void mvprintw(uint32_t y, uint32_t x, const char *str, ...)
 
 void clear_screen()
 {
-	int i;
+    int i;
     for(i = 0; i < 2000; ++ i)
     {
         New_buffer[i] = ' ';
@@ -126,18 +126,19 @@ void initscr()
     /* clear the *whole* screen (not just the 80x25 portion we work with) */
     console_width = W.ws_col;
     console_height = W.ws_row;
+
     surf_clear(((unsigned)console_width) * console_height);
 
     /* save whatever attributes you currently have */
-	tcgetattr(STDIN_FILENO, &tm_old);
+    tcgetattr(STDIN_FILENO, &tm_old);
 }
 
 void noecho()
 {
-	struct termios tm;
-	tcgetattr(STDIN_FILENO, &tm);
-	tm.c_lflag &= ~(ICANON|ECHO);
-	tcsetattr(STDIN_FILENO, TCSANOW, &tm);
+    struct termios tm;
+    tcgetattr(STDIN_FILENO, &tm);
+    tm.c_lflag &= ~(ICANON|ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &tm);
 }
 
 void echo()
@@ -150,8 +151,8 @@ void echo()
 
 void toutify(int n)
 {
-	struct termios tm;
-	tcgetattr(STDIN_FILENO, &tm);
+    struct termios tm;
+    tcgetattr(STDIN_FILENO, &tm);
     tm.c_cc[VMIN] = !n;
     tcsetattr(STDIN_FILENO, TCSANOW, &tm);
 }
@@ -228,11 +229,12 @@ void refresh()
 
 char getch()
 {
-    if (!tout_num) return getchar();
     char ret;
     clock_t end;
 
     refresh();
+    if (!tout_num) return getchar();
+
     end = tout_num*CLOCKS_PER_SEC/1000 + clock();
     do ret = getchar();
     while(clock() < end && ret == EOF);

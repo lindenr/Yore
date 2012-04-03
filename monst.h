@@ -127,9 +127,10 @@ void player_dead    (const char *, ...);                /* the player is dead; a
 void player_exc     (enum ABLTY, uint32_t);             /* exercise a given ablty by a given amount */
 
 /* player_status functions */
-char *get_hungerstr  (void);                            /* get the hunger-string ("Starved" etc) of the player */
-bool  digesting      (void);                            /* is the player digesting? */
-void  setup_U        (void);
+char *get_hungerstr  (void);                            /* gets player's hunger ("Starved" etc)     */
+bool  digesting      (void);                            /* is the player digesting?                 */
+void  setup_U        (void);                            /* Populate the U struct                    */
+void  get_cinfo      (void);
 
 void            apply_attack    (struct Monster*, struct Monster*);
 struct Monster *get_square_monst(uint32_t, uint32_t, int);
