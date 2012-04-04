@@ -37,9 +37,11 @@ uint32_t even_prob(struct RNGStruct *r, uint32_t n)
 
 uint32_t RNG_get_seed ()
 {
+    int i;
     uint32_t tm = SSSRTT_32(), m = clock(), ret = 323596;
-    uint32_t *times = malloc(sizeof(uint32_t)*(10));
-	times[0] = tm; times[1] = m; times[8] = 0x86b4e8fd; /* completely arbitrary */
+    uint32_t times[10];
+	times[0] = tm; times[1] = m;
+    for (i = 2; i < 10; ++ i) tm[i] = SuperFastHash((const char *)&i, 4);
     ret ^= SuperFastHash((const char *)times, 40);
     return ret;
 }
