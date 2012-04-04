@@ -1,9 +1,9 @@
 /* rank.c
  * Linden Ralph */
 
-#include "all.h"
-#include "rank.h"
-#include "monst.h"
+#include "include/all.h"
+#include "include/rank.h"
+#include "include/monst.h"
 
 struct Rankings
 {

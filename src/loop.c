@@ -1,13 +1,13 @@
 /* loop.c
  * Linden Ralph */
 
-#include "all.h"
-#include "loop.h"
-#include "pline.h"
-#include "monst.h"
-#include "rand.h"
-#include "thing.h"
-#include "output.h"
+#include "include/all.h"
+#include "include/loop.h"
+#include "include/pline.h"
+#include "include/monst.h"
+#include "include/rand.h"
+#include "include/thing.h"
+#include "include/output.h"
 
 uint64_t Time = 0;
 

@@ -1,14 +1,14 @@
 /* curses-win.c
  * Linden Ralph */
 
-#include "all.h"
-#include "mycurses.h"
+#include "include/all.h"
+#include "include/mycurses.h"
 
 #if defined(WINDOWS)
 
-#include "pline.h"
-#include "loop.h"
-#include "thing.h"
+#include "include/pline.h"
+#include "include/loop.h"
+#include "include/thing.h"
 
 #include <stdio.h>
 #include <string.h>

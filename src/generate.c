@@ -1,12 +1,12 @@
 /* generate.c
  * Linden Ralph */
 
-#include "all.h"
-#include "generate.h"
-#include "rand.h"
-#include "thing.h"
-#include "monst.h"
-#include "map.h"
+#include "include/all.h"
+#include "include/generate.h"
+#include "include/rand.h"
+#include "include/thing.h"
+#include "include/monst.h"
+#include "include/map.h"
 
 uint32_t upsy, upsx, downsy, downsx;
 

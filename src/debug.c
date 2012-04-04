@@ -1,7 +1,7 @@
 /* debug.c
  * Linden Ralph */
 
-#include "debug.h"
+#include "include/debug.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,9 +1,9 @@
 /* pline.c
  * Linden Ralph */
 
-#include "all.h"
-#include "pline.h"
-#include "loop.h"
+#include "include/all.h"
+#include "include/pline.h"
+#include "include/loop.h"
 #include <stdio.h>
 #include <malloc.h>
 

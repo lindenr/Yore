@@ -1,19 +1,19 @@
 /* main.c
  * Linden Ralph */
 
-#include "all.h"
+#include "include/all.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "monst.h"
-#include "rand.h"
-#include "vision.h"
-#include "loop.h"
-#include "pline.h"
-#include "generate.h"
-#include "thing.h"
-#include "output.h"
+#include "include/monst.h"
+#include "include/rand.h"
+#include "include/vision.h"
+#include "include/loop.h"
+#include "include/pline.h"
+#include "include/generate.h"
+#include "include/thing.h"
+#include "include/output.h"
 
 void print_intro()
 {

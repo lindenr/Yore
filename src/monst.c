@@ -3,15 +3,15 @@
 
 /* MONSTERS */
 
-#include "all.h"
-#include "monst.h"
-#include "pline.h"
-#include "rand.h"
-#include "util.h"
-#include "mycurses.h"
-#include "bool.h"
-#include "loop.h"
-#include "save.h"
+#include "include/all.h"
+#include "include/monst.h"
+#include "include/pline.h"
+#include "include/rand.h"
+#include "include/util.h"
+#include "include/mycurses.h"
+#include "include/bool.h"
+#include "include/loop.h"
+#include "include/save.h"
 #include <stdarg.h>
 
 struct player_status U;
@@ -501,7 +501,7 @@ bool mons_wear(struct Monster *self, struct Item *it)
     /* message */
 }
 
-#include "all_mon.h"
+#include "include/all_mon.h"
 
 void mons_passive_attack (struct Monster *self, struct Monster *to)
 {

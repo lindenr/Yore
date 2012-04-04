@@ -1,10 +1,10 @@
 /* hash.c
  * Linden Ralph, Paul Hsieh */
 
-#include "all.h"
-#include "stdint.h"
+#include "include/all.h"
+#include "include/stdint.h"
 
-#include "rand.h"
+#include "include/rand.h"
 
 struct RNGStruct RNG_main;
 uint32_t SuperFastHash(const char*, int);

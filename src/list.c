@@ -2,8 +2,8 @@
  * Linden Ralph
  * linked-list implementation in C */
 
-#include "all.h"
-#include "list.h"
+#include "include/all.h"
+#include "include/list.h"
 
 struct list_iter list_beg = {0,0,0}, list_end = {0,0,0};
 extern struct List all_things;

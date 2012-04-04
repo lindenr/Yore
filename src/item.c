@@ -1,10 +1,10 @@
 /* item.c
  * Linden Ralph */
 
-#include "all.h"
-#include "item.h"
-#include "grammar.h"
-#include "monst.h"
+#include "include/all.h"
+#include "include/item.h"
+#include "include/grammar.h"
+#include "include/monst.h"
 #include <stdio.h>
 
 /* Item weight should roughly be in grams - so a stong person (St >= 18) would be able to

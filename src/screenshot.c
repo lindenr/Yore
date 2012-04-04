@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "mycurses.h"
+#include "include/mycurses.h"
 
 uint32_t Old_buffer[2000];
 extern uint32_t New_buffer[2000], Current_buffer[2000];

@@ -1,10 +1,10 @@
 /* util.c
  * Linden Ralph */
 
-#include "all.h"
-#include "util.h"
-#include "pline.h"
-#include "save.h"
+#include "include/all.h"
+#include "include/util.h"
+#include "include/pline.h"
+#include "include/save.h"
 
 uint32_t Abs(int32_t i)
 {

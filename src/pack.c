@@ -1,9 +1,9 @@
 /* pack.c
  * Linden Ralph */
 
-#include "all.h"
-#include "pack.h"
-#include "item.h"
+#include "include/all.h"
+#include "include/pack.h"
+#include "include/item.h"
 
 inline unsigned PACK_AT(char a)
 {

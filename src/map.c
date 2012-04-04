@@ -1,14 +1,14 @@
 /* map.c
  * Linden Ralph */
 
-#include "all.h"
+#include "include/all.h"
 #include <stdint.h>
-#include "mycurses.h"
+#include "include/mycurses.h"
 
-#include "map.h"
-#include "monst.h"
-#include "thing.h"
-#include "generate.h"
+#include "include/map.h"
+#include "include/monst.h"
+#include "include/thing.h"
+#include "include/generate.h"
 
 #define MAP_MOVEABLE 3
 

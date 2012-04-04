@@ -1,11 +1,11 @@
 /* curses-linux.c
  * Linden Ralph */
 
-#include "mycurses.h"
+#include "include/mycurses.h"
 
 #ifdef FOONIX
 
-#include "all.h"
+#include "include/all.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>

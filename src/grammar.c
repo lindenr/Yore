@@ -1,7 +1,7 @@
 /* grammar.c
  * Linden Ralph */
 
-#include "grammar.h"
+#include "include/grammar.h"
 #include <stdio.h>
 #include <string.h>
 

@@ -2,13 +2,13 @@
  * Linden Ralph */
 
 #include <assert.h>
-#include "all.h"
-#include "thing.h"
-#include "item.h"
-#include "monst.h"
-#include "map.h"
-#include "mycurses.h"
-#include "generate.h"
+#include "include/all.h"
+#include "include/thing.h"
+#include "include/item.h"
+#include "include/monst.h"
+#include "include/map.h"
+#include "include/mycurses.h"
+#include "include/generate.h"
 
 struct List all_things = LIST_INIT;
 
