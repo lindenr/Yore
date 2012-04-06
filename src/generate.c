@@ -35,8 +35,15 @@ void generate_map(enum LEVEL_TYPE type)
         int t = 200;
         start = RN(1520) + 79;
         mons_gen(0, start);
+
+        /* clear space at the beginning (for the up-stair) */
+        buffer[start] = DOT;
+
+        /* clear space for the down-stair */
         buffer[mons_gen(1, start)] = DOT;
-        while (t--) buffer[RN(1520)+79]  = DOT;
+
+        /* generate some random spaces */
+        while (t--) buffer[RN(1520)+79] = DOT;
 
         t = 800;
         while (t--)
@@ -53,6 +60,7 @@ void generate_map(enum LEVEL_TYPE type)
         for (i = 0; i < 1680; ++ i)
             if (buffer[i] != DOT || ((i+1)%80) <= 1) buffer[i] = 'W'; 
 
+        /* Add everything to the list. */
         for(i = 0; i < 1680; ++ i)
         {
             struct map_item_struct *mis = malloc(sizeof(struct map_item_struct));
@@ -62,7 +70,7 @@ void generate_map(enum LEVEL_TYPE type)
     }
     else if (type == LEVEL_NORMAL)
     {
-
+        /* TODO */
     }
     else if (type == LEVEL_FOREST)
     {/*
@@ -72,11 +80,11 @@ void generate_map(enum LEVEL_TYPE type)
         for (li = lis.beg; iter_good(li); next_iter(&li))
         {
             
-        }*/ /* Do all that later */
+        }*/ /* TODO */
     }
 }
 
-/* can a monster be generated here? */
+/* can a monster be generated here? (no monsters or walls in the way) */
 bool is_safe_gen(uint32_t yloc, uint32_t xloc)
 {
     struct list_iter *i;

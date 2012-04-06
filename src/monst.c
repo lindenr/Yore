@@ -164,9 +164,13 @@ struct Item *player_use_pack(struct Thing *player, char *msg, bool *psc)
     struct Item *It = NULL;
     char in, cs[MAX_ITEMS_IN_PACK+4];
     struct Monster *self = player->thing;
+    bool tried = false;
 
     do
     {
+        if (tried) pline("No such item.");
+        tried = false;
+
         line_reset();
         pack_get_letters(self->pack, cs);
         in = pask(cs, msg);
@@ -183,11 +187,9 @@ struct Item *player_use_pack(struct Thing *player, char *msg, bool *psc)
         }
 
         It = get_Itemc(self->pack, in);
-        if (It != NULL) break;
-
-        /* Try again. */
-        pline("No such item.");
+        tried = true;
     }
+    while (It == NULL);
 
     return It;
 }

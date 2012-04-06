@@ -3,7 +3,7 @@ OBJ_FILES := $(C_FILES:%=obj/%.o)
 LD_FLAGS := -lm -ggdb
 CC_FLAGS := -I./ -ggdb
 
-Yore: $(OBJ_FILES)
+bin/Yore: $(OBJ_FILES)
 	gcc -o $@ $(OBJ_FILES) $(LD_FLAGS)
 
 obj/%.o: %
