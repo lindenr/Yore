@@ -25,11 +25,11 @@ char *s_hun[] = {
 
 char *get_hungerstr()
 {
-    if (U.hunger <  100) return s_hun[0];
-    if (U.hunger <  125) return s_hun[1];
-    if (U.hunger <  500) return s_hun[2];
-    if (U.hunger <  730) return s_hun[3];
-    if (U.hunger < 1000) return s_hun[4];
+    if (U.hunger < HN_LIMIT_1) return s_hun[0];
+    if (U.hunger < HN_LIMIT_2) return s_hun[1];
+    if (U.hunger < HN_LIMIT_3) return s_hun[2];
+    if (U.hunger < HN_LIMIT_4) return s_hun[3];
+    if (U.hunger < HN_LIMIT_5) return s_hun[4];
     return s_hun[5];
 }
 
@@ -110,7 +110,10 @@ int  mons_move (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
     return false;
 }
 
-inline char escape(char a)
+/* if a is in the range 0 <= a < 0x20 (' ' in ASCII)
+ * then a+20 is returned (so a backspace becomes '?').
+ * This is the standard way to print non-printable characters. */
+inline char escape(unsigned char a)
 {
     if (a < 0x20)
         return a+0x40;
@@ -158,32 +161,34 @@ void thing_move_level(struct Thing *th, int32_t where)
 
 struct Item *player_use_pack(struct Thing *player, char *msg, bool *psc)
 {
-    struct Item *It;
+    struct Item *It = NULL;
     char in, cs[MAX_ITEMS_IN_PACK+4];
     struct Monster *self = player->thing;
 
-    redo:
-    line_reset();
-    pack_get_letters(self->pack, cs);
-    in = pask(cs, msg);
-    if (in == '?') return NULL; // TODO change
-    if (in == ' ' || in == 0x1B) return NULL;
-    if (in == '*')
+    do
     {
-        if (!*psc)
+        line_reset();
+        pack_get_letters(self->pack, cs);
+        in = pask(cs, msg);
+        if (in == '?') break; /* TODO change */
+        if (in == ' ' || in == 0x1B) break;
+        if (in == '*')
         {
-            *psc = true;
-            show_contents(self->pack);
+            if (!*psc)
+            {
+                *psc = true;
+                show_contents(self->pack);
+            }
+            continue;
         }
-        goto redo;
+
+        It = get_Itemc(self->pack, in);
+        if (It != NULL) break;
+
+        /* Try again. */
+        pline("No such item.");
     }
 
-    It = get_Itemc(self->pack, in);
-    if (It == NULL)
-    {
-        pline("No such item.");
-        goto redo;
-    }
     return It;
 }
 

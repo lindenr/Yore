@@ -27,38 +27,37 @@ void main_loop()
     mons_gen(2, -15);
     for(i = all_things.beg; iter_good(i); next_iter(&i))
     {
-        if (((struct Thing*)(i->data))->type == THING_MONS)
+        if (((struct Thing*)(i->data))->type != THING_MONS) continue;
+
+        struct Monster* mon = (struct Monster*)((struct Thing*)(i->data))->thing;
+        mon->cur_speed += mons[mon->type].speed;
+        while (mon->cur_speed >= 12)
         {
-            struct Monster* mon = (struct Monster*)((struct Thing*)(i->data))->thing;
-            mon->cur_speed += mons[mon->type].speed;
-            while (mon->cur_speed >= 12)
-            {
-                move(pl->yloc+1, pl->xloc);
-                mon->cur_speed -= 12;
-                /* U.player == PLAYER_LOSTGAME if this happens */
-                if(!mons_take_move(mon)) return;
-                update_map();
-            }
             move(pl->yloc+1, pl->xloc);
-            if (mn->HP <= 0)
-            {
-                U.playing = PLAYER_LOSTGAME;
-                return;
-            }
-            /* The player can live with no dexterity and/or charisma, but there are
-             * other penalties (fumbling, aggravation etc). */
-            if (mn->attr[AB_ST] <= 0) msg = "weakness";
-            if (mn->attr[AB_CO] <= 0) msg = "flabbiness";
-            if (mn->attr[AB_IN] <= 0) msg = "brainlessness";
-            if (mn->attr[AB_WI] <= 0) msg = "foolishness";
-			if (U.hunger > ABSOLUTE_HUNGER_LIMIT) msg = "hunger";
-			if (U.hunger <= 1) msg = "consumption";
-            if (msg)
-            {
-                player_dead("You die of %s.", msg);
-                U.playing = PLAYER_LOSTGAME;
-                return;
-            }
+            mon->cur_speed -= 12;
+            /* U.player == PLAYER_LOSTGAME if this happens */
+            if(!mons_take_move(mon)) return;
+            update_map();
+        }
+        move(pl->yloc+1, pl->xloc);
+        if (mn->HP <= 0)
+        {
+            U.playing = PLAYER_LOSTGAME;
+            return;
+        }
+        /* The player can live with no dexterity and/or charisma, but there are
+         * other penalties (fumbling, aggravation etc). */
+        if (mn->attr[AB_ST] <= 0) msg = "weakness";
+        if (mn->attr[AB_CO] <= 0) msg = "flabbiness";
+        if (mn->attr[AB_IN] <= 0) msg = "brainlessness";
+        if (mn->attr[AB_WI] <= 0) msg = "foolishness";
+        if (U.hunger > HN_LIMIT_5) msg = "hunger";
+        if (U.hunger <= 1) msg = "consumption";
+        if (msg)
+        {
+            player_dead("You die of %s.", msg);
+            U.playing = PLAYER_LOSTGAME;
+            return;
         }
     }
 }

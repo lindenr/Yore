@@ -30,7 +30,11 @@ enum S_HUN
     S_HUN_STA
 };
 
-#define ABSOLUTE_HUNGER_LIMIT 1000
+#define HN_LIMIT_1 100
+#define HN_LIMIT_2 500
+#define HN_LIMIT_3 900
+#define HN_LIMIT_4 1400
+#define HN_LIMIT_5 2000
 extern char *s_hun[];
 
 /* For U.playing: */
