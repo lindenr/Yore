@@ -40,8 +40,12 @@ bool digesting()
 
 void setup_U()
 {
+    int i;
+
     U.hunger = 100;
     U.playing = PLAYER_STARTING;
+    for (i = 0; i < 6; ++ i)
+        U.attr[i] = 10;
 }
 
 void get_cinfo()
@@ -194,9 +198,9 @@ struct Item *player_use_pack(struct Thing *player, char *msg, bool *psc)
     return It;
 }
 
-int  mons_take_move(struct Monster *self)
+int mons_take_move(struct Monster *self)
 {
-    if(self->HP < self->HP_max && RN(50) < self->attr[AB_CO]) self->HP += (self->level+10)/10;
+    if (self->HP < self->HP_max && RN(50) < U.attr[AB_CO]) self->HP += (self->level+10)/10;
     if (mons_eating(self)) return true;
     struct Thing *th = get_thing(self);
     bool screenshotted = false;
@@ -514,6 +518,12 @@ void mons_passive_attack (struct Monster *self, struct Monster *to)
     }
 }
 
+int mons_get_st(struct Monster *self)
+{
+    if (self->name[0] == '_') return U.attr[AB_ST];
+    return 5;
+}
+
 inline void apply_attack(struct Monster *from, struct Monster *to)
 {
     uint32_t t;
@@ -529,7 +539,7 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
                 struct Item **it = mons_get_weap(from);
                 if (!it || !(*it))
                 {
-                    to->HP -= RN(from->attr[AB_ST]);
+                    to->HP -= RN(mons_get_st(from));
                     if (from->name[0] == '_') pline("You hit the %s!", mons[to->type].name);
                     else pline("The %s hits %s!", mons[from->type].name,
                                to->name[0]=='_'?"you":(gram_the(ton, mons[to->type].name), ton)); 

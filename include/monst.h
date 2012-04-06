@@ -44,12 +44,15 @@ extern char *s_hun[];
 #define PLAYER_WONGAME  2
 #define PLAYER_SAVEGAME 3
 
+typedef uint32_t monst_attr[6];
+
 struct player_status
 {
     uint32_t hunger;
     struct Thing *player;
     int role;
     int playing;
+	monst_attr  attr;    /* st, co, ch, etc */
 } extern U;
 
 enum ABLTY /* ability */
@@ -61,8 +64,6 @@ enum ABLTY /* ability */
 	AB_IN,
 	AB_CH
 };
-
-typedef uint32_t monst_attr[6];
 
 /* The physical method of attack (bite, claw etc) */
 enum ATTK_METHOD
@@ -112,7 +113,6 @@ struct Monster
     char    *name;       /* label                        */
     struct Pack pack;    /* inventory                    */
 	struct WoW  wearing; /* stuff wielding/wearing/using */
-	monst_attr  attr;    /* st, co, ch, etc              */
 	uint32_t    status;  /* is it eating polymorphed etc */
     struct Item*eating;  /* eating something (0 if not)  */
 };

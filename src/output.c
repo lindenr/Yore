@@ -37,9 +37,9 @@ void update_map()
 		line1[i] = line2[i] = ' ';
 	}
     sprintf(line1, "%s the %s                  ", mn->name+1, get_rank());
-	sprintf(line1+26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d                ", mn->attr[AB_ST], mn->attr[AB_DX],
-            mn->attr[AB_CO],mn->attr[AB_IN], mn->attr[AB_WI], mn->attr[AB_CH]);
-    sprintf(line1+60, "Health: %d     ", mn->HP);
+	sprintf(line1+26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d                ", U.attr[AB_ST], U.attr[AB_DX],
+            U.attr[AB_CO],U.attr[AB_IN], U.attr[AB_WI], U.attr[AB_CH]);
+    sprintf(line1+65, "Health: %d     ", mn->HP);
 
     if (INT_32)
         sprintf(line2, "Time: %qu                                 ", Time);
