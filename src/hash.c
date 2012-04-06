@@ -2,7 +2,7 @@
  * Linden Ralph, Paul Hsieh */
 
 #include "include/all.h"
-#include "include/stdint.h"
+#include <stdint.h>
 
 #include "include/rand.h"
 
@@ -41,7 +41,7 @@ uint32_t RNG_get_seed ()
     uint32_t tm = SSSRTT_32(), m = clock(), ret = 323596;
     uint32_t times[10];
 	times[0] = tm; times[1] = m;
-    for (i = 2; i < 10; ++ i) tm[i] = SuperFastHash((const char *)&i, 4);
+    for (i = 2; i < 10; ++ i) times[i] = SuperFastHash((const char *)&i, 4);
     ret ^= SuperFastHash((const char *)times, 40);
     return ret;
 }

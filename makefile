@@ -6,5 +6,5 @@ CC_FLAGS := -I./ -ggdb
 Yore: $(OBJ_FILES)
 	gcc -o $@ $(OBJ_FILES) $(LD_FLAGS)
 
-obj/%.c.o: src/*.c
+obj/%.o: %
 	gcc $(CC_FLAGS) -c -o $@ $<
