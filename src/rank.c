@@ -29,3 +29,19 @@ char *get_rank()
     return NULL;
 }
 
+int level_boundary[30] = {0, 30, 50, 100, 160, 300, 500, 800, 1200,};
+
+void update_level(struct Monster *mon)
+{
+    uint32_t exp = mon->exp;
+    int i;
+    for (i = 0; level_boundary[i] <= exp; ++ i) exp -= level_boundary[i];
+    
+    if (mon->name[0] == '_')
+    {
+        if (i > mon->level) pline("Level up! You are now level %d.", i);
+        if (i < mon->level) pline("Level down... You dropped to level %d.", i);
+    }
+    mon->level = i;
+}
+

@@ -104,7 +104,7 @@ bool is_safe_gen(uint32_t yloc, uint32_t xloc)
 }
 
 char real_player_name[20] = "_";
-struct Monster Pl[] = {{1, 1, 20, 20, 0, real_player_name, {0,}, {0,}, {5,5,5,5,5,5}, 0, 0}};
+struct Monster Pl[] = {{1, 1, 0, 20, 20, 0, real_player_name, {0,}, {0,}, {5,5,5,5,5,5}, 0, 0}};
 
 /* type:
  * 0 = initialised at start of game,

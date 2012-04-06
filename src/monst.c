@@ -279,25 +279,6 @@ int  mons_take_move(struct Monster *self)
                 unsigned u = get_Itref(self->pack, It);
                 self->pack.items[u] = NULL;
                 new_thing(THING_ITEM, th->yloc, th->xloc, It);
-                /*drop_redo:
-                pack_get_letters(self->pack, cs);
-                in = pask(cs, "Drop what?");
-                free(cs);
-                if (in == '?') continue;
-                if (in == '*')
-                {
-                    if (!screenshotted)
-                    {
-                        screenshotted = true;
-                        show_contents(self->pack);
-                    }
-                    goto drop_redo;
-                }
-                else
-                {
-                    struct Item *it = pack_rem(&self->pack, in);
-                    new_thing(THING_ITEM, th->yloc, th->xloc, it);
-                }*/
             }
             else if (in == '>') thing_move_level(th, 0);
             else if (in == '<') thing_move_level(th, -1);
@@ -374,8 +355,12 @@ void mons_dead(struct Monster *from, struct Monster* to)
         return;
     }
     if (from->name[0] == '_')
+    {
         pline("You kill the %s!", mons[to->type].name);
-    else
+        from->exp += mons[to->type].exp;
+        update_level(from);
+    }
+    else /* TODO change so you don't get messages for stuff you can't see */
         pline("The %s kills the %s!", mons[from->type].name, mons[to->type].name);
     uint32_t u = find_corpse(mons[to->type].name);
     if (u != -1)

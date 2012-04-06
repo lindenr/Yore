@@ -91,11 +91,12 @@ enum ATTK_TYPE
 struct monster_struct
 {
     const char *name;    /* name                 */
-    char ch;             /* display character    */
+    char     ch;         /* display character    */
     uint32_t speed;      /* normal speed         */
     uint32_t attacks[A_NUM][A_PARAM]; /* attacks */
     uint32_t flags;      /* physical flags       */
     uint32_t col;        /* colour               */
+    uint32_t exp;        /* exp gained from kill */
 };
 
 extern const struct monster_struct mons[];
@@ -104,6 +105,7 @@ struct Monster
 {
     uint32_t type;       /* monster type                 */
     int32_t  level;      /* EXP level                    */
+    int32_t  exp;        /* EXP points                   */
     int32_t  HP;         /* current HP                   */
     int32_t  HP_max;     /* maximum HP                   */
     uint32_t cur_speed;  /* current speed-state          */
@@ -132,10 +134,10 @@ void player_dead    (const char *, ...);                /* the player is dead; a
 void player_exc     (enum ABLTY, uint32_t);             /* exercise a given ablty by a given amount */
 
 /* player_status functions */
-char *get_hungerstr  (void);                            /* gets player's hunger ("Starved" etc)     */
-bool  digesting      (void);                            /* is the player digesting?                 */
-void  setup_U        (void);                            /* Populate the U struct                    */
-void  get_cinfo      (void);
+char *get_hungerstr (void);                             /* gets player's hunger ("Starved" etc)     */
+bool  digesting     (void);                             /* is the player digesting?                 */
+void  setup_U       (void);                             /* populate the U struct                    */
+void  get_cinfo     (void);                             /* called at start, gets input from player  */
 
 void            apply_attack    (struct Monster*, struct Monster*);
 struct Monster *get_square_monst(uint32_t, uint32_t, int);
