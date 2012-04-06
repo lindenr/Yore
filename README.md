@@ -2,20 +2,20 @@
 
 Yore is an under-developement roguelike console game.
 
-##Build instructions:
+##Build instructions
 
-At the moment Yore is capable of running only on Windows and Linux systems.
+At the moment Yore is capable of running only on Windows and Linux systems. (Actually, if the console emulates the VT-100 escape codes like Linux does then Yore can probably run on it too.)
 
 ####To build for Linux:
 
 1.  you must have make and gcc installed (you probably will anyway);
-2.  [optional:] get rid of the -ggdb flags in makefile;
-3.  run <pre>bash build-linux.bash</pre>
+2.  [optional] get rid of the -ggdb flags in makefile;
+3.  run <pre>./build-linux.sh</pre>
 
 ####To build for Windows:
 
 1.  you must have MinGW installed;
-2.  run <pre>PATH &lt;your_mingw_install_path&gt;\bin<br />makefile.bat</pre>
+2.  run <pre>PATH &lt;your_mingw_install_path&gt;\bin<br />build-win</pre>
 
 
 ###Yore runs (tested) on the following platforms:
