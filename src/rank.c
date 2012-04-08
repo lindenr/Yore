@@ -4,6 +4,7 @@
 #include "include/all.h"
 #include "include/rank.h"
 #include "include/monst.h"
+#include <assert.h>
 
 struct Rankings
 {
