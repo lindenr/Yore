@@ -9,6 +9,7 @@
 #include "include/map.h"
 #include "include/mycurses.h"
 #include "include/generate.h"
+#include "include/output.h"
 
 struct List all_things = LIST_INIT;
 
@@ -213,8 +214,8 @@ int* visualise_map ()
     int I;
     struct list_iter *i;
     struct Thing *player = NULL;
-    uint32_t *map = malloc(sizeof(uint32_t)*1680);
-    uint32_t *type = malloc(sizeof(uint32_t)*1680);
+    uint32_t *map = new_buffer;
+    uint32_t type[1680];
     for (I = 0; I < 1680; ++ I)
     {
         map[I] = ' ';
@@ -274,7 +275,6 @@ int* visualise_map ()
             type[at] = th.type;
         }
     }
-    free(type);
     set_can_see(player->yloc, player->xloc, map, sq_unseen);
     return map;
 }

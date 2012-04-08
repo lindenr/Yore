@@ -7,7 +7,8 @@ enum RANKS
 {
     RNK_NONE = 0,
     RNK_SOLDIER,
-    RNK_DOCTOR
+    RNK_DOCTOR,
+    RNK_ASSASSIN
 };
 
 char *get_rank(void);

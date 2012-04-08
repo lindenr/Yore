@@ -16,7 +16,7 @@ uint32_t current_buffer[1920], new_buffer[1920];
 
 void init_map  ()
 {
-	int i;
+    int i;
     for (i = 0; i < 1920; ++ i)
     {
         current_buffer[i] = '\\';
@@ -26,18 +26,17 @@ void init_map  ()
 
 void update_map()
 {
-	int i;
-    int *is;
-	char line1[80], line2[80];
-	struct Thing *th = get_player();
-	struct Monster *mn = th->thing;
+    int i;
+    char line1[80], line2[80];
+    struct Thing *th = get_player();
+    struct Monster *mn = th->thing;
 
-	for (i = 0; i < 80; ++ i)
-	{
-		line1[i] = line2[i] = ' ';
-	}
+    for (i = 0; i < 80; ++ i)
+    {
+        line1[i] = line2[i] = ' ';
+    }
     sprintf(line1, "%s the %s                  ", mn->name+1, get_rank());
-	sprintf(line1+26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d                ", U.attr[AB_ST], U.attr[AB_DX],
+    sprintf(line1+26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d                ", U.attr[AB_ST], U.attr[AB_DX],
             U.attr[AB_CO],U.attr[AB_IN], U.attr[AB_WI], U.attr[AB_CH]);
     sprintf(line1+65, "Health: %d     ", mn->HP);
 
@@ -46,20 +45,19 @@ void update_map()
     else if (INT_64)
         sprintf(line2, "Time: %u                                  ", Time);
 
-    sprintf(line2+25, "%s                                        ", get_hungerstr());
+    sprintf(line2+26, "%s                                        ", get_hungerstr());
     
-    sprintf(line2+50, "Exp: %d (%d)", mn->level, mn->exp);
+    sprintf(line2+65, "Level %d:%d", mn->level, mn->exp);
 
-	for (i = 0; i < 80; ++ i)
-	{
-		new_buffer[i+1680] = line1[i];
-		new_buffer[i+1760] = line2[i];
-	}
+    for (i = 0; i < 80; ++ i)
+    {
+        new_buffer[i+1680] = line1[i];
+        new_buffer[i+1760] = line2[i];
+    }
 
-    is = visualise_map();
+    /* sets new_buffer directly */
+    visualise_map();
 
-    memcpy(new_buffer, is, 1680*sizeof(uint32_t));
-	free(is);
     for (i = 0; i < 1840; ++ i)
     {
         if (current_buffer[i] != new_buffer[i])

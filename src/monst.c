@@ -16,12 +16,12 @@
 
 struct player_status U;
 char *s_hun[] = {
-    "Full   ",
-    "       ",
+    "Full ",
+    "", /* So that it takes up no space if there is nothing to say */
     "Hungry ",
-    "Hungry!",
-    "Starved",
-    "Dead   "};
+    "Hungry! ",
+    "Starved ",
+    "Dead "};
 
 char *get_hungerstr()
 {
@@ -55,6 +55,7 @@ void get_cinfo()
     mvprintw(0, 0, "What role would you like to take up?");
     move(0, console_width-11);
     fprintf(stdout, "(q to quit)");
+    mvprintw(2, 3, "a     Assassin");
     mvprintw(2, 3, "d     Doctor");
     mvprintw(3, 3, "s     Soldier");
     move(0, 37);
@@ -64,13 +65,15 @@ void get_cinfo()
         in = getch();
         if (in == 'q' || in == 0x1B) return;
     }
-    while (in != 'd' && in != 's');
+    while (in != 'd' && in != 's' && in != 'a');
     
-    if (in == 'd') U.role = 2;
-    else if (in == 's') U.role = 1;
-
     move(0, console_width-11);
     fprintf(stdout, "           ");
+
+    if      (in == 's') U.role = 1;
+    else if (in == 'd') U.role = 2;
+    else if (in == 'a') U.role = 3;
+    else return; /* shouldn't get here */
 
     U.playing = PLAYER_PLAYING;
 }

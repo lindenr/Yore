@@ -10,7 +10,7 @@ struct Rankings
     char *ranks[6];
 };
 
-struct Rankings all_ranks[] = {{0, 0, 0, 0, 0, 0}, {"Private", "Corporal", "Liutenant", "Captain", "Seargant", "Major"}, {"Dentist", "Nurse", "Assistant", "GP", "Specialist", "Surgeon"}};
+struct Rankings all_ranks[] = {{0, 0, 0, 0, 0, 0}, {"Private", "Corporal", "Liutenant", "Captain", "Seargant", "General"}, {"Dentist", "Nurse", "Assistant", "GP", "Specialist", "Surgeon"}, {"Thug", "Butcher", "Hitman", "Mercenary", "Cutthroat", "Executioner"}};
 
 char *get_rank()
 {
@@ -20,13 +20,9 @@ char *get_rank()
     
     if (level == 0) return NULL;
 
-    for (i = 0; i < 6; ++ i)
-    {
-        if (level <= 5) return all_ranks[U.role].ranks[i];
-        level -= 5;
-    }
+    assert(level <= 30);
 
-    return NULL;
+    return all_ranks[U.role].ranks[(level-1)/5];
 }
 
 int level_boundary[30] = {0, 30, 50, 100, 160, 300, 500, 800, 1200,};
