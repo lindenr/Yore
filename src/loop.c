@@ -8,6 +8,7 @@
 #include "include/rand.h"
 #include "include/thing.h"
 #include "include/output.h"
+#include "include/generate.h"
 
 uint64_t Time = 0;
 
@@ -24,7 +25,7 @@ void main_loop()
     struct Monster *pl_mon = pl->thing, *mon;
     struct list_iter* i;
     next_time();
-    mons_gen(2, -15);
+    mons_gen(2, -55);
     for(i = all_things.beg; iter_good(i); next_iter(&i))
     {
         th = i->data;

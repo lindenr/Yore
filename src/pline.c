@@ -4,6 +4,7 @@
 #include "include/all.h"
 #include "include/pline.h"
 #include "include/loop.h"
+#include "include/util.h"
 #include <stdio.h>
 #include <malloc.h>
 

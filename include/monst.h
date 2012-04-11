@@ -6,6 +6,7 @@
 
 #define A_PARAM 3 /* AdB damage, of type C */
 #define A_NUM   6 /* number of normal attacks per monster (like NH) */
+extern const int CORPSE_WEIGHTS[6];
 
 #define IS_PLAYER(m) ((m).name[0]=='_')
 
@@ -13,9 +14,9 @@
 
 struct WoW /* Wielded or Worn */
 {
-	struct Item *head, *torso, *legs, *feet, *hands, *arms, *rfin, *lfin; /* armour */
-	struct Item *rweap, *lweap; /* weapon(s) */
-	bool two_weaponing;
+    struct Item *head, *torso, *legs, *feet, *hands, *arms, *rfin, *lfin; /* armour */
+    struct Item *rweap, *lweap; /* weapon(s) */
+    bool two_weaponing;
 };
 
 #define M_EATING 1
@@ -44,37 +45,38 @@ extern char *s_hun[];
 #define PLAYER_WONGAME  2
 #define PLAYER_SAVEGAME 3
 
-typedef uint32_t monst_attr[6];
+typedef uint32_t player_attr[6];
 
 struct player_status
 {
-    uint32_t hunger;
+    int32_t       hunger;
     struct Thing *player;
-    int role;
-    int playing;
-	monst_attr  attr;    /* st, co, ch, etc */
+    int           role;
+    int           playing;
+    player_attr   attr; /* st, co, ch, etc */
+    int32_t       luck;
 } extern U;
 
 enum ABLTY /* ability */
 {
-	AB_ST = 0,
-	AB_CO,
-	AB_DX,
-	AB_WI,
-	AB_IN,
-	AB_CH
+    AB_ST = 0,
+    AB_CO,
+    AB_DX,
+    AB_WI,
+    AB_IN,
+    AB_CH
 };
 
 /* The physical method of attack (bite, claw etc) */
 enum ATTK_METHOD
 {
-    ATTK_NONE = 0, /* placeholder */
-    ATTK_HIT,
-    ATTK_TOUCH,
-    ATTK_PASS,     /* passive */
-    ATTK_MAGIC,    /* purely magical, not physical at all */
-    ATTK_BITE,
-    ATTK_CLAW
+    ATTK_NONE = 0, /* placeholder    */
+    ATTK_HIT,      /* weapon         */
+    ATTK_TOUCH,    /* for slow mons  */
+    ATTK_PASS,     /* passive        */
+    ATTK_MAGIC,    /* purely magical */
+    ATTK_BITE,     /* bite           */
+    ATTK_CLAW      /* scratch        */
 };
 
 /* The magical method of attack (fire, acid etc -- phys is *not* magical) */
@@ -112,14 +114,14 @@ struct Monster
     uint32_t cur_speed;  /* current speed-state          */
     char    *name;       /* label                        */
     struct Pack pack;    /* inventory                    */
-	struct WoW  wearing; /* stuff wielding/wearing/using */
-	uint32_t    status;  /* is it eating polymorphed etc */
+    struct WoW  wearing; /* stuff wielding/wearing/using */
+    uint32_t    status;  /* is it eating polymorphed etc */
     struct Item*eating;  /* eating something (0 if not)  */
 };
 
 /* general monster functions */
-void mons_attack    (struct Monster*,int, int);         /* attack in direction                      */
-int  mons_move      (struct Monster*,int, int);         /* move in given directions                 */
+void mons_attack    (struct Monster*,int,int);          /* attack in direction                      */
+int  mons_move      (struct Monster*,int,int);          /* move in given directions                 */
 void mons_dead      (struct Monster*,struct Monster*);  /* this monster is dead                     */
 int  mons_take_move (struct Monster*);                  /* give a move (AI or player)               */
 bool mons_unwield   (struct Monster*);                  /* unwield what is currently wielded        */
@@ -130,8 +132,10 @@ bool mons_can_hear  (struct Monster*);                  /* has ears? no?        
 struct Item **mons_get_weap(struct Monster *);          /* what weapon is wielded?                  */
 
 /* player functions */
-void player_dead    (const char *, ...);                /* the player is dead; absolute end of game */
-void player_exc     (enum ABLTY, uint32_t);             /* exercise a given ablty by a given amount */
+uint32_t player_gen_type (void);                        /* get a valid monster type for fighting    */
+void     player_dead     (const char *, ...);           /* the player is dead; absolute end of game */
+void     player_exc      (enum ABLTY, uint32_t);        /* exercise a given ablty by a given amount */
+struct item_struct *find_corpse (struct Monster*);      /* gets a corpse type for a given monster   */
 
 /* player_status functions */
 char *get_hungerstr (void);                             /* gets player's hunger ("Starved" etc)     */

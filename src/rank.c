@@ -4,6 +4,7 @@
 #include "include/all.h"
 #include "include/rank.h"
 #include "include/monst.h"
+#include "include/pline.h"
 #include <assert.h>
 
 struct Rankings
@@ -11,11 +12,10 @@ struct Rankings
     char *ranks[6];
 };
 
-struct Rankings all_ranks[] = {{0, 0, 0, 0, 0, 0}, {"Private", "Corporal", "Liutenant", "Captain", "Seargant", "General"}, {"Dentist", "Nurse", "Assistant", "GP", "Specialist", "Surgeon"}, {"Thug", "Butcher", "Hitman", "Mercenary", "Cutthroat", "Executioner"}};
+struct Rankings all_ranks[] = {{{0, 0, 0, 0, 0, 0}}, {{"Private", "Corporal", "Liutenant", "Captain", "Seargant", "General"}}, {{"Dentist", "Nurse", "Assistant", "GP", "Specialist", "Surgeon"}}, {{"Thug", "Butcher", "Hitman", "Mercenary", "Cutthroat", "Executioner"}}};
 
 char *get_rank()
 {
-    int i;
     struct Monster *mon = U.player->thing;
     uint32_t level = mon->level;
     
@@ -26,7 +26,7 @@ char *get_rank()
     return all_ranks[U.role].ranks[(level-1)/5];
 }
 
-int level_boundary[30] = {0, 30, 50, 100, 160, 300, 500, 800, 1200,};
+int level_boundary[30] = {0, 10, 20, 30, 50, 80, 130, 210, 340, 550, 890, 1440};
 
 void update_level(struct Monster *mon)
 {
@@ -36,7 +36,7 @@ void update_level(struct Monster *mon)
     
     if (mon->name[0] == '_')
     {
-        if (i > mon->level) pline("Level up! You are now level %d.", i);
+        if (i > mon->level) pline("You are now level %d!", i);
         if (i < mon->level) pline("Level down... You dropped to level %d.", i);
     }
     mon->level = i;

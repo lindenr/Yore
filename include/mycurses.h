@@ -22,8 +22,9 @@ void toutify   (int);
 char getch     (void);
 char*getstr    (char *);
 void reset_col (void);
+void clear_screen(void);
 
-uint32_t get_buffer(uint32_t,uint32_t);
+uint32_t to_buffer(uint32_t,uint32_t);
 
 extern int console_width, console_height;
 

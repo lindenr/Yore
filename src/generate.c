@@ -24,7 +24,7 @@ void get_downstair(uint32_t *yloc, uint32_t *xloc)
 
 void generate_map(enum LEVEL_TYPE type)
 {
-    int i, x, Y, start;
+    int i, start;
     int buffer[1680];
     for (i = 0; i < 1680; ++ i)
     {
@@ -103,8 +103,8 @@ bool is_safe_gen(uint32_t yloc, uint32_t xloc)
     return true;
 }
 
-char real_player_name[20] = "_";
-struct Monster Pl[] = {{1, 1, 0, 20, 20, 0, real_player_name, {0,}, {0,}, 0, 0}};
+char *real_player_name;
+struct Monster *Pl;
 
 /* type:
  * 0 = initialised at start of game,
@@ -119,6 +119,14 @@ uint32_t mons_gen(int type, int32_t param)
     {
         start = param;
         upsy = start/80; upsx = start%80;
+        struct Monster asdf = {2, 1, 0, 20, 20, 0, 0, {{0},}, {0,}, 0, 0};
+        Pl = malloc(sizeof(asdf));
+        memcpy(Pl, &asdf, sizeof(asdf));
+
+        real_player_name = malloc(20);
+        Pl->name = real_player_name;
+        Pl->name[0] = '_';
+        Pl->name[1] = '\0';
         U.player = new_thing(THING_MONS, upsy, upsx, Pl);
     }
     else if (type == 1)
@@ -139,17 +147,18 @@ uint32_t mons_gen(int type, int32_t param)
     else if (type == 2)
     {
         luck = param;
-        if (RN(500) < (10-luck))
-        {
-            struct Monster *p = malloc(sizeof(struct Monster));
-            memset(p, 0, sizeof(struct Monster));
-            p->type = RN(6)-1;
-            p->HP = 20;
-            p->HP_max = 20;
-            p->name = "";
-            uint32_t xloc = RN(75), yloc = RN(15);
-            if (is_safe_gen(yloc, xloc))
-                new_thing(THING_MONS, yloc, xloc, p);
-        }
+        if (RN(500) >= (10-luck)) return 0;
+
+        struct Monster *p = malloc(sizeof(struct Monster));
+        memset(p, 0, sizeof(struct Monster));
+        p->type = player_gen_type();
+        p->HP = (mons[p->type].flags>>28)+(mons[p->type].exp>>1);
+        p->HP += RN(p->HP/3);
+        p->HP_max = p->HP;
+        p->name = "";
+        uint32_t xloc = RN(75), yloc = RN(15);
+        if (is_safe_gen(yloc, xloc))
+            new_thing(THING_MONS, yloc, xloc, p);
     }
+    return 0;
 }

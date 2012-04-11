@@ -40,10 +40,11 @@ void update_map()
             U.attr[AB_CO],U.attr[AB_IN], U.attr[AB_WI], U.attr[AB_CH]);
     sprintf(line1+65, "Health: %d     ", mn->HP);
 
-    if (INT_32)
+#   if INT_SIZE == 32
         sprintf(line2, "Time: %qu                                 ", Time);
-    else if (INT_64)
+#   elif INT_SIZE == 64
         sprintf(line2, "Time: %u                                  ", Time);
+#   endif
 
     sprintf(line2+26, "%s                                        ", get_hungerstr());
     

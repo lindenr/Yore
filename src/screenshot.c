@@ -4,7 +4,8 @@
 uint32_t Old_buffer[2000];
 extern uint32_t New_buffer[2000], Current_buffer[2000];
 
-void screenshot(void)
+/* prototypes in util.h */
+void screenshot()
 {
 	int i;
 
@@ -15,7 +16,7 @@ void screenshot(void)
     }
 }
 
-void unscreenshot(void)
+void unscreenshot()
 {
 	int i;
 

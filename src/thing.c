@@ -10,6 +10,7 @@
 #include "include/mycurses.h"
 #include "include/generate.h"
 #include "include/output.h"
+#include "include/vision.h"
 
 struct List all_things = LIST_INIT;
 
@@ -110,7 +111,6 @@ uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k, u
 inline void set_can_see(int Yloc, int Xloc, uint32_t *us, uint32_t *unseen)
 {
     int Y,X,w;
-    int I;
 
     /* Initialise the bres thing */
     bres_start (Yloc, Xloc, sq_seen, sq_attr);
@@ -174,15 +174,37 @@ inline struct list_iter *get_iter(void *data)
     return NULL;
 }
 
+void thing_free(struct Thing *thing)
+{
+    if (!thing) return;
+
+    switch (thing->type)
+    {
+        case THING_ITEM:
+        {
+            struct Item *i = thing->thing;
+            if (i->name) free (i->name);
+            break;
+        }
+        case THING_MONS:
+        {
+            struct Monster *monst = thing->thing;
+            if (monst->name && monst->name[0]) free (monst->name);
+            if (monst->eating) free (monst->eating);
+            break;
+        }
+        default: break;
+    }
+    free (thing->thing);
+    free (thing);
+}
+
 void rem_by_data(void *data)
 {
     struct list_iter *i = get_iter(data);
-    if (i)
-    {
-        list_rem(&all_things, i);
-        return;
-    }
-    /* It's "oh dear" if we get to here... */
+    if (!i) return; /* fail */
+
+    list_rem(&all_things, i);
 }
 
 struct Thing *new_thing(uint32_t type, uint32_t y, uint32_t x, void *actual_thing)
@@ -209,7 +231,7 @@ struct Thing *new_thing(uint32_t type, uint32_t y, uint32_t x, void *actual_thin
  * the top is used for pline(). A null character signifies nothing - the character
  * already there should not be overwritten. */
 
-int* visualise_map ()
+void visualise_map ()
 {
     int I;
     struct list_iter *i;
@@ -250,7 +272,7 @@ int* visualise_map ()
                 if (type[at] != THING_MONS)
                 {
                     struct Item *t = th.thing;
-                    map[at] = items[t->type].col | items[t->type].ch;
+                    map[at] = t->type->col | t->type->ch;
                     changed = true;
                 }
                 sq_unseen[at] = map[at];
@@ -269,6 +291,11 @@ int* visualise_map ()
                 sq_unseen[at] = map[at];
                 break;
             }
+            default:
+            {
+                panic("default reached");
+                break;
+            }
         }
         if (changed) 
         {
@@ -276,7 +303,6 @@ int* visualise_map ()
         }
     }
     set_can_see(player->yloc, player->xloc, map, sq_unseen);
-    return map;
 }
 
 struct Thing *get_thing(void *data)
@@ -289,5 +315,13 @@ struct Thing *get_thing(void *data)
     }
     /* CRASH! */
     return NULL;
+}
+
+void all_things_free()
+{
+    struct list_iter *i;
+
+    for (i = all_things.beg; i != all_things.end; next_iter(&i))
+        thing_free(i->data);
 }
 

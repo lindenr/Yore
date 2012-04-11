@@ -4,10 +4,12 @@
 #include "include/all.h"
 #include "include/pack.h"
 #include "include/item.h"
+#include "include/util.h"
+#include "include/pline.h"
 
 inline unsigned PACK_AT(char a)
 {
-	if (a<65 || a>122 || (a>90 && a<97)) return -1;
+    if (a<65 || a>122 || (a>90 && a<97)) return -1;
     a-=65;
     if (a>26) a-=32;
     return(unsigned)(a);
@@ -21,16 +23,16 @@ inline char LETTER_AT (unsigned i)
 
 void show_contents(struct Pack pack)
 {
-	int i, k;
-	struct Item *it;
+    int i, k;
+    struct Item *it;
 
-	screenshot();
+    screenshot();
     mvprintw(0, 40, "%-40s", "Inventory");
     mvprintw(1, 40, "%-40s", " ");
     for (i = 0, k = 1; i < 52; ++ i)
     {
         if(!pack.items[i]) continue;
-		it = pack.items[i];
+        it = pack.items[i];
         mvprintw(++ k, 40, " %-40s", get_inv_line(pack.items[i]));
     }
     getch();
@@ -80,23 +82,23 @@ bool pack_add(struct Pack *pack, struct Item *it)
 
 struct Item *get_Item(struct Pack pack, unsigned itnum)
 {
-	return pack.items[itnum];
+    return pack.items[itnum];
 }
 
 struct Item *get_Itemc(struct Pack pack, char itch)
 {
-	unsigned where = PACK_AT(itch);
-	if (where == -1) return NULL;
-	return pack.items[where];
+    unsigned where = PACK_AT(itch);
+    if (where == -1) return NULL;
+    return pack.items[where];
 }
 
 char get_Itref(struct Pack pack, struct Item *item)
 {
-	unsigned i;
-	
-	for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
-	{
-		if (pack.items[i] == item) return LETTER_AT(i);
-	}
-	return 0;
+    unsigned i;
+    
+    for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
+    {
+        if (pack.items[i] == item) return LETTER_AT(i);
+    }
+    return 0;
 }

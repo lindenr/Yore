@@ -27,5 +27,6 @@ void              list_rem  (struct List *, struct list_iter *);
 bool              is_valid  (struct list_iter *);
 bool              iter_equal(struct list_iter, struct list_iter);
 bool              iter_good (struct list_iter*);
+void              list_free (struct List *);
 
 #endif /* LIST_H_INCLUDED */

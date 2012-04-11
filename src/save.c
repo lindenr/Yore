@@ -2,6 +2,7 @@
  * Linden Ralph */
 
 #include "include/save.h"
+#include "include/pline.h"
 
 bool save()
 {

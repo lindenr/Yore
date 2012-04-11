@@ -3,17 +3,17 @@
 
 #include <stdint.h>
 
-#include "thing.h"
+#include "include/thing.h"
 
 enum ITEM_TYPE
 {
     IT_NONE = 0, /* placeholder - always useful */
-	IT_LONGSWORD,
-	IT_AXE,
-	IT_DAGGER,
-	IT_SHORTSWORD,
-	IT_CHEST,
-	IT_GLOVES,
+    IT_LONGSWORD,
+    IT_AXE,
+    IT_DAGGER,
+    IT_SHORTSWORD,
+    IT_CHEST,
+    IT_GLOVES,
     IT_CORPSE,
     IT_MONEY
 };
@@ -46,26 +46,25 @@ enum ITEM_TYPE
 /* type of item */
 struct item_struct
 {
-	char     name[20]; /* name of that type of item */
-	char     ch;       /* for the display */
-	enum     ITEM_TYPE type;
-	uint32_t wt;       /* weight */
-	uint32_t attr;     /* can be used for damage (weapons) (8 bits) */
-	uint32_t col;
+    char     name[20]; /* name of that type of item */
+    char     ch;       /* for the display */
+    enum     ITEM_TYPE type;
+    uint32_t wt;       /* weight */
+    uint32_t attr;     /* can be used for damage (weapons) (8 bits) */
+    uint32_t col;
 };
 
 /* an actual physical item */
 struct Item
 {
-	int32_t  type;
-	uint32_t attr;
-	uint32_t cur_weight;
-	char    *name;
+    struct item_struct *type;
+    uint32_t attr;
+    uint32_t cur_weight;
+    char    *name;
 };
 
 extern struct item_struct items[];
 
-uint32_t find_corpse  (const char *);
 char    *get_item_desc(struct Item);
 void     item_look    (struct Item*);
 char    *get_inv_line (struct Item*);

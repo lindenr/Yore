@@ -1,6 +1,7 @@
 #if !defined(ALL_H_INCLUDED)
 #define ALL_H_INCLUDED
 
+#include <limits.h>
 #include "debug.h"
 
 /* Player options go here */
@@ -14,9 +15,14 @@
 /* debugging only */
 /* #define LIST_TEST */
 
-/* Permanent - DO NOT CHANGE */
-#define INT_32 ((sizeof(int)<<3) == 32)
-#define INT_64 ((sizeof(int)<<3) == 64)
+/* Int sizes (do not change) */
+#if UINT_MAX>>32 == 0
+#  define INT_SIZE 32
+#elif UINT_MAX>>64 == 0
+#  define INT_SIZE 64
+#else
+#  error unknown int size
+#endif
 
 /* These crazy spellings... */
 #if !defined(AMERICAN)

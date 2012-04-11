@@ -24,16 +24,18 @@ struct Thing
     void *thing;
 };
 
-uint8_t             *get_sq_attr(void);
-uint8_t             *get_sq_seen(void);
-void          rem_by_data(void*);
-struct list_iter *get_iter(void*);
+uint8_t      *get_sq_attr    (void);
+uint8_t      *get_sq_seen    (void);
+void          rem_by_data    (void*);
+void          all_things_free(void);
+struct Thing *new_thing      (uint32_t,uint32_t,uint32_t,void*);
+void          visualise_map  (void);
+struct Thing *find_thing     (void*);
+int           get_thing_type (char);
+const char   *get_thing_name (struct Thing);
+struct Thing *get_thing      (void*);
+struct list_iter *get_iter   (void*);
+
 struct List   all_things;
-struct Thing *new_thing(uint32_t, uint32_t, uint32_t, void*);
-int          *visualise_map(void);
-struct Thing *find_thing(void *);
-int           get_thing_type(char);
-const char   *get_thing_name(struct Thing);
-struct Thing *get_thing(void *);
 
 #endif /* THING_H_INCLUDED */

@@ -17,5 +17,6 @@ char     pask   (const char*, const char*, ...);
 void     line_reset(void);
 void     addlinetomsg(const char *);
 void     pmsg   (void);
+bool     pline_check(void);
 
 #endif /* PLINE_H_INCLUDED */

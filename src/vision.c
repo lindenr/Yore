@@ -1,4 +1,5 @@
 #include "include/vision.h"
+#include "include/mycurses.h"
 #include <math.h>
 
 int fromy, fromx;

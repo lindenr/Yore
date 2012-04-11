@@ -14,6 +14,8 @@
 #include "include/generate.h"
 #include "include/thing.h"
 #include "include/output.h"
+#include "include/util.h"
+#include "include/mycurses.h"
 
 void print_intro()
 {
@@ -84,7 +86,6 @@ bool game_intro()
 
 int main (int argc, char *argv[])
 {
-    char input[100];
     int i;
     uint32_t rseed;
 
@@ -108,7 +109,7 @@ int main (int argc, char *argv[])
         if (i) mvprintw(10, 6, "Please type in your name.");
         refresh();
         move(8, 19);
-        getstr(real_player_name+1);
+        getstr(real_player_name+1); /* TODO reduce potential for overflow mistakes/hacks */
     }
 
     if (*(real_player_name+1) == '\0') goto quit_game;
@@ -142,7 +143,10 @@ int main (int argc, char *argv[])
     else if (U.playing == PLAYER_STARTING)
         printf("Give it a try next time...\n");
     else if (U.playing == PLAYER_WONGAME)
-        printf("Congrtulations %s...\n", get_pmonster()->name+1);
+        printf("Congratulations %s...\n", get_pmonster()->name+1);
+
+    /* This comes afterwards so get_pmonster() works for the messages. */
+    all_things_free();
 
     exit(0);
 }
