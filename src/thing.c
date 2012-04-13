@@ -259,7 +259,7 @@ void visualise_map ()
                 changed = true;
                 map[at] = mons[m->type].col | mons[m->type].ch;
                 if (m->name)
-                    if (m->name[0] == '_')
+                    if (IS_PLAYER(m))
                     {
                         map[at] |= COL_TXT_BRIGHT;
                         player = T;
@@ -321,7 +321,7 @@ void all_things_free()
 {
     struct list_iter *i;
 
-    for (i = all_things.beg; i != all_things.end; next_iter(&i))
+    for (i = all_things.beg; iter_good(i); next_iter(&i))
         thing_free(i->data);
 }
 

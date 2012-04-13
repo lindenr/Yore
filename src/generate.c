@@ -155,7 +155,7 @@ uint32_t mons_gen(int type, int32_t param)
         p->HP = (mons[p->type].flags>>28)+(mons[p->type].exp>>1);
         p->HP += RN(p->HP/3);
         p->HP_max = p->HP;
-        p->name = "";
+        p->name = NULL;
         uint32_t xloc = RN(75), yloc = RN(15);
         if (is_safe_gen(yloc, xloc))
             new_thing(THING_MONS, yloc, xloc, p);

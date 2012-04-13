@@ -8,7 +8,7 @@
 #define A_NUM   6 /* number of normal attacks per monster (like NH) */
 extern const int CORPSE_WEIGHTS[6];
 
-#define IS_PLAYER(m) ((m).name[0]=='_')
+#define IS_PLAYER(m) ((m)->name && (m)->name[0]=='_')
 
 #define WOW_INIT 0
 

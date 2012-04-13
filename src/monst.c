@@ -114,7 +114,7 @@ uint32_t player_gen_type()
 
 struct List custom_list = LIST_INIT;
 
-int mons_get_wt(struct Monster *self)
+inline int mons_get_wt(struct Monster *self)
 {
     return CORPSE_WEIGHTS[mons[self->type].flags >> 29];
 }
@@ -156,7 +156,7 @@ void mons_attack (struct Monster *self, int y, int x) /* each either -1, 0 or 1 
 
 int  mons_move (struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
 {
-    if (self->name[0] != '_')
+    if (!IS_PLAYER(self))
     if (!(x|y)) return false;
     struct Thing* t = get_thing(self);
     int can = can_move_to(get_square_attr(t->yloc+y, t->xloc+x, self->level));
@@ -277,7 +277,7 @@ int mons_take_move(struct Monster *self)
     if (mons_eating(self)) return true;
     struct Thing *th = get_thing(self);
     bool screenshotted = false;
-    if (self->name[0] == '_')
+    if (IS_PLAYER(self))
     {
         while(1)
         {
@@ -425,13 +425,13 @@ int mons_take_move(struct Monster *self)
 
 void mons_dead(struct Monster *from, struct Monster* to)
 {
-    if (to->name[0] == '_')
+    if (IS_PLAYER(to))
     {
         player_dead("");
         return;
     }
 
-    if (from->name[0] == '_')
+    if (IS_PLAYER(from))
     {
         pline("You kill the %s!", mons[to->type].name);
         from->exp += mons[to->type].exp;
@@ -464,7 +464,7 @@ bool mons_eating(struct Monster *self)
     if (!item) return false;
     if (item->cur_weight <= 1200)
     {
-        if (self->name[0] == '_')
+        if (IS_PLAYER(self))
         {
             U.hunger -= item->cur_weight>>4; /* U.hunger is signed */
             pline("You finish eating.");
@@ -477,7 +477,7 @@ bool mons_eating(struct Monster *self)
     }
     hunger_loss = RN(25) + 50;
     item->cur_weight -= hunger_loss<<4;
-    if (self->name[0] == '_') U.hunger -= hunger_loss;
+    if (IS_PLAYER(self)) U.hunger -= hunger_loss;
     return true;
 }
 
@@ -485,12 +485,12 @@ void mons_eat(struct Monster *self, struct Item *item)
 {
     if (!mons_edible(self, item)) 
     {
-        if (self->name[0] == '_') pline("You can't eat that!");
+        if (IS_PLAYER(self)) pline("You can't eat that!");
         return;
     }
     if ((self->status)&M_EATING)
     {
-        if (self->name[0] == '_') pline("You're already eating!");
+        if (IS_PLAYER(self)) pline("You're already eating!");
         return;
     }
     self->status |= M_EATING;
@@ -511,7 +511,7 @@ bool mons_unwield(struct Monster *self)
     if (weap == NULL) return true;
     if (weap->attr&ITEM_CURS)
     {
-        if (self->name[0] == '_')
+        if (IS_PLAYER(self))
         {
             line_reset();
             pline("You can't. It's cursed.");
@@ -527,7 +527,7 @@ bool mons_wield(struct Monster *self, struct Item *it)
 {
     self->wearing.rweap = it;
     it->attr ^= ITEM_WIELDED;
-    if (self->name[0] == '_')
+    if (IS_PLAYER(self))
     {
         line_reset();
         item_look(it);
@@ -539,7 +539,7 @@ bool mons_wear(struct Monster *self, struct Item *it)
 {
     if(it->type->ch != ITEM_ARMOUR)
     {
-        if (self->name[0] == '_')
+        if (IS_PLAYER(self))
         {
             line_reset();
             pline("You can't wear that!");
@@ -574,15 +574,15 @@ void mons_passive_attack (struct Monster *self, struct Monster *to)
         {
             posv = malloc(strlen(mons[self->type].name)+5);
             gram_pos(posv, (char*) mons[self->type].name);
-            if (self->name[0] == '_') pline("You splash the %s with your acid!", mons[to->type].name);
-            else if (to->name[0] == '_') pline("You are splashed by the %s acid!", posv);
+            if (IS_PLAYER(self)) pline("You splash the %s with your acid!", mons[to->type].name);
+            else if (IS_PLAYER(to)) pline("You are splashed by the %s acid!", posv);
         }
     }
 }
 
 int mons_get_st(struct Monster *self)
 {
-    if (self->name[0] == '_') return U.attr[AB_ST];
+    if (IS_PLAYER(self)) return U.attr[AB_ST];
     return 1;
 }
 
@@ -604,8 +604,8 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
                     strength = RN(mons_get_st(from))>>1;
                     to->HP -= RND(mons[from->type].attacks[t][0], mons[from->type].attacks[t][1]) + strength;
 
-                    if (from->name[0] == '_') pline("You hit the %s!", mons[to->type].name);
-                    else if (to->name[0] == '_') pline("The %s hits you!", mons[from->type].name);
+                    if (IS_PLAYER(from)) pline("You hit the %s!", mons[to->type].name);
+                    else if (IS_PLAYER(to)) pline("The %s hits you!", mons[from->type].name);
                     else pline("The %s hits the %s!", mons[from->type].name, mons[to->type].name); 
                 }
                 else
@@ -614,8 +614,8 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
                     strength = RN(mons_get_st(from))>>1;
                     to->HP -= RND(is.attr&15, (is.attr>>4)&15) + strength;
 
-                    if (from->name[0] == '_') pline("You smite the %s!", mons[to->type].name);
-                    else if (to->name[0] == '_') pline("The %s hits you!", mons[from->type].name);
+                    if (IS_PLAYER(from)) pline("You smite the %s!", mons[to->type].name);
+                    else if (IS_PLAYER(to)) pline("The %s hits you!", mons[from->type].name);
                     else pline("The %s hits the %s!", mons[from->type].name, mons[to->type].name);
                 }
 
@@ -626,8 +626,8 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
             {
                 to->HP -= RND(mons[from->type].attacks[t][0], mons[from->type].attacks[t][1]);
 
-                if (from->name[0] == '_') pline("You touch the %s!", mons[to->type].name);
-                else if (to->name[0] == '_') pline("The %s touches you!", mons[from->type].name);
+                if (IS_PLAYER(from)) pline("You touch the %s!", mons[to->type].name);
+                else if (IS_PLAYER(to)) pline("The %s touches you!", mons[from->type].name);
 
                 mons_passive_attack (to, from);
                 break;
@@ -640,8 +640,8 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
             {
                 to->HP -= RND(mons[from->type].attacks[t][0], mons[from->type].attacks[t][1]);
 
-                if (from->name[0] == '_') pline("You scratch the %s!", mons[to->type].name);
-                else if (to->name[0] == '_') pline("The %s scratches you!", mons[from->type].name);
+                if (IS_PLAYER(from)) pline("You scratch the %s!", mons[to->type].name);
+                else if (IS_PLAYER(to)) pline("The %s scratches you!", mons[from->type].name);
                 else pline("The %s scratches the %s!", mons[from->type].name, mons[to->type].name);
 
                 mons_passive_attack (to, from);
@@ -651,8 +651,8 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
             {
                 to->HP -= RND(mons[from->type].attacks[t][0], mons[from->type].attacks[t][1]);
 
-                if (from->name[0] == '_') pline("You bite the %s!", mons[to->type].name);
-                else if (to->name[0] == '_') pline("The %s bites you!", mons[from->type].name);
+                if (IS_PLAYER(from)) pline("You bite the %s!", mons[to->type].name);
+                else if (IS_PLAYER(to)) pline("The %s bites you!", mons[from->type].name);
                 else pline("The %s bites the %s!", mons[from->type].name, mons[to->type].name);
 
                 mons_passive_attack (to, from);
@@ -678,6 +678,7 @@ void player_dead(const char *msg, ...)
     vsprintf(actual, msg, args);
     line_reset();
     pline(actual);
+    free(actual);
     getch();
     va_end(args);
 }

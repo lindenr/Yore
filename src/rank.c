@@ -34,7 +34,7 @@ void update_level(struct Monster *mon)
     int i;
     for (i = 0; level_boundary[i] <= exp; ++ i) exp -= level_boundary[i];
     
-    if (mon->name[0] == '_')
+    if (IS_PLAYER(mon))
     {
         if (i > mon->level) pline("You are now level %d!", i);
         if (i < mon->level) pline("Level down... You dropped to level %d.", i);
