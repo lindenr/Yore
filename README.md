@@ -17,6 +17,8 @@ At the moment Yore is capable of running only on Windows and Linux systems. (Act
 1.  you must have MinGW installed;
 2.  run <pre>PATH &lt;your_mingw_install_path&gt;\bin<br />build-win</pre>
 
+The executable is created as ./bin/Yore (Linux) or bin\Yore (Windows).
+
 
 ###Yore runs (tested) on the following platforms:
 
