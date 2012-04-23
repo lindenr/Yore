@@ -16,7 +16,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 
-const int ACTUAL_COLOURS[8] = {1, 31, 32, 34, 41, 42, 44, 4}; /* Numbers for ^[[asdf;qwer;zxcvm. */
+const int ACTUAL_COLOURS[8] = {1, 31, 32, 34, 41, 42, 44, 4}; /* Numbers for ^[[X;Y;Zm. */
 
 uint32_t Current_buffer[2000], New_buffer[2000];
 struct termios tm_old;
@@ -248,7 +248,7 @@ char *getstr(char *str)
 
     res = fgets(str, 80, stdin);
     if (res != str) /* error'd! */
-        fprintf(stderr, "READ FAILED.\n");
+        panic("READ FAILED.");
 
     str[strlen(str)-1] = '\0';
     return str;

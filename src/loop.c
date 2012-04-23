@@ -10,12 +10,16 @@
 #include "include/output.h"
 #include "include/generate.h"
 
-uint64_t Time = 0;
+uint64_t Time = 1;
 
 void next_time()
 {
     ++ Time;
-    if (digesting()) ++ U.hunger;
+    U.oldhunger = U.hunger;
+    if (digesting())
+    {
+        ++ U.hunger;
+    }
 }
 
 void main_loop()
@@ -54,9 +58,10 @@ void main_loop()
         if (U.attr[AB_CO] <= 0) msg = "flabbiness";
         if (U.attr[AB_IN] <= 0) msg = "brainlessness";
         if (U.attr[AB_WI] <= 0) msg = "foolishness";
-        if (pl_mon->level <= 0)       msg = "inexperience";
-        if (U.hunger > HN_LIMIT_5)    msg = "hunger";
-        if (U.hunger <= 1)            msg = "consumption";
+
+        if (pl_mon->level <= 0 || pl_mon->exp < 0) msg = "inexperience";
+        if (U.hunger > HN_LIMIT_5) msg = "hunger";
+        if (U.hunger <= 1) msg = "consumption";
 
         if (msg)
         {

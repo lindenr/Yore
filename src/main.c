@@ -109,7 +109,7 @@ int main (int argc, char *argv[])
         if (i) mvprintw(10, 6, "Please type in your name.");
         refresh();
         move(8, 19);
-        getstr(real_player_name+1); /* TODO reduce potential for overflow mistakes/hacks */
+        getstr(real_player_name+1);
     }
 
     if (*(real_player_name+1) == '\0') goto quit_game;

@@ -6,7 +6,7 @@
 
 #define A_PARAM 3 /* AdB damage, of type C */
 #define A_NUM   6 /* number of normal attacks per monster (like NH) */
-extern const int CORPSE_WEIGHTS[6];
+//extern const int CORPSE_WEIGHTS[7];
 
 #define IS_PLAYER(m) ((m)->name && (m)->name[0]=='_')
 
@@ -49,7 +49,7 @@ typedef uint32_t player_attr[6];
 
 struct player_status
 {
-    int32_t       hunger;
+    int32_t       hunger, oldhunger;
     struct Thing *player;
     int           role;
     int           playing;

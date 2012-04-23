@@ -35,7 +35,7 @@ uint32_t sq_unseen[1680] = {0,};
 uint8_t *get_sq_attr(){return sq_attr;}
 
 /* This is very ugly and inelegant. A better/neater solution would be very welcome.
- * What this function does is purely cosmetic - given whether or not the squares surrounding are walles or spaces,
+ * What this function does is purely cosmetic - given whether or not the squares surrounding are walls or spaces,
  * this function returns what character should be displayed (corner, straight line, tee, etc).
  * The nested if's make my eyes hurt, but I can't think of a simpler alternative. */
 uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k, uint32_t l, uint32_t b, uint32_t n)
@@ -205,17 +205,16 @@ void rem_by_data(void *data)
     if (!i) return; /* fail */
 
     list_rem(&all_things, i);
+    free(i);
 }
 
 struct Thing *new_thing(uint32_t type, uint32_t y, uint32_t x, void *actual_thing)
 {
-    struct list_iter* i;
     struct Thing t = {type, y,x, actual_thing};
     struct Thing *thing = malloc(sizeof(struct Thing));
     memcpy(thing, &t, sizeof(struct Thing));
     push_back(&all_things, thing);
-    i = all_things.end;
-    return ((struct Thing*)(i->data));
+    return thing;
 }
 
 /* returns an array of 1680 integers (characters with colour) */

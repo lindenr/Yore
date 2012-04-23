@@ -21,21 +21,35 @@ inline char LETTER_AT (unsigned i)
     else       return i+97;
 }
 
-void show_contents(struct Pack pack)
+int item_type_flags(struct Item *item, uint32_t accepted)
+{
+    switch(item->type->ch)
+    {
+        case ITEM_WEAPON:  return(accepted&ITCAT_WEAPON);
+        case ITEM_TOOL:    return(accepted&ITCAT_TOOL);
+        case ITEM_STRANGE: return(accepted&ITCAT_STRANGE);
+        case ITEM_ARMOUR:  return(accepted&ITCAT_ARMOUR);
+        case ITEM_FOOD:    return(accepted&ITCAT_FOOD);
+        case ITEM_DOSH:    return(accepted&ITCAT_DOSH);
+        default:           break;
+    }
+    panic("item_type_flags() found a strange item type.");
+    return -1; /* Won't ever get here. */
+}
+
+void show_contents(struct Pack pack, uint32_t accepted)
 {
     int i, k;
-    struct Item *it;
 
     screenshot();
     mvprintw(0, 40, "%-40s", "Inventory");
     mvprintw(1, 40, "%-40s", " ");
     for (i = 0, k = 1; i < 52; ++ i)
     {
-        if(!pack.items[i]) continue;
-        it = pack.items[i];
+        if(!(pack.items[i] && item_type_flags(pack.items[i], accepted))) continue;
         mvprintw(++ k, 40, " %-40s", get_inv_line(pack.items[i]));
     }
-    getch();
+//    getch();
 }
 
 void pack_get_letters(struct Pack pack, char *ret)
@@ -66,13 +80,16 @@ struct Item *pack_rem(struct Pack *pack, char it)
 bool pack_add(struct Pack *pack, struct Item *it)
 {
     uint32_t u;
+    char *msg;
 
     for (u = 0; u < MAX_ITEMS_IN_PACK; ++ u)
     {
         if (!pack->items[u])
         {
             pack->items[u] = it;
-            pline("%s", get_inv_line(it));
+            msg = get_inv_line(it);
+            pline("%s", msg);
+            free(msg);
             return true;
         }
     }

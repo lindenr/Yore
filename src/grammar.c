@@ -4,6 +4,8 @@
 #include "include/all.h"
 #include "include/grammar.h"
 #include "include/util.h"
+
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -27,5 +29,17 @@ void gram_pos(char *end, char *in)
 {
     strcpy(end, in);
     strcat(end, "'s");
+}
+
+char *gram_short(char *str, int len)
+{
+    int length = strlen(str);
+    if (length <= len) return str;
+
+    char *ret = malloc(len-3);
+    memcpy(ret, str, len-4);
+    ret[len-4] = '\0';
+    strcat(ret, "...");
+    return ret;
 }
 

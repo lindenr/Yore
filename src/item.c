@@ -62,11 +62,12 @@ char *get_inv_line(struct Item *item)
 {
 	struct Monster *m = (get_player()->thing);
 	char ch = get_Itref(m->pack,  item);
-	char *ret = malloc(sizeof(char)*80);
+	char *ret = malloc(sizeof(char)*80), *orig = get_item_desc(*item);
 	if (!ch)
-		sprintf(ret, "%s", get_item_desc(*item));
+		sprintf(ret, "%s", orig);
 	else
-		sprintf(ret, "%c - %s", ch, get_item_desc(*item));
+		sprintf(ret, "%c - %s", ch, orig);
+    free(orig);
 	return ret;
 }
 

@@ -19,6 +19,7 @@
 #include "include/pline.h"
 #include "include/util.h"
 #include "include/all_mon.h"
+
 #include <stdarg.h>
 
 struct player_status U;
@@ -87,8 +88,10 @@ void get_cinfo()
 
 uint32_t expcmp(uint32_t p_exp, uint32_t m_exp)
 {
-    if ((p_exp*20)+10 < m_exp*19) return 1;
-    return 50;
+    if (p_exp         >= m_exp*2)  return 5;
+    if ((p_exp*20)+10 >= m_exp*19) return 50;
+    if ((p_exp*2)     >= m_exp)    return 1;
+    return 0;
 }
 
 uint32_t player_gen_type()
@@ -236,7 +239,7 @@ void thing_move_level(struct Thing *th, int32_t where)
     }
 }
 
-struct Item *player_use_pack(struct Thing *player, char *msg, bool *psc)
+struct Item *player_use_pack(struct Thing *player, char *msg, bool *psc, uint32_t accepted)
 {
     struct Item *It = NULL;
     char in, cs[100];
@@ -251,15 +254,19 @@ struct Item *player_use_pack(struct Thing *player, char *msg, bool *psc)
         line_reset();
         pack_get_letters(self->pack, cs);
         in = pask(cs, msg);
-        if (in == '?') break; /* TODO change */
+        if (in == '?')
+        {
+            show_contents(self->pack, accepted);
+            getch();
+            unscreenshot();
+            continue;
+        }
         if (in == ' ' || in == 0x1B) break;
         if (in == '*')
         {
-            if (!*psc)
-            {
-                *psc = true;
-                show_contents(self->pack);
-            }
+            show_contents(self->pack, ITCAT_ALL); /* everything */
+            getch();
+            unscreenshot();
             continue;
         }
 
@@ -322,9 +329,10 @@ int mons_take_move(struct Monster *self)
                 screenshotted = true;
                 struct List Li = {&list_beg, &list_end};
                 struct list_iter *li;
+                struct Thing *t_;
                 for(li = all_things.beg; iter_good(li); next_iter(&li))
                 {
-                    struct Thing *t_ = li->data;
+                    t_ = li->data;
                     if (t_->type != THING_ITEM) continue;
                     if (t_->xloc == th->xloc &&
                         t_->yloc == th->yloc)
@@ -336,6 +344,8 @@ int mons_take_move(struct Monster *self)
                 {
                     pack_add(&self->pack, ((struct Thing*)(Li.beg->data))->thing);
                     rem_by_data(((struct Thing*)(Li.beg->data))->thing);
+                    //list_rem(&Li, Li.beg->data);
+                    free(Li.beg);
                 }
                 else
                 {
@@ -344,13 +354,13 @@ int mons_take_move(struct Monster *self)
             }
             else if (in == 'e')
             {
-                struct Item *It = player_use_pack(th, "Eat what?", &screenshotted);
+                struct Item *It = player_use_pack(th, "Eat what?", &screenshotted, ITCAT_FOOD);
                 if (It == NULL) continue;
                 mons_eat(self, It);
             }
             else if (in == 'd')
             {
-                struct Item *It = player_use_pack(th, "Drop what?", &screenshotted);
+                struct Item *It = player_use_pack(th, "Drop what?", &screenshotted, -1);
                 if (It == NULL) continue;
                 unsigned u = PACK_AT(get_Itref(self->pack, It));
                 self->pack.items[u] = NULL;
@@ -361,7 +371,7 @@ int mons_take_move(struct Monster *self)
             else if (in == 'i')
             {
                 screenshotted = true;
-                show_contents(self->pack);
+                show_contents(self->pack, ITCAT_ALL);
                 continue;
             }
             else if (in == ':')
@@ -449,6 +459,7 @@ void mons_dead(struct Monster *from, struct Monster* to)
     it->cur_weight = 0;
     new_thing(THING_ITEM, t->yloc, t->xloc, it);
     rem_by_data(to);
+    thing_free(t);
 }
 
 /* TODO is it polymorphed? */
@@ -466,7 +477,8 @@ bool mons_eating(struct Monster *self)
     {
         if (IS_PLAYER(self))
         {
-            U.hunger -= item->cur_weight>>4; /* U.hunger is signed */
+            U.hunger -= (item->cur_weight)>>4; /* U.hunger is signed */
+            line_reset();
             pline("You finish eating.");
         }
         self->status &= ~M_EATING;
@@ -681,6 +693,8 @@ void player_dead(const char *msg, ...)
     free(actual);
     getch();
     va_end(args);
+
+    U.playing = PLAYER_LOSTGAME;
 }
 
 /* END MONSTERS */

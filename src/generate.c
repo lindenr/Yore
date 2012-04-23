@@ -123,7 +123,7 @@ uint32_t mons_gen(int type, int32_t param)
         Pl = malloc(sizeof(asdf));
         memcpy(Pl, &asdf, sizeof(asdf));
 
-        real_player_name = malloc(20);
+        real_player_name = malloc(85);
         Pl->name = real_player_name;
         Pl->name[0] = '_';
         Pl->name[1] = '\0';
@@ -149,8 +149,8 @@ uint32_t mons_gen(int type, int32_t param)
         luck = param;
         if (RN(500) >= (10-luck)) return 0;
 
-        struct Monster *p = malloc(sizeof(struct Monster));
-        memset(p, 0, sizeof(struct Monster));
+        struct Monster *p = malloc(sizeof(*p));
+        memclr(p, sizeof(*p));
         p->type = player_gen_type();
         p->HP = (mons[p->type].flags>>28)+(mons[p->type].exp>>1);
         p->HP += RN(p->HP/3);
@@ -159,6 +159,7 @@ uint32_t mons_gen(int type, int32_t param)
         uint32_t xloc = RN(75), yloc = RN(15);
         if (is_safe_gen(yloc, xloc))
             new_thing(THING_MONS, yloc, xloc, p);
+        else free(p);
     }
     return 0;
 }

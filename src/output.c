@@ -8,13 +8,14 @@
 #include "include/monst.h"
 #include "include/loop.h"
 #include "include/rank.h"
+#include "include/grammar.h"
 
 #include <stdio.h>
 #include <string.h>
 
 uint32_t current_buffer[1920], new_buffer[1920];
 
-void init_map  ()
+void init_map()
 {
     int i;
     for (i = 0; i < 1920; ++ i)
@@ -35,7 +36,7 @@ void update_map()
     {
         line1[i] = line2[i] = ' ';
     }
-    sprintf(line1, "%s the %s                  ", mn->name+1, get_rank());
+    sprintf(line1, "%s the %s                  ", gram_short(mn->name+1, 15), get_rank());
     sprintf(line1+26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d                ", U.attr[AB_ST], U.attr[AB_DX],
             U.attr[AB_CO],U.attr[AB_IN], U.attr[AB_WI], U.attr[AB_CH]);
     sprintf(line1+65, "Health: %d     ", mn->HP);
@@ -46,9 +47,9 @@ void update_map()
         sprintf(line2, "Time: %u                                  ", Time);
 #   endif
 
-    sprintf(line2+26, "%s                                        ", get_hungerstr());
-    
-    sprintf(line2+65, "Level %d:%d", mn->level, mn->exp);
+    sprintf(line2+26, "Level %d:%d                               ", mn->level, mn->exp);
+
+    sprintf(line2+65, "%s", get_hungerstr());
 
     for (i = 0; i < 80; ++ i)
     {

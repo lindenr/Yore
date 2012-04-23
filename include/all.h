@@ -37,4 +37,6 @@
 
 #endif /* !AMERICAN */
 
+#define memclr(a,l) (memset(a,0,l))
+
 #endif /* ALL_H_INCLUDED */
