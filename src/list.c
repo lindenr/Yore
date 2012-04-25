@@ -8,6 +8,16 @@
 struct list_iter list_beg = {0,0,0}, list_end = {0,0,0};
 extern struct List all_things;
 
+void list_free(struct List *list)
+{
+    struct list_iter *i;
+    for (i = list->beg; iter_good(i); next_iter(&i))
+    {
+        if (i != list->beg) free(i->prev);
+    }
+    if (i != list->beg) free(i->prev);
+}
+
 struct list_iter *next_iter(struct list_iter **li)
 {
     if (!is_valid(*li))
@@ -82,6 +92,6 @@ bool is_valid (struct list_iter *li)
 
 bool iter_good(struct list_iter *li)
 {
-    if (!li) return false;
+    if(!li) return false;
     return is_valid(li);
 }

@@ -35,7 +35,7 @@ Gameplay in Yore is largely similar to NetHack.
 ###Movement
 
 Movement with the hjkl set (yubn for diagonals) is supported; running using a capital letter (HJKLYUBN) is not implemented yet.
-On windows you may also use the arrow keys to move, but you win't be able to move diagonally. Also, don't try moving through typed commands with the arrow keys - on Windows they have been mapped to hjkl and on Linux to ABCD.
+On Windows you may also use the arrow keys to move, but you wouldn't be able to move diagonally. Also, don't try moving through typed commands with the arrow keys - on Windows they have been mapped to hjkl and on Linux to ABCD.
 
 ###Miscellaneous
 
@@ -45,6 +45,9 @@ Various other commands are (in no particular order):
 :      look down
 i      check your inventory
 w      wield a weapon
+d      drop an item from you inventory
+
+S      save and quit
 Q      quit permanently</pre>
 
 ##License

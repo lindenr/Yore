@@ -136,6 +136,7 @@ uint32_t player_gen_type (void);                        /* get a valid monster t
 void     player_dead     (const char *, ...);           /* the player is dead; absolute end of game */
 void     player_exc      (enum ABLTY, uint32_t);        /* exercise a given ablty by a given amount */
 struct item_struct *find_corpse (struct Monster*);      /* gets a corpse type for a given monster   */
+void     custom_free     (void);                        /* frees custom types (now only corpses)    */
 
 /* player_status functions */
 char *get_hungerstr (void);                             /* gets player's hunger ("Starved" etc)     */

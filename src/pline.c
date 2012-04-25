@@ -163,38 +163,49 @@ bool pline_check()
     plined = 0;
     return ret;
 }
-/*
-char **multiline_msg, int multi_msg_size = 0;
 
-void addlinetomsg (const char *msg)
+void mlines(int num_lines, ...)
 {
-    multi_msg_size ++;
-    if (!multiline_msg)
-    {
-        multiline_msg = &msg;
-        return;
-    }
-    char **r = malloc(sizeof(char*)*multi_msg_size);
-    memcpy(r, multiline_msg, sizeof(char*)*(multi_msg_size-1));
-    r[multi_msg_size-1] = msg;
-    multiline_msg = r;
+    va_list args;
+    struct List list = LIST_INIT;
+
+    va_start(args, num_lines);
+
+    while(num_lines--)
+        push_back(&list, va_arg(args, char*));
+
+    va_end(args);
+
+    mlines_list(list, num_lines);
+    list_free(&list);
 }
 
-void pmsg (void)
+void mlines_list(struct List list, int num_lines)
 {
-    if (multi_msg_size == 0){}
-    else if (multi_msg_size <= 1)
+    struct list_iter *i;
+    int l_no;
+
+    screenshot();
+    if (num_lines <= 1) aline(list.beg->data);
+    else
     {
-        line_reset();
-        pline("%s", *multiline_msg);
+        clear_screen();
+        for (l_no = 0, i = list.beg; iter_good(i); ++l_no, next_iter(&i))
+        {
+            mvprintw(l_no, 0, "%s", i->data);
+            if (l_no == console_height-2)
+            {
+                mvprintw(l_no+1, 0, "--more--");
+                getch();
+                l_no = -1;
+            }
+        }
+        move(console_height-1, 0);
+        fprintf(stdout, "--END--");
+        move(console_height-1, 7);
     }
-    else if (multi_msg_size <= 7)
-    {
-    }
-    else if (multi_msg_size < 24)
-    {
-    }
-    else pline("Too many lines!");
-    multiline_msg = NULL;
-}*/
+    getch();
+    move(console_height-1, 0);
+    fprintf(stdout, "       ");
+}
 

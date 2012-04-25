@@ -21,6 +21,7 @@ struct List
 
 struct list_iter list_beg, list_end;
 
+void              list_free (struct List *);
 struct list_iter *next_iter (struct list_iter **);
 void              push_back (struct List *, void *);
 void              list_rem  (struct List *, struct list_iter *);

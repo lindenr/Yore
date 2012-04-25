@@ -255,3 +255,4 @@ char *getstr(char *str)
 }
 
 #endif /* FOONIX */
+

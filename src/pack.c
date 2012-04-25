@@ -40,16 +40,17 @@ int item_type_flags(struct Item *item, uint32_t accepted)
 void show_contents(struct Pack pack, uint32_t accepted)
 {
     int i, k;
+    struct List list[1] = {LIST_INIT};
 
-    screenshot();
-    mvprintw(0, 40, "%-40s", "Inventory");
-    mvprintw(1, 40, "%-40s", " ");
+    push_back(list, "Inventory");
+    push_back(list, "");
     for (i = 0, k = 1; i < 52; ++ i)
     {
         if(!(pack.items[i] && item_type_flags(pack.items[i], accepted))) continue;
-        mvprintw(++ k, 40, " %-40s", get_inv_line(pack.items[i]));
+        ++ k;
+        push_back(list, get_inv_line(pack.items[i]));
     }
-//    getch();
+    mlines_list(*list, k);
 }
 
 void pack_get_letters(struct Pack pack, char *ret)

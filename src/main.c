@@ -147,6 +147,7 @@ int main (int argc, char *argv[])
 
     /* This comes afterwards so get_pmonster() works for the messages. */
     all_things_free();
+    custom_free();
 
     exit(0);
 }

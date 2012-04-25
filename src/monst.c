@@ -117,6 +117,16 @@ uint32_t player_gen_type()
 
 struct List custom_list = LIST_INIT;
 
+void custom_free()
+{
+    struct list_iter *i;
+    for (i = custom_list.beg; iter_good(i); next_iter(&i))
+    {
+        free(i->data);
+    }
+    list_free(&custom_list);
+}
+
 inline int mons_get_wt(struct Monster *self)
 {
     return CORPSE_WEIGHTS[mons[self->type].flags >> 29];
@@ -280,6 +290,7 @@ struct Item *player_use_pack(struct Thing *player, char *msg, bool *psc, uint32_
 
 int mons_take_move(struct Monster *self)
 {
+    char in;
     if (self->HP < self->HP_max && RN(50) < U.attr[AB_CO]) self->HP += (self->level+10)/10;
     if (mons_eating(self)) return true;
     struct Thing *th = get_thing(self);
@@ -291,13 +302,13 @@ int mons_take_move(struct Monster *self)
             if (mons_eating(self)) return true;
             refresh();
             move(th->yloc+1, th->xloc);
-            char in = getch();
-            if (pline_check()) line_reset();
             if (screenshotted)
             {
                 screenshotted = false;
                 unscreenshot();
             }
+            in = getch();
+            if (pline_check()) line_reset();
             if (in == 'Q') 
             {
                 if (!quit())
@@ -344,12 +355,27 @@ int mons_take_move(struct Monster *self)
                 {
                     pack_add(&self->pack, ((struct Thing*)(Li.beg->data))->thing);
                     rem_by_data(((struct Thing*)(Li.beg->data))->thing);
-                    //list_rem(&Li, Li.beg->data);
                     free(Li.beg);
                 }
                 else
                 {
-                    // TODO add support for multiple items
+                    screenshotted = true;
+                    struct List str_list = LIST_INIT;
+                    int num;
+                    for (num = 0, li = Li.beg; iter_good(li); ++num, next_iter(&li))
+                    {
+                        t_ = li->data;
+                        struct Item *it = t_->thing;
+                        char *line = get_inv_line(it);
+                        push_back(&str_list, line);
+                    }
+                    mlines_list(str_list, num);
+                    for (li = str_list.beg; iter_good(li); next_iter(&li))
+                    {
+                        free(li->data);
+                        if (li != str_list.beg) free(li->prev);
+                    }
+                    free(li->prev);
                 }
             }
             else if (in == 'e')
@@ -387,9 +413,10 @@ int mons_take_move(struct Monster *self)
                     if (t_->xloc == th->xloc &&
                         t_->yloc == th->yloc)
                     {
+                        char *line = get_inv_line(((struct Thing*)(n->data))->thing);
                         pline("You%s see here %s. ",
-                              ((k++)?" also":""),
-                              get_inv_line(((struct Thing*)(n->data))->thing));
+                              ((k++)?" also":""), line);
+                        free(line);
                     }
                 }
                 if (k == 0) pline("You see nothing here. ");

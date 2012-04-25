@@ -35,6 +35,7 @@ int           get_thing_type (char);
 const char   *get_thing_name (struct Thing);
 struct Thing *get_thing      (void*);
 struct list_iter *get_iter   (void*);
+void          thing_free     (struct Thing*);
 
 struct List   all_things;
 
