@@ -11,7 +11,6 @@
                                                                                \
 "
 
-void     aline  (const char*);
 void     pline  (const char*, ...);
 void     mvline (uint32_t, uint32_t, const char*, ...);
 char     pask   (const char*, const char*, ...);

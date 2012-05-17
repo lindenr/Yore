@@ -22,6 +22,8 @@
 
 #include <stdarg.h>
 
+#define CONTROL_(c) ((c)-0x40)
+
 struct player_status U;
 char *s_hun[] = {
     "Full",
@@ -320,7 +322,7 @@ int mons_take_move(struct Monster *self)
             }
             if (in == 'S')
             {
-                if (!save())
+                if (!save(get_filename()))
                 {
                     U.playing = PLAYER_SAVEGAME;
                     return false;
@@ -360,7 +362,7 @@ int mons_take_move(struct Monster *self)
                 else
                 {
                     screenshotted = true;
-                    struct List str_list = LIST_INIT;
+                    struct List str_list = LIST_INIT, struct List ret_list = LIST_INIT;
                     int num;
                     for (num = 0, li = Li.beg; iter_good(li); ++num, next_iter(&li))
                     {
@@ -369,7 +371,7 @@ int mons_take_move(struct Monster *self)
                         char *line = get_inv_line(it);
                         push_back(&str_list, line);
                     }
-                    mlines_list(str_list, num);
+                    ret_list = mask_list(str_list, num);
                     for (li = str_list.beg; iter_good(li); next_iter(&li))
                     {
                         free(li->data);
@@ -377,6 +379,10 @@ int mons_take_move(struct Monster *self)
                     }
                     free(li->prev);
                 }
+            }
+            else if (in == CONTROL_('P'))
+            {
+                pline_get_his();
             }
             else if (in == 'e')
             {
@@ -420,7 +426,6 @@ int mons_take_move(struct Monster *self)
                     }
                 }
                 if (k == 0) pline("You see nothing here. ");
-                continue;
             }
             else if (in == 'w')
             {
@@ -448,7 +453,6 @@ int mons_take_move(struct Monster *self)
                 screenshot();
                 screenshotted = true;
                 pline ("Unknown command '%s%c'. ", (escape(in)==in?"":"^"), escape(in));
-                continue;
             }
         }
     }

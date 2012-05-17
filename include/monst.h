@@ -9,6 +9,7 @@
 //extern const int CORPSE_WEIGHTS[7];
 
 #define IS_PLAYER(m) ((m)->name && (m)->name[0]=='_')
+#define get_filename() "Yore-savegame.sav"
 
 #define WOW_INIT 0
 
@@ -44,6 +45,7 @@ extern char *s_hun[];
 #define PLAYER_LOSTGAME 1
 #define PLAYER_WONGAME  2
 #define PLAYER_SAVEGAME 3
+#define PLAYER_CHEATER  4
 
 typedef uint32_t player_attr[6];
 

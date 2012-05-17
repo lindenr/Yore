@@ -23,7 +23,7 @@ bool quit()
 {
     if (pask("yn", "Are you sure you want to quit -- permanently?") == 'y')
     {
-        destroy_save_file();
+        destroy_save_file(get_filename());
         return false;
     }
     return true;

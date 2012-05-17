@@ -39,4 +39,12 @@
 
 #define memclr(a,l) (memset(a,0,l))
 
+#if defined(WINDOWS)
+# include <windows.h>
+#elif defined(FOONIX)
+/* *NIX go here */
+#else
+#error operating system not defined
+#endif /* WINDOWS, FOONIX */
+
 #endif /* ALL_H_INCLUDED */

@@ -11,6 +11,7 @@
 int msg_size_pline = 0, line_pline = 0;
 
 bool plined = false;
+void aline(const char*, bool);
 
 char pask(const char *in, const char* out, ...)
 {
@@ -36,7 +37,7 @@ char pask(const char *in, const char* out, ...)
     o[where] = '\0'; /* terminating null character */
 
     /* print the question */
-    aline(o);
+    aline(o, 1);
 
     /* wait for answer */
     do c = getch();
@@ -107,23 +108,38 @@ void mvline(uint32_t yloc, uint32_t xloc, const char *txt, ...)
     move(0,0);
 }
 
+char pline_history[20][256] = {{0,},};
+int pline_where = 0, pline_pretend = -1;
+
+void pline_get_his()
+{
+    if (pline_pretend == -1) pline_pretend = pline_where-1;
+    if (pline_pretend == -1) pline_pretend = 19;
+    aline(pline_history[pline_pretend], 0);
+}
+
 void pline(const char* out, ...)
 {
     va_list args;
-    char *actual = malloc(sizeof(char)*500);
+    char actual[500];
     plined = true;
 
     va_start(args, out);
     vsprintf(actual, out, args);
-    aline((const char *)actual);
+    aline(actual, true);
     va_end(args);
-    free(actual);
 }
 
-void aline(const char*out)
+void aline(const char *out, bool historicise)
 {
     int len;
     plined = true;
+    pline_pretend = -1;
+    if (historicise)
+    {
+        strcpy(pline_history[pline_where++], out);
+        if (pline_where == 20) pline_where = 0;
+    }
     reset_col();
     if (strlen(out) > console_width-5)
     {
@@ -186,7 +202,8 @@ void mlines_list(struct List list, int num_lines)
     int l_no;
 
     screenshot();
-    if (num_lines <= 1) aline(list.beg->data);
+    if (num_lines <= 0) return;
+    else if (num_lines == 1) aline(list.beg->data, true);
     else
     {
         clear_screen();

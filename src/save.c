@@ -1,22 +1,38 @@
 /* save.c
  * Linden Ralph */
 
+#include "include/all.h"
 #include "include/save.h"
 #include "include/pline.h"
+#include "include/monst.h"
 
-bool save()
+#include <stdlib.h>
+
+bool save(char *filename)
 {
     if (pask("yn", "Save and quit?") == 'y')
     {
         pline("Saving...");
-        /* TODO save the game */
+        // TODO save the game
         return false;
     }
     return true;
 }
 
-void destroy_save_file()
+void restore(char *filename)
 {
-    /* TODO unsave the game */
+    // TODO restore the game
+    U.playing = PLAYER_PLAYING; /* success */
+}
+
+void destroy_save_file(char *filename)
+{
+#if defined(WINDOWS)
+    DeleteFile(filename);
+#elif defined(FOONIX)
+    char str[1000];
+    sprintf(str, "rm %s", filename);
+    system(str);
+#endif
 }
 
