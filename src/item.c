@@ -31,47 +31,85 @@ ITEM("",                             0,             0,    0,     0    ,      0  
 
 char *get_item_desc(struct Item item)
 {
-	char *ret = malloc(sizeof(char)*80);
-	if (item.name != NULL && item.name[0] != '\0')
-	{
+    char *ret = malloc(sizeof(char)*80);
+    if (item.name != NULL && item.name[0] != '\0')
+    {
         pline ("NULULULULUL");
-	}
-	else
-	{
-		//const char *str = itoa((item.attr&ITEM_PLUS(3)>>3))
-		sprintf(ret, "%s%s%s%d %s%s",
-				((item.attr&ITEM_KBUC)?((item.attr&ITEM_BLES)?"blessed "
-															:(item.attr&ITEM_CURS)?"cursed ":"uncursed ")
-									  :""),                               /* BUC */
-				((item.attr&ITEM_GREASED)?"greased ":""),                 /* "greased" or "" */
-				((item.attr&(ITEM_MINS(3)))|1?((item.attr&(ITEM_MINS(0)))?"-":"+"):""), /* '+' or '-' */
-				((item.attr&(ITEM_MINS(3)))|1?(item.attr&((ITEM_PLUS(3))>>3)):0),         /* '1', '2', or '3' */
-				item.type->name,
-				(item.attr&ITEM_WIELDED?" (being used)":""));
+    }
+    else
+    {
+        //const char *str = itoa((item.attr&ITEM_PLUS(3)>>3))
+        sprintf(ret, "%s%s%s%d %s%s",
+                ((item.attr&ITEM_KBUC)?((item.attr&ITEM_BLES)?"blessed "
+                                                            :(item.attr&ITEM_CURS)?"cursed ":"uncursed ")
+                                      :""), /* BUC */
+
+                /* greasedness */
+                ((item.attr&ITEM_GREASED)?"greased ":""),
+
+                /* enchantment value */
+                ((item.attr&(ITEM_MINS(3)))|1?((item.attr&(ITEM_MINS(0)))?"-":"+"):""),
+                ((item.attr&(ITEM_MINS(3)))|1?(item.attr&((ITEM_PLUS(3))>>3)):0),
+                item.type->name,
+                (item.attr&ITEM_WIELDED?" (being used)":""));
         gram_a(ret, ret);
-	}
-	return ret;
+    }
+    return ret;
 }
 
 void item_look(struct Item *item)
 {
-	pline("%s", get_inv_line(item));
+    pline("%s", get_inv_line(item));
 }
 
 char *get_inv_line(struct Item *item)
 {
-	struct Monster *m = (get_player()->thing);
-	char ch = get_Itref(m->pack,  item);
-	char *ret = malloc(sizeof(char)*80), *orig = get_item_desc(*item);
-	if (!ch)
-		sprintf(ret, "%s", orig);
-	else
-		sprintf(ret, "%c - %s", ch, orig);
+    struct Monster *m = (get_player()->thing);
+    char ch = get_Itref(m->pack,  item);
+    char *ret = malloc(sizeof(char)*80), *orig = get_item_desc(*item);
+    if (!ch)
+        sprintf(ret, "%s", orig);
+    else
+        sprintf(ret, "%c - %s", ch, orig);
     free(orig);
-	return ret;
+    return ret;
+}
+
+bool stackable(struct Item_Pile *ip, struct Item *i)
+{
+    return memcmp(ip->item, i, sizeof(struct Item)) == 0;
+}
+
+void increase_pile(struct Item_Pile *ip, int num)
+{
+    ip->num += num;
+}
+
+void item_piles(struct List *piles, struct List *items)
+{
+    struct list_iter *i;
+    for (i = items->beg; iter_good(i); next_iter(&i))
+    {
+        struct list_iter *j;
+        for (j = piles->beg; iter_good(j); next_iter(&j))
+        {
+            if(stackable(j->data, i->data)) break;
+        }
+        if (iter_good(j)) /* break'd */
+        {
+            increase_pile(j->data, 1);
+        }
+        else
+        {
+            push_back(piles, malloc(sizeof(struct Item_Pile)));
+            struct Item_Pile *ip = piles->end->data;
+            ip->item = i->data;
+            ip->num = 1;
+        }
+    }
 }
 
 void what_am_I_wearing(struct Monster *self)
 {
-	return;
+    return;
 }

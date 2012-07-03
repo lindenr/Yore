@@ -340,7 +340,7 @@ int mons_take_move(struct Monster *self)
             {
                 screenshot();
                 screenshotted = true;
-                struct List Li = {&list_beg, &list_end};
+                struct List Li = LIST_INIT;
                 struct list_iter *li;
                 struct Thing *t_;
                 for(li = all_things.beg; iter_good(li); next_iter(&li))
@@ -353,31 +353,35 @@ int mons_take_move(struct Monster *self)
                         push_back(&Li, t_);
                     }
                 }
-                if (Li.beg == Li.end) /* One element in list. */
+                if (Li.beg == Li.end) /* One element in list - pick up immediately. */
                 {
                     pack_add(&self->pack, ((struct Thing*)(Li.beg->data))->thing);
                     rem_by_data(((struct Thing*)(Li.beg->data))->thing);
                     free(Li.beg);
                 }
-                else
+                else /* Multiple items - ask which to pick up. */
                 {
                     screenshotted = true;
-                    struct List str_list = LIST_INIT, struct List ret_list = LIST_INIT;
-                    int num;
-                    for (num = 0, li = Li.beg; iter_good(li); ++num, next_iter(&li))
+                    struct List ret_list = LIST_INIT;
+
+                    /* Ask which */
+                    mask_list(&ret_list, Li);
+
+                    /* Empty Li */
+                    for (li = Li.beg; iter_good(li); next_iter(&li))
                     {
-                        t_ = li->data;
-                        struct Item *it = t_->thing;
-                        char *line = get_inv_line(it);
-                        push_back(&str_list, line);
-                    }
-                    ret_list = mask_list(str_list, num);
-                    for (li = str_list.beg; iter_good(li); next_iter(&li))
-                    {
-                        free(li->data);
-                        if (li != str_list.beg) free(li->prev);
+                        if (li != Li.beg) free(li->prev);
                     }
                     free(li->prev);
+
+                    /* Put items in ret_list into inventory. The loop continues until
+                     * ret_list is done or the pack is full. */
+                    for (li = ret_list.beg;
+                         iter_good(li) && pack_add(&self->pack, ((struct Thing*)li->data)->thing);
+                         next_iter(&li))
+                    {
+                        rem_by_data(li->data); /* Remove selected items from main play */
+                    }
                 }
             }
             else if (in == CONTROL_('P'))

@@ -66,16 +66,25 @@ struct item_struct
 /* an actual physical item */
 struct Item
 {
-    struct item_struct *type;
+    struct   item_struct *type;
     uint32_t attr;
     uint32_t cur_weight;
     char    *name;
 };
 
+/* a pile of several items */
+struct Item_Pile
+{
+    struct Item* item;
+    int num;
+};
+
 extern struct item_struct items[];
 
-char    *get_item_desc(struct Item);
-void     item_look    (struct Item*);
-char    *get_inv_line (struct Item*);
+void  item_piles   (struct List*, struct List*);
+
+char *get_item_desc(struct Item);
+void  item_look    (struct Item*);
+char *get_inv_line (struct Item*);
 
 #endif /* ITEM_H_INCLUDED */

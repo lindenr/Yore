@@ -226,3 +226,26 @@ void mlines_list(struct List list, int num_lines)
     fprintf(stdout, "       ");
 }
 
+void mask_list(struct List *ret, struct List things)
+{
+    struct List piles = LIST_INIT;
+
+    /* Divide up into piles */
+    item_piles(&piles, &things);
+
+    /* TODO ask the player; delete loop */
+    struct list_iter *li;
+    for (li = things.beg; iter_good(li); next_iter(&li))
+    {
+        push_back(ret, li->data);
+    }
+
+    /* Empty piles */
+    for (li = piles.beg; iter_good(li); next_iter(&li))
+    {
+        free(li->data);
+        if (li != piles.beg) free(li->prev);
+    }
+    free(li->prev);
+}
+

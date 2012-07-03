@@ -44,7 +44,7 @@ void show_contents(struct Pack pack, uint32_t accepted)
 
     push_back(list, "Inventory");
     push_back(list, "");
-    for (i = 0, k = 1; i < 52; ++ i)
+    for (i = 0, k = 0; i < 52; ++ i)
     {
         if(!(pack.items[i] && item_type_flags(pack.items[i], accepted))) continue;
         ++ k;
