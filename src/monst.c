@@ -380,7 +380,8 @@ int mons_take_move(struct Monster *self)
                          iter_good(li) && pack_add(&self->pack, ((struct Thing*)li->data)->thing);
                          next_iter(&li))
                     {
-                        rem_by_data(li->data); /* Remove selected items from main play */
+                        /* Remove selected items from main play */
+                        rem_by_data(((struct Thing*)li->data)->thing);
                     }
                 }
             }

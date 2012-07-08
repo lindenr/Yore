@@ -15,7 +15,8 @@ enum ITEM_TYPE
     IT_CHEST,
     IT_GLOVES,
     IT_CORPSE,
-    IT_MONEY
+    IT_MONEY,
+    IT_CHARM
 };
 
 /* BUC status */
@@ -40,6 +41,7 @@ enum ITEM_TYPE
 #define ITEM_FOOD    '%'
 #define ITEM_DOSH    '$'
 #define ITEM_CORPSE  ITEM_FOOD
+#define ITEM_CHARM   '='
 
 #define ITCAT_DOSH    0x0001
 #define ITCAT_WEAPON  0x0002

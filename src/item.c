@@ -25,6 +25,12 @@ ITEM("dagger",             ITEM_WEAPON,     IT_DAGGER,  100, DMG(1, 3), COL_TXT_
 ITEM("short sword",        ITEM_WEAPON, IT_SHORTSWORD, 2000, DMG(1, 4), COL_TXT_RED|COL_TXT_GREEN),
 ITEM("gloves",             ITEM_ARMOUR,     IT_GLOVES,   70,     0    , COL_TXT_GREEN),
 ITEM("gold",                 ITEM_DOSH,      IT_MONEY,    1,     0    , COL_TXT_RED|COL_TXT_GREEN|COL_TXT_BRIGHT),
+ITEM("Water charm",         ITEM_CHARM,      IT_CHARM,  100,     0    , COL_TXT_BLUE),
+ITEM("Air charm",           ITEM_CHARM,      IT_CHARM,  100,     0    , COL_TXT_GREEN|COL_TXT_BRIGHT),
+ITEM("Fire charm",          ITEM_CHARM,      IT_CHARM,  100,     0    , COL_TXT_RED|COL_TXT_BRIGHT),
+ITEM("Volt charm",          ITEM_CHARM,      IT_CHARM,  100,     0    , COL_TXT_BLUE|COL_TXT_RED|COL_TXT_BRIGHT),
+ITEM("Ice charm",           ITEM_CHARM,      IT_CHARM,  100,     0    , COL_TXT_BLUE|COL_TXT_BRIGHT),
+ITEM("Earth charm",         ITEM_CHARM,      IT_CHARM,  100,     0    , COL_TXT_GREEN|COL_TXT_RED),
 ITEM("",                             0,             0,    0,     0    ,      0      )
 /*     item name              display      type       weight attributes     colour (default=0)    */
 };
