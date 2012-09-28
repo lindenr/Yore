@@ -191,9 +191,12 @@ void refresh()
             if (firstc != -1u) line[x-firstc]=Current_buffer[ybuf+x];
         }
         if (firstc == -1u) continue;
-		if (lastc) ++lastc;
-        move(y,firstc);
-        write_con(&(Current_buffer[ybuf+firstc]), line, lastc-firstc);
+        if (lastc)
+        {
+            ++lastc;
+            move(y,firstc);
+            write_con(&(Current_buffer[ybuf+firstc]), line, lastc-firstc);
+        }
     }
     move(prevy, prevx);
 }
