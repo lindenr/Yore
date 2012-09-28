@@ -28,12 +28,12 @@ struct Thing cursor = {THING_CURS, 0, 0, 0};
 
 uint32_t to_buffer(uint32_t y, uint32_t x)
 {
-    return (((y<<2)+y)<<4)+x;
+    return 80*y+x;
 }
 
 void reset_col()
 {
-	SetConsoleTextAttribute(wHnd, 0);
+	SetConsoleTextAttribute(wHnd, (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE));
 }
 
 void move(uint32_t y, uint32_t x)
@@ -283,4 +283,4 @@ char *getstr(char *str)
 	return str;
 }
 
-#endif // WINDOWS
+#endif /* WINDOWS */
