@@ -1,7 +1,7 @@
 C_FILES := $(wildcard src/*.c)
 OBJ_FILES := $(patsubst src/%.c,obj/%.o,$(C_FILES))
 LD_FLAGS := -lm -Wall -ggdb
-CC_FLAGS := -I./ -Wall -ggdb
+CC_FLAGS := -I$(CURDIR) -Wall -ggdb
 
 bin/Yore: $(OBJ_FILES)
 	gcc -o $@ $(OBJ_FILES) $(LD_FLAGS)
