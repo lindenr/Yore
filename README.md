@@ -45,7 +45,7 @@ Various other commands are (in no particular order):
 :      look down
 i      check your inventory
 w      wield a weapon
-d      drop an item from you inventory
+d      drop an item from your inventory
 
 S      save and quit
 Q      quit permanently</pre>
