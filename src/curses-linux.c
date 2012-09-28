@@ -238,12 +238,15 @@ char getch()
     end = tout_num*CLOCKS_PER_SEC/1000 + clock();
     do
     {
-        int in = getchar();
-        if (in == 0x1B5B41) return 'k';
-        if (in == 0x1B5B42) return 'j';
-        if (in == 0x1B5B43) return 'l';
-        if (in == 0x1B5B44) return 'h';
         ret = getchar();
+        if (ret == 0x1b && getchar() == 91)
+        {
+            ret = getchar();
+            if (ret == 65) return 'k';
+            if (ret == 66) return 'j';
+            if (ret == 67) return 'l';
+            if (ret == 68) return 'h';
+        }
     }
     while(clock() < end && ret == EOF);
 
