@@ -1,6 +1,6 @@
 # Git ignore file
 # Object files
-obj/*
+obj/*.o
 # Executables
-bin/*
+bin/Yore
 
