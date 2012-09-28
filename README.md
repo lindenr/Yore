@@ -6,6 +6,8 @@ Yore is an under-developement roguelike console game.
 
 At the moment Yore is capable of running only on Windows and Linux systems. (Actually, if the console emulates the VT-100 escape codes like Linux does then Yore can probably run on it too.)
 
+Firstly edit include/all.h and change the #define to your operating system (FOONIX for Linux and WINDOWS for Windows).
+
 ####To build for Linux:
 
 1.  you must have make and gcc installed (you probably will anyway);
