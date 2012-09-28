@@ -21,6 +21,7 @@
 #include "include/all_mon.h"
 
 #include <stdarg.h>
+#include <stdio.h>
 
 #define CONTROL_(c) ((c)-0x40)
 
