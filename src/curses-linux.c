@@ -25,7 +25,7 @@ int console_width, console_height;
 
 uint32_t to_buffer(uint32_t y, uint32_t x)
 {
-    return (((y<<2)+y)<<4)+x;
+    return 80*y+x;
 }
 
 void reset_col()
@@ -236,7 +236,15 @@ char getch()
     if (!tout_num) return getchar();
 
     end = tout_num*CLOCKS_PER_SEC/1000 + clock();
-    do ret = getchar();
+    do
+    {
+        int in = getchar();
+        if (in == 0x1B5B41) return 'k';
+        if (in == 0x1B5B42) return 'j';
+        if (in == 0x1B5B43) return 'l';
+        if (in == 0x1B5B44) return 'h';
+        ret = getchar();
+    }
     while(clock() < end && ret == EOF);
 
     return ret;
