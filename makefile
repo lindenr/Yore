@@ -4,7 +4,7 @@ LD_FLAGS := -lm -Wall -ggdb
 CC_FLAGS := -I./ -Wall -ggdb
 
 bin/Yore: $(OBJ_FILES)
-        gcc -o $@ $(OBJ_FILES) $(LD_FLAGS)
+	gcc -o $@ $(OBJ_FILES) $(LD_FLAGS)
 
 obj/%.o: src/%.c
-        gcc $(CC_FLAGS) -c -o $@ $<
+	gcc $(CC_FLAGS) -c -o $@ $<
