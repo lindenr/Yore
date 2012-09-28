@@ -22,12 +22,18 @@ HANDLE wHnd;    /* Handle to write to the console.  */
 HANDLE rHnd;    /* Handle to read from the console. */
 
 uint32_t Current_buffer[2000], New_buffer[2000];//, Old_buffer[2000];
+int console_width = 80, console_height = 25;
 
 struct Thing cursor = {THING_CURS, 0, 0, 0};
 
 uint32_t to_buffer(uint32_t y, uint32_t x)
 {
     return (((y<<2)+y)<<4)+x;
+}
+
+void reset_col()
+{
+	SetConsoleTextAttribute(wHnd, 0);
 }
 
 void move(uint32_t y, uint32_t x)
@@ -97,6 +103,16 @@ void mvprintw(uint32_t y, uint32_t x, const char *str, ...)
     va_start(args, str);
     vprintw(str, args);
     va_end(args);
+}
+
+void clear_screen()
+{
+    int i;
+    for(i = 0; i < 2000; ++ i)
+    {
+        New_buffer[i] = ' ';
+        Current_buffer[i] = ';';
+    }
 }
 
 void full_refresh()
