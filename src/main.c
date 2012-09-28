@@ -135,6 +135,7 @@ int main (int argc, char *argv[])
 
   quit_game:
     endwin();
+    move(0,0);
 
     if (U.playing == PLAYER_LOSTGAME)
         printf("Goodbye %s...\n", get_pmonster()->name+1);
