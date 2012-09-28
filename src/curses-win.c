@@ -149,7 +149,11 @@ void initscr()
 /* Just a placeholder */
 void noecho(){}
 void echo(){}
-void endwin(){}
+
+void endwin()
+{
+	full_refresh();
+}
 
 #define GET_COLOUR_ATTR(x) ((x)>>8)
 #define COLOUR_DEF         (FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE)
