@@ -233,10 +233,7 @@ char getch()
     clock_t end;
 
     refresh();
-    if (!tout_num) return getchar();
-
-    end = tout_num*CLOCKS_PER_SEC/1000 + clock();
-    do
+    if (!tout_num)
     {
         ret = getchar();
         if (ret == 0x1b && getchar() == 91)
@@ -247,6 +244,13 @@ char getch()
             if (ret == 67) return 'l';
             if (ret == 68) return 'h';
         }
+        return ret;
+    }
+
+    end = tout_num*CLOCKS_PER_SEC/1000 + clock();
+    do
+    {
+        ret = getchar();
     }
     while(clock() < end && ret == EOF);
 
