@@ -18,6 +18,7 @@ void line_reset(void);
 void addlinetomsg(const char *);
 void pmsg   (void);
 bool pline_check(void);
+void pline_get_his(void);
 void mlines (int, ...);
 void mlines_list (struct List, int);
 void mask_list (struct List*, struct List);
