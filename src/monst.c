@@ -1,8 +1,6 @@
 /* monst.c
  * Linden Ralph */
 
-/* MONSTERS */
-
 #include "include/all.h"
 #include "include/monst.h"
 #include "include/pline.h"
@@ -734,11 +732,7 @@ void player_dead(const char *msg, ...)
     U.playing = PLAYER_LOSTGAME;
 }
 
-/* END MONSTERS */
-
-
-/* AI */
-
+/* Rudimentary AI system -- move towards player if player is visible. */
 int AI_Attack(int fromy, int fromx, int toy, int tox, struct Monster *monst)
 {
     int xmove = 0, ymove = 0;
@@ -758,5 +752,3 @@ int AI_Attack(int fromy, int fromx, int toy, int tox, struct Monster *monst)
                 if (!mons_move(monst, -ymove, xmove)){}
     return 1;
 }
-
-/* END AI (in MONSTERS) */
