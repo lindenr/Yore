@@ -332,6 +332,7 @@ int mons_take_move(struct Monster *self)
             bool mv = mons_take_input(th, in);
             if (mv != -1)
             {
+                if (U.playing == PLAYER_WONGAME) return 0;
                 if (mv) break;
             }
             else if (in == '.') break;
