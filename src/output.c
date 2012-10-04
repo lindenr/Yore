@@ -36,24 +36,28 @@ void update_map()
     {
         line1[i] = line2[i] = ' ';
     }
-    sprintf(line1, "%s the %s                  ", gram_short(mn->name+1, 15), get_rank());
-    sprintf(line1+26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d                ", U.attr[AB_ST], U.attr[AB_DX],
+
+    /* Random '\0's will be sprinkled throughout line1 and line2 */
+    sprintf(line1, "%s the %s", gram_short(mn->name+1, 15), get_rank());
+    sprintf(line1+26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d", U.attr[AB_ST], U.attr[AB_DX],
             U.attr[AB_CO],U.attr[AB_IN], U.attr[AB_WI], U.attr[AB_CH]);
-    sprintf(line1+65, "Health: %d    ", mn->HP);
+    sprintf(line1+65, "Health: %d", mn->HP);
 
 #   if INT_SIZE == 32
-        sprintf(line2, "Time: %qu                                 ", Time);
+        sprintf(line2, "Time: %qu", Time);
 #   elif INT_SIZE == 64
-        sprintf(line2, "Time: %u                                  ", Time);
+        sprintf(line2, "Time: %u", Time);
 #   endif
 
-    sprintf(line2+26, "Level %d:%d                               ", mn->level, mn->exp);
+    sprintf(line2+26, "Level %d:%d", mn->level, mn->exp);
 
     sprintf(line2+65, "%s", get_hungerstr());
 
     for (i = 0; i < 80; ++ i)
     {
+        if (line1[i] == '\0') line1[i] = ' ';
         new_buffer[i+1680] = line1[i];
+        if (line2[i] == '\0') line2[i] = ' ';
         new_buffer[i+1760] = line2[i];
     }
 
