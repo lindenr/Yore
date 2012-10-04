@@ -479,6 +479,7 @@ void mons_dead(struct Monster *from, struct Monster* to)
     if (IS_PLAYER(from))
     {
         pline("You kill the %s!", mons[to->type].name);
+        if (to->type == 7) U.playing = PLAYER_WONGAME;
         from->exp += mons[to->type].exp;
         update_level(from);
     }
