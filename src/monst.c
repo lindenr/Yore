@@ -651,7 +651,7 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
                 if (!it || !(*it))
                 {
                     strength = RN(mons_get_st(from))>>1;
-                    to->HP -= RND(mons[from->type].attacks[t][0], mons[from->type].attacks[t][1]) + strength;
+                    to->HP -= RND(mons[from->type].attacks[t][0], mons[from->type].attacks[t][1]) + strength + RN(3*from->level);
 
                     if (IS_PLAYER(from)) pline("You hit the %s!", mons[to->type].name);
                     else if (IS_PLAYER(to)) pline("The %s hits you!", mons[from->type].name);
