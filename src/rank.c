@@ -36,9 +36,12 @@ void update_level(struct Monster *mon)
     
     if (IS_PLAYER(mon))
     {
-        if (i > mon->level) pline("You are now level %d!", i);
+        if (i > mon->level)
+        {
+            pline("You are now level %d!", i);
+            mon->HP_max += mon->level*3 + 2;
+        }
         if (i < mon->level) pline("Level down... You dropped to level %d.", i);
     }
     mon->level = i;
 }
-
