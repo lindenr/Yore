@@ -152,6 +152,7 @@ void echo(){}
 
 void endwin()
 {
+	SetConsoleMode(wHnd, ENABLE_PROCESSED_OUTPUT);
 	full_refresh();
 }
 
