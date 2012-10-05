@@ -162,7 +162,7 @@ void endwin()
 
 WORD colSan(WORD w)
 {
-	if (!w) return COLOUR_DEF;
+	if (w == 0 || w == FOREGROUND_INTENSITY) return w|COLOUR_DEF;
     if (w == 65535) return FOREGROUND_RED;
 	return w;
 }
