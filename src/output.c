@@ -41,7 +41,7 @@ void update_map()
     sprintf(line1, "%s the %s", gram_short(mn->name+1, 15), get_rank());
     sprintf(line1+26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d", U.attr[AB_ST], U.attr[AB_DX],
             U.attr[AB_CO],U.attr[AB_IN], U.attr[AB_WI], U.attr[AB_CH]);
-    sprintf(line1+65, "Health: %d", mn->HP);
+    sprintf(line1+65, "Health: %d:%d", mn->HP, mn->HP_max);
 
 #   if INT_SIZE == 32
         sprintf(line2, "Time: %qu", Time);
