@@ -128,13 +128,10 @@ uint32_t expcmp(uint32_t p_exp, uint32_t m_exp)
 
 bool nogen(uint32_t mons_id)
 {
-	switch (mons_id)
-	{
-		case MTYP_SATAN:
-			return (U.m_glflags&MGL_GSAT != 0);
-		default:
-			return 0;
-	}
+	if (mons_id == MTYP_SATAN)
+			return ((U.m_glflags & MGL_GSAT) != 0);
+	else
+		return 0;
 }
 
 uint32_t player_gen_type()
