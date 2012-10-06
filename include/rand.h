@@ -1,8 +1,6 @@
 #ifndef HASH_H_INCLUDED
 #define HASH_H_INCLUDED
 
-/* RNG */
-
 #include <time.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -30,7 +28,5 @@ extern uint32_t dice_roll(struct RNGStruct *, uint32_t, uint32_t);
 extern uint32_t even_prob(struct RNGStruct *, uint32_t);
 
 extern struct RNGStruct RNG_main;
-
-/* END RNG */
 
 #endif /* HASH_H_INCLUDED */

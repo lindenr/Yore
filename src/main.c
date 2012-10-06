@@ -18,7 +18,7 @@
 
 void print_intro()
 {
-	mvprintw(1, 00, "Welcome to Yore v0.0.5 pre-alpha");
+	mvprintw(1, 00, "Welcome to Yore v"YORE_VERSION);
 	mvprintw(2, 10, "* A game guide is not yet in place.");
 	mvprintw(3, 10, "* A wiki is not yet in place.");
 	refresh();
