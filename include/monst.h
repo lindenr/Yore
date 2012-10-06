@@ -62,6 +62,7 @@ struct player_status
 	int playing;
 	player_attr attr;			/* st, co, ch, etc */
 	int32_t luck;
+	uint64_t m_glflags; /* e.g. whether a unique monster has generated */  
 } extern U;
 
 enum ABLTY						/* ability */

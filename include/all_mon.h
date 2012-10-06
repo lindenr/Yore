@@ -1,7 +1,7 @@
 #if defined(USING_COL)
 #  define COL(cl) cl
 #else
-#  define COL(cl)
+#  define COL(cl) 0
 #endif
 
 #define NUM_MONS ((sizeof(mons)/sizeof(*mons))-1)
@@ -35,6 +35,9 @@ const int CORPSE_WEIGHTS[7] = { 0, 100, 1000, 3000, 20000, 50000, 300000 };
 #define FL_HMND (FL_FLSH | FL_ARMS | FL_LEGS | FL_TRSO | FL_MIND)	/* humanoid 
 																	 */
 #define FL_SKEL (FL_HMND & (~FL_FLSH))	/* skeletal */
+
+/* Flags for U.m_glflags */
+#define MGL_GSAT 0x00000001     /* Satan has been generated */
 
 const struct monster_struct mons[] = {
 	MONST("chicken", 'c', 12,

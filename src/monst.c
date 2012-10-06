@@ -126,6 +126,17 @@ uint32_t expcmp(uint32_t p_exp, uint32_t m_exp)
 	return 0;
 }
 
+bool nogen(uint32_t mons_id)
+{
+	switch (mons_id)
+	{
+		case MTYP_SATAN:
+			return (U.m_glflags&MGL_GSAT != 0);
+		default:
+			return 0;
+	}
+}
+
 uint32_t player_gen_type()
 {
 	uint32_t i, array[NUM_MONS];
@@ -134,6 +145,7 @@ uint32_t player_gen_type()
 
 	for (i = 0; i < NUM_MONS; ++i)
 	{
+		if (nogen(i)) continue; /* genocided or unique and generated etc */
 		array[i] = expcmp(p_exp, mons[i].exp);
 		total_weight += array[i];
 	}
@@ -141,9 +153,10 @@ uint32_t player_gen_type()
 	for (i = 0; i < NUM_MONS; ++i)
 	{
 		if (array[i] > RN(total_weight))
-			return i;
+			break;
 		total_weight -= array[i];
 	}
+	if (i < NUM_MONS) return i;
 
 	/* If the player has no exp this will happen */
 	return 0;
