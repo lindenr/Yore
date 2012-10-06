@@ -152,8 +152,8 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t * us, uint32_t * unseen)
 			uint32_t y = DOT, u = DOT, h = DOT, j = DOT, k = DOT, l = DOT, b =
 				DOT, n = DOT;
 
-			// if (sq_seen[w] == 2)
-			// us[w] |= COL_TXT_BRIGHT; /* Brighten what you can see. */
+			if (sq_seen[w] == 2 && sq_attr[w] == 0 && us[w] != ' ')
+				us[w] |= COL_TXT_BRIGHT;	/* Brighten what you can see iff it's a wall. */
 
 			if (sq_seen[w] == 1 && sq_attr[w] == 2)
 				us[w] = unseen[w];	/* Replace something unseeable with what's 
