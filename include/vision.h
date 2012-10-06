@@ -5,6 +5,6 @@
 #include "thing.h"
 
 void bres_start(int, int, uint8_t *, uint8_t *);
-bool bres_draw (int, int);
+bool bres_draw(int, int);
 
 #endif /* VISON_H_INCLUDED */

@@ -3,8 +3,8 @@
 
 #include "bool.h"
 
-bool save(char*);
-void destroy_save_file(char*);
-void restore(char*);
+bool save(char *);
+void destroy_save_file(char *);
+void restore(char *);
 
 #endif /* SAVE_C_INCLUDED */

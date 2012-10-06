@@ -1,5 +1,4 @@
-/* debug.c
- * Linden Ralph */
+/* debug.c Linden Ralph */
 
 #include "include/debug.h"
 
@@ -8,13 +7,12 @@
 
 void panic(const char *reason)
 {
-    FILE *fp;
+	FILE *fp;
 
-    fp = fopen("Yore-errorlog", "w");
-    fprintf(fp, "Error: %s\n", reason);
-    fclose(fp);
+	fp = fopen("Yore-errorlog", "w");
+	fprintf(fp, "Error: %s\n", reason);
+	fclose(fp);
 
-    exit(1);
-    abort();
+	exit(1);
+	abort();
 }
-

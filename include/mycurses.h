@@ -5,26 +5,26 @@
 #define CHR_ESC 0x1b
 
 #include <stdint.h>
-void move      (uint32_t, uint32_t);
-void addch     (uint32_t);
-void mvaddch   (uint32_t,uint32_t,uint32_t);
-void printw    (const char *,...);
-void mvprintw  (uint32_t,uint32_t,const char *,...);
-void initscr   (void);
-void noecho    (void);
-void echo      (void);
-void endwin    (void);
-void refresh   (void);
+void move(uint32_t, uint32_t);
+void addch(uint32_t);
+void mvaddch(uint32_t, uint32_t, uint32_t);
+void printw(const char *, ...);
+void mvprintw(uint32_t, uint32_t, const char *, ...);
+void initscr(void);
+void noecho(void);
+void echo(void);
+void endwin(void);
+void refresh(void);
 void surf_clear(unsigned);
-void wait_ms   (unsigned);
-void in_tout   (unsigned);
-void toutify   (int);
-char getch     (void);
-char*getstr    (char *);
-void reset_col (void);
+void wait_ms(unsigned);
+void in_tout(unsigned);
+void toutify(int);
+char getch(void);
+char *getstr(char *);
+void reset_col(void);
 void clear_screen(void);
 
-uint32_t to_buffer(uint32_t,uint32_t);
+uint32_t to_buffer(uint32_t, uint32_t);
 
 extern int console_width, console_height;
 
@@ -35,12 +35,12 @@ extern int console_width, console_height;
 #define COL_TXT_RED    CLR(1<<1)
 #define COL_TXT_GREEN  CLR(1<<2)
 #define COL_TXT_BLUE   CLR(1<<3)
-#define COL_TXT_BRIGHT CLR(1)    /* This is actually bold. */
+#define COL_TXT_BRIGHT CLR(1)	/* This is actually bold. */
 #define COL_TXT_DEF    CLR(COL_TXT_RED|COL_TXT_GREEN|COL_TXT_BLUE)
 #define COL_BG_RED     CLR(1<<4)
 #define COL_BG_GREEN   CLR(1<<5)
 #define COL_BG_BLUE    CLR(1<<6)
-#define COL_BG_BRIGHT  CLR(1<<7) /* This is actually underline. */
+#define COL_BG_BRIGHT  CLR(1<<7)	/* This is actually underline. */
 
 #define ACS_BULLET   '.'
 #define ACS_VLINE    '|'

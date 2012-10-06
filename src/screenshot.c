@@ -10,20 +10,19 @@ void screenshot()
 	int i;
 
 	refresh();
-    for (i = 0; i < 2000; ++ i)
-    {
+	for (i = 0; i < 2000; ++i)
+	{
 		Old_buffer[i] = Current_buffer[i];
-    }
+	}
 }
 
 void unscreenshot()
 {
 	int i;
 
-    for (i = 0; i < 2000; ++ i)
-    {
+	for (i = 0; i < 2000; ++i)
+	{
 		New_buffer[i] = Old_buffer[i];
-    }
+	}
 	refresh();
 }
-

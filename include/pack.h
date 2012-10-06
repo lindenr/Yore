@@ -9,26 +9,25 @@
 
 #define FLAG_DOPRINT 8
 
-/* max 52 items (bounded by weight)
- * possibly extend this to # (53) as well? */
+/* max 52 items (bounded by weight) possibly extend this to # (53) as well? */
 struct Pack
 {
-    struct Item* items[MAX_ITEMS_IN_PACK];
+	struct Item *items[MAX_ITEMS_IN_PACK];
 };
 
 /* max 52 items (bounded by weight) */
 struct Bag
 {
-    struct Item* items[MAX_ITEMS_IN_BAG];
+	struct Item *items[MAX_ITEMS_IN_BAG];
 };
 
-void         pack_get_letters(struct Pack, char*);
-struct Item *pack_rem(struct Pack*, char);
-bool         pack_add(struct Pack*, struct Item*);
-unsigned     PACK_AT(char);
-void         show_contents(struct Pack, uint32_t);
+void pack_get_letters(struct Pack, char *);
+struct Item *pack_rem(struct Pack *, char);
+bool pack_add(struct Pack *, struct Item *);
+unsigned PACK_AT(char);
+void show_contents(struct Pack, uint32_t);
 struct Item *get_Item(struct Pack, unsigned);
 struct Item *get_Itemc(struct Pack, char);
-char         get_Itref(struct Pack, struct Item *);
+char get_Itref(struct Pack, struct Item *);
 
 #endif /* PACK_H_INCLUDED */

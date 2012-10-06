@@ -4,4 +4,3 @@
 void panic(const char *);
 
 #endif /* DEBUG_H_INCLUDED */
-

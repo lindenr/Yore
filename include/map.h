@@ -8,12 +8,12 @@
 
 struct map_item_struct
 {
-    char name[20];
-    char ch;
-    uint32_t attr;
+	char name[20];
+	char ch;
+	uint32_t attr;
 };
 
 extern struct map_item_struct map_items[];
-int             GETMAPITEMID(char);
+int GETMAPITEMID(char);
 
 #endif /* MAP_H_INCLUDED */

@@ -5,13 +5,13 @@
 
 enum RANKS
 {
-    RNK_NONE = 0,
-    RNK_SOLDIER,
-    RNK_DOCTOR,
-    RNK_ASSASSIN
+	RNK_NONE = 0,
+	RNK_SOLDIER,
+	RNK_DOCTOR,
+	RNK_ASSASSIN
 };
 
 char *get_rank(void);
-void  update_level(struct Monster*);
+void update_level(struct Monster *);
 
-#endif    /* RANK_H_INCLUDED */
+#endif /* RANK_H_INCLUDED */
