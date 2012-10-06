@@ -50,6 +50,7 @@ extern char *s_hun[];
 #define PLAYER_WONGAME  2
 #define PLAYER_SAVEGAME 3
 #define PLAYER_CHEATER  4
+#define PLAYER_ERROR    5
 
 typedef uint32_t player_attr[6];
 
