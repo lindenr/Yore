@@ -13,6 +13,8 @@
 
 #define WOW_INIT 0
 
+int MTYP_HUMAN, MTYP_SATAN;
+
 struct WoW /* Wielded or Worn */
 {
     struct Item *head, *torso, *legs, *feet, *hands, *arms, *rfin, *lfin; /* armour */

@@ -51,10 +51,21 @@ void setup_U()
 {
     int i;
 
+	U.playing = PLAYER_ERROR; /* If this function returns prematurely */
     U.hunger = 100;
-    U.playing = PLAYER_STARTING;
+
     for (i = 0; i < 6; ++ i)
         U.attr[i] = 10;
+
+	for (i = 0; mons[i].name; ++ i) if (!strcmp(mons[i].name, "human")) break;
+	if (!mons[i].name) return;
+	MTYP_HUMAN = i;
+
+	for (i = 0; mons[i].name; ++ i) if (!strcmp(mons[i].name, "Satan")) break;
+	if (!mons[i].name) return;
+	MTYP_SATAN = i;
+
+    U.playing = PLAYER_STARTING;
 }
 
 void get_cinfo()
@@ -113,6 +124,7 @@ uint32_t player_gen_type()
         total_weight -= array[i];
     }
 
+	/* If the player has no exp this will happen */
     return 0;
 }
 
@@ -480,7 +492,7 @@ void mons_dead(struct Monster *from, struct Monster* to)
     if (IS_PLAYER(from))
     {
         pline("You kill the %s!", mons[to->type].name);
-        if (to->type == 7) U.playing = PLAYER_WONGAME;
+        if (to->type == MTYP_SATAN) U.playing = PLAYER_WONGAME;
         from->exp += mons[to->type].exp;
         update_level(from);
     }

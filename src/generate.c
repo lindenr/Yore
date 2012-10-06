@@ -119,7 +119,7 @@ uint32_t mons_gen(int type, int32_t param)
     {
         start = param;
         upsy = start/80; upsx = start%80;
-        struct Monster asdf = {2, 1, 0, 20, 20, 0, 0, {{0},}, {0,}, 0, 0};
+        struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0, 0, {{0},}, {0,}, 0, 0};
         Pl = malloc(sizeof(asdf));
         memcpy(Pl, &asdf, sizeof(asdf));
 

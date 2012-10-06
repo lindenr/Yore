@@ -135,8 +135,8 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t *us, uint32_t *unseen)
         {
             uint32_t y=DOT, u=DOT, h=DOT, j=DOT, k=DOT, l=DOT, b=DOT, n=DOT;
 
-            if (sq_seen[w] == 2)
-                us[w] |= COL_TXT_BRIGHT; /* Brighten what you can see. */
+            //if (sq_seen[w] == 2)
+            //    us[w] |= COL_TXT_BRIGHT; /* Brighten what you can see. */
 
             if (sq_seen[w] == 1 && sq_attr[w] == 2)
                 us[w] = unseen[w]; /* Replace something unseeable with what's behind it. */
@@ -246,7 +246,7 @@ void visualise_map ()
     for(i = all_things.beg; iter_good(i); next_iter(&i))
     {
         struct Thing *T = i->data;
-        unsigned at = ((((T->yloc)<<2)+(T->yloc))<<4) + T->xloc;
+        unsigned at = T->yloc*80 + T->xloc;
         struct Thing th = *T;
         bool changed = false;
         /* assert(at < 1680); */
