@@ -15,6 +15,7 @@
 #include "include/output.h"
 #include "include/util.h"
 #include "include/mycurses.h"
+#include "include/save.h"
 
 void print_intro()
 {
@@ -60,10 +61,10 @@ bool game_intro()
 	draw_box(5, 15, 9, 50);
 	mvprintw(7, 17, "Back in the days of Yore, in a land far removed");
 	mvprintw(8, 17, "from our current understanding of the universe,");
-	mvprintw(9, 18, "when magic flowed throughout the air as water");
+	mvprintw(9, 18,  "when magic flowed throughout the air as water");
 	mvprintw(10, 18, "flowed through the sea, and the Gods lived in");
-	mvprintw(11, 19, "harmony with the people; it was a time when");
-	mvprintw(12, 20, "anything and everything was possible...");
+	mvprintw(11, 19,  "harmony with the people; it was a time when");
+	mvprintw(12, 20,   "anything and everything was possible...");
 	refresh();
 	noecho();
 	in_tout(666);
@@ -104,10 +105,13 @@ int main(int argc, char *argv[])
 
 	if (!game_intro())
 		goto quit_game;
-
-	generate_map(LEVEL_MINES);
+	
 	init_map();
+
+	if (argc == 1)
+	{
 	print_intro();
+	generate_map(LEVEL_MINES);
 	mvprintw(8, 6, "Who are you? ");
 	refresh();
 
@@ -134,9 +138,12 @@ int main(int argc, char *argv[])
 	   PLAYER_PLAYING: */
 	if (U.playing != PLAYER_PLAYING)
 		goto quit_game;
+	}
 
 	clear_screen();
 	pline_check();
+
+	if (argc > 1) restore("Yore-savegame.sav");
 
 	do
 	{

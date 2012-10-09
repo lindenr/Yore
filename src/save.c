@@ -13,39 +13,22 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
-const uint16_t ENDIAN_TEST = 1;
-#define WRONG_ENDIAN (*((char*)(&ENDIAN_TEST)) == 0)
+#include <assert.h>
 
 FILE *game_save_file;
 
-/* convert to corrent endianness, should be little-endian */
-void memconv(void *m_, int size)
+/* Saves a native type (eg int, char). Not pointers. Also, multiple evaluations. */
+#define SAVE_NATIVE(n) fwrite(&(n), sizeof(n), 1, game_save_file)
+/*
+struct ref_it_type
 {
-	if (!WRONG_ENDIAN) return;
-	char *mem = m_;
-	int i; -- size;
-	char tmp;
-	for (i = 0; i < size; ++ i, -- size)
-	{
-		tmp = *(mem+i);
-		*(mem+i) = *(mem+size);
-		*(mem+size) = tmp;
-	}
-}
-
-/* Saves a native type (eg int, char). Not pointers. Also, multiple evaluations.*/
-#define SAVE_NATIVE(n) memconv(&n, sizeof(n)); fwrite(&n, sizeof(n), 1, game_save_file)
-
-struct block_ptr
-{
-	void *ptr;
-	int len;
+	char type;
+	uint32_t dat;
 };
 
 struct List blocks = LIST_INIT;
 
-void store_block(void *ptr, int len)
+void store_type(struct item_struct *ptr)
 {
 	struct block_ptr *bp = malloc(sizeof(*bp));
 	bp->ptr = ptr;
@@ -63,16 +46,17 @@ void save_block()
 		SAVE_NATIVE(bp->ptr);
 		fwrite(bp->ptr, bp->len, 1, game_save_file);
 	}
-}
+}*/
 
 void save_item(struct Item *item)
 {
-	if (!item)
+	void *p = NULL;
+	//if (!item)
 	{
-		fwrite("\0\0\0\0", 1, 1, game_save_file);
+		fwrite(&p, sizeof(p), 1, game_save_file);
 		return;
 	}
-	store_block(item->type, sizeof(struct item_struct));
+	//store_type(item->type);
 	SAVE_NATIVE(item->type);
 	SAVE_NATIVE(item->attr);
 	SAVE_NATIVE(item->cur_weight);
@@ -95,7 +79,7 @@ bool save(char *filename)
 	{
 		pline("Saving...");
 		game_save_file = fopen(filename, "w");
-		fwrite("YOREv"YORE_VERSION, sizeof("YOREv"YORE_VERSION)+1, 1, game_save_file);
+		fwrite("YOREv"YORE_VERSION, sizeof("YOREv"YORE_VERSION), 1, game_save_file);
 
 		/* Time */
 		SAVE_NATIVE(Time);
@@ -113,7 +97,9 @@ bool save(char *filename)
 		for (li = all_things.beg; iter_good(li); next_iter(&li))
 		{
 			struct Thing *th = li->data;
-			SAVE_NATIVE(th->type);
+			int enum_saver = (int)(th->type);
+			assert(enum_saver);
+			SAVE_NATIVE(enum_saver);
 			SAVE_NATIVE(th->yloc);
 			SAVE_NATIVE(th->xloc);
 			switch (th->type)
@@ -152,7 +138,6 @@ bool save(char *filename)
 					save_item(mn->wearing.rfin);
 					save_item(mn->wearing.lfin);
 					save_item(mn->wearing.head);
-					save_item(mn->wearing.head);
 					SAVE_NATIVE(mn->wearing.two_weaponing);
 
 					SAVE_NATIVE(mn->status);
@@ -173,7 +158,7 @@ bool save(char *filename)
 			}
 		}
 		
-		save_block();
+		//save_block();
 		
 		fclose(game_save_file);
 		return false;
@@ -181,11 +166,22 @@ bool save(char *filename)
 	return true;
 }
 
-#define LOAD_NATIVE(n) fread(&n, sizeof(n), 1, game_save_file); memconv(&n, sizeof(n))
+#define LOAD_NATIVE(n) fread(&(n), sizeof(n), 1, game_save_file)
+/*
+struct List load_blocks = LIST_INIT;
 
-void *alloc_block(void *ptr)
+void *store_load_block(void **mem, int len)
 {
+	struct block_ptr *bp = malloc(sizeof(*bp));
+	bp->ptr = mem;
+	bp->len = len;
+	push_back(&blocks, bp);
+	return *mem;
 }
+
+void load_block()
+{
+}*/
 
 void load_item(struct Item **out_item)
 {
@@ -197,7 +193,8 @@ void load_item(struct Item **out_item)
 		return;
 	}
 	struct Item *item = malloc(sizeof(*item));
-	item->type = alloc_block(ptr);
+	item->type = items;
+	//store_load_block(&item->type, ptr, sizeof(*item->type));
 	LOAD_NATIVE(item->attr);
 	LOAD_NATIVE(item->cur_weight);
 	char temp[100];
@@ -214,14 +211,16 @@ void load_item(struct Item **out_item)
 }
 
 void restore(char *filename)
-{
+{endwin();
 	int i;
 	U.playing = PLAYER_ERROR; /* for premature returning */
 	game_save_file = fopen(filename, "r");
+	if (!game_save_file) panic("Save file incorrect\n");
+	
 	char *ftest = malloc(strlen("YOREv"YORE_VERSION))+1;
 
-	fread(ftest, strlen("YOREv"YORE_VERSION), 1, game_save_file);
-	if (strcmp(ftest, "YOREv"YORE_VERSION)) return;
+	fread(ftest, strlen("YOREv"YORE_VERSION)+1, 1, game_save_file);
+	if (strcmp(ftest, "YOREv"YORE_VERSION)) panic("Save file incorrect\n");
 
 	LOAD_NATIVE(Time);
 
@@ -262,7 +261,8 @@ void restore(char *filename)
 				LOAD_NATIVE(mn->HP);
 				LOAD_NATIVE(mn->HP_max);
 				LOAD_NATIVE(mn->cur_speed);
-				fgets(mn->name, 20, game_save_file);
+				mn->name = malloc(20);
+				fscanf(game_save_file, "%s", mn->name);
 
 				for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
 					load_item(&(mn->pack.items[i]));
@@ -275,7 +275,6 @@ void restore(char *filename)
 				load_item(&mn->wearing.arms);
 				load_item(&mn->wearing.rfin);
 				load_item(&mn->wearing.lfin);
-				load_item(&mn->wearing.head);
 				load_item(&mn->wearing.head);
 				LOAD_NATIVE(mn->wearing.two_weaponing);
 
@@ -299,6 +298,7 @@ void restore(char *filename)
 		push_back(&all_things, th);
 	}
 	while (1);
+	//load_block();
 
 	U.playing = PLAYER_PLAYING;	/* success */
 }
