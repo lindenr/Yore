@@ -67,10 +67,9 @@ void save_item(struct Item *item)
 		fwrite(item->name, strlen(item->name)+1, 1, game_save_file);
 }
 
-/* This directly converts currently-used memory to little-endian; on some machines it *will*
- * render the game unplayable. Hence, if the user saves their game, it will quit as soon as possible. */
 /* The three main things needing saving are: the List all_things, the uint64_t Time, and
- * the player_struct U. This function saves in the following order: Time; U; all_things. */
+ * the player_struct U. There is also the list of things you have seen.
+ * This function saves in the following order: Time; U; all_things; sq_attr. */
 bool save(char *filename)
 {
 	int i;
@@ -78,7 +77,7 @@ bool save(char *filename)
 	if (pask("yn", "Save and quit?") == 'y')
 	{
 		pline("Saving...");
-		game_save_file = fopen(filename, "w");
+		game_save_file = fopen(filename, "wb");
 		fwrite("YOREv"YORE_VERSION, sizeof("YOREv"YORE_VERSION), 1, game_save_file);
 
 		/* Time */
@@ -120,9 +119,9 @@ bool save(char *filename)
 					SAVE_NATIVE(mn->cur_speed);
 
 					if (mn->name)
-						fwrite(mn->name, strlen(mn->name)+1, 1, game_save_file);
+						fwrite(mn->name, 20, 1, game_save_file);
 					else
-						fwrite("\0", 1, 1, game_save_file);
+						fwrite("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20, 1, game_save_file);
 
 					/* pack */
 					for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
@@ -137,7 +136,8 @@ bool save(char *filename)
 					save_item(mn->wearing.arms);
 					save_item(mn->wearing.rfin);
 					save_item(mn->wearing.lfin);
-					save_item(mn->wearing.head);
+					save_item(mn->wearing.rweap);
+					save_item(mn->wearing.lweap);
 					SAVE_NATIVE(mn->wearing.two_weaponing);
 
 					SAVE_NATIVE(mn->status);
@@ -146,10 +146,8 @@ bool save(char *filename)
 				}
 				case THING_DGN:
 				{
-					/* Where is it in the array? */
-					uint32_t type = (uint32_t)th->thing;
-					type -= (uint32_t)map_items;
-					type /= sizeof(struct map_item_struct);
+					struct map_item_struct *mapit = th->thing;
+					long type = GETMAPITEMID(mapit->ch);
 					SAVE_NATIVE(type);
 				}
 				default:
@@ -157,6 +155,9 @@ bool save(char *filename)
 				}
 			}
 		}
+		fprintf(game_save_file, "1111");
+
+		for (i = 0; i < 1680; ++ i) fprintf(game_save_file, "%c", sq_seen[i]);
 		
 		//save_block();
 		
@@ -211,10 +212,10 @@ void load_item(struct Item **out_item)
 }
 
 void restore(char *filename)
-{endwin();
+{
 	int i;
 	U.playing = PLAYER_ERROR; /* for premature returning */
-	game_save_file = fopen(filename, "r");
+	game_save_file = fopen(filename, "rb");
 	if (!game_save_file) panic("Save file incorrect\n");
 	
 	char *ftest = malloc(strlen("YOREv"YORE_VERSION))+1;
@@ -225,22 +226,25 @@ void restore(char *filename)
 	LOAD_NATIVE(Time);
 
 	LOAD_NATIVE(U.hunger);
+	U.player = NULL;
 	LOAD_NATIVE(U.role);
 	LOAD_NATIVE(U.playing);
 	for (i = 0; i < 6; ++ i)
 		LOAD_NATIVE(U.attr[i]);
 	LOAD_NATIVE(U.luck);
 	LOAD_NATIVE(U.m_glflags);
-	
-	do
+
+	while (1)
 	{
 		struct Thing *th = malloc(sizeof(*th));
+		if (!U.player) U.player = th;
 		LOAD_NATIVE(th->type);
 		if (th->type == 0x31313131)
 		{
 			free(th);
 			break;
 		}
+		if (th->type > 6) panic("Loading files is messed up.");
 		LOAD_NATIVE(th->yloc);
 		LOAD_NATIVE(th->xloc);
 		
@@ -262,7 +266,7 @@ void restore(char *filename)
 				LOAD_NATIVE(mn->HP_max);
 				LOAD_NATIVE(mn->cur_speed);
 				mn->name = malloc(20);
-				fscanf(game_save_file, "%s", mn->name);
+				fread(mn->name, 20, 1, game_save_file);
 
 				for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
 					load_item(&(mn->pack.items[i]));
@@ -275,7 +279,8 @@ void restore(char *filename)
 				load_item(&mn->wearing.arms);
 				load_item(&mn->wearing.rfin);
 				load_item(&mn->wearing.lfin);
-				load_item(&mn->wearing.head);
+				load_item(&mn->wearing.rweap);
+				load_item(&mn->wearing.lweap);
 				LOAD_NATIVE(mn->wearing.two_weaponing);
 
 				LOAD_NATIVE(mn->status);
@@ -286,9 +291,11 @@ void restore(char *filename)
 			}
 			case THING_DGN:
 			{
-				uint32_t num;
+				long num;
+				struct map_item_struct *mapit = malloc(sizeof(*mapit));
 				LOAD_NATIVE(num);
-				th->thing = &map_items[num];
+				memcpy(mapit, &map_items[num], sizeof(*mapit));
+				th->thing = mapit;
 				break;
 			}
 			default:
@@ -297,19 +304,23 @@ void restore(char *filename)
 		}
 		push_back(&all_things, th);
 	}
-	while (1);
+
+	for (i = 0; i < 1680; ++ i) LOAD_NATIVE(sq_seen[i]);
+
 	//load_block();
 
 	U.playing = PLAYER_PLAYING;	/* success */
 }
 
+#if defined(WINDOWS)
+#  define SH_RM "del"
+#elif defined(FOONIX)
+#  define SH_RM "rm"
+#endif
+
 void destroy_save_file(char *filename)
 {
-#if defined(WINDOWS)
-	DeleteFile(filename);
-#elif defined(FOONIX)
 	char str[1000];
-	sprintf(str, "rm %s", filename);
+	sprintf(str, SH_RM" %s", filename);
 	system(str);
-#endif
 }
