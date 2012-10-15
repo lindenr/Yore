@@ -91,6 +91,7 @@ bool save(char *filename)
 			SAVE_NATIVE(U.attr[i]);
 		SAVE_NATIVE(U.luck);
 		SAVE_NATIVE(U.m_glflags);
+		SAVE_NATIVE(U.magic);
 		
 		/* all_things */
 		for (li = all_things.beg; iter_good(li); next_iter(&li))
@@ -233,6 +234,7 @@ void restore(char *filename)
 		LOAD_NATIVE(U.attr[i]);
 	LOAD_NATIVE(U.luck);
 	LOAD_NATIVE(U.m_glflags);
+	LOAD_NATIVE(U.magic);
 
 	while (1)
 	{
@@ -308,8 +310,21 @@ void restore(char *filename)
 	for (i = 0; i < 1680; ++ i) LOAD_NATIVE(sq_seen[i]);
 
 	//load_block();
+	
+	fclose (game_save_file);
 
 	U.playing = PLAYER_PLAYING;	/* success */
+}
+
+/* false is quit, true is stay */
+bool quit()
+{
+	if (pask("yn", "Are you sure you want to quit -- permanently?") == 'y')
+	{
+		destroy_save_file(get_filename());
+		return false;
+	}
+	return true;
 }
 
 #if defined(WINDOWS)

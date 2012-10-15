@@ -21,7 +21,7 @@ void get_downstair(uint32_t * yloc, uint32_t * xloc)
 	*xloc = downsx;
 }
 
-void generate_map(enum LEVEL_TYPE type)
+void generate_map(enum LEVEL_TYPE type, uint32_t player_location)
 {
 	int i, start;
 	int buffer[1680];
@@ -32,8 +32,7 @@ void generate_map(enum LEVEL_TYPE type)
 	if (type == LEVEL_MINES)
 	{
 		int t = 200;
-		start = RN(1520) + 79;
-		mons_gen(0, start);
+		start = player_location;
 
 		/* clear space at the beginning (for the up-stair) */
 		buffer[start] = DOT;

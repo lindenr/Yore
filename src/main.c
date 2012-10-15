@@ -96,6 +96,7 @@ bool game_intro()
 int main(int argc, char *argv[])
 {
 	int i;
+	uint32_t start;
 	uint32_t rseed;
 
 	initscr();
@@ -107,16 +108,16 @@ int main(int argc, char *argv[])
 		goto quit_game;
 	
 	init_map();
-
-	if (argc == 1)
-	{
 	print_intro();
-	generate_map(LEVEL_MINES);
+	start = RN(1520) + 79;
+	mons_gen(0, start);
+
 	mvprintw(8, 6, "Who are you? ");
 	refresh();
 
 	for (i = 0, *(real_player_name + 1) = '\0';
-		 i < 10 && *(real_player_name + 1) == '\0'; ++i)
+		 i < 10 && *(real_player_name + 1) == '\0';
+		 ++i)
 	{
 		if (i)
 			mvprintw(10, 6, "Please type in your name.");
@@ -128,6 +129,7 @@ int main(int argc, char *argv[])
 	if (*(real_player_name + 1) == '\0')
 		goto quit_game;
 
+	generate_map(LEVEL_MINES, start);
 	/* So you really want to play? */
 	noecho();
 
@@ -138,12 +140,11 @@ int main(int argc, char *argv[])
 	   PLAYER_PLAYING: */
 	if (U.playing != PLAYER_PLAYING)
 		goto quit_game;
-	}
 
 	clear_screen();
 	pline_check();
 
-	if (argc > 1) restore("Yore-savegame.sav");
+	//if (argc > 1) restore("Yore-savegame.sav");
 
 	do
 	{

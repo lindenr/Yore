@@ -19,17 +19,6 @@ char *get_name(char *n)
 	return n + 1;
 }
 
-/* false is quit, true is stay */
-bool quit()
-{
-	if (pask("yn", "Are you sure you want to quit -- permanently?") == 'y')
-	{
-		destroy_save_file(get_filename());
-		return false;
-	}
-	return true;
-}
-
 bool is_in(const char *str, char q)
 {
 	unsigned size;

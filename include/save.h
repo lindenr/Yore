@@ -4,6 +4,7 @@
 #include "bool.h"
 
 bool save(char *);
+bool quit();
 void destroy_save_file(char *);
 void restore(char *);
 

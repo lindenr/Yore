@@ -16,6 +16,7 @@
 #include "include/pline.h"
 #include "include/util.h"
 #include "include/all_mon.h"
+#include "include/magic.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -417,6 +418,16 @@ int mons_take_move(struct Monster *self)
 			}
 			else if (in == '.')
 				break;
+			else if (in == CONTROL_('Q') && U.magic == true)
+			{
+				pline("Press <m> to re-enter magic mode.");
+				U.magic = false;
+			}
+			else if (U.magic)
+			{
+				player_magic(in);
+				break;
+			}
 			else if (in == ',')
 			{
 				screenshot();
@@ -474,6 +485,11 @@ int mons_take_move(struct Monster *self)
 			else if (in == CONTROL_('P'))
 			{
 				pline_get_his();
+			}
+			else if (in == 'm')
+			{
+				pline("Press <esc> to leave magic mode.");
+				U.magic = true;
 			}
 			else if (in == 'e')
 			{
@@ -857,7 +873,7 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
 	}
 }
 
-void player_dead(const char *msg, ...)
+void player_dead (const char *msg, ...)
 {
 	va_list args;
 	char *actual = malloc(sizeof(char) * 80);
@@ -875,8 +891,19 @@ void player_dead(const char *msg, ...)
 	U.playing = PLAYER_LOSTGAME;
 }
 
+void player_magic (char c)
+{
+	if (!magic_isspell(c))
+	{
+		pline("Unknown spell '%s%c'. ",
+			  (escape(c) == c ? "" : "^"), escape(c));
+		return;
+	}
+	magic_spell(get_pmonster(), c);
+}
+
 /* Rudimentary AI system -- move towards player if player is visible. */
-int AI_Attack(int fromy, int fromx, int toy, int tox, struct Monster *monst)
+int AI_Attack (int fromy, int fromx, int toy, int tox, struct Monster *monst)
 {
 	int xmove = 0, ymove = 0;
 	bres_start(fromy, fromx, NULL, get_sq_attr());
