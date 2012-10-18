@@ -309,6 +309,8 @@ void restore(char *filename)
 
 	//load_block();
 
+	fclose (game_save_file);
+
 	U.playing = PLAYER_PLAYING;	/* success */
 }
 
