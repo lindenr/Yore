@@ -1,6 +1,5 @@
-# Git ignore file
-# Object files
-obj/*.o
 # Executables
 bin/Yore
+# Save files (testing)
+*.sav
 

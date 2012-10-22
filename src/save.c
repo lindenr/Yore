@@ -254,7 +254,8 @@ void restore(char *filename)
 		{
 			case THING_ITEM:
 			{
-				load_item(&th->thing);
+				struct Item *it = th->thing;
+				load_item(&it);
 				break;
 			}
 			case THING_MONS:

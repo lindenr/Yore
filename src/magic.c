@@ -1,6 +1,8 @@
 /* magic.c */
 
 #include "include/magic.h"
+#include "include/pline.h"
+
 #include <stdio.h>
 
 #define SPELL(c) (all_spells[(int)c])

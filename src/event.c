@@ -1,6 +1,7 @@
 /* event.c */
 
 #include "include/event.h"
+#include "include/pline.h"
 
 void event_mhit (struct Monster *from, struct Monster *to, uint32_t atyp)
 {

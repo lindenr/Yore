@@ -17,6 +17,8 @@
 #include "include/util.h"
 #include "include/all_mon.h"
 #include "include/magic.h"
+#include "include/output.h"
+#include "include/event.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -160,18 +162,6 @@ uint32_t player_gen_type()
 	return 0;
 }
 
-struct List custom_list = LIST_INIT;
-
-void custom_free()
-{
-	struct list_iter *i;
-	for (i = custom_list.beg; iter_good(i); next_iter(&i))
-	{
-		free(i->data);
-	}
-	list_free(&custom_list);
-}
-
 inline int mons_get_wt(struct Monster *self)
 {
 	return CORPSE_WEIGHTS[mons[self->type].flags >> 29];
@@ -179,32 +169,18 @@ inline int mons_get_wt(struct Monster *self)
 
 struct item_struct *find_corpse(struct Monster *m)
 {
-	struct list_iter *i;
+	/* mallocate for new type of corpse */
+	struct item_struct *new_item = malloc(sizeof(struct item_struct));
 
-	/* search to see if we already have that custom corpse */
-	for (i = custom_list.beg; iter_good(i); next_iter(&i))
-		if (((struct item_struct *)(i->data))->attr == (m->type << 8))
-			break;
-
-	/* do we need to make it ourselves? */
-	if (!iter_good(i))
-	{
-		/* mallocate for new type of corpse */
-		struct item_struct *new_item = malloc(sizeof(struct item_struct));
-
-		/* fill in the item_struct data */
-		sprintf(new_item->name, "%s corpse", mons[m->type].name);
-		new_item->ch = ITEM_FOOD;
-		new_item->type = IT_CORPSE;
-		new_item->wt = mons_get_wt(m);
-		new_item->attr = m->type << 8;
-		new_item->col = mons[m->type].col;
-
-		/* append to the list */
-		push_back(&custom_list, new_item);
-	}
-
-	return custom_list.end->data;
+	/* fill in the item_struct data */
+	sprintf(new_item->name, "%s corpse", mons[m->type].name);
+	new_item->ch = ITEM_FOOD;
+	new_item->type = IT_CORPSE;
+	new_item->wt = mons_get_wt(m);
+	new_item->attr = m->type << 8;
+	new_item->col = mons[m->type].col;
+	
+	return new_item;
 }
 
 void mons_attack(struct Monster *self, int y, int x)	/* each either -1, 0
@@ -632,8 +608,10 @@ bool mons_eating(struct Monster * self)
 		}
 		self->status &= ~M_EATING;
 		self->eating = NULL;
+		free(item->type);
 		rem_by_data(item);
 		self->pack.items[PACK_AT(get_Itref(self->pack, item))] = NULL;
+		update_map();
 		return false;
 	}
 	hunger_loss = RN(25) + 50;
