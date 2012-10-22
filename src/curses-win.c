@@ -184,6 +184,11 @@ void set_colour(WORD col)
 	SetConsoleTextAttribute(wHnd, col);
 }
 
+void set_col_attr(uint32_t col)
+{
+	set_colour(GET_COLOUR_ATTR(col)&0xff);
+}
+
 void write_con(uint32_t * n, char *s, uint32_t len)
 {
 	DWORD d;

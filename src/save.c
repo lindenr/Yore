@@ -1,4 +1,4 @@
-/* save.c Linden Ralph */
+/* save.c */
 
 #include "include/all.h"
 #include "include/save.h"

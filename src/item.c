@@ -1,4 +1,4 @@
-/* item.c Linden Ralph */
+/* item.c */
 
 #include "include/all.h"
 #include "include/item.h"

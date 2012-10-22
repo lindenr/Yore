@@ -148,7 +148,7 @@ void player_dead(const char *, ...);	/* the player is dead; absolute end of
 										   game */
 void player_exc(enum ABLTY, uint32_t);	/* exercise a given ablty by a given
 										   amount */
-void player_magic(char);                /* cast a spell */
+bool player_magic(char);                /* cast a spell */
 struct item_struct *find_corpse(struct Monster *);	/* gets a corpse type for
 													   a given monster */
 void custom_free(void);			/* frees custom types (now only corpses) */

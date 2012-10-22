@@ -1,4 +1,4 @@
-/* util.c Linden Ralph */
+/* util.c */
 
 #include "include/all.h"
 #include "include/util.h"

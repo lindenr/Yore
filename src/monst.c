@@ -1,4 +1,4 @@
-/* monst.c Linden Ralph */
+/* monst.c */
 
 #include "include/all.h"
 #include "include/monst.h"
@@ -425,8 +425,8 @@ int mons_take_move(struct Monster *self)
 			}
 			else if (U.magic)
 			{
-				player_magic(in);
-				break;
+				if (player_magic(in))
+					break;
 			}
 			else if (in == ',')
 			{
@@ -488,7 +488,7 @@ int mons_take_move(struct Monster *self)
 			}
 			else if (in == 'm')
 			{
-				pline("Press <esc> to leave magic mode.");
+				pline("Press Ctrl+Q to leave magic mode.");
 				U.magic = true;
 			}
 			else if (in == 'e')
@@ -589,18 +589,14 @@ void mons_dead(struct Monster *from, struct Monster *to)
 		return;
 	}
 
+	event_mkill (from, to);
 	if (IS_PLAYER(from))
 	{
-		pline("You kill the %s!", mons[to->type].name);
 		if (to->type == MTYP_SATAN)
 			U.playing = PLAYER_WONGAME;
 		from->exp += mons[to->type].exp;
 		update_level(from);
 	}
-	else						/* TODO change so you don't get messages for
-								   stuff you can't see */
-		pline("The %s kills the %s!", mons[from->type].name,
-			  mons[to->type].name);
 	struct item_struct *c = find_corpse(to);
 	struct list_iter *i = get_iter(to);
 	struct Thing *t = i->data;
@@ -772,7 +768,7 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
 
 		switch (mons[from->type].attacks[t][2] & 0xFFFF)
 		{
-		case ATTK_HIT:
+			case ATTK_HIT:
 			{
 				struct Item **it = mons_get_weap(from);
 				if (!it || !(*it))
@@ -782,14 +778,6 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
 						RND(mons[from->type].attacks[t][0],
 							mons[from->type].attacks[t][1]) + strength +
 						RN(3 * from->level);
-
-					if (IS_PLAYER(from))
-						pline("You hit the %s!", mons[to->type].name);
-					else if (IS_PLAYER(to))
-						pline("The %s hits you!", mons[from->type].name);
-					else
-						pline("The %s hits the %s!", mons[from->type].name,
-							  mons[to->type].name);
 				}
 				else
 				{
@@ -797,73 +785,44 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
 					strength = RN(mons_get_st(from)) >> 1;
 					to->HP -=
 						RND(is.attr & 15, (is.attr >> 4) & 15) + strength;
-
-					if (IS_PLAYER(from))
-						pline("You smite the %s!", mons[to->type].name);
-					else if (IS_PLAYER(to))
-						pline("The %s hits you!", mons[from->type].name);
-					else
-						pline("The %s hits the %s!", mons[from->type].name,
-							  mons[to->type].name);
 				}
 
 				mons_passive_attack(to, from);
 				break;
 			}
-		case ATTK_TOUCH:
+			case ATTK_TOUCH:
 			{
 				to->HP -=
 					RND(mons[from->type].attacks[t][0],
 						mons[from->type].attacks[t][1]);
-
-				if (IS_PLAYER(from))
-					pline("You touch the %s!", mons[to->type].name);
-				else if (IS_PLAYER(to))
-					pline("The %s touches you!", mons[from->type].name);
 
 				mons_passive_attack(to, from);
 				break;
 			}
-		case ATTK_MAGIC:
+			case ATTK_MAGIC:
 			{
-				pline("Magic attack not implemented");
 				break;
 			}
-		case ATTK_CLAW:
+			case ATTK_CLAW:
 			{
 				to->HP -=
 					RND(mons[from->type].attacks[t][0],
 						mons[from->type].attacks[t][1]);
-
-				if (IS_PLAYER(from))
-					pline("You scratch the %s!", mons[to->type].name);
-				else if (IS_PLAYER(to))
-					pline("The %s scratches you!", mons[from->type].name);
-				else
-					pline("The %s scratches the %s!", mons[from->type].name,
-						  mons[to->type].name);
 
 				mons_passive_attack(to, from);
 				break;
 			}
-		case ATTK_BITE:
+			case ATTK_BITE:
 			{
 				to->HP -=
 					RND(mons[from->type].attacks[t][0],
 						mons[from->type].attacks[t][1]);
-
-				if (IS_PLAYER(from))
-					pline("You bite the %s!", mons[to->type].name);
-				else if (IS_PLAYER(to))
-					pline("The %s bites you!", mons[from->type].name);
-				else
-					pline("The %s bites the %s!", mons[from->type].name,
-						  mons[to->type].name);
 
 				mons_passive_attack(to, from);
 				break;
 			}
 		}
+		event_mhit (from, to, mons[from->type].attacks[t][2] & 0xFFFF);
 
 		if (to->HP <= 0)
 		{
@@ -891,15 +850,17 @@ void player_dead (const char *msg, ...)
 	U.playing = PLAYER_LOSTGAME;
 }
 
-void player_magic (char c)
+bool player_magic (char c)
 {
 	if (!magic_isspell(c))
 	{
 		pline("Unknown spell '%s%c'. ",
 			  (escape(c) == c ? "" : "^"), escape(c));
-		return;
+		return false;
 	}
-	magic_spell(get_pmonster(), c);
+
+	magic_plspell(get_pmonster(), c);
+	return true;
 }
 
 /* Rudimentary AI system -- move towards player if player is visible. */

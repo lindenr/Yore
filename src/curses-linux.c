@@ -166,7 +166,6 @@ void endwin()
 }
 
 #define GET_COLOUR_ATTR(x) ((x)>>8)
-#define COLOUR_BRIGHT      (COLOUR_DEF | FOREGROUND_INTENSITY)
 
 uint32_t colSan(uint32_t w)
 {
@@ -175,6 +174,11 @@ uint32_t colSan(uint32_t w)
 	if (w == (uint32_t) - 1)
 		return 1;
 	return w;
+}
+
+void set_col_attr(uint32_t col)
+{
+	set_colour(GET_COLOUR_ATTR(col)&0xff);
 }
 
 void set_colour(uint32_t col)

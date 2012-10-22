@@ -12,6 +12,7 @@
 "
 
 void pline(const char *, ...);
+void pline_col(uint32_t, const char *, ...);
 void mvline(uint32_t, uint32_t, const char *, ...);
 char pask(const char *, const char *, ...);
 void line_reset(void);

@@ -1,4 +1,4 @@
-/* main.c Linden Ralph */
+/* main.c */
 
 #include "include/all.h"
 #include <stdint.h>
@@ -16,6 +16,7 @@
 #include "include/util.h"
 #include "include/mycurses.h"
 #include "include/save.h"
+#include "include/magic.h"
 
 void print_intro()
 {
@@ -102,6 +103,7 @@ int main(int argc, char *argv[])
 	initscr();
 	rseed = RNG_get_seed();
 	RNG_main = RNG_INIT(rseed);
+	magic_init();
 	setup_U();
 
 	if (!game_intro())

@@ -137,7 +137,7 @@ void pline(const char *out, ...)
 	va_end(args);
 }
 
-void aline(const char *out, bool historicise)
+void aline_col(uint32_t col, const char *out, bool historicise)
 {
 	int len;
 	plined = true;
@@ -148,7 +148,7 @@ void aline(const char *out, bool historicise)
 		if (pline_where == 20)
 			pline_where = 0;
 	}
-	reset_col();
+	set_col_attr(col);
 	if (strlen(out) > console_width - 5)
 	{
 		/* TODO change */
@@ -171,6 +171,23 @@ void aline(const char *out, bool historicise)
 	msg_size_pline += len + 1;
 	move(line_pline, msg_size_pline);
 	refresh();
+}
+
+void pline_col(uint32_t col, const char *out, ...)
+{
+	va_list args;
+	char actual[500];
+	plined = true;
+
+	va_start(args, out);
+	vsprintf(actual, out, args);
+	aline_col(col, actual, true);
+	va_end(args);
+}
+
+void aline(const char *out, bool historicise)
+{
+	aline_col(COL_TXT_DEF, out, historicise);
 }
 
 void line_reset()

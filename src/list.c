@@ -1,4 +1,4 @@
-/* list.c Linden Ralph linked-list implementation in C */
+/* list.c */
 
 #include "include/all.h"
 #include "include/list.h"

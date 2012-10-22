@@ -23,6 +23,7 @@ char getch(void);
 char *getstr(char *);
 void reset_col(void);
 void clear_screen(void);
+void set_col_attr(uint32_t);
 
 uint32_t to_buffer(uint32_t, uint32_t);
 
