@@ -314,6 +314,8 @@ void restore(char *filename)
 	
 	fclose (game_save_file);
 
+	fclose (game_save_file);
+
 	U.playing = PLAYER_PLAYING;	/* success */
 }
 

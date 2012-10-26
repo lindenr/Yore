@@ -36,7 +36,7 @@ char *gram_short(char *str, int len)
 	if (length <= len)
 		return str;
 
-	char *ret = malloc(len - 3);
+	char *ret = malloc(len);
 	memcpy(ret, str, len - 4);
 	ret[len - 4] = '\0';
 	strcat(ret, "...");
