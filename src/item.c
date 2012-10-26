@@ -16,34 +16,23 @@
 
 /* No corpse -- they are a custom item (see src/monst.c). */
 struct item_struct items[] = {
-	/* item name display type weight attributes colour (default=0) */
-	ITEM("long sword", ITEM_WEAPON, IT_LONGSWORD, 2000, DMG(1, 5),
-		 COL_TXT_RED | COL_TXT_GREEN),
-	ITEM("fencing sword", ITEM_WEAPON, IT_LONGSWORD, 1500, DMG(1, 5),
-		 COL_TXT_RED | COL_TXT_BLUE),
-	ITEM("axe", ITEM_WEAPON, IT_AXE, 3000, DMG(1, 4),
-		 COL_TXT_RED | COL_TXT_GREEN),
-	ITEM("battle-axe", ITEM_WEAPON, IT_AXE, 5000, DMG(1, 7),
-		 COL_TXT_RED | COL_TXT_GREEN),
-	ITEM("dagger", ITEM_WEAPON, IT_DAGGER, 100, DMG(1, 3), COL_TXT_GREEN),
-	ITEM("short sword", ITEM_WEAPON, IT_SHORTSWORD, 2000, DMG(1, 4),
-		 COL_TXT_RED | COL_TXT_GREEN),
-	ITEM("gloves", ITEM_ARMOUR, IT_GLOVES, 70, 0, COL_TXT_GREEN),
-	ITEM("gold", ITEM_DOSH, IT_MONEY, 1, 0,
-		 COL_TXT_RED | COL_TXT_GREEN | COL_TXT_BRIGHT),
-	ITEM("Water charm", ITEM_CHARM, IT_CHARM, 100, 0, COL_TXT_BLUE),
-	ITEM("Air charm", ITEM_CHARM, IT_CHARM, 100, 0,
-		 COL_TXT_GREEN | COL_TXT_BRIGHT),
-	ITEM("Fire charm", ITEM_CHARM, IT_CHARM, 100, 0,
-		 COL_TXT_RED | COL_TXT_BRIGHT),
-	ITEM("Volt charm", ITEM_CHARM, IT_CHARM, 100, 0,
-		 COL_TXT_BLUE | COL_TXT_RED | COL_TXT_BRIGHT),
-	ITEM("Ice charm", ITEM_CHARM, IT_CHARM, 100, 0,
-		 COL_TXT_BLUE | COL_TXT_BRIGHT),
-	ITEM("Earth charm", ITEM_CHARM, IT_CHARM, 100, 0,
-		 COL_TXT_GREEN | COL_TXT_RED),
-	ITEM("", 0, 0, 0, 0, 0)
-		/* item name display type weight attributes colour (default=0) */
+	/* item name             display         type     weight  attributes           colour */
+	ITEM("long sword",     ITEM_WEAPON, IT_LONGSWORD,  2000,  DMG(1, 5),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)                 ),
+	ITEM("fencing sword",  ITEM_WEAPON, IT_LONGSWORD,  1500,  DMG(1, 5),  COL_TXT_RED(11)   | COL_TXT_BLUE(11)                  ),
+	ITEM("axe",            ITEM_WEAPON, IT_AXE,        3000,  DMG(1, 4),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)                 ),
+	ITEM("battle-axe",     ITEM_WEAPON, IT_AXE,        5000,  DMG(1, 7),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)                 ),
+	ITEM("dagger",         ITEM_WEAPON, IT_DAGGER,     100,   DMG(1, 3),  COL_TXT_GREEN(11)                                     ),
+	ITEM("short sword",    ITEM_WEAPON, IT_SHORTSWORD, 2000,  DMG(1, 4),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)                 ),
+	ITEM("gloves",         ITEM_ARMOUR, IT_GLOVES,     70,    0,          COL_TXT_GREEN(11)                                     ),
+	ITEM("gold",           ITEM_DOSH,   IT_MONEY,      1,     0,          COL_TXT_RED(11)   | COL_TXT_GREEN(11) | COL_TXT_BRIGHT),
+	ITEM("Water charm",    ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(11)                                      ),
+	ITEM("Air charm",      ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_GREEN(11) | COL_TXT_BRIGHT                    ),
+	ITEM("Fire charm",     ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_RED(11)   | COL_TXT_BRIGHT                    ),
+	ITEM("Volt charm",     ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(11)  | COL_TXT_RED(11)   | COL_TXT_BRIGHT),
+	ITEM("Ice charm",      ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(11)  | COL_TXT_BRIGHT                    ),
+	ITEM("Earth charm",    ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_GREEN(11) | COL_TXT_RED(11)                   ),
+	ITEM("",               0,           0,             0,     0,          0)
+	/* item name             display         type     weight  attributes           colour */
 };
 
 char *get_item_desc(struct Item item)

@@ -6,7 +6,6 @@
 #include "include/item.h"
 #include "include/monst.h"
 #include "include/map.h"
-#include "include/mycurses.h"
 #include "include/generate.h"
 #include "include/vision.h"
 #include "include/output.h"
@@ -260,10 +259,7 @@ void rem_by_data(void *data)
 			break;
 	}
 	if (!iter_good(i))
-	{
-		printf("asdfasdf");
 		return;					/* fail */
-	}
 
 	list_rem(&all_things[num], i);
 	free(i);
@@ -304,7 +300,6 @@ void visualise_map()
 			}
 			case THING_ITEM:
 			{
-				printf("normal %d\n", th.thing);
 				if (type[at] != THING_MONS)
 				{
 					struct Item *t = th.thing;

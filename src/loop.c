@@ -39,14 +39,14 @@ void main_loop()
 		mon->cur_speed += mons[mon->type].speed;
 		while (mon->cur_speed >= 12)
 		{
-			move(pl->yloc + 1, pl->xloc);
+			gr_move(pl->yloc, pl->xloc);
 			mon->cur_speed -= 12;
 			/* U.player == PLAYER_LOSTGAME if this happens */
 			if (!mons_take_move(mon))
 				return;
 			update_stats();
 		}
-		move(pl->yloc + 1, pl->xloc);
+		gr_move(pl->yloc, pl->xloc);
 		if (pl_mon->HP <= 0)
 		{
 			U.playing = PLAYER_LOSTGAME;

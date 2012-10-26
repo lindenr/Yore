@@ -5,7 +5,6 @@
 #include "include/pline.h"
 #include "include/rand.h"
 #include "include/util.h"
-#include "include/mycurses.h"
 #include "include/bool.h"
 #include "include/loop.h"
 #include "include/save.h"
@@ -316,7 +315,7 @@ struct Item *player_use_pack(struct Thing *player, char *msg, bool * psc,
 		if (in == '?')
 		{
 			show_contents(self->pack, accepted);
-			getch();
+			gr_getch();
 			unscreenshot();
 			continue;
 		}
@@ -325,7 +324,7 @@ struct Item *player_use_pack(struct Thing *player, char *msg, bool * psc,
 		if (in == '*')
 		{
 			show_contents(self->pack, ITCAT_ALL);	/* everything */
-			getch();
+			gr_getch();
 			unscreenshot();
 			continue;
 		}
@@ -520,7 +519,7 @@ int mons_take_move (struct Monster *self)
 			  retry:
 				line_reset();
 				pline("Wield what?");
-				in = getch();
+				in = gr_getch();
 				if (in == ' ')
 				{
 					line_reset();
@@ -572,14 +571,12 @@ void mons_dead(struct Monster *from, struct Monster *to)
 	struct item_struct *c = find_corpse(to);
 	struct list_iter *i = get_iter(to);
 	struct Thing *t = i->data;
-	/*
 	struct Item *it = malloc(sizeof(struct Item));
 	it->type = c;
 	it->attr = 0;
 	it->name = NULL;
 	it->cur_weight = 0;
 	new_thing(THING_ITEM, t->yloc, t->xloc, it);
-	printf("%d\n", it);*/
 	rem_by_data(to);
 	thing_free(t);
 }
@@ -820,7 +817,7 @@ void player_dead (const char *msg, ...)
 	line_reset();
 	pline(actual);
 	free(actual);
-	getch();
+	gr_getch();
 	va_end(args);
 
 	U.playing = PLAYER_LOSTGAME;

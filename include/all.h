@@ -7,7 +7,7 @@
 /* Player options go here */
 
 /* operating system: either FOONIX or WINDOWS */
-#define WINDOWS
+#define SDL
 
 /* #define AMERICAN */
 #define USING_COL

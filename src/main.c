@@ -14,7 +14,6 @@
 #include "include/thing.h"
 #include "include/output.h"
 #include "include/util.h"
-#include "include/mycurses.h"
 #include "include/graphics.h"
 #include "include/save.h"
 #include "include/magic.h"
@@ -30,29 +29,28 @@ void print_intro()
 void draw_box(uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs)
 {
 	uint32_t xt = xs - 1, yt = ys - 1;
-	mvaddch(yl, xl, ACS_ULCORNER);
-	mvaddch(yl + ys, xl, ACS_LLCORNER);
-	mvaddch(yl, xl + xs, ACS_URCORNER);
-	mvaddch(yl + ys, xl + xs, ACS_LRCORNER);
+	gr_mvaddch(yl, xl, ACS_ULCORNER);
+	gr_mvaddch(yl + ys, xl, ACS_LLCORNER);
+	gr_mvaddch(yl, xl + xs, ACS_URCORNER);
+	gr_mvaddch(yl + ys, xl + xs, ACS_LRCORNER);
 	while (xt--)
 	{
-		mvaddch(yl, xl + xt + 1, ACS_HLINE);
-		mvaddch(yl + ys, xl + xt + 1, ACS_HLINE);
+		gr_mvaddch(yl, xl + xt + 1, ACS_HLINE);
+		gr_mvaddch(yl + ys, xl + xt + 1, ACS_HLINE);
 	}
 	while (yt--)
 	{
-		mvaddch(yl + yt + 1, xl, ACS_VLINE);
-		mvaddch(yl + yt + 1, xl + xs, ACS_VLINE);
+		gr_mvaddch(yl + yt + 1, xl, ACS_VLINE);
+		gr_mvaddch(yl + yt + 1, xl + xs, ACS_VLINE);
 	}
 }
 
-void draw_box_fill(uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs,
-				   uint32_t fill)
+void draw_box_fill(uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs, uint32_t fill)
 {
 	int x, y;
 	for (x = 1; x < xs; ++x)
 		for (y = 1; y < ys; ++y)
-			mvaddch(yl + y, xl + x, fill);
+			gr_mvaddch(yl + y, xl + x, fill);
 	draw_box(yl, xl, ys, xs);
 }
 /*
@@ -60,7 +58,7 @@ bool game_intro()
 {
 	int c;
 	//screenshot();
-	//draw_box(5, 15, 9, 50);
+	draw_box(5, 15, 9, 50);
 	gr_mvprintc(7, 17, "Back in the days of Yore, in a land far removed");
 	gr_mvprintc(8, 17, "from our current understanding of the universe,");
 	gr_mvprintc(9, 18,  "when magic flowed throughout the air as water");

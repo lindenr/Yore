@@ -320,25 +320,26 @@ void restore(char *filename)
 }
 
 /* false is quit, true is stay */
-bool quit()
+bool quit ()
 {
 	if (pask("yn", "Are you sure you want to quit -- permanently?") == 'y')
 	{
-		destroy_save_file(get_filename());
+		printf ("Quitting...\n");
+		destroy_save_file (get_filename());
 		return false;
 	}
 	return true;
 }
 
-#if defined(WINDOWS)
+#if defined(__WIN32__)
 #  define SH_RM "del"
-#elif defined(FOONIX)
+#else
 #  define SH_RM "rm"
 #endif
 
-void destroy_save_file(char *filename)
+void destroy_save_file (char *filename)
 {
 	char str[1000];
-	sprintf(str, SH_RM" %s", filename);
-	system(str);
+	sprintf (str, "%s %s", SH_RM, filename);
+	system (str);
 }

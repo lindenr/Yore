@@ -3,7 +3,6 @@
 #include "include/all.h"
 #include "include/output.h"
 #include "include/thing.h"
-#include "include/mycurses.h"
 #include "include/monst.h"
 #include "include/loop.h"
 #include "include/rank.h"

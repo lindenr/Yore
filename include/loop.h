@@ -1,8 +1,8 @@
 #ifndef LOOP_H_INCLUDED
 #define LOOP_H_INCLUDED
 
-#include "mycurses.h"
-#include "bool.h"
+#include "include/graphics.h"
+#include "include/bool.h"
 
 #define CLEAR_AT(p) mvaddch(p,' ')
 #define CLEAR_LINE(y) gr_mvprintc(y,0,LINE_OF_SPACES)

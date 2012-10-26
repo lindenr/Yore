@@ -1,5 +1,7 @@
+/* vision.c */
+
 #include "include/vision.h"
-#include "include/mycurses.h"
+#include "include/graphics.h"
 #include <math.h>
 
 int fromy, fromx;

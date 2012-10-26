@@ -167,7 +167,7 @@ void generate_map (enum LEVEL_TYPE type)
 	}
 	else if (type == LEVEL_NORMAL)
 	{
-		int t, i;
+		int i;
 		
 		/* TODO up- and down-stairs */
 

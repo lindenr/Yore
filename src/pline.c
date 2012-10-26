@@ -47,74 +47,6 @@ char pask(const char *in, const char *out, ...)
 	return c;
 }
 
-/* unused */
-void mvline(uint32_t yloc, uint32_t xloc, const char *txt, ...)
-{
-	char out[30];
-	va_list args;
-	int i, len;
-
-	va_start(args, txt);
-	vsprintf(out, txt, args);
-	va_end(args);
-	len = strlen(out);
-
-	if (!(yloc > 0 && yloc < 79 && xloc > 0 && xloc < 79))
-	{
-		/* not middle */
-		return;
-	}
-	mvaddch(yloc - 1, xloc - 1, ACS_ULCORNER);
-	mvaddch(yloc + 1, xloc - 1, ACS_LLCORNER);
-	mvaddch(yloc - 1, xloc, ACS_HLINE);
-	mvaddch(yloc + 1, xloc, ACS_HLINE);
-	mvaddch(yloc - 1, xloc + 1, ACS_URCORNER);
-	mvaddch(yloc + 1, xloc + 1, ACS_LRCORNER);
-	if (xloc < 40)
-	{
-		/* text on RHS */
-		mvaddch(yloc, xloc - 1, ACS_VLINE);
-		mvaddch(yloc, ++xloc, ACS_LTEE);
-		while (xloc < 40)
-			mvaddch(yloc, ++xloc, ACS_HLINE);
-		++xloc;
-		mvaddch(yloc, xloc, ACS_RTEE);
-		mvprintw(yloc, xloc + 1, out);
-		mvaddch(yloc - 1, xloc, ACS_ULCORNER);
-		mvaddch(yloc + 1, xloc, ACS_LLCORNER);
-		for (i = 0; i < len; ++i)
-		{
-			mvaddch(yloc - 1, xloc + i + 1, ACS_HLINE);
-			mvaddch(yloc + 1, xloc + i + 1, ACS_HLINE);
-		}
-		mvaddch(yloc - 1, xloc + len + 1, ACS_URCORNER);
-		mvaddch(yloc, xloc + len + 1, ACS_VLINE);
-		mvaddch(yloc + 1, xloc + len + 1, ACS_LRCORNER);
-	}
-	else
-	{
-		/* text on LHS */
-		mvaddch(yloc, xloc + 1, ACS_VLINE);
-		mvaddch(yloc, --xloc, ACS_RTEE);
-		while (xloc >= 40)
-			mvaddch(yloc, --xloc, ACS_HLINE);
-		--xloc;
-		mvaddch(yloc, xloc, ACS_LTEE);
-		mvprintw(yloc, xloc - len, out);
-		mvaddch(yloc - 1, xloc, ACS_URCORNER);
-		mvaddch(yloc + 1, xloc, ACS_LRCORNER);
-		for (i = 0; i < len; ++i)
-		{
-			mvaddch(yloc - 1, xloc - i - 1, ACS_HLINE);
-			mvaddch(yloc + 1, xloc - i - 1, ACS_HLINE);
-		}
-		mvaddch(yloc - 1, xloc - len - 1, ACS_ULCORNER);
-		mvaddch(yloc, xloc - len - 1, ACS_VLINE);
-		mvaddch(yloc + 1, xloc - len - 1, ACS_LLCORNER);
-	}
-	move(0, 0);
-}
-
 char pline_history[20][256] = { {0,}, };
 
 int pline_where = 0, pline_pretend = -1;
@@ -151,7 +83,7 @@ void aline_col(uint32_t col, const char *out, bool historicise)
 		if (pline_where == 20)
 			pline_where = 0;
 	}
-	set_col_attr(col);
+	// TODO set_col_attr(col);
 	if (strlen(out) > glnumx - 5)
 	{
 		/* TODO change */
@@ -236,23 +168,23 @@ void mlines_list(struct List list, int num_lines)
 		aline(list.beg->data, true);
 	else
 	{
-		clear_screen();
+		gr_clear();
 		for (l_no = 0, i = list.beg; iter_good(i); ++l_no, next_iter(&i))
 		{
-			mvprintw(l_no, 0, "%s", i->data);
-			if (l_no == console_height - 2)
+			gr_mvprintc(l_no, 0, "%s", i->data);
+			if (l_no == glnumy - 2)
 			{
-				mvprintw(l_no + 1, 0, "--more--");
-				getch();
+				gr_mvprintc(l_no + 1, 0, "--more--");
+				gr_getch();
 				l_no = -1;
 			}
 		}
-		move(console_height - 1, 0);
+		gr_move(glnumy - 1, 0);
 		fprintf(stdout, "--END--");
-		move(console_height - 1, 7);
+		gr_move(glnumy - 1, 7);
 	}
-	getch();
-	move(console_height - 1, 0);
+	gr_getch();
+	gr_move(glnumy - 1, 0);
 	fprintf(stdout, "       ");
 }
 

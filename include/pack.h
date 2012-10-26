@@ -1,8 +1,8 @@
 #ifndef PACK_H_INCLUDED
 #define PACK_H_INCLUDED
 
-#include "item.h"
-#include "mycurses.h"
+#include "include/item.h"
+#include "include/graphics.h"
 
 #define MAX_ITEMS_IN_PACK 52
 #define MAX_ITEMS_IN_BAG  52

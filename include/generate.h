@@ -1,8 +1,8 @@
 #ifndef GENERATE_H_INCLUDED
 #define GENERATE_H_INCLUDED
 
-#include "mycurses.h"
-#include "bool.h"
+#include "include/graphics.h"
+#include "include/bool.h"
 
 enum LEVEL_TYPE
 {
