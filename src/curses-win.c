@@ -1,4 +1,4 @@
-/* curses-win.c Linden Ralph */
+/* curses-win.c */
 
 #include "include/all.h"
 #include "include/mycurses.h"
@@ -25,10 +25,10 @@ int console_width = 80, console_height = 25;
 
 struct Thing cursor = { THING_CURS, 0, 0, 0 };
 
-uint32_t to_buffer(uint32_t y, uint32_t x)
-{
-	return 80 * y + x;
-}
+//uint32_t to_buffer(uint32_t y, uint32_t x)
+//{
+//	return 80 * y + x;
+//}
 
 void reset_col()
 {
@@ -151,13 +151,14 @@ void initscr()
 }
 
 /* Just a placeholder */
+/*
 void noecho()
 {
 }
 
 void echo()
 {
-}
+}*/
 
 void endwin()
 {
@@ -281,12 +282,12 @@ char getch()
 		goto try_again;
 	return ret;
 }
-
+/*
 void wait_ms(unsigned n)
 {
 	Sleep(n);
 }
-
+*/
 char *getstr(char *str)
 {
 	uint32_t i, max = 80;

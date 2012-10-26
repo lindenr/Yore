@@ -15,15 +15,16 @@
 #include "include/output.h"
 #include "include/util.h"
 #include "include/mycurses.h"
+#include "include/graphics.h"
 #include "include/save.h"
 #include "include/magic.h"
 
 void print_intro()
 {
-	mvprintw(1, 00, "Welcome to Yore v"YORE_VERSION);
-	mvprintw(2, 10, "* A game guide is not yet in place.");
-	mvprintw(3, 10, "* A wiki is not yet in place.");
-	refresh();
+	gr_mvprintc(1, 00, "Welcome to Yore v"YORE_VERSION);
+	gr_mvprintc(2, 10, "* A game guide is not yet in place.");
+	gr_mvprintc(3, 10, "* A wiki is not yet in place.");
+	gr_refresh();
 }
 
 void draw_box(uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs)
@@ -54,24 +55,24 @@ void draw_box_fill(uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs,
 			mvaddch(yl + y, xl + x, fill);
 	draw_box(yl, xl, ys, xs);
 }
-
+/*
 bool game_intro()
 {
 	int c;
-	screenshot();
-	draw_box(5, 15, 9, 50);
-	mvprintw(7, 17, "Back in the days of Yore, in a land far removed");
-	mvprintw(8, 17, "from our current understanding of the universe,");
-	mvprintw(9, 18,  "when magic flowed throughout the air as water");
-	mvprintw(10, 18, "flowed through the sea, and the Gods lived in");
-	mvprintw(11, 19,  "harmony with the people; it was a time when");
-	mvprintw(12, 20,   "anything and everything was possible...");
+	//screenshot();
+	//draw_box(5, 15, 9, 50);
+	gr_mvprintc(7, 17, "Back in the days of Yore, in a land far removed");
+	gr_mvprintc(8, 17, "from our current understanding of the universe,");
+	gr_mvprintc(9, 18,  "when magic flowed throughout the air as water");
+	gr_mvprintc(10, 18, "flowed through the sea, and the Gods lived in");
+	gr_mvprintc(11, 19,  "harmony with the people; it was a time when");
+	gr_mvprintc(12, 20,   "anything and everything was possible...");
 	refresh();
 	noecho();
 	in_tout(666);
 	while (1)
 	{
-		mvprintw(16, 25, "[hit the spacebar to continue]");
+		gr_mvprintc(16, 25, "[hit the spacebar to continue]");
 		do
 			c = getch();
 		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
@@ -79,7 +80,7 @@ bool game_intro()
 			break;
 		if (c == 'q' || c == 'Q')
 			return false;
-		mvprintw(16, 25, "                              ");
+		gr_mvprintc(16, 25, "                              ");
 		do
 			c = getch();
 		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
@@ -92,73 +93,70 @@ bool game_intro()
 	echo();
 	unscreenshot();
 	return true;
-}
+}*/ // TODO graphically
 
-int main(int argc, char *argv[])
+int main (int argc, char *argv[])
 {
 	int i;
-	uint32_t start;
 	uint32_t rseed;
 
-	initscr();
+	gr_init();
+
 	rseed = RNG_get_seed();
 	RNG_main = RNG_INIT(rseed);
 	magic_init();
 	setup_U();
+	atexit (all_things_free);
 
-	if (!game_intro())
-		goto quit_game;
+	//if (!game_intro())
+	//	goto quit_game;
 	
-	init_map();
+	//init_map();
 	print_intro();
-	start = RN(1520) + 79;
-	mons_gen(0, start);
+	mons_gen(0, 0);
 
-	mvprintw(8, 6, "Who are you? ");
-	refresh();
+	gr_mvprintc(8, 6, "Who are you? ");
+	gr_refresh();
 
 	for (i = 0, *(real_player_name + 1) = '\0';
 		 i < 10 && *(real_player_name + 1) == '\0';
 		 ++i)
 	{
 		if (i)
-			mvprintw(10, 6, "Please type in your name.");
-		refresh();
-		move(8, 19);
-		getstr(real_player_name + 1);
+			gr_mvprintc(10, 6, "Please type in your name.");
+		gr_refresh();
+		gr_move(8, 19);
+		gr_getstr(real_player_name + 1);
 	}
 
 	if (*(real_player_name + 1) == '\0')
 		goto quit_game;
 
-	generate_map(LEVEL_MINES, start);
-	/* So you really want to play? */
-	noecho();
+	generate_map(LEVEL_NORMAL);
 
-	clear_screen();
+	/* So you really want to play? */
+	gr_noecho();
+
+	gr_clear();
 	get_cinfo();
 
-	/* If the player entered info correctly, then they should be
-	   PLAYER_PLAYING: */
+	/* If the player entered info correctly, then they should be PLAYER_PLAYING: */
 	if (U.playing != PLAYER_PLAYING)
 		goto quit_game;
 
-	clear_screen();
+	gr_clear();
 	pline_check();
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 
 	do
 	{
-		update_map();
+		update_stats();
 		main_loop();
 	}
 	while (U.playing == PLAYER_PLAYING);
 
   quit_game:
-	endwin();
-	move(0, 0);
-
 	if (U.playing == PLAYER_LOSTGAME)
 		printf("Goodbye %s...\n", get_pmonster()->name + 1);
 	else if (U.playing == PLAYER_SAVEGAME)
@@ -167,9 +165,6 @@ int main(int argc, char *argv[])
 		printf("Give it a try next time...\n");
 	else if (U.playing == PLAYER_WONGAME)
 		printf("Congratulations %s...\n", get_pmonster()->name + 1);
-
-	/* This comes afterwards so get_pmonster() works for the messages. */
-	all_things_free();
 
 	exit(0);
 }

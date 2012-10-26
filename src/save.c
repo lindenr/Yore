@@ -10,6 +10,7 @@
 #include "include/pack.h"
 #include "include/util.h"
 #include "include/map.h"
+#include "include/graphics.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -73,7 +74,6 @@ void save_item(struct Item *item)
 bool save(char *filename)
 {
 	int i;
-	struct list_iter *li;
 	if (pask("yn", "Save and quit?") == 'y')
 	{
 		pline("Saving...");
@@ -94,7 +94,7 @@ bool save(char *filename)
 		SAVE_NATIVE(U.magic);
 		
 		/* all_things */
-		for (li = all_things.beg; iter_good(li); next_iter(&li))
+		ITER_THINGS(li, num)
 		{
 			struct Thing *th = li->data;
 			int enum_saver = (int)(th->type);
@@ -305,7 +305,7 @@ void restore(char *filename)
 			{
 			}
 		}
-		push_back(&all_things, th);
+		push_back(&all_things[to_buffer(th->yloc, th->xloc)], th);
 	}
 
 	for (i = 0; i < 1680; ++ i) LOAD_NATIVE(sq_seen[i]);

@@ -4,6 +4,8 @@
 #include "include/pline.h"
 #include "include/loop.h"
 #include "include/util.h"
+#include "include/graphics.h"
+
 #include <stdio.h>
 #include <malloc.h>
 
@@ -40,11 +42,12 @@ char pask(const char *in, const char *out, ...)
 
 	/* wait for answer */
 	do
-		c = getch();
+		c = gr_getch();
 	while ((!is_in(in, c)) && c != ' ' && c != 0x1B);
 	return c;
 }
 
+/* unused */
 void mvline(uint32_t yloc, uint32_t xloc, const char *txt, ...)
 {
 	char out[30];
@@ -149,28 +152,27 @@ void aline_col(uint32_t col, const char *out, bool historicise)
 			pline_where = 0;
 	}
 	set_col_attr(col);
-	if (strlen(out) > console_width - 5)
+	if (strlen(out) > glnumx - 5)
 	{
 		/* TODO change */
 		out = "pline length exceeded";
 	}
 
 	len = strlen(out);
-	if (msg_size_pline + len >= console_width - 9)
+	if (msg_size_pline + len >= glnumx - 9)
 	{
-		move(line_pline, msg_size_pline);
-		fprintf(stdout, "--more--");
-		move(line_pline, msg_size_pline + 9);
+		gr_mvprintc(line_pline, msg_size_pline, "--more--");
+		gr_move(line_pline, msg_size_pline + 9);
 		msg_size_pline = 0;
-		getch();
+		gr_getch();
 	}
 	if (msg_size_pline == 0)
-		CLEAR_LINE(line_pline);
-	move(line_pline, msg_size_pline);
-	fprintf(stdout, "%s ", out);
+		line_reset ();
+
+	gr_mvprintc(line_pline, msg_size_pline, "%s ", out);
 	msg_size_pline += len + 1;
-	move(line_pline, msg_size_pline);
-	refresh();
+	gr_move(line_pline, msg_size_pline);
+	gr_refresh();
 }
 
 void pline_col(uint32_t col, const char *out, ...)
@@ -194,9 +196,8 @@ void line_reset()
 {
 	int i;
 
-	move(line_pline, 0);
-	for (i = 0; i < console_width; ++i)
-		fprintf(stdout, " ");
+	for (i = 0; i < glnumx; ++i)
+		gr_mvprintc(line_pline, 0, " ");
 	msg_size_pline = 0;
 }
 

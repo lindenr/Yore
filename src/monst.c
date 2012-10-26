@@ -19,6 +19,7 @@
 #include "include/magic.h"
 #include "include/output.h"
 #include "include/event.h"
+#include "include/graphics.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -87,24 +88,23 @@ void get_cinfo()
 {
 	char in;
 
-	mvprintw(0, 0, "What role would you like to take up?");
-	move(0, console_width - 11);
-	fprintf(stdout, "(q to quit)");
-	mvprintw(2, 3, "a     Assassin");
-	mvprintw(3, 3, "d     Doctor");
-	mvprintw(4, 3, "s     Soldier");
-	move(0, 37);
+	gr_mvprintc(0, 0, "What role would you like to take up?");
+	gr_mvprintc(0, glnumx - 11, "(q to quit)");
+	gr_mvprintc(2, 3, "a     Assassin");
+	gr_mvprintc(3, 3, "d     Doctor");
+	gr_mvprintc(4, 3, "s     Soldier");
+	gr_move(0, 37);
+	gr_refresh();
 
 	do
 	{
-		in = getch();
+		in = gr_getch();
 		if (in == 'q' || in == 0x1B)
 			return;
 	}
 	while (in != 'd' && in != 's' && in != 'a');
 
-	move(0, console_width - 11);
-	fprintf(stdout, "           ");
+	gr_mvprintc(0, glnumx - 11, "           ");
 
 	if (in == 's')
 		U.role = 1;
@@ -197,16 +197,14 @@ int mons_move(struct Monster *self, int y, int x)	/* each either -1, 0 or 1 */
 		if (!(x | y))
 			return false;
 	struct Thing *t = get_thing(self);
-	int can =
-		can_move_to(get_square_attr(t->yloc + y, t->xloc + x, self->level));
+	int can = can_move_to(get_square_attr(t->yloc + y, t->xloc + x, self->level));
 	/* like a an unmoveable boulder or something */
 	if (!can)
 		return false;
 	/* you can and everything's fine, nothing doing */
 	else if (can == 1)
 	{
-		t->yloc += y;
-		t->xloc += x;
+		thing_move (t, t->yloc+y, t->xloc+x);
 		return true;
 	}
 	/* melee attack! */
@@ -221,7 +219,7 @@ int mons_move(struct Monster *self, int y, int x)	/* each either -1, 0 or 1 */
 		/* nothing to do except return false (move not allowed) */
 		return false;
 	}
-	/* shouldn't get to here been a mistake */
+	/* shouldn't get to here -- been a mistake */
 	return false;
 }
 
@@ -340,7 +338,7 @@ struct Item *player_use_pack(struct Thing *player, char *msg, bool * psc,
 	return It;
 }
 
-int mons_take_move(struct Monster *self)
+int mons_take_move (struct Monster *self)
 {
 	char in;
 	if (self->HP < self->HP_max && RN(50) < U.attr[AB_CO])
@@ -355,16 +353,16 @@ int mons_take_move(struct Monster *self)
 		{
 			if (mons_eating(self))
 				return true;
-			refresh();
-			move(th->yloc + 1, th->xloc);
-			if (screenshotted)
-			{
-				screenshotted = false;
-				unscreenshot();
-			}
-			in = getch();
-			if (pline_check())
-				line_reset();
+			gr_refresh ();
+			gr_move (th->yloc + 1, th->xloc);
+			//if (screenshotted)
+			//{
+			//	screenshotted = false;
+			//	unscreenshot();
+			//}
+			in = gr_getch();
+			//if (pline_check())
+			//	line_reset();
 			if (in == 'Q')
 			{
 				if (!quit())
@@ -409,9 +407,8 @@ int mons_take_move(struct Monster *self)
 				screenshot();
 				screenshotted = true;
 				struct List Li = LIST_INIT;
-				struct list_iter *li;
 				struct Thing *t_;
-				for (li = all_things.beg; iter_good(li); next_iter(&li))
+				ITER_THINGS(li, num)
 				{
 					t_ = li->data;
 					if (t_->type != THING_ITEM)
@@ -500,9 +497,8 @@ int mons_take_move(struct Monster *self)
 			{
 				screenshot();
 				screenshotted = true;
-				struct list_iter *n;
 				int k = 0;
-				for (n = all_things.beg; iter_good(n); next_iter(&n))
+				ITER_THINGS(n, num)
 				{
 					struct Thing *t_ = n->data;
 					if (t_->type != THING_ITEM)
@@ -576,12 +572,14 @@ void mons_dead(struct Monster *from, struct Monster *to)
 	struct item_struct *c = find_corpse(to);
 	struct list_iter *i = get_iter(to);
 	struct Thing *t = i->data;
+	/*
 	struct Item *it = malloc(sizeof(struct Item));
 	it->type = c;
 	it->attr = 0;
 	it->name = NULL;
 	it->cur_weight = 0;
 	new_thing(THING_ITEM, t->yloc, t->xloc, it);
+	printf("%d\n", it);*/
 	rem_by_data(to);
 	thing_free(t);
 }
@@ -611,7 +609,7 @@ bool mons_eating(struct Monster * self)
 		free(item->type);
 		rem_by_data(item);
 		self->pack.items[PACK_AT(get_Itref(self->pack, item))] = NULL;
-		update_map();
+		update_stats();
 		return false;
 	}
 	hunger_loss = RN(25) + 50;

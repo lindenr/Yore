@@ -1,4 +1,4 @@
-/* loop.c Linden Ralph */
+/* loop.c */
 
 #include "include/all.h"
 #include "include/loop.h"
@@ -8,16 +8,17 @@
 #include "include/thing.h"
 #include "include/output.h"
 #include "include/generate.h"
+#include "include/graphics.h"
 
 uint64_t Time = 1;
 
 void next_time()
 {
-	++Time;
+	++ Time;
 	U.oldhunger = U.hunger;
-	if (digesting())
+	if (digesting ())
 	{
-		++U.hunger;
+		++ U.hunger;
 	}
 }
 
@@ -26,10 +27,9 @@ void main_loop()
 	char *msg = 0;
 	struct Thing *pl = get_player(), *th;
 	struct Monster *pl_mon = pl->thing, *mon;
-	struct list_iter *i;
-	next_time();
-	mons_gen(2, -55);
-	for (i = all_things.beg; iter_good(i); next_iter(&i))
+	next_time ();
+	mons_gen (2, -30);
+	ITER_THINGS(i, n)
 	{
 		th = i->data;
 		if (th->type != THING_MONS)
@@ -44,7 +44,7 @@ void main_loop()
 			/* U.player == PLAYER_LOSTGAME if this happens */
 			if (!mons_take_move(mon))
 				return;
-			update_map();
+			update_stats();
 		}
 		move(pl->yloc + 1, pl->xloc);
 		if (pl_mon->HP <= 0)

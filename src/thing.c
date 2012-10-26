@@ -1,4 +1,4 @@
-/* thing.c Linden Ralph */
+/* thing.c */
 
 #include <assert.h>
 #include "include/all.h"
@@ -8,23 +8,24 @@
 #include "include/map.h"
 #include "include/mycurses.h"
 #include "include/generate.h"
-#include "include/output.h"
 #include "include/vision.h"
+#include "include/output.h"
+#include "include/graphics.h"
 
-struct List all_things = LIST_INIT;
+struct List all_things[MAP_HEIGHT*MAP_WIDTH];
 
 /* At any given point: 0 if we can't see past that square (e.g. wall); 1 if we 
    can remember it (e.g. sword); and 2 if we can't remember its position (e.g. 
    monster). The options are mutually exclusive. */
-uint8_t sq_attr[1680] = { 0, };
+uint8_t sq_attr[MAP_TILES] = { 0, };
 
 /* Output of the bresenham algorithm (vision.c): 0 if we can't see it (outside 
    our field of vision); 1 if we remember it; and 2 if we are looking at it.
    The options are again mutually exclusive. */
-uint8_t sq_seen[1680] = { 0, };
+uint8_t sq_seen[MAP_TILES] = { 0, };
 
 /* What to see instead if it turns out that we can't remember something */
-uint32_t sq_unseen[1680] = { 0, };
+uint32_t sq_unseen[MAP_TILES] = { 0, };
 
 /* This is called by the AI to find out what the monsters can see. */
 uint8_t *get_sq_attr()
@@ -121,14 +122,16 @@ uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k,
 
 #define US(w) (sq_seen[w]?(sq_attr[w]?DOT:'W'):DOT)
 
-inline void set_can_see(int Yloc, int Xloc, uint32_t * us, uint32_t * unseen)
+inline void set_can_see(uint32_t * unseen)
 {
+	glyph *us = gr_map;
+	int Yloc = get_player()->yloc, Xloc = get_player()->xloc;
 	int Y, X, w;
 
 	/* Initialise the bres thing */
 	bres_start(Yloc, Xloc, sq_seen, sq_attr);
 
-	/* Anything youu could see before you can't necessarily now */
+	/* Anything you could see before you can't necessarily now */
 	for (w = 0; w < 1680; ++w)
 		if (sq_seen[w] == 2)
 			sq_seen[w] = 1;
@@ -137,7 +140,8 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t * us, uint32_t * unseen)
 	   seen) this square */
 	for (Y = 0; Y < 21; ++Y)
 		for (X = 0; X < 80; ++X)
-			bres_draw(Y, X);
+			//bres_draw(Y, X);
+			sq_seen[80*Y + X] = 2;
 
 	/* Make everything we can't see dark */
 	for (w = 0; w < 1680; ++w)
@@ -190,11 +194,25 @@ inline void set_can_see(int Yloc, int Xloc, uint32_t * us, uint32_t * unseen)
 	}
 }
 
+void thing_move (struct Thing *thing, int new_y, int new_x)
+{
+	int num = to_buffer(thing->yloc, thing->xloc);
+	ITER_THING(li, num)
+	{
+		if (li->data == thing)
+			break;
+	}
+	if (!iter_good(li)) return; /* Couldn't find thing in list */
+	list_rem (&all_things[num], li);
+	thing->yloc = new_y;
+	thing->xloc = new_x;
+	num = to_buffer(thing->yloc, thing->xloc);
+	push_back (&all_things[num], thing);
+}
+
 inline struct list_iter *get_iter(void *data)
 {
-	struct list_iter *i;
-
-	for (i = all_things.beg; iter_good(i); next_iter(&i))
+	ITER_THINGS(i, num)
 	{
 		struct Thing *t = i->data;
 		if (t->thing == data)
@@ -210,14 +228,14 @@ void thing_free(struct Thing *thing)
 
 	switch (thing->type)
 	{
-	case THING_ITEM:
+		case THING_ITEM:
 		{
 			struct Item *i = thing->thing;
 			if (i->name)
 				free(i->name);
 			break;
 		}
-	case THING_MONS:
+		case THING_MONS:
 		{
 			struct Monster *monst = thing->thing;
 			if (monst->name && monst->name[0])
@@ -226,8 +244,8 @@ void thing_free(struct Thing *thing)
 				free(monst->eating);
 			break;
 		}
-	default:
-		break;
+		default:
+			break;
 	}
 	free(thing->thing);
 	free(thing);
@@ -235,96 +253,83 @@ void thing_free(struct Thing *thing)
 
 void rem_by_data(void *data)
 {
-	struct list_iter *i = get_iter(data);
-	if (!i)
+	ITER_THINGS(i, num)
+	{
+		struct Thing *t = i->data;
+		if (t->thing == data)
+			break;
+	}
+	if (!iter_good(i))
+	{
+		printf("asdfasdf");
 		return;					/* fail */
+	}
 
-	list_rem(&all_things, i);
+	list_rem(&all_things[num], i);
 	free(i);
 }
 
-struct Thing *new_thing(uint32_t type, uint32_t y, uint32_t x,
-						void *actual_thing)
+struct Thing *new_thing(uint32_t type, uint32_t y, uint32_t x, void *actual_thing)
 {
 	struct Thing t = { type, y, x, actual_thing };
 	struct Thing *thing = malloc(sizeof(struct Thing));
 	memcpy(thing, &t, sizeof(struct Thing));
-	push_back(&all_things, thing);
+	push_back(&all_things[to_buffer(y, x)], thing);
 	return thing;
 }
 
-/* returns an array of 1680 integers (characters with colour) */
-/* 0 1 2 3 ...  - 80 81 82 ...  | 160 161 ...  21 240 ...  | ...  ...  - ...
-   1679 |-------------80-------------| */
-
-/* The bottom three lines of the 80*25 console are used for HP, stats, time,
-   etc the top is used for pline(). A null character signifies nothing - the
-   character already there should not be overwritten. */
-
+/* Directly modifies gr_map[] */
 void visualise_map()
 {
-	int I;
-	struct list_iter *i;
-	struct Thing *player = NULL;
-	uint32_t *map = new_buffer;
-	uint32_t type[1680];
-	for (I = 0; I < 1680; ++I)
-	{
-		map[I] = ' ';
-		type[I] = THING_NONE;
-	}
-
-	for (i = all_things.beg; iter_good(i); next_iter(&i))
+	uint32_t type[MAP_TILES] = {0,};
+	ITER_THINGS(i, at)
 	{
 		struct Thing *T = i->data;
-		unsigned at = T->yloc * 80 + T->xloc;
 		struct Thing th = *T;
 		bool changed = false;
-		/* assert(at < 1680); */
 		switch (th.type)
 		{
-		case THING_MONS:
+			case THING_MONS:
 			{
-				struct Monster *m = th.thing;	// pline("%d", m);getch();
+				struct Monster *m = th.thing;
 				changed = true;
-				map[at] = mons[m->type].col | mons[m->type].ch;
+				gr_baddch(at, mons[m->type].col | mons[m->type].ch);
 				if (m->name)
 					if (IS_PLAYER(m))
 					{
-						map[at] |= COL_TXT_BRIGHT;
-						player = T;
+						gr_map[at] |= COL_TXT_BRIGHT;
 					}
 				sq_attr[at] = 2;
 				break;
 			}
-		case THING_ITEM:
+			case THING_ITEM:
 			{
+				printf("normal %d\n", th.thing);
 				if (type[at] != THING_MONS)
 				{
 					struct Item *t = th.thing;
-					map[at] = t->type->col | t->type->ch;
+					gr_baddch(at, t->type->col | t->type->ch);
 					changed = true;
 				}
-				sq_unseen[at] = map[at];
+				sq_unseen[at] = gr_map[at];
 				sq_attr[at] = 1;
 				break;
 			}
-		case THING_DGN:
+			case THING_DGN:
 			{
 				if (type[at] == THING_NONE)
 				{
 					struct map_item_struct *m = th.thing;
-					map[at] = (uint32_t) ((unsigned char)(m->ch));
+					gr_baddch(at, (glyph) ((unsigned char)(m->ch)));
 					sq_attr[at] = m->attr & 1;
 					changed = true;
 				}
-				sq_unseen[at] = map[at];
+				sq_unseen[at] = gr_map[at];
 				break;
 			}
-		default:
+			default:
 			{
-				panic("default reached");
-				break;
+				panic("default reached in visualise_map()");
 			}
 		}
 		if (changed)
@@ -332,14 +337,13 @@ void visualise_map()
 			type[at] = th.type;
 		}
 	}
-	set_can_see(player->yloc, player->xloc, map, sq_unseen);
+	//set_can_see(sq_unseen);
+	gr_refresh();
 }
 
 struct Thing *get_thing(void *data)
 {
-	struct list_iter *i;
-
-	for (i = all_things.beg; iter_good(i); next_iter(&i))
+	ITER_THINGS(i, num)
 	{
 		if (((struct Thing *)(i->data))->thing == data)
 			return i->data;
@@ -350,8 +354,6 @@ struct Thing *get_thing(void *data)
 
 void all_things_free()
 {
-	struct list_iter *i;
-
-	for (i = all_things.beg; iter_good(i); next_iter(&i))
+	ITER_THINGS(i, num)
 		thing_free(i->data);
 }

@@ -44,7 +44,7 @@
 #elif defined(FOONIX)
 /* *NIX go here */
 #else
-#error operating system not defined
+//#error operating system not defined
 #endif /* WINDOWS, FOONIX */
 
 #endif /* ALL_H_INCLUDED */

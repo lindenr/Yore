@@ -3,10 +3,18 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "list.h"
+#include "include/list.h"
+#include "include/graphics.h"
 
 #define get_player() (U.player)
 #define get_pmonster() ((struct Monster*)U.player->thing)
+
+/* How ITER_THINGS works: it's a loop through a list, within a loop through the tiles.
+ * Since break'ing would only exit one loop (straight into the other) the condition
+ * (iter_good(it) == 0) was added -- this ensures that, if the inner loop break's, the
+ * outer one will as well. */
+#define ITER_THING(it,n)         struct list_iter *it = NULL;                                                        for (it = all_things[n].beg; iter_good(it); next_iter(&it))
+#define ITER_THINGS(it,n) int n; struct list_iter *it = NULL; for (n = 0; n < MAP_TILES && iter_good(it) == 0; ++ n) for (it = all_things[n].beg; iter_good(it); next_iter(&it))
 
 enum THING_TYPE
 {
@@ -36,8 +44,9 @@ const char *get_thing_name(struct Thing);
 struct Thing *get_thing(void *);
 struct list_iter *get_iter(void *);
 void thing_free(struct Thing *);
+void thing_move(struct Thing *, int, int);
 
-struct List all_things;
-extern uint8_t sq_seen[1680];
+extern struct List all_things[];
+extern uint8_t sq_seen[MAP_TILES];
 
 #endif /* THING_H_INCLUDED */

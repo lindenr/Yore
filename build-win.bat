@@ -1,5 +1,4 @@
-mkdir obj bin
-mingw32-make -j4 -B
+mingw32-make -j4
 pause
 rem mingw32-gdb bin/Yore
 bin\Yore

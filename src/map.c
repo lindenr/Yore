@@ -1,4 +1,4 @@
-/* map.c Linden Ralph */
+/* map.c */
 
 #include "include/all.h"
 #include <stdint.h>
@@ -8,15 +8,14 @@
 #include "include/monst.h"
 #include "include/thing.h"
 #include "include/generate.h"
+#include "include/graphics.h"
 
 #define MAP_MOVEABLE 3
 
 /* remember -- ONLY ONE MONSTER PER SQUARE */
 struct Monster *get_square_monst(uint32_t yloc, uint32_t xloc, int level)
 {
-	struct list_iter *i;
-
-	for (i = all_things.beg; iter_good(i); next_iter(&i))
+	ITER_THINGS(i, n)
 	{
 		struct Thing *th = i->data;
 		if (th->yloc == yloc && th->xloc == xloc)
@@ -32,11 +31,10 @@ struct Monster *get_square_monst(uint32_t yloc, uint32_t xloc, int level)
 uint32_t get_square_attr(uint32_t yloc, uint32_t xloc, int level)
 {
 	uint32_t mvbl = 1;
-	struct list_iter *i;
 
 	if (yloc > 20 || xloc > 79)
 		return -1;
-	for (i = all_things.beg; iter_good(i); next_iter(&i))
+	ITER_THINGS(i, n)
 	{
 		struct Thing *th = i->data;
 		if (th->yloc == yloc && th->xloc == xloc)
@@ -74,6 +72,7 @@ struct map_item_struct map_items[] = {
 	MAPITEM("upstair", '<', M_TSPT, 0),
 	MAPITEM("tree", '+', M_OPQ, 0),
 	MAPITEM("flower", '*', M_TSPT, 0),
+	MAPITEM("corridor", '#', M_TSPT, 0),
 	MAPITEM("_end_", '\0', M_OPQ, 0)
 };
 

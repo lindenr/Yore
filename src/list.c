@@ -2,13 +2,12 @@
 
 #include "include/all.h"
 #include "include/list.h"
+#include "include/graphics.h"
 
-struct list_iter list_beg = { 0, 0, 0 }, list_end =
+struct list_iter list_beg = {0, 0, 0},
+                 list_end = {0, 0, 0};
 
-{
-0, 0, 0};
-
-extern struct List all_things;
+extern struct List all_things[MAP_HEIGHT*MAP_WIDTH];
 
 void list_free(struct List *list)
 {
