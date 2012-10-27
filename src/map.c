@@ -12,22 +12,19 @@
 #define MAP_MOVEABLE 3
 
 /* remember -- ONLY ONE MONSTER PER SQUARE */
-struct Monster *get_square_monst(uint32_t yloc, uint32_t xloc, int level)
+struct Monster *get_square_monst (uint32_t yloc, uint32_t xloc, int level)
 {
-	ITER_THINGS(i, n)
+	ITER_THING(i, to_buffer(yloc, xloc))
 	{
 		struct Thing *th = i->data;
-		if (th->yloc == yloc && th->xloc == xloc)
-		{
-			if (th->type == THING_MONS)
-				return (((struct Thing *)i->data)->thing);
-		}
+		if (th->type == THING_MONS)
+			return (((struct Thing *)i->data)->thing);
 	}
 	/* no monster */
 	return NULL;
 }
 
-uint32_t get_square_attr(uint32_t yloc, uint32_t xloc, int level)
+uint32_t get_square_attr (uint32_t yloc, uint32_t xloc, int level)
 {
 	uint32_t mvbl = 1;
 
