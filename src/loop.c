@@ -29,17 +29,19 @@ void main_loop()
 	struct Monster *pl_mon = pl->thing, *mon;
 	next_time ();
 	mons_gen (2, -30);
+	
+	struct List mons_so_far = LIST_INIT;
 	ITER_THINGS(i, n)
 	{
 		th = i->data;
-		if (th->type != THING_MONS)
+		if (th->type != THING_MONS || list_contains (&mons_so_far, th))
 			continue;
 
+		push_back (&mons_so_far, th);
 		mon = th->thing;
 		mon->cur_speed += mons[mon->type].speed;
 		while (mon->cur_speed >= 12)
 		{
-			gr_move(pl->yloc, pl->xloc);
 			mon->cur_speed -= 12;
 			/* U.player == PLAYER_LOSTGAME if this happens */
 			if (!mons_take_move(mon))

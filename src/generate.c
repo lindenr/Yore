@@ -113,28 +113,32 @@ void place_room (int i, int *buffer)
 	
 }
 
+#define ADD_MAP(c, i) \
+{\
+struct map_item_struct *mis = malloc (sizeof(struct map_item_struct));\
+memcpy (mis, &(map_items[GETMAPITEMID(c)]), sizeof (struct map_item_struct));\
+new_thing (THING_DGN, i / MAP_WIDTH, i % MAP_WIDTH, mis);\
+}
+
 void generate_map (enum LEVEL_TYPE type)
 {
-	int i, start;
-	int buffer[1680];
-	for (i = 0; i < 1680; ++i)
-		buffer[i] = ' ';
+	int start, end;
 
 	if (type == LEVEL_MINES)
 	{
-		int t = 200;
+		/*int t = 200;
 		
 		start = RN(1520) + 79;
 		get_player()->yloc = start/80;
 		get_player()->xloc = start%80;
 
-		/* clear space at the beginning (for the up-stair) */
+		/ clear space at the beginning (for the up-stair) *
 		buffer[start] = DOT;
 
-		/* clear space for the down-stair */
+		/ clear space for the down-stair *
 		buffer[mons_gen(1, start)] = DOT;
 
-		/* generate some random spaces */
+		/ generate some random spaces *
 		while (t--)
 			buffer[RN(1520) + 79] = DOT;
 
@@ -150,12 +154,12 @@ void generate_map (enum LEVEL_TYPE type)
 				t++;
 		}
 
-		/* Will be a wall if it is at edge of screen, or if it is not a space. */
+		/ Will be a wall if it is at edge of screen, or if it is not a space. *
 		for (i = 0; i < 1680; ++i)
 			if (buffer[i] != DOT || ((i + 1) % 80) <= 1)
 				buffer[i] = 'W';
 
-		/* Add everything to the list. */
+		/ Add everything to the list. *
 		for (i = 0; i < 1680; ++i)
 		{
 			struct map_item_struct *mis =
@@ -163,19 +167,19 @@ void generate_map (enum LEVEL_TYPE type)
 			memcpy(mis, &(map_items[GETMAPITEMID(buffer[i])]),
 				   sizeof(struct map_item_struct));
 			new_thing(THING_DGN, i / 80, i % 80, mis);
-		}
+		}*/
 	}
 	else if (type == LEVEL_NORMAL)
 	{
 		int i;
-		
-		/* TODO up- and down-stairs */
+		start = RN(MAP_TILES)-1;
+		end = mons_gen (1, start);
 
 		/* clear space at the beginning (for the up-stair) */
-		//buffer[start] = DOT;
+		ADD_MAP (DOT, start);
 
 		/* clear space for the down-stair */
-		//buffer[mons_gen(1, start)] = DOT;
+		ADD_MAP (DOT, end);
 		
 		//attempt_room (10, 35, 9, 9, buffer);
 
@@ -186,12 +190,7 @@ void generate_map (enum LEVEL_TYPE type)
 
 		/* Add everything to the list. */
 		for (i = 0; i < MAP_TILES; ++i)
-		{
-			struct map_item_struct *mis = malloc (sizeof(struct map_item_struct));
-			memcpy (mis, &(map_items[GETMAPITEMID(DOT)]),
-				   sizeof (struct map_item_struct));
-			new_thing (THING_DGN, i / MAP_WIDTH, i % MAP_WIDTH, mis);
-		}
+			ADD_MAP (DOT, i);
 	}
 	else if (type == LEVEL_MAZE)
 	{
@@ -222,13 +221,14 @@ bool is_safe_gen (uint32_t yloc, uint32_t xloc)
 char *real_player_name;
 struct Monster *Pl;
 
-/* type: 0 = initialised at start of game, 1 = generated at start of level, 2
-   = randomly throughout level */
+/* type:
+ * 0 : initialised at start of game
+ * 1 : generated at start of level
+ * 2 : randomly throughout level */
 uint32_t mons_gen (int type, int32_t param)
 {
 	int32_t luck, start;
 	uint32_t end;
-	struct map_item_struct *mis, *mise;
 	if (type == 0)
 	{
 		int i;
@@ -247,28 +247,23 @@ uint32_t mons_gen (int type, int32_t param)
 
 		real_player_name = malloc(85);
 		Pl->name = real_player_name;
-		Pl->name[0] = '_';
-		Pl->name[1] = '\0';
+		strcpy (Pl->name, "_");
 		U.player = new_thing(THING_MONS, upsy, upsx, Pl);
 	}
 	else if (type == 1)
 	{
+		/* Up-stair */
 		start = param;
-		upsy = start / MAP_WIDTH;
-		upsx = start % MAP_WIDTH;
-		mis = malloc(sizeof(struct map_item_struct));
-		memcpy (mis, &(map_items[GETMAPITEMID('<')]),
-			    sizeof(struct map_item_struct));
-		new_thing (THING_DGN, upsy, upsx, mis);
+		ADD_MAP('<', start);
+
+		/* Down-stair */
 		do
 			end = RN(1520) + 79;
 		while (end == start);
-		downsy = end / 80;
-		downsx = end % 80;
-		mise = malloc (sizeof(struct map_item_struct));
-		memcpy (mise, &(map_items[GETMAPITEMID('>')]),
-			    sizeof(struct map_item_struct));
-		new_thing (THING_DGN, downsy, downsx, mise);
+		ADD_MAP('>', end);
+
+		/* Move to the up-stair */
+		thing_bmove (get_player(), start);
 		return end;
 	}
 	else if (type == 2)

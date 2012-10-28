@@ -2,7 +2,7 @@
 #define ALL_H_INCLUDED
 
 #include <limits.h>
-#include "debug.h"
+#include "include/debug.h"
 
 /* Player options go here */
 

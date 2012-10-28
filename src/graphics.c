@@ -16,7 +16,7 @@
 
 Uint32 bg_colour;
 
-SDL_Surface *screen = NULL, *tiles = NULL, *bg_glyph = NULL;
+SDL_Surface *screen = NULL, *tiles = NULL;
 glyph gr_map[MAP_HEIGHT*MAP_WIDTH] = {0,};
 
 int curs_yloc = 0, curs_xloc = 0;
@@ -33,6 +33,26 @@ void gr_move (int yloc, int xloc)
 {
 	curs_yloc = yloc;
 	curs_xloc = xloc;
+}
+
+void gr_movecam (int yloc, int xloc)
+{
+	cam_yloc = yloc;
+	cam_xloc = xloc;
+
+	if (cam_yloc <= 0)
+		cam_yloc = 0;
+
+	if (cam_yloc >= MAP_HEIGHT-glnumy)
+		cam_yloc = MAP_HEIGHT-glnumy;
+
+	if (cam_xloc <= 0)
+		cam_xloc = 0;
+
+	if (cam_xloc >= MAP_WIDTH-glnumx)
+		cam_xloc = MAP_WIDTH-glnumx;
+	
+	gr_frefresh ();
 }
 
 void gr_baddch (int buf, glyph gl)
@@ -88,20 +108,20 @@ void gr_mvprintc(int y, int x, const char *str, ...)
 	va_end(args);
 }
 
-void blit_glyph (glyph gl, int yloc, int xloc)
+inline void blit_glyph (glyph gl, int yloc, int xloc)
 {
 	char ch = (char)gl;
 	SDL_Rect srcrect = {GLW*(ch&15), GLH*((ch>>4)&15), GLW, GLH};
 	SDL_Rect dstrect = {GLW*xloc, GLH*yloc, GLW, GLH};
 
-	SDL_BlitSurface (bg_glyph, NULL, screen, &dstrect);
+	SDL_FillRect (screen, &dstrect, bg_colour);
 	SDL_BlitSurface (tiles, &srcrect, screen, &dstrect);
 }
 
 void gr_refresh ()
 {
 	int x, y, i, changed_total, cur_rect;
-	SDL_Rect *rects = NULL;
+	SDL_Rect rects[100];
 
 	for (i = 0, changed_total = 0; i < MAP_TILES; ++ i)
 	{
@@ -109,8 +129,6 @@ void gr_refresh ()
 	}
 
 	if (!changed_total) return; /* Nothing to do. */
-	if (changed_total < 100)
-		rects = malloc (changed_total * sizeof (*rects));
 
 	cur_rect = 0;
 
@@ -122,7 +140,7 @@ void gr_refresh ()
 			if (change[to_buffer(gly, glx)])
 			{
 				blit_glyph (gr_map[to_buffer(gly, glx)], y, x);
-				if (rects)
+				if (changed_total < 100)
 				{
 					rects[cur_rect].x = GLW*glx;
 					rects[cur_rect].y = GLH*gly;
@@ -135,10 +153,26 @@ void gr_refresh ()
 		}
 	}
 
-	if (rects)
+	if (changed_total < 100)
 		SDL_UpdateRects (screen, changed_total, rects);
 	else
 		SDL_UpdateRect (screen, 0, 0, 0, 0);
+}
+
+void gr_frefresh ()
+{
+	int x, y;
+
+	for (x = 0; x < glnumx; ++ x)
+	{
+		for (y = 0; y < glnumy; ++ y)
+		{
+			int gly = y + cam_yloc, glx = x + cam_xloc;
+			blit_glyph (gr_map[to_buffer(gly, glx)], y, x);
+			change[to_buffer(gly, glx)] = 0;
+		}
+	}
+	SDL_UpdateRect (screen, 0, 0, 0, 0);
 }
 
 void gr_clear ()
@@ -162,6 +196,17 @@ char gr_getch ()
 		{
 			case SDL_KEYDOWN:
 			{
+				if (!echoing)
+				{
+					if (event.key.keysym.sym == SDLK_UP)
+						return GRK_UP;
+					if (event.key.keysym.sym == SDLK_DOWN)
+						return GRK_DN;
+					if (event.key.keysym.sym == SDLK_LEFT)
+						return GRK_LF;
+					if (event.key.keysym.sym == SDLK_RIGHT)
+						return GRK_RT;
+				}
 				if (event.key.keysym.unicode == 0)
 					break;
 				if (echoing)
@@ -187,14 +232,9 @@ char gr_getch ()
 				break;
 		}
 	}
-	return 23;
+	panic ("gr_getch()");
+	return 0;
 }
-
-#define CH_BS  0x08
-#define CH_TAB 0x09
-#define CH_LF  0x0A
-#define CH_CR  0x0D
-#define CH_ESC 0x1B
 
 void gr_getstr (char *out)
 {
@@ -216,23 +256,26 @@ void gr_getstr (char *out)
 		if (in == CH_LF || in == CH_CR) break;
 		if (in == CH_BS)
 		{
+			if (curs_xloc == 0)
+			{
+				curs_xloc = MAP_WIDTH-1;
+				-- curs_yloc;
+			}
+			else
+				-- curs_xloc;
+			if (i)
+			{
+				if (curs_xloc == 0)
+				{
+					curs_xloc = MAP_WIDTH-1;
+					-- curs_yloc;
+				}
+				else
+					-- curs_xloc;
+			}
 			if (i)
 				-- i;
 			out[i] = 0;
-			if (curs_xloc == 0)
-			{
-				curs_xloc = MAP_WIDTH-1;
-				-- curs_yloc;
-			}
-			else
-				-- curs_xloc;
-			if (curs_xloc == 0)
-			{
-				curs_xloc = MAP_WIDTH-1;
-				-- curs_yloc;
-			}
-			else
-				-- curs_xloc;
 			gr_addch(' ');
 			gr_refresh();
 			continue;
@@ -295,11 +338,10 @@ void gr_init ()
 	
 	glnumy = screen->h / GLH;
 	glnumx = screen->w / GLW;
+
+	/* Finish housekeeping */
 	SDL_EnableUNICODE (1);
-	
-	bg_glyph = SDL_CreateRGBSurface (SDL_SWSURFACE, GLW, GLH, 32, rmask, gmask, bmask, amask);
-	bg_colour = SDL_MapRGB (bg_glyph->format, 0, 0, 0);
-	SDL_FillRect (bg_glyph, NULL, bg_colour);
+	SDL_EnableKeyRepeat (80, 50);
 }
 
 #ifdef __WIN32__

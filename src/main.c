@@ -145,6 +145,8 @@ int main (int argc, char *argv[])
 	gr_clear();
 	pline_check();
 
+	gr_movecam (get_player()->yloc - (glnumy/2), get_player()->xloc - (glnumx/2));
+
 	//if (argc > 1) restore("Yore-savegame.sav");
 
 	do

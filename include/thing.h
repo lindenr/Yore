@@ -45,6 +45,7 @@ struct Thing *get_thing(void *);
 struct list_iter *get_iter(void *);
 void thing_free(struct Thing *);
 void thing_move(struct Thing *, int, int);
+void thing_bmove (struct Thing *, int);
 
 extern struct List all_things[];
 extern uint8_t sq_seen[MAP_TILES];

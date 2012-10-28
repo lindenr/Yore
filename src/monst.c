@@ -346,208 +346,214 @@ int mons_take_move (struct Monster *self)
 		return true;
 	struct Thing *th = get_thing(self);
 	bool screenshotted = false;
-	if (IS_PLAYER(self))
-	{
-		while (1)
-		{
-			if (mons_eating(self))
-				return true;
-			gr_refresh ();
-			gr_move (th->yloc + 1, th->xloc);
-			//if (screenshotted)
-			//{
-			//	screenshotted = false;
-			//	unscreenshot();
-			//}
-			in = gr_getch();
-			//if (pline_check())
-			//	line_reset();
-			if (in == 'Q')
-			{
-				if (!quit())
-				{
-					U.playing = PLAYER_LOSTGAME;
-					return false;
-				}
-				continue;
-			}
-			if (in == 'S')
-			{
-				if (!save(get_filename()))
-				{
-					U.playing = PLAYER_SAVEGAME;
-					return false;
-				}
-				continue;
-			}
-
-			bool mv = mons_take_input(th, in);
-			if (mv != -1)
-			{
-				if (U.playing == PLAYER_WONGAME)
-					return 0;
-				if (mv)
-					break;
-			}
-			else if (in == '.')
-				break;
-			else if (in == CONTROL_('Q') && U.magic == true)
-			{
-				pline("Press <m> to re-enter magic mode.");
-				U.magic = false;
-			}
-			else if (U.magic)
-			{
-				if (player_magic(in))
-					break;
-			}
-			else if (in == ',')
-			{
-				screenshot();
-				screenshotted = true;
-				struct List Li = LIST_INIT;
-				struct Thing *t_;
-				ITER_THINGS(li, num)
-				{
-					t_ = li->data;
-					if (t_->type != THING_ITEM)
-						continue;
-					if (t_->xloc == th->xloc && t_->yloc == th->yloc)
-					{
-						push_back(&Li, t_);
-					}
-				}
-				if (Li.beg == Li.end)	/* One element in list - pick up
-										   immediately. */
-				{
-					pack_add(&self->pack,
-							 ((struct Thing *)(Li.beg->data))->thing);
-					rem_by_data(((struct Thing *)(Li.beg->data))->thing);
-					free(Li.beg);
-				}
-				else			/* Multiple items - ask which to pick up. */
-				{
-					screenshotted = true;
-					struct List ret_list = LIST_INIT;
-
-					/* Ask which */
-					mask_list(&ret_list, Li);
-
-					/* Empty Li */
-					for (li = Li.beg; iter_good(li); next_iter(&li))
-					{
-						if (li != Li.beg)
-							free(li->prev);
-					}
-					free(li->prev);
-
-					/* Put items in ret_list into inventory. The loop
-					   continues until ret_list is done or the pack is full. */
-					for (li = ret_list.beg;
-						 iter_good(li)
-						 && pack_add(&self->pack,
-									 ((struct Thing *)li->data)->thing);
-						 next_iter(&li))
-					{
-						/* Remove selected items from main play */
-						rem_by_data(((struct Thing *)li->data)->thing);
-					}
-				}
-			}
-			else if (in == CONTROL_('P'))
-			{
-				pline_get_his();
-			}
-			else if (in == 'm')
-			{
-				pline("Press Ctrl+Q to leave magic mode.");
-				U.magic = true;
-			}
-			else if (in == 'e')
-			{
-				struct Item *It =
-					player_use_pack(th, "Eat what?", &screenshotted,
-									ITCAT_FOOD);
-				if (It == NULL)
-					continue;
-				mons_eat(self, It);
-			}
-			else if (in == 'd')
-			{
-				struct Item *It =
-					player_use_pack(th, "Drop what?", &screenshotted, -1);
-				if (It == NULL)
-					continue;
-				unsigned u = PACK_AT(get_Itref(self->pack, It));
-				self->pack.items[u] = NULL;
-				new_thing(THING_ITEM, th->yloc, th->xloc, It);
-			}
-			else if (in == '>')
-				thing_move_level(th, 0);
-			else if (in == '<')
-				thing_move_level(th, -1);
-			else if (in == 'i')
-			{
-				screenshotted = true;
-				show_contents(self->pack, ITCAT_ALL);
-				continue;
-			}
-			else if (in == ':')
-			{
-				screenshot();
-				screenshotted = true;
-				int k = 0;
-				ITER_THINGS(n, num)
-				{
-					struct Thing *t_ = n->data;
-					if (t_->type != THING_ITEM)
-						continue;
-					if (t_->xloc == th->xloc && t_->yloc == th->yloc)
-					{
-						char *line =
-							get_inv_line(((struct Thing *)(n->data))->thing);
-						pline("You%s see here %s. ", ((k++) ? " also" : ""),
-							  line);
-						free(line);
-					}
-				}
-				if (k == 0)
-					pline("You see nothing here. ");
-			}
-			else if (in == 'w')
-			{
-			  retry:
-				line_reset();
-				pline("Wield what?");
-				in = gr_getch();
-				if (in == ' ')
-				{
-					line_reset();
-					pline("Never mind.");
-					continue;
-				}
-				struct Item *it = get_Itemc(self->pack, in);
-				if (it == NULL)
-				{
-					pline("No such item.");
-					goto retry;
-				}
-				if (mons_unwield(self))
-					mons_wield(self, it);
-			}
-			else
-			{
-				screenshot();
-				screenshotted = true;
-				pline("Unknown command '%s%c'. ",
-					  (escape(in) == in ? "" : "^"), escape(in));
-			}
-		}
-	}
-	else
+	if (!IS_PLAYER(self))
 	{
 		struct Thing *pl = get_player();
 		AI_Attack(th->yloc, th->xloc, pl->yloc, pl->xloc, self);
+		return true;
+	}
+	while (1)
+	{
+		if (mons_eating(self))
+			return true;
+		gr_refresh ();
+		gr_move (th->yloc + 1, th->xloc);
+		//if (screenshotted)
+		//{
+		//	screenshotted = false;
+		//	unscreenshot();
+		//}
+		in = gr_getch();
+		//if (pline_check())
+		//	line_reset();
+		if (in == 'Q')
+		{
+			if (!quit())
+			{
+				U.playing = PLAYER_LOSTGAME;
+				return false;
+			}
+			continue;
+		}
+		if (in == 'S')
+		{
+			if (!save(get_filename()))
+			{
+				U.playing = PLAYER_SAVEGAME;
+				return false;
+			}
+			continue;
+		}
+
+		bool mv = mons_take_input(th, in);
+		if (mv != -1)
+		{
+			if (U.playing == PLAYER_WONGAME)
+				return 0;
+			if (mv)
+				break;
+		}
+		else if (in == GRK_UP)
+			gr_movecam (cam_yloc - 10, cam_xloc);
+		else if (in == GRK_DN)
+			gr_movecam (cam_yloc + 10, cam_xloc);
+		else if (in == GRK_LF)
+			gr_movecam (cam_yloc, cam_xloc - 10);
+		else if (in == GRK_RT)
+			gr_movecam (cam_yloc, cam_xloc + 10);
+		else if (in == '.')
+			break;
+		else if (in == CONTROL_('Q') && U.magic == true)
+		{
+			pline("Press <m> to re-enter magic mode.");
+			U.magic = false;
+		}
+		else if (U.magic)
+		{
+			if (player_magic(in))
+				break;
+		}
+		else if (in == ',')
+		{
+			screenshot();
+			screenshotted = true;
+			struct List Li = LIST_INIT;
+			struct Thing *t_;
+			ITER_THINGS(li, num)
+			{
+				t_ = li->data;
+				if (t_->type != THING_ITEM)
+					continue;
+				if (t_->xloc == th->xloc && t_->yloc == th->yloc)
+				{
+					push_back(&Li, t_);
+				}
+			}
+			if (Li.beg == Li.end)	/* One element in list - pick up
+									   immediately. */
+			{
+				pack_add(&self->pack,
+						 ((struct Thing *)(Li.beg->data))->thing);
+				rem_by_data(((struct Thing *)(Li.beg->data))->thing);
+				free(Li.beg);
+			}
+			else			/* Multiple items - ask which to pick up. */
+			{
+				screenshotted = true;
+				struct List ret_list = LIST_INIT;
+
+				/* Ask which */
+				mask_list(&ret_list, Li);
+
+				/* Empty Li */
+				for (li = Li.beg; iter_good(li); next_iter(&li))
+				{
+					if (li != Li.beg)
+						free(li->prev);
+				}
+				free(li->prev);
+
+				/* Put items in ret_list into inventory. The loop
+				   continues until ret_list is done or the pack is full. */
+				for (li = ret_list.beg;
+					 iter_good(li)
+					 && pack_add(&self->pack,
+								 ((struct Thing *)li->data)->thing);
+					 next_iter(&li))
+				{
+					/* Remove selected items from main play */
+					rem_by_data(((struct Thing *)li->data)->thing);
+				}
+			}
+		}
+		else if (in == CONTROL_('P'))
+		{
+			pline_get_his();
+		}
+		else if (in == 'm')
+		{
+			pline("Press Ctrl+Q to leave magic mode.");
+			U.magic = true;
+		}
+		else if (in == 'e')
+		{
+			struct Item *It =
+				player_use_pack(th, "Eat what?", &screenshotted,
+								ITCAT_FOOD);
+			if (It == NULL)
+				continue;
+			mons_eat(self, It);
+		}
+		else if (in == 'd')
+		{
+			struct Item *It =
+				player_use_pack(th, "Drop what?", &screenshotted, -1);
+			if (It == NULL)
+				continue;
+			unsigned u = PACK_AT(get_Itref(self->pack, It));
+			self->pack.items[u] = NULL;
+			new_thing(THING_ITEM, th->yloc, th->xloc, It);
+		}
+		else if (in == '>')
+			thing_move_level(th, 0);
+		else if (in == '<')
+			thing_move_level(th, -1);
+		else if (in == 'i')
+		{
+			screenshotted = true;
+			show_contents(self->pack, ITCAT_ALL);
+			continue;
+		}
+		else if (in == ':')
+		{
+			screenshot();
+			screenshotted = true;
+			int k = 0;
+			ITER_THINGS(n, num)
+			{
+				struct Thing *t_ = n->data;
+				if (t_->type != THING_ITEM)
+					continue;
+				if (t_->xloc == th->xloc && t_->yloc == th->yloc)
+				{
+					char *line =
+						get_inv_line(((struct Thing *)(n->data))->thing);
+					pline("You%s see here %s. ", ((k++) ? " also" : ""),
+						  line);
+					free(line);
+				}
+			}
+			if (k == 0)
+				pline("You see nothing here. ");
+		}
+		else if (in == 'w')
+		{
+		  retry:
+			line_reset();
+			pline("Wield what?");
+			in = gr_getch();
+			if (in == ' ')
+			{
+				line_reset();
+				pline("Never mind.");
+				continue;
+			}
+			struct Item *it = get_Itemc(self->pack, in);
+			if (it == NULL)
+			{
+				pline("No such item.");
+				goto retry;
+			}
+			if (mons_unwield(self))
+				mons_wield(self, it);
+		}
+		else
+		{
+			screenshot();
+			screenshotted = true;
+			pline("Unknown command '%s%c'. ",
+				  (escape(in) == in ? "" : "^"), escape(in));
+		}
 	}
 	return true;
 }

@@ -193,6 +193,11 @@ inline void set_can_see(uint32_t * unseen)
 	}
 }
 
+void thing_bmove (struct Thing *thing, int num)
+{
+	thing_move (thing, num/MAP_WIDTH, num%MAP_WIDTH);
+}
+
 void thing_move (struct Thing *thing, int new_y, int new_x)
 {
 	int num = to_buffer(thing->yloc, thing->xloc);

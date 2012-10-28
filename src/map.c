@@ -28,24 +28,22 @@ uint32_t get_square_attr (uint32_t yloc, uint32_t xloc, int level)
 {
 	uint32_t mvbl = 1;
 
-	if (yloc > 20 || xloc > 79)
+	if (yloc >= MAP_HEIGHT || xloc >= MAP_WIDTH)
 		return -1;
-	ITER_THINGS(i, n)
+
+	ITER_THING(i, to_buffer(yloc, xloc))
 	{
 		struct Thing *th = i->data;
-		if (th->yloc == yloc && th->xloc == xloc)
+		if (th->type == THING_MONS)
 		{
-			if (th->type == THING_MONS)
+			mvbl = 2;		/* attack */
+			break;
+		}
+		if (th->type == THING_DGN)
+		{
+			if ((((struct map_item_struct *)(th->thing))->attr & 1) == 0)
 			{
-				mvbl = 2;		/* attack */
-				break;
-			}
-			if (th->type == THING_DGN)
-			{
-				if ((((struct map_item_struct *)(th->thing))->attr & 1) == 0)
-				{
-					mvbl = 0;	/* unmoveable */
-				}
+				mvbl = 0;	/* unmoveable */
 			}
 		}
 	}

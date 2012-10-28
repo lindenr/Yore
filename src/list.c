@@ -9,7 +9,7 @@ struct list_iter list_beg = {0, 0, 0},
 
 extern struct List all_things[MAP_HEIGHT*MAP_WIDTH];
 
-void list_free(struct List *list)
+void list_free (struct List *list)
 {
 	struct list_iter *i;
 	for (i = list->beg; iter_good(i); next_iter(&i))
@@ -21,7 +21,7 @@ void list_free(struct List *list)
 		free(i->prev);
 }
 
-struct list_iter *next_iter(struct list_iter **li)
+struct list_iter *next_iter (struct list_iter **li)
 {
 	if (!is_valid(*li))
 	{
@@ -33,13 +33,13 @@ struct list_iter *next_iter(struct list_iter **li)
 	return (*li);
 }
 
-bool iter_equal(struct list_iter li1, struct list_iter li2)
+bool iter_equal (struct list_iter li1, struct list_iter li2)
 {
 	return ((li1.data == li2.data) &&
 			(li1.prev == li2.prev) && (li1.next == li2.next));
 }
 
-void push_back(struct List *list, void *data)
+void push_back (struct List *list, void *data)
 {
 	struct list_iter *li = malloc(sizeof(struct list_iter));
 	if (!is_valid(list->end))	/* no list */
@@ -57,7 +57,7 @@ void push_back(struct List *list, void *data)
 	li->next = &list_end;
 }
 
-void list_rem(struct List *list, struct list_iter *li)
+void list_rem (struct List *list, struct list_iter *li)
 {
 	struct list_iter *prev = li->prev, *next = li->next;
 	if ((!is_valid(next)) && is_valid(prev))
@@ -85,12 +85,22 @@ void list_rem(struct List *list, struct list_iter *li)
 	li->data = 0;
 }
 
-bool is_valid(struct list_iter *li)
+bool list_contains (struct List *list, void *data)
+{
+	struct list_iter *it;
+	for (it = list->beg; iter_good (it); next_iter (&it))
+	{
+		if (it->data == data) return true;
+	}
+	return false;
+}
+
+bool is_valid (struct list_iter *li)
 {
 	return !(li->next == 0 && li->prev == 0 && li->data == 0);
 }
 
-bool iter_good(struct list_iter * li)
+bool iter_good (struct list_iter * li)
 {
 	if (!li)
 		return false;

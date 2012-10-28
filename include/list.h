@@ -21,13 +21,14 @@ struct List
 
 struct list_iter list_beg, list_end;
 
-void list_free(struct List *);
+void list_free     (struct List *);
 struct list_iter *next_iter(struct list_iter **);
-void push_back(struct List *, void *);
-void list_rem(struct List *, struct list_iter *);
-bool is_valid(struct list_iter *);
-bool iter_equal(struct list_iter, struct list_iter);
-bool iter_good(struct list_iter *);
-void list_free(struct List *);
+void push_back     (struct List *, void *);
+void list_rem      (struct List *, struct list_iter *);
+bool is_valid      (struct list_iter *);
+bool iter_equal    (struct list_iter, struct list_iter);
+bool iter_good     (struct list_iter *);
+void list_free     (struct List *);
+bool list_contains (struct List *, void *);
 
 #endif /* LIST_H_INCLUDED */
