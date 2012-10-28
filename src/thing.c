@@ -42,7 +42,8 @@ uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k,
 {
 	int H = (h == DOT || h == ' '),
 		J = (j == DOT || j == ' '),
-		K = (k == DOT || k == ' '), L = (l == DOT || l == ' ');
+		K = (k == DOT || k == ' '),
+        L = (l == DOT || l == ' ');
 	if (H)
 	{
 		if (K)
@@ -123,7 +124,6 @@ uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k,
 
 inline void set_can_see(uint32_t * unseen)
 {
-	glyph *us = gr_map;
 	int Yloc = get_player()->yloc, Xloc = get_player()->xloc;
 	int Y, X, w;
 
@@ -131,64 +131,64 @@ inline void set_can_see(uint32_t * unseen)
 	bres_start(Yloc, Xloc, sq_seen, sq_attr);
 
 	/* Anything you could see before you can't necessarily now */
-	for (w = 0; w < 1680; ++w)
+	for (w = 0; w < MAP_TILES; ++w)
 		if (sq_seen[w] == 2)
 			sq_seen[w] = 1;
 
 	/* This puts values on the grid -- whether or not we can see (or have
 	   seen) this square */
-	for (Y = 0; Y < 21; ++Y)
-		for (X = 0; X < 80; ++X)
-			//bres_draw(Y, X);
-			sq_seen[80*Y + X] = 2;
+	for (w = 0; w < MAP_TILES; ++w)
+        sq_seen[w] = 2;
+        //bres_draw(Y, X);
 
 	/* Make everything we can't see dark */
-	for (w = 0; w < 1680; ++w)
+	for (w = 0; w < MAP_TILES; ++w)
 		if (!sq_seen[w])
-			us[w] = ' ';
+			gr_baddch(w, ' ');
 
 	/* Do the drawing */
-	for (Y = 0, w = 0; Y < 21; ++Y)
+	for (Y = 0, w = 0; Y < MAP_HEIGHT; ++Y)
 	{
-		for (X = 0; X < 80; ++X, ++w)
+		for (X = 0; X < MAP_WIDTH; ++X, ++w)
 		{
-			uint32_t y = DOT, u = DOT, h = DOT, j = DOT, k = DOT, l = DOT, b =
-				DOT, n = DOT;
+			uint32_t y = DOT, u = DOT,
+            h = DOT, j = DOT, k = DOT, l = DOT,
+                     b = DOT, n = DOT;
 
-			if (sq_seen[w] == 2 && sq_attr[w] == 0 && us[w] != ' ')
-				us[w] |= COL_TXT_BRIGHT;	/* Brighten what you can see iff it's a wall. */
+			//if (sq_seen[w] == 2 && sq_attr[w] == 0 && us[w] != ' ')
+			//	us[w] |= COL_TXT_BRIGHT;	/* Brighten what you can see iff it's a wall. */
 
+            /* Replace something unseeable with what's behind it. */
 			if (sq_seen[w] == 1 && sq_attr[w] == 2)
-				us[w] = unseen[w];	/* Replace something unseeable with what's 
-									   behind it. */
+				gr_baddch (w, unseen[w]);
 
-			if (sq_attr[w] != 0 || us[w] == ' ')
+			if (sq_attr[w] != 0 || (gr_map[w] & 0xFF) == ' ')
 				continue;		/* Only keep going if it is a wall. */
 
 			/* Again, not especially neat, but I don't think there is much I
-			   can do */
+			 * can do */
 			if (X)
 				h = US(w - 1);
 			if (Y)
-				k = US(w - 80);
-			if (X < 79)
+				k = US(w - MAP_WIDTH);
+			if (X < MAP_WIDTH - 1)
 				l = US(w + 1);
-			if (Y < 20)
-				j = US(w + 80);
+			if (Y < MAP_HEIGHT - 1)
+				j = US(w + MAP_WIDTH);
 			if (X && Y)
-				y = US(w - 81);
-			if (X < 79 && Y)
-				u = US(w - 79);
-			if (X && Y < 20)
-				b = US(w + 79);
-			if (X < 79 && Y < 20)
-				n = US(w + 81);
+				y = US(w - MAP_WIDTH - 1);
+			if (X < MAP_WIDTH - 1 && Y)
+				u = US(w - MAP_WIDTH + 1);
+			if (X && Y < MAP_HEIGHT - 1)
+				b = US(w + MAP_WIDTH - 1);
+			if (X < MAP_WIDTH - 1 && Y < MAP_HEIGHT - 1)
+				n = US(w + MAP_WIDTH + 1);
 
 			/* Finally, do the actual drawing of the wall. */
-			if (us[w] & COL_TXT_BRIGHT)
-				us[w] = WALL_TYPE(y, u, h, j, k, l, b, n) | COL_TXT_BRIGHT;
+			if (gr_map[w] & COL_TXT_BRIGHT)
+				gr_baddch (w, WALL_TYPE(y, u, h, j, k, l, b, n) | COL_TXT_BRIGHT);
 			else
-				us[w] = WALL_TYPE(y, u, h, j, k, l, b, n);
+				gr_baddch (w, WALL_TYPE(y, u, h, j, k, l, b, n));
 		}
 	}
 }
@@ -337,7 +337,7 @@ void visualise_map()
 			type[at] = th.type;
 		}
 	}
-	//set_can_see(sq_unseen);
+	set_can_see(sq_unseen);
 	gr_refresh();
 }
 

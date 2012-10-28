@@ -325,7 +325,7 @@ void gr_init ()
 	
 	atexit (SDL_Quit);
 	
-	screen = SDL_SetVideoMode (800, 600, 32, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode (640, 480, 32, SDL_SWSURFACE);
 	if (screen == NULL)
 	{
 		fprintf (stderr, "Error initialising video mode: %s\n", SDL_GetError ());
@@ -346,7 +346,7 @@ void gr_init ()
 
 	/* Finish housekeeping */
 	SDL_EnableUNICODE (1);
-	SDL_EnableKeyRepeat (80, 50);
+	SDL_EnableKeyRepeat (200, 30);
 }
 
 #ifdef __WIN32__

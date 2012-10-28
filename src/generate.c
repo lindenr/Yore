@@ -8,11 +8,12 @@
 #include "include/map.h"
 #include "include/graphics.h"
 
+#include <stdio.h>
 #include <assert.h>
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 
-#define DIR_UP (-80)
-#define DIR_DN (80)
+#define DIR_UP (-MAP_WIDTH)
+#define DIR_DN (MAP_WIDTH)
 #define DIR_LF (-1)
 #define DIR_RT (1)
 
@@ -20,10 +21,10 @@
 int is_in_buf (int i, int dir)
 {
 	int I = i+dir;
-	int x = (i%80);
-	int X = (I%80);
+	int x = (i%MAP_WIDTH);
+	int X = (I%MAP_WIDTH);
 
-	if (I < 0 || I >= 1680) return 0;
+	if (I < 0 || I >= MAP_TILES) return 0;
 	return ((X-x)*(X-x) <= 1);
 }
 
@@ -47,77 +48,100 @@ void get_downstair (uint32_t * yloc, uint32_t * xloc)
 	*xloc = downsx;
 }
 
-void attempt_room (int y, int x, int ys, int xs, int *buffer)
-{
-	int i, j, k;
-
-	k = xs;
-	while (k)
-	{
-		-- k;
-		j = ys;
-		while (j)
-		{
-			-- j;
-			i = 80*(y+j) + (x+k);
-			if (buffer[i] != ' ') return;
-		}
-	}
-
-	y  += 2; x  += 2;
-	ys -= 4; xs -= 4;
-	k = xs;
-	while (k)
-	{
-		-- k;
-		int j = ys;
-		while (j)
-		{
-			-- j;
-			i = 80*(y+j) + (x+k);
-			if (buffer[i] == ' ')
-				buffer[i] = DOT;
-			else
-				buffer[i] = ' ';
-		}
-	}
-}
-
-int get_wall (int *buffer)
-{
-	int i;
-
-  retry:
-	do
-		i = RN(1680)-1;
-	while (buffer[i] != ' ');
-
-	if (GETB(i, DIR_UP) == DOT || GETB(i, DIR_DN) == DOT ||
-	    GETB(i, DIR_LF) == DOT || GETB(i, DIR_RT) == DOT)
-		return i;
-
-	goto retry;
-}
-
-int get_room_dir (int i, int *buffer)
-{
-	if (GETB(i, DIR_UP) == DOT) return DIR_UP;
-	if (GETB(i, DIR_DN) == DOT) return DIR_DN;
-	if (GETB(i, DIR_LF) == DOT) return DIR_LF;
-	if (GETB(i, DIR_RT) == DOT) return DIR_RT;
-	return 0;
-}
-
-void place_room (int i, int *buffer)
-{
-	
-}
-
-#define ADD_MAP(c, i) \
-{\
+#define ADD_MAP(c, i) {\
 struct map_item_struct *mis = malloc (sizeof(struct map_item_struct));\
 memcpy (mis, &(map_items[GETMAPITEMID(c)]), sizeof (struct map_item_struct));\
 new_thing (THING_DGN, i / MAP_WIDTH, i % MAP_WIDTH, mis);\
+}
+
+bool check_area (int y, int x, int ys, int xs)
+{
+	int i, j, k;
+    if (y < 0 || y + ys >= MAP_HEIGHT ||
+        x < 0 || x + xs >= MAP_WIDTH)
+        return false;
+
+	k = xs;
+	while (k)
+	{
+		j = ys;
+		while (j)
+		{
+			i = to_buffer (y+j, x+k);
+			if (!list_isempty (all_things[i])) return false;
+			-- j;
+		}
+		-- k;
+	}
+    return true;
+}
+
+int total_rooms = 0;
+bool attempt_room (int y, int x, int ys, int xs)
+{
+    int i, j, k;
+    if (!check_area (y-2, x-2, ys+4, xs+4)) return false;
+
+	k = xs;
+	while (k)
+	{
+		j = ys;
+		while (j)
+		{
+			i = to_buffer (y+j, x+k);
+            ADD_MAP (DOT, i);
+			-- j;
+		}
+		-- k;
+	}
+    ++ total_rooms;
+    return true;
+}
+
+void add_another_room ()
+{
+    int i;
+
+    do
+        i = RN(MAP_TILES);
+    while (list_isempty (all_things[i]));
+
+    if (list_isempty (all_things[i+1]))
+    {
+        int x = (i+1)%MAP_WIDTH, y = (i+1)/MAP_WIDTH;
+        if (attempt_room (y - 2 - RN(3), x + 1, 6 + RN(3), 6))
+        {
+            //ADD_MAP(DOT, i+1);
+            //ADD_MAP(DOT, i+2);
+        }
+    }
+    else if (list_isempty (all_things[i-1]))
+    {
+        int x = (i-1)%MAP_WIDTH, y = (i-1)/MAP_WIDTH;
+        if (attempt_room (y - 2 - RN(3), x - 8, 6 + RN(3), 6))
+        {
+            //ADD_MAP(DOT, i-1);
+            //ADD_MAP(DOT, i-2);
+        }
+    }
+    else if (list_isempty (all_things[i-MAP_WIDTH]))
+    {
+        int x = (i-MAP_WIDTH)%MAP_WIDTH, y = (i-MAP_WIDTH)/MAP_WIDTH;
+        if (attempt_room (y - 8, x - 3 - RN(5), 6, 8 + RN(5)))
+        {
+            //ADD_MAP(DOT, i-MAP_WIDTH);
+            //ADD_MAP(DOT, i-MAP_WIDTH*2);
+        }
+    }
+    else if (list_isempty (all_things[i+MAP_WIDTH]))
+    {
+        int x = (i+MAP_WIDTH)%MAP_WIDTH, y = (i+MAP_WIDTH)/MAP_WIDTH;
+        if (attempt_room (y + 1, x - 3 - RN(5), 6, 8 + RN(5)))
+        {
+            //ADD_MAP(DOT, i+MAP_WIDTH);
+            //ADD_MAP(DOT, i+MAP_WIDTH*2);
+        }
+    }
 }
 
 void generate_map (enum LEVEL_TYPE type)
@@ -172,7 +196,13 @@ void generate_map (enum LEVEL_TYPE type)
 	else if (type == LEVEL_NORMAL)
 	{
 		int i;
-		start = RN(MAP_TILES)-1;
+
+        total_rooms = 0;
+		attempt_room (MAP_HEIGHT/2 - 2 - RN(3), MAP_WIDTH/2 - 3 - RN(5), 15, 20);
+        do add_another_room ();
+        while (total_rooms < 50);
+
+        start = to_buffer (MAP_HEIGHT/2, MAP_WIDTH/2);
 		end = mons_gen (1, start);
 
 		/* clear space at the beginning (for the up-stair) */
@@ -180,17 +210,11 @@ void generate_map (enum LEVEL_TYPE type)
 
 		/* clear space for the down-stair */
 		ADD_MAP (DOT, end);
-		
-		//attempt_room (10, 35, 9, 9, buffer);
 
-		//i = get_wall (buffer);
-		//buffer[i] = DOT;
-		//i -= get_room_dir (i, buffer);
-		//place_room (i, buffer);
-
-		/* Add everything to the list. */
+		/* fill the rest up with walls */
 		for (i = 0; i < MAP_TILES; ++i)
-			ADD_MAP (DOT, i);
+			if (list_isempty (all_things[i]))
+                ADD_MAP ('W', i);
 	}
 	else if (type == LEVEL_MAZE)
 	{
@@ -258,7 +282,7 @@ uint32_t mons_gen (int type, int32_t param)
 
 		/* Down-stair */
 		do
-			end = RN(1520) + 79;
+			end = RN(MAP_TILES);
 		while (end == start);
 		ADD_MAP('>', end);
 
@@ -279,7 +303,7 @@ uint32_t mons_gen (int type, int32_t param)
 		p->HP += RN(p->HP / 3);
 		p->HP_max = p->HP;
 		p->name = NULL;
-		uint32_t xloc = RN(75), yloc = RN(15);
+		uint32_t xloc = RN(MAP_WIDTH), yloc = RN(MAP_HEIGHT);
 		if (is_safe_gen(yloc, xloc))
 			new_thing(THING_MONS, yloc, xloc, p);
 		else

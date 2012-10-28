@@ -25,7 +25,7 @@ uint32_t even_prob(struct RNGStruct * r, uint32_t n)
 {
 	int i;
 	if (!n)
-		return 0;				/* there is a modulo n, so this to stop a
+		return -1;				/* there is a modulo n, so this to stop a
 								   floating point exception */
 	uint32_t *current = r->current;
 	for (i = 9; i > 0; --i)
@@ -33,7 +33,7 @@ uint32_t even_prob(struct RNGStruct * r, uint32_t n)
 	current[0] ^= (current[7] + current[2]) ^ current[8] ^ r->seed;
 	r->seed ^= current[9];
 	return ((r->seed = SuperFastHash((const char *)(current),
-									 sizeof(uint32_t) * 10)) % n) + 1;
+									 sizeof(uint32_t) * 10)) % n);
 }
 
 uint32_t RNG_get_seed()

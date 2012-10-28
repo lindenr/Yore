@@ -277,10 +277,10 @@ void thing_move_level(struct Thing *th, int32_t where)
 	if (where == 0)				/* Uncontrolled teleport within level */
 	{
 		do
-			wh = RN(1680);
-		while (!is_safe_gen(wh / 80, wh % 80));
-		th->yloc = wh / 80;
-		th->xloc = wh % 80;
+			wh = RN(MAP_TILES);
+		while (!is_safe_gen(wh / MAP_WIDTH, wh % MAP_WIDTH));
+		th->yloc = wh / MAP_WIDTH;
+		th->xloc = wh % MAP_WIDTH;
 	}
 	else if (where == 1)		/* go up stairs */
 	{
@@ -756,8 +756,9 @@ inline void apply_attack(struct Monster *from, struct Monster *to)
 					strength = RN(mons_get_st(from)) >> 1;
 					to->HP -=
 						RND(mons[from->type].attacks[t][0],
-							mons[from->type].attacks[t][1]) + strength +
-						RN(3 * from->level);
+							mons[from->type].attacks[t][1]) +
+                        strength +
+					    RN(3 * from->level);
 				}
 				else
 				{
@@ -850,7 +851,7 @@ int AI_Attack (int fromy, int fromx, int toy, int tox, struct Monster *monst)
 	bres_start(fromy, fromx, NULL, get_sq_attr());
 	if (!bres_draw(toy, tox))
 	{
-		mons_move(monst, RN(3) - 2, RN(3) - 2);
+		mons_move(monst, RN(3) - 1, RN(3) - 1);
 		return 1;
 	}
 	if (fromy < toy)

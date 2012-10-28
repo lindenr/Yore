@@ -5,6 +5,7 @@
 #include <malloc.h>
 
 #define LIST_INIT {&list_beg,&list_end}
+#define list_isempty(l) (!iter_good((l).beg))
 
 struct list_iter
 {
