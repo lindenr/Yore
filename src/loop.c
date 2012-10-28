@@ -28,7 +28,7 @@ void main_loop()
 	struct Thing *pl = get_player(), *th;
 	struct Monster *pl_mon = pl->thing, *mon;
 	next_time ();
-	mons_gen (2, -30);
+	mons_gen (2, U.luck);
 	
 	struct List mons_so_far = LIST_INIT;
 	ITER_THINGS(i, n)

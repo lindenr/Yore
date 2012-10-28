@@ -62,6 +62,7 @@ void setup_U()
 
 	U.playing = PLAYER_ERROR;	/* If this function returns prematurely */
 	U.hunger = 100;
+	U.luck = 0;
 
 	for (i = 0; i < 6; ++i)
 		U.attr[i] = 10;

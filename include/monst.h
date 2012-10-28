@@ -18,8 +18,7 @@ int MTYP_HUMAN, MTYP_SATAN;
 
 struct WoW						/* Wielded or Worn */
 {
-	struct Item *head, *torso, *legs, *feet, *hands, *arms, *rfin, *lfin;	/* armour 
-																			 */
+	struct Item *head, *torso, *legs, *feet, *hands, *arms, *rfin, *lfin; /* armour */
 	struct Item *rweap, *lweap;	/* weapon(s) */
 	bool two_weaponing;
 };
@@ -135,23 +134,19 @@ int mons_move(struct Monster *, int, int);	/* move in given directions */
 void mons_dead(struct Monster *, struct Monster *);	/* this monster is dead */
 int mons_take_move(struct Monster *);	/* give a move (AI or player) */
 bool mons_unwield(struct Monster *);	/* unwield what is currently wielded */
-bool mons_wield(struct Monster *, struct Item *);	/* wield an item (any
-													   item) */
+bool mons_wield(struct Monster *, struct Item *);	/* wield an item (any item) */
 void mons_eat(struct Monster *, struct Item *);	/* eat something */
 bool mons_eating(struct Monster *);	/* continue eating something */
 bool mons_can_hear(struct Monster *);	/* has ears? no? */
 struct Item **mons_get_weap(struct Monster *);	/* what weapon is wielded? */
 
 /* player functions */
-uint32_t player_gen_type(void);	/* get a valid monster type for fighting */
-void player_dead(const char *, ...);	/* the player is dead; absolute end of 
-										   game */
-void player_exc(enum ABLTY, uint32_t);	/* exercise a given ablty by a given
-										   amount */
-bool player_magic(char);                /* cast a spell */
-struct item_struct *find_corpse(struct Monster *);	/* gets a corpse type for
-													   a given monster */
-void custom_free(void);			/* frees custom types (now only corpses) */
+uint32_t player_gen_type(void);                     /* get a valid monster type for fighting */
+void player_dead(const char *, ...);                /* the player is dead; absolute end of game */
+void player_exc(enum ABLTY, uint32_t);              /* exercise a given ablty by a given amount */
+bool player_magic(char);                            /* cast a spell */
+struct item_struct *find_corpse(struct Monster *);  /* gets a corpse type for a given monster */
+void custom_free(void);                             /* frees custom types (now only corpses) */
 
 /* player_status functions */
 char *get_hungerstr(void);		/* gets player's hunger ("Starved" etc) */
