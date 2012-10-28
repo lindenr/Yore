@@ -1,7 +1,6 @@
 /* main.c */
 
 #include "include/all.h"
-#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 

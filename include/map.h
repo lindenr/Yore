@@ -1,7 +1,8 @@
 #ifndef MAP_H_INCLUDED
 #define MAP_H_INCLUDED
 
-#include <stdint.h>
+#include "include/all.h"
+#include "include/graphics.h"
 
 #define M_OPQ  0
 #define M_TSPT 1

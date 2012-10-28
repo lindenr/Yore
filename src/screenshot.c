@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include "include/graphics.h"
 
 uint32_t Old_buffer[2000];

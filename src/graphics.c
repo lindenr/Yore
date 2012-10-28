@@ -1,9 +1,8 @@
 /* graphics.c */
 /* Map size: 100 glyphs down, 300 across */
 
-#include "include/graphics.h"
-#include "include/SDL/SDL.h"
 #include "include/SDL/SDL_image.h"
+#include "include/graphics.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -120,12 +119,18 @@ inline void blit_glyph (glyph gl, int yloc, int xloc)
 
 void gr_refresh ()
 {
-	int x, y, i, changed_total, cur_rect;
+	int x, y, changed_total, cur_rect;
 	SDL_Rect rects[100];
 
-	for (i = 0, changed_total = 0; i < MAP_TILES; ++ i)
+	changed_total = 0;
+	for (x = 0; x < glnumx; ++ x)
 	{
-		if (change[i]) ++ changed_total;
+		for (y = 0; y < glnumy; ++ y)
+		{
+			int gly = y + cam_yloc, glx = x + cam_xloc;
+			if (change[to_buffer(gly, glx)])
+				++ changed_total;
+		}
 	}
 
 	if (!changed_total) return; /* Nothing to do. */
@@ -142,8 +147,8 @@ void gr_refresh ()
 				blit_glyph (gr_map[to_buffer(gly, glx)], y, x);
 				if (changed_total < 100)
 				{
-					rects[cur_rect].x = GLW*glx;
-					rects[cur_rect].y = GLH*gly;
+					rects[cur_rect].x = GLW*x;
+					rects[cur_rect].y = GLH*y;
 					rects[cur_rect].w = GLW;
 					rects[cur_rect].h = GLH;
 					++ cur_rect;
@@ -299,15 +304,15 @@ void gr_noecho ()
 
 Uint32
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    rmask = 0xff000000,
-    gmask = 0x00ff0000,
-    bmask = 0x0000ff00,
-    amask = 0x000000ff;
+	rmask = 0xff000000,
+	gmask = 0x00ff0000,
+	bmask = 0x0000ff00,
+	amask = 0x000000ff;
 #else
-    rmask = 0x000000ff,
-    gmask = 0x0000ff00,
-    bmask = 0x00ff0000,
-    amask = 0xff000000;
+	rmask = 0x000000ff,
+	gmask = 0x0000ff00,
+	bmask = 0x00ff0000,
+	amask = 0xff000000;
 #endif
 
 void gr_init ()
@@ -320,7 +325,7 @@ void gr_init ()
 	
 	atexit (SDL_Quit);
 	
-	screen = SDL_SetVideoMode (1008, 744, 32, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode (800, 600, 32, SDL_SWSURFACE);
 	if (screen == NULL)
 	{
 		fprintf (stderr, "Error initialising video mode: %s\n", SDL_GetError ());

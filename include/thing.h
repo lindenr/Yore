@@ -1,7 +1,6 @@
 #ifndef THING_H_INCLUDED
 #define THING_H_INCLUDED
 
-#include <stdint.h>
 #include <string.h>
 #include "include/list.h"
 #include "include/graphics.h"

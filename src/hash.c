@@ -1,7 +1,6 @@
 /* hash.c Linden Ralph, Paul Hsieh */
 
 #include "include/all.h"
-#include <stdint.h>
 
 #include "include/rand.h"
 

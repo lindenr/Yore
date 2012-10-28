@@ -1,8 +1,6 @@
 #ifndef ITEM_H_INCLUDED
 #define ITEM_H_INCLUDED
 
-#include <stdint.h>
-
 #include "include/thing.h"
 
 enum ITEM_TYPE

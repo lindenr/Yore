@@ -340,6 +340,11 @@ bool quit ()
 void destroy_save_file (char *filename)
 {
 	char str[1000];
+
+    FILE *file = fopen (filename, "wb+");
+    fwrite ("", 1, 1, file);
+    fclose (file);
+
 	sprintf (str, "%s %s", SH_RM, filename);
 	system (str);
 }

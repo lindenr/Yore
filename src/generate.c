@@ -269,7 +269,7 @@ uint32_t mons_gen (int type, int32_t param)
 	else if (type == 2)
 	{
 		luck = param;
-		if (RN(500) >= (15 - 2*luck))
+		if (RN(5000) >= (15 - 2*luck))
 			return 0;
 
 		struct Monster *p = malloc(sizeof(*p));

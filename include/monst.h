@@ -1,12 +1,11 @@
 #ifndef MONST_H_INCLUDED
 #define MONST_H_INCLUDED
 
-#include <stdint.h>
-#include "pack.h"
+#include "include/graphics.h"
+#include "include/pack.h"
 
 #define A_PARAM 3				/* AdB damage, of type C */
-#define A_NUM   6				/* number of normal attacks per monster (like
-								   NH) */
+#define A_NUM   6				/* number of normal attacks per monster (like NH) */
 // extern const int CORPSE_WEIGHTS[7];
 
 #define IS_PLAYER(m) ((m)->name && (m)->name[0]=='_')
@@ -59,13 +58,13 @@ struct player_status
 	struct Thing *player;
 	int role;
 	int playing;
-	player_attr attr;			/* st, co, ch, etc */
+	player_attr attr; /* st, co, ch, etc */
 	int32_t luck;
-	uint64_t m_glflags; /* e.g. whether a unique monster has generated */  
+	uint64_t m_glflags;
 	int magic;
 } extern U;
 
-enum ABLTY						/* ability */
+enum ABLTY /* ability */
 {
 	AB_ST = 0,
 	AB_CO,

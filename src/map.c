@@ -1,7 +1,6 @@
 /* map.c */
 
 #include "include/all.h"
-#include <stdint.h>
 
 #include "include/map.h"
 #include "include/monst.h"

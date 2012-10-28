@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_H_INCLUDED
 #define GRAPHICS_H_INCLUDED
 
-#include <stdint.h>
+#include "include/SDL/SDL.h"
 #include "include/all.h"
 
 /* Structure of a glyph:
@@ -16,7 +16,8 @@
  * COL_BG_BLUE     0 - F  (4 bits)
  * character data  0 - FF (8 bits)
  **********************************/
-typedef uint32_t glyph;
+typedef Uint32 glyph;
+typedef long long unsigned uint64_t;
 
 #define GLW 8
 #define GLH 12

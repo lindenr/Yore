@@ -1,7 +1,8 @@
 #ifndef BOOL_H_INCLUDED
 #define BOOL_H_INCLUDED
 
-#include <stdint.h>
+#include "include/all.h"
+#include "include/graphics.h"
 
 typedef int bool;
 #define false 0
