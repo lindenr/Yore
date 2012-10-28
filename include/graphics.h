@@ -17,7 +17,14 @@
  * character data  0 - FF (8 bits)
  **********************************/
 typedef Uint32 glyph;
-typedef long long unsigned uint64_t;
+#ifdef __WIN32__
+#  ifdef main
+#    undef main
+#  endif
+#  include <stdint.h>
+#else
+  typedef long long unsigned uint64_t;
+#endif
 
 #define GLW 8
 #define GLH 12

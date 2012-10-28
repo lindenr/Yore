@@ -32,95 +32,92 @@ uint8_t *get_sq_attr()
 	return sq_attr;
 }
 
-/* This is very ugly and inelegant. A better/neater solution would be very
-   welcome. What this function does is purely cosmetic - given whether or not
+char ACS_ARRAY[] = {
+' ', // 0
+ACS_VLINE, // 1
+ACS_HLINE, // 2
+ACS_URCORNER, // 3
+ACS_ULCORNER, // 4
+ACS_LRCORNER, // 5
+ACS_LLCORNER, // 6
+ACS_RTEE, // 7
+ACS_LTEE, // 8
+ACS_TTEE, // 9
+ACS_BTEE, // 10
+ACS_PLUS  // 11
+};
+
+int wall_output[256] = {
+/* 0 */
+0, 1, 0, 1, 2, 6, 2, 6, 0, 1, 0, 1, 2, 6, 2, 6,
+1, 1, 1, 1, 4, 8, 4, 8, 1, 1, 1, 1, 4, 8, 4, 1,
+0, 1, 0, 1, 2, 6, 2, 6, 0, 1, 0, 1, 2, 6, 2, 6,
+1, 1, 1, 1, 4, 8, 4, 8, 1, 1, 1, 1, 4, 8, 4, 1,
+/* 64 */
+2, 5, 2, 5, 2, 10, 2, 10, 2, 5, 2, 5, 2, 10, 2, 10,
+3, 7, 3, 7, 9, 11, 9, 11, 3, 7, 3, 7, 9, 11, 9, 7,
+2, 5, 2, 5, 2, 10, 2, 10, 2, 5, 2, 5, 2, 10, 2, 10,
+3, 7, 3, 7, 9, 11, 9, 11, 3, 7, 3, 7, 2, 10, 2, 5,
+/* 128 */
+0, 1, 0, 1, 2, 6, 2, 6, 0, 1, 0, 1, 2, 6, 2, 6,
+1, 1, 1, 1, 4, 8, 4, 8, 1, 1, 1, 1, 4, 8, 4, 1,
+0, 1, 0, 1, 2, 6, 2, 6, 0, 1, 0, 1, 2, 6, 2, 6,
+1, 1, 1, 1, 4, 8, 4, 8, 1, 1, 1, 1, 4, 8, 4, 1,
+/* 192 */
+2, 5, 2, 5, 2, 10, 2, 2, 2, 5, 2, 5, 2, 10, 2, 2,
+3, 7, 3, 7, 9, 11, 9, 9, 3, 7, 3, 7, 9, 11, 9, 3,
+2, 5, 2, 5, 2, 10, 2, 2, 2, 5, 2, 5, 2, 10, 2, 2,
+3, 1, 3, 1, 9, 8, 9, 4, 3, 1, 3, 1, 2, 6, 2, 0
+/* 256 */
+};
+
+/* What this function does is purely cosmetic - given whether or not
    the squares surrounding are walls or spaces, this function returns what
-   character should be displayed (corner, straight line, tee, etc). The nested 
-   if's make my eyes hurt, but I can't think of a simpler alternative. */
-uint32_t WALL_TYPE(uint32_t y, uint32_t u, uint32_t h, uint32_t j, uint32_t k,
-				   uint32_t l, uint32_t b, uint32_t n)
+   character should be displayed (corner, straight line, tee, etc). */
+uint32_t WALL_TYPE (uint32_t y, uint32_t u,
+        uint32_t h, uint32_t j, uint32_t k, uint32_t l,
+					uint32_t b, uint32_t n)
 {
-	int H = (h == DOT || h == ' '),
-		J = (j == DOT || j == ' '),
-		K = (k == DOT || k == ' '),
-        L = (l == DOT || l == ' ');
-	if (H)
+	int H = !(h == DOT),// || h == ' '),
+		J = !(j == DOT),// || j == ' '),
+		K = !(k == DOT),// || k == ' '),
+        L = !(l == DOT),// || l == ' '),
+        Y = !(y == DOT),// || y == ' '),
+        U = !(u == DOT),// || u == ' '),
+        B = !(b == DOT),// || b == ' '),
+        N = !(n == DOT);// || n == ' ');
+	return ACS_ARRAY[wall_output[(((((((((((((Y<<1)+H)<<1)+B)<<1)+J)<<1)+N)<<1)+L)<<1)+U)<<1)+K]];
+}
+
+void walls_test()
+{
+	int i;
+	for (i = 0; i < 256; ++ i)
 	{
-		if (K)
-		{
-			if (L)
-			{
-				if (J)
-					return ACS_HLINE;
-				else
-					return ACS_VLINE;
-			}
-			else
-			{
-				if (J)
-					return ACS_HLINE;
-				else
-					return ACS_ULCORNER;
-			}
-		}
-		else
-		{
-			if (L)
-				return ACS_VLINE;
-			else
-			{
-				if (J)
-					return ACS_LLCORNER;
-				else
-					return ACS_LTEE;
-			}
-		}
-	}
-	else
-	{
-		if (K)
-		{
-			if (L)
-			{
-				if (J)
-					return ACS_HLINE;
-				else
-					return ACS_URCORNER;
-			}
-			else
-			{
-				if (J)
-					return ACS_HLINE;
-				else
-					return ACS_TTEE;
-			}
-		}
-		else
-		{
-			if (L)
-			{
-				if (J)
-					return ACS_LRCORNER;
-				else
-					return ACS_RTEE;
-			}
-			else
-			{
-				if (J)
-					return ACS_BTEE;
-				else
-				{
-					if (y == DOT || u == DOT || b == DOT || n == DOT)
-						return ACS_PLUS;
-					else
-						return ' ';
-				}
-			}
-		}
+		int Y = (i&128) > 0,
+		    H = (i&64) > 0,
+		    B = (i&32) > 0,
+		    J = (i&16) > 0,
+		    N = (i&8) > 0,
+		    L = (i&4) > 0,
+		    U = (i&2) > 0,
+		    K = (i&1) > 0;
+		gr_mvaddch(0, 0, Y?'#':' ');
+		gr_mvaddch(1, 0, H?'#':' ');
+		gr_mvaddch(2, 0, B?'#':' ');
+		gr_mvaddch(2, 1, J?'#':' ');
+		gr_mvaddch(2, 2, N?'#':' ');
+		gr_mvaddch(1, 2, L?'#':' ');
+		gr_mvaddch(0, 2, U?'#':' ');
+		gr_mvaddch(0, 1, K?'#':' ');
+		gr_mvaddch(1, 1, ACS_ARRAY[wall_output[i]]);
+		gr_mvprintc(3, 0, "Number %d", i);
+		gr_refresh();
+		gr_getch();
 	}
 }
 
-#define US(w) (sq_seen[w]?(sq_attr[w]?DOT:'W'):DOT)
+#define US(w) (sq_seen[w]?(sq_attr[w]?DOT:'W'):'W')
 
 inline void set_can_see(uint32_t * unseen)
 {
@@ -138,8 +135,7 @@ inline void set_can_see(uint32_t * unseen)
 	/* This puts values on the grid -- whether or not we can see (or have
 	   seen) this square */
 	for (w = 0; w < MAP_TILES; ++w)
-        sq_seen[w] = 2;
-        //bres_draw(Y, X);
+        bres_draw(w / MAP_WIDTH, w % MAP_WIDTH);
 
 	/* Make everything we can't see dark */
 	for (w = 0; w < MAP_TILES; ++w)

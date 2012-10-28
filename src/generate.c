@@ -51,7 +51,7 @@ void get_downstair (uint32_t * yloc, uint32_t * xloc)
 #define ADD_MAP(c, i) {\
 struct map_item_struct *mis = malloc (sizeof(struct map_item_struct));\
 memcpy (mis, &(map_items[GETMAPITEMID(c)]), sizeof (struct map_item_struct));\
-new_thing (THING_DGN, i / MAP_WIDTH, i % MAP_WIDTH, mis);\
+new_thing (THING_DGN, (i) / MAP_WIDTH, (i) % MAP_WIDTH, mis);\
 }
 
 bool check_area (int y, int x, int ys, int xs)
@@ -111,8 +111,8 @@ void add_another_room ()
         int x = (i+1)%MAP_WIDTH, y = (i+1)/MAP_WIDTH;
         if (attempt_room (y - 2 - RN(3), x + 1, 6 + RN(3), 6))
         {
-            //ADD_MAP(DOT, i+1);
-            //ADD_MAP(DOT, i+2);
+            ADD_MAP(DOT, i+1);
+            ADD_MAP(DOT, i+2);
         }
     }
     else if (list_isempty (all_things[i-1]))
@@ -120,8 +120,8 @@ void add_another_room ()
         int x = (i-1)%MAP_WIDTH, y = (i-1)/MAP_WIDTH;
         if (attempt_room (y - 2 - RN(3), x - 8, 6 + RN(3), 6))
         {
-            //ADD_MAP(DOT, i-1);
-            //ADD_MAP(DOT, i-2);
+            ADD_MAP(DOT, i-1);
+            ADD_MAP(DOT, i-2);
         }
     }
     else if (list_isempty (all_things[i-MAP_WIDTH]))
@@ -129,8 +129,8 @@ void add_another_room ()
         int x = (i-MAP_WIDTH)%MAP_WIDTH, y = (i-MAP_WIDTH)/MAP_WIDTH;
         if (attempt_room (y - 8, x - 3 - RN(5), 6, 8 + RN(5)))
         {
-            //ADD_MAP(DOT, i-MAP_WIDTH);
-            //ADD_MAP(DOT, i-MAP_WIDTH*2);
+            ADD_MAP(DOT, i-MAP_WIDTH);
+            ADD_MAP(DOT, i-MAP_WIDTH*2);
         }
     }
     else if (list_isempty (all_things[i+MAP_WIDTH]))
@@ -138,8 +138,8 @@ void add_another_room ()
         int x = (i+MAP_WIDTH)%MAP_WIDTH, y = (i+MAP_WIDTH)/MAP_WIDTH;
         if (attempt_room (y + 1, x - 3 - RN(5), 6, 8 + RN(5)))
         {
-            //ADD_MAP(DOT, i+MAP_WIDTH);
-            //ADD_MAP(DOT, i+MAP_WIDTH*2);
+            ADD_MAP(DOT, i+MAP_WIDTH);
+            ADD_MAP(DOT, i+MAP_WIDTH*2);
         }
     }
 }
