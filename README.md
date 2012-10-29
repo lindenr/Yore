@@ -1,23 +1,22 @@
 #Yore
 
-Yore is an under-developement roguelike console game.
+Yore is an under-developement roguelike game.
 
 ##Build instructions
 
-At the moment Yore is capable of running only on Windows and Linux systems. (Actually, if the console emulates the VT-100 escape codes like Linux does then Yore can probably run on it too.)
-
-Firstly edit include/all.h and change the #define to your operating system (FOONIX for Linux and WINDOWS for Windows).
+Yore can run on any machine which is supported by SDL. The include files for SDL are provided (except for the 300kb opengl header) so you only need the runtime binaries.
 
 ####To build for Linux:
 
-1.  you must have make and gcc installed (you probably will anyway);
+1.  you must have gcc and SDL installed (you probably will anyway);
 2.  [optional] get rid of the -ggdb flags in makefile;
 3.  run <pre>./build-linux.sh</pre>
 
 ####To build for Windows:
 
-1.  you must have MinGW installed;
-2.  run <pre>PATH &lt;your_mingw_install_path&gt;\bin<br />build-win</pre>
+1.  you must have MinGW and SDL installed, with SDL.dll in your bin/ folder;
+2.  [optional] get rid of the -ggdb flags in makefile;
+3.  run <pre>PATH &lt;your_mingw_install_path&gt;\bin<br />build-win</pre>
 
 The executable is created as ./bin/Yore (Linux) or bin\Yore (Windows).
 
@@ -37,7 +36,7 @@ Gameplay in Yore is largely similar to NetHack.
 ###Movement
 
 Movement with the hjkl set (yubn for diagonals) is supported; running using a capital letter (HJKLYUBN) is not implemented yet.
-On Windows you may also use the arrow keys to move, but you wouldn't be able to move diagonally. Also, don't try moving through typed commands with the arrow keys - on Windows they have been mapped to hjkl and on Linux to ABCD.
+The arrow keys move the view around (the map is probably too large to fit all on to the screen at once).
 
 ###Miscellaneous
 

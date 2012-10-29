@@ -315,6 +315,18 @@ Uint32
 	amask = 0xff000000;
 #endif
 
+#define GR_TRY_TILES(a,b) sprintf(filepath, a, b); tiles = SDL_LoadBMP (filepath); if (tiles) return;
+void gr_load_tiles ()
+{
+	char filepath[100] = "";
+	GR_TRY_TILES("resources/%s", TILE_FILE);
+	GR_TRY_TILES("%s", TILE_FILE);
+	GR_TRY_TILES("../%s", TILE_FILE);
+
+	fprintf (stderr, "Error loading tileset: %s\n", SDL_GetError ());
+	exit (1);
+}
+
 void gr_init ()
 {
 	if (SDL_Init (SDL_INIT_VIDEO) < 0)
@@ -325,21 +337,15 @@ void gr_init ()
 	
 	atexit (SDL_Quit);
 	
-	screen = SDL_SetVideoMode (800, 600, 32, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode (1280, 804, 32, SDL_SWSURFACE);
 	if (screen == NULL)
 	{
 		fprintf (stderr, "Error initialising video mode: %s\n", SDL_GetError ());
 		exit (1);
 	}
 	
-	tiles = IMG_Load (TILE_FILE);
-	if (!tiles)
-	{
-		fprintf (stderr, "Error loading tileset: %s\n", SDL_GetError ());
-		exit (1);
-	}
+	gr_load_tiles ();
 	SDL_SetColorKey (tiles, SDL_SRCCOLORKEY, SDL_MapRGB (tiles->format, 255, 0, 255));
-	SDL_SetColorKey (screen, SDL_SRCCOLORKEY, SDL_MapRGB (screen->format, 255, 0, 255));
 	
 	glnumy = screen->h / GLH;
 	glnumx = screen->w / GLW;
