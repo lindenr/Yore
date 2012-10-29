@@ -60,7 +60,7 @@ uint32_t can_move_to(uint32_t attr)
 
 struct map_item_struct map_items[] = {
 	MAPITEM("lit space", ACS_BULLET, M_TSPT, 0),
-	MAPITEM("wall", 'W', M_OPQ, 0),
+	MAPITEM("wall", 255, M_OPQ, 0),
 	MAPITEM("downstair", '>', M_TSPT, 0),
 	MAPITEM("upstair", '<', M_TSPT, 0),
 	MAPITEM("tree", '+', M_OPQ, 0),

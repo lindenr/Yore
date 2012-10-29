@@ -11,11 +11,11 @@
 
 #define XSTRINGIFY(x) STRINGIFY(x)
 #define STRINGIFY(x) #x
-#define TILE_FILE "resources/t"XSTRINGIFY(GLW)"x"XSTRINGIFY(GLH)".bmp"
+#define TILE_FILE "t"XSTRINGIFY(GLW)"x"XSTRINGIFY(GLH)".bmp"
 
 Uint32 bg_colour;
 
-SDL_Surface *screen = NULL, *tiles = NULL;
+SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
 glyph gr_map[MAP_HEIGHT*MAP_WIDTH] = {0,};
 
 int curs_yloc = 0, curs_xloc = 0;
@@ -57,6 +57,7 @@ void gr_movecam (int yloc, int xloc)
 void gr_baddch (int buf, glyph gl)
 {
 	if (gr_map[buf] == gl) return;
+	if (gl < 256) gl |= COL_TXT_DEF;
 	gr_map[buf] = gl;
 	change[buf] = 1;
 }
@@ -107,14 +108,36 @@ void gr_mvprintc(int y, int x, const char *str, ...)
 	va_end(args);
 }
 
+#define GL_TRD ((gl&0xF0000000)>>24)
+#define GL_TGN ((gl&0x0F000000)>>20)
+#define GL_TBL ((gl&0x00F00000)>>16)
+#define GL_BRD ((gl&0x000F0000)>>12)
+#define GL_BGN ((gl&0x0000F000)>>8)
+#define GL_BBL ((gl&0x00000F00)>>4)
 inline void blit_glyph (glyph gl, int yloc, int xloc)
 {
 	char ch = (char)gl;
 	SDL_Rect srcrect = {GLW*(ch&15), GLH*((ch>>4)&15), GLW, GLH};
 	SDL_Rect dstrect = {GLW*xloc, GLH*yloc, GLW, GLH};
 
-	SDL_FillRect (screen, &dstrect, bg_colour);
-	SDL_BlitSurface (tiles, &srcrect, screen, &dstrect);
+	SDL_FillRect (glyph_col, NULL, SDL_MapRGB (glyph_col->format, GL_BRD, GL_BGN, GL_BBL));
+	SDL_BlitSurface (tiles, &srcrect, glyph_col, NULL);
+
+	int t = GLW*GLH, p;
+	uint32_t white = SDL_MapRGB (glyph_col->format, 255, 255, 255), tcol = SDL_MapRGB (glyph_col->format, GL_TRD, GL_TGN, GL_TBL);
+	uint32_t *pixels = glyph_col->pixels;
+	
+	if (SDL_MUSTLOCK (glyph_col)) SDL_LockSurface (glyph_col);
+
+	for (p = 0; p < t; ++ p)
+	{
+		if (pixels[p] == white)
+			pixels[p] = tcol;
+	}
+
+	if (SDL_MUSTLOCK (glyph_col)) SDL_UnlockSurface (glyph_col);
+
+	SDL_BlitSurface (glyph_col, NULL, screen, &dstrect);
 }
 
 void gr_refresh ()
@@ -315,16 +338,22 @@ Uint32
 	amask = 0xff000000;
 #endif
 
-#define GR_TRY_TILES(a,b) sprintf(filepath, a, b); tiles = SDL_LoadBMP (filepath); if (tiles) return;
+#define GR_TRY_TILES(a,b) sprintf(filepath, a, b); temp = SDL_LoadBMP (filepath); if (temp) goto success; printf("Couldn't find tiles at %s.\n", filepath)
 void gr_load_tiles ()
 {
 	char filepath[100] = "";
+	void *temp = NULL;
+
 	GR_TRY_TILES("resources/%s", TILE_FILE);
+	GR_TRY_TILES("../resources/%s", TILE_FILE);
 	GR_TRY_TILES("%s", TILE_FILE);
-	GR_TRY_TILES("../%s", TILE_FILE);
 
 	fprintf (stderr, "Error loading tileset: %s\n", SDL_GetError ());
 	exit (1);
+	
+  success:
+	tiles = SDL_DisplayFormat (temp);
+	SDL_FreeSurface(temp);
 }
 
 void gr_init ()
@@ -346,6 +375,10 @@ void gr_init ()
 	
 	gr_load_tiles ();
 	SDL_SetColorKey (tiles, SDL_SRCCOLORKEY, SDL_MapRGB (tiles->format, 255, 0, 255));
+	
+	void *tmp = SDL_CreateRGBSurface (SDL_SWSURFACE, GLW, GLH, 32, rmask, gmask, bmask, amask);
+	glyph_col = SDL_DisplayFormat (tmp);
+	SDL_FreeSurface (tmp);
 	
 	glnumy = screen->h / GLH;
 	glnumx = screen->w / GLW;

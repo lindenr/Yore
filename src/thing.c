@@ -33,18 +33,18 @@ uint8_t *get_sq_attr()
 }
 
 char ACS_ARRAY[] = {
-' ', // 0
-ACS_VLINE, // 1
-ACS_HLINE, // 2
-ACS_URCORNER, // 3
-ACS_ULCORNER, // 4
-ACS_LRCORNER, // 5
-ACS_LLCORNER, // 6
-ACS_RTEE, // 7
-ACS_LTEE, // 8
-ACS_TTEE, // 9
-ACS_BTEE, // 10
-ACS_PLUS  // 11
+' ',
+ACS_VLINE,
+ACS_HLINE,
+ACS_URCORNER,
+ACS_ULCORNER,
+ACS_LRCORNER,
+ACS_LLCORNER,
+ACS_RTEE,
+ACS_LTEE,
+ACS_TTEE,
+ACS_BTEE,
+ACS_PLUS
 };
 
 int wall_output[256] = {
@@ -67,7 +67,7 @@ int wall_output[256] = {
 2, 5, 2, 5, 2, 10, 2, 2, 2, 5, 2, 5, 2, 10, 2, 2,
 3, 7, 3, 7, 9, 11, 9, 9, 3, 7, 3, 7, 9, 11, 9, 3,
 2, 5, 2, 5, 2, 10, 2, 2, 2, 5, 2, 5, 2, 10, 2, 2,
-3, 1, 3, 1, 9, 8, 9, 4, 3, 1, 3, 1, 2, 6, 2, 11
+3, 1, 3, 1, 9, 8, 9, 4, 3, 1, 3, 1, 2, 6, 2, 0
 /* 256 */
 };
 
@@ -78,14 +78,14 @@ uint32_t WALL_TYPE (uint32_t y, uint32_t u,
         uint32_t h, uint32_t j, uint32_t k, uint32_t l,
 					uint32_t b, uint32_t n)
 {
-	int H = !(h == DOT),// || h == ' '),
-		J = !(j == DOT),// || j == ' '),
-		K = !(k == DOT),// || k == ' '),
-        L = !(l == DOT),// || l == ' '),
-        Y = !(y == DOT),// || y == ' '),
-        U = !(u == DOT),// || u == ' '),
-        B = !(b == DOT),// || b == ' '),
-        N = !(n == DOT);// || n == ' ');
+	int H = !(h == DOT),
+		J = !(j == DOT),
+		K = !(k == DOT),
+        L = !(l == DOT),
+        Y = !(y == DOT),
+        U = !(u == DOT),
+        B = !(b == DOT),
+        N = !(n == DOT);
 	return ACS_ARRAY[wall_output[(((((((((((((Y<<1)+H)<<1)+B)<<1)+J)<<1)+N)<<1)+L)<<1)+U)<<1)+K]];
 }
 
@@ -117,7 +117,7 @@ void walls_test()
 	}
 }
 
-#define US(w) (sq_seen[w]?(sq_attr[w]?DOT:'W'):'W')
+#define US(w) (sq_seen[w]?(sq_attr[w]?DOT:255):255)
 
 inline void set_can_see(uint32_t * unseen)
 {
@@ -161,8 +161,6 @@ inline void set_can_see(uint32_t * unseen)
 			if (sq_attr[w] != 0 || (gr_map[w] & 0xFF) == ' ')
 				continue;		/* Only keep going if it is a wall. */
 
-			/* Again, not especially neat, but I don't think there is much I
-			 * can do */
 			if (X)
 				h = US(w - 1);
 			if (Y)
@@ -182,9 +180,9 @@ inline void set_can_see(uint32_t * unseen)
 
 			/* Finally, do the actual drawing of the wall. */
 			if (gr_map[w] & COL_TXT_BRIGHT)
-				gr_baddch (w, WALL_TYPE(y, u, h, j, k, l, b, n) | COL_TXT_BRIGHT);
+				gr_baddch (w, (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n) | COL_TXT_BRIGHT);
 			else
-				gr_baddch (w, WALL_TYPE(y, u, h, j, k, l, b, n));
+				gr_baddch (w, (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n));
 		}
 	}
 }
