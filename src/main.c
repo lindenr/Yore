@@ -63,7 +63,7 @@ bool game_intro()
 	gr_mvprintc(9, 18,  "when magic flowed throughout the air as water");
 	gr_mvprintc(10, 18, "flowed through the sea, and the Gods lived in");
 	gr_mvprintc(11, 19,  "harmony with the people; it was a time when");
-	gr_mvprintc(12, 20,   "anything and everything was possible...");
+	gr_mvprintc(12, 21,    "anything and everything was possible...");
 	refresh();
 	noecho();
 	in_tout(666);
@@ -101,7 +101,6 @@ int main (int argc, char *argv[])
 
 	rseed = RNG_get_seed();
 	RNG_main = RNG_INIT(rseed);
-	magic_init();
 	setup_U();
 	atexit (all_things_free);
 
@@ -109,6 +108,7 @@ int main (int argc, char *argv[])
 	//	goto quit_game;
 	
 	//init_map();
+	//panel(10);
 	print_intro();
 	mons_gen(0, 0);
 
@@ -129,30 +129,31 @@ int main (int argc, char *argv[])
 	if (*(real_player_name + 1) == '\0')
 		goto quit_game;
 
-	generate_map(LEVEL_NORMAL);
 
 	/* So you really want to play? */
-	gr_noecho();
+	gr_noecho ();
 
-	gr_clear();
-	get_cinfo();
+	gr_clear ();
+	get_cinfo ();
 
 	/* If the player entered info correctly, then they should be PLAYER_PLAYING: */
 	if (U.playing != PLAYER_PLAYING)
 		goto quit_game;
 
-	gr_clear();
-	pline_check();
+	gr_mode (GMODE);
+	
+	generate_map (LEVEL_NORMAL);
+	gr_clear ();
+	pline_check ();
 
 	gr_movecam (get_player()->yloc - (glnumy/2), get_player()->xloc - (glnumx/2));
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 
+	update_stats();
+
 	do
-	{
-		update_stats();
 		main_loop();
-	}
 	while (U.playing == PLAYER_PLAYING);
 
   quit_game:

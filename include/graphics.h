@@ -26,6 +26,10 @@ typedef Uint32 glyph;
   typedef long long unsigned uint64_t;
 #endif
 
+#define GMODE 0
+#define TMODE 1
+#define NOREF 2
+
 #define GLW 8
 #define GLH 12
 
@@ -49,11 +53,15 @@ void gr_baddch  (int, glyph);
 
 void gr_printc  (const char *, ...);
 void gr_mvprintc(int, int, const char *, ...);
+void gr_setline (int, glyph);
 
 void gr_refresh ();
+void gr_trefresh();
 void gr_frefresh();
+void gr_mvforce (int, int);
 
 void gr_clear   ();
+void gr_mode    (int);
 
 /* Input */
 char gr_getch   ();

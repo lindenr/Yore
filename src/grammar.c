@@ -1,4 +1,4 @@
-/* grammar.c Linden Ralph */
+/* grammar.c */
 
 #include "include/all.h"
 #include "include/grammar.h"

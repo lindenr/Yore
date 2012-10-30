@@ -14,7 +14,8 @@ enum ITEM_TYPE
 	IT_GLOVES,
 	IT_CORPSE,
 	IT_MONEY,
-	IT_CHARM
+	IT_CHARM,
+	IT_JEWEL
 };
 
 /* BUC status */
@@ -40,6 +41,7 @@ enum ITEM_TYPE
 #define ITEM_DOSH    '$'
 #define ITEM_CORPSE  ITEM_FOOD
 #define ITEM_CHARM   '='
+#define ITEM_JEWEL    7
 
 #define ITCAT_DOSH    0x0001
 #define ITCAT_WEAPON  0x0002
@@ -80,6 +82,7 @@ struct Item_Pile
 };
 
 extern struct item_struct items[];
+extern int NUM_ITEMS;
 
 void item_piles(struct List *, struct List *);
 

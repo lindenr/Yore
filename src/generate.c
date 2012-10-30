@@ -6,6 +6,7 @@
 #include "include/thing.h"
 #include "include/monst.h"
 #include "include/map.h"
+#include "include/magic.h"
 #include "include/graphics.h"
 
 #include <stdio.h>
@@ -144,66 +145,46 @@ void add_another_room ()
     }
 }
 
+struct Item *gen_item ()
+{
+	struct item_struct *is = &(items[RN(NUM_ITEMS)]);
+	struct Item it = {is, 0, is->wt, NULL};
+	if (is->type == IT_JEWEL) it.attr = RN(NUM_JEWELS) << 16;
+	struct Item *ret = malloc(sizeof(it));
+	memcpy (ret, &it, sizeof(it));
+	return ret;
+}
+
 void generate_map (enum LEVEL_TYPE type)
 {
 	int start, end;
 
 	if (type == LEVEL_MINES)
 	{
-		/*int t = 200;
-		
-		start = RN(1520) + 79;
-		get_player()->yloc = start/80;
-		get_player()->xloc = start%80;
-
-		/ clear space at the beginning (for the up-stair) *
-		buffer[start] = DOT;
-
-		/ clear space for the down-stair *
-		buffer[mons_gen(1, start)] = DOT;
-
-		/ generate some random spaces *
-		while (t--)
-			buffer[RN(1520) + 79] = DOT;
-
-		t = 800;
-		while (t--)
-		{
-			int buf = RN(1520) + 79;
-			if ((buffer[buf] != DOT)
-				&& (GETB(buf, DIR_UP) == DOT || GETB(buf, DIR_DN) == DOT ||
-					GETB(buf, DIR_LF) == DOT || GETB(buf, DIR_RT) == DOT))
-				buffer[buf] = DOT;
-			else
-				t++;
-		}
-
-		/ Will be a wall if it is at edge of screen, or if it is not a space. *
-		for (i = 0; i < 1680; ++i)
-			if (buffer[i] != DOT || ((i + 1) % 80) <= 1)
-				buffer[i] = 'W';
-
-		/ Add everything to the list. *
-		for (i = 0; i < 1680; ++i)
-		{
-			struct map_item_struct *mis =
-				malloc(sizeof(struct map_item_struct));
-			memcpy(mis, &(map_items[GETMAPITEMID(buffer[i])]),
-				   sizeof(struct map_item_struct));
-			new_thing(THING_DGN, i / 80, i % 80, mis);
-		}*/
+		/* TODO */
 	}
 	else if (type == LEVEL_NORMAL)
 	{
-		int i;
+		int i, y, x;
 
         total_rooms = 0;
 		attempt_room (MAP_HEIGHT/2 - 2 - RN(3), MAP_WIDTH/2 - 3 - RN(5), 15, 20);
         do add_another_room ();
-        while (total_rooms < 50);
+        while (total_rooms < 100);
 
         start = to_buffer (MAP_HEIGHT/2, MAP_WIDTH/2);
 		end = mons_gen (1, start);
+		
+		for (i = 0; i < 100; ++ i)
+		{
+			do
+			{
+				y = RN(MAP_HEIGHT);
+				x = RN(MAP_WIDTH);
+			}
+			while (!is_safe_gen(y, x));
+			new_thing (THING_ITEM, y, x, gen_item ());
+		}
 
 		/* clear space at the beginning (for the up-stair) */
 		ADD_MAP (DOT, start);
@@ -293,7 +274,7 @@ uint32_t mons_gen (int type, int32_t param)
 	else if (type == 2)
 	{
 		luck = param;
-		if (RN(5000) >= (15 - 2*luck))
+		if (RN(100) >= (15 - 2*luck))
 			return 0;
 
 		struct Monster *p = malloc(sizeof(*p));

@@ -1,4 +1,4 @@
-/* hash.c Linden Ralph, Paul Hsieh */
+/* hash.c */
 
 #include "include/all.h"
 

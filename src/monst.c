@@ -60,12 +60,17 @@ void setup_U()
 {
 	int i;
 
-	U.playing = PLAYER_ERROR;	/* If this function returns prematurely */
+	U.playing = PLAYER_ERROR;	/* If this function returns early */
 	U.hunger = 100;
 	U.luck = 0;
 
 	for (i = 0; i < 6; ++i)
 		U.attr[i] = 10;
+
+	for (i = 0; i < BELT_JEWELS; ++i)
+		U.jewel[i] = NUM_JEWELS;
+	
+	for (NUM_ITEMS = 0; items[NUM_ITEMS].name[0]; ++ NUM_ITEMS);
 
 	for (i = 0; mons[i].name; ++i)
 		if (!strcmp(mons[i].name, "human"))
@@ -183,8 +188,7 @@ struct item_struct *find_corpse(struct Monster *m)
 	return new_item;
 }
 
-void mons_attack(struct Monster *self, int y, int x)	/* each either -1, 0
-														   or 1 */
+void mons_attack(struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
 {
 	struct Thing *th = get_thing(self);
 	apply_attack(self,
@@ -274,7 +278,7 @@ inline bool mons_take_input(struct Thing * th, char in)
 void thing_move_level(struct Thing *th, int32_t where)
 {
 	uint32_t wh;
-	if (where == 0)				/* Uncontrolled teleport within level */
+	if (where == 0) /* Uncontrolled teleport within level */
 	{
 		do
 			wh = RN(MAP_TILES);
@@ -282,22 +286,19 @@ void thing_move_level(struct Thing *th, int32_t where)
 		th->yloc = wh / MAP_WIDTH;
 		th->xloc = wh % MAP_WIDTH;
 	}
-	else if (where == 1)		/* go up stairs */
+	else if (where == 1) /* go up stairs */
 	{
 	}
-	else if (where == -1)		/* go down stairs */
+	else if (where == -1) /* go down stairs */
 	{
 	}
-	else						/* levelport -- always uncontrolled, see
-								   thing_move_level_c(TODO) for controlled
-								   teleportation */
+	else
 	{
-		where >>= 1;			/* LSB is unused */
+		where >>= 1;
 	}
 }
 
-struct Item *player_use_pack(struct Thing *player, char *msg, bool * psc,
-							 uint32_t accepted)
+struct Item *player_use_pack (struct Thing *player, char *msg, bool *psc, uint32_t accepted)
 {
 	struct Item *It = NULL;
 	char in, cs[100];
@@ -324,7 +325,7 @@ struct Item *player_use_pack(struct Thing *player, char *msg, bool * psc,
 			break;
 		if (in == '*')
 		{
-			show_contents(self->pack, ITCAT_ALL);	/* everything */
+			show_contents(self->pack, ITCAT_ALL);
 			gr_getch();
 			unscreenshot();
 			continue;
@@ -365,8 +366,8 @@ int mons_take_move (struct Monster *self)
 		//	unscreenshot();
 		//}
 		in = gr_getch();
-		//if (pline_check())
-		//	line_reset();
+		if (pline_check())
+			line_reset();
 		if (in == 'Q')
 		{
 			if (!quit())
@@ -479,8 +480,7 @@ int mons_take_move (struct Monster *self)
 		else if (in == 'e')
 		{
 			struct Item *It =
-				player_use_pack(th, "Eat what?", &screenshotted,
-								ITCAT_FOOD);
+				player_use_pack(th, "Eat what?", &screenshotted, ITCAT_FOOD);
 			if (It == NULL)
 				continue;
 			mons_eat(self, It);
@@ -488,7 +488,7 @@ int mons_take_move (struct Monster *self)
 		else if (in == 'd')
 		{
 			struct Item *It =
-				player_use_pack(th, "Drop what?", &screenshotted, -1);
+				player_use_pack(th, "Drop what?", &screenshotted, ITCAT_ALL);
 			if (It == NULL)
 				continue;
 			unsigned u = PACK_AT(get_Itref(self->pack, It));
@@ -833,14 +833,16 @@ void player_dead (const char *msg, ...)
 
 bool player_magic (char c)
 {
-	if (!magic_isspell(c))
+	if (c == 'j')
+	{
+		//
+	}
+	if (!magic_plspell(c))
 	{
 		pline("Unknown spell '%s%c'. ",
 			  (escape(c) == c ? "" : "^"), escape(c));
 		return false;
 	}
-
-	magic_plspell(get_pmonster(), c);
 	return true;
 }
 

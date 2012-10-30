@@ -17,14 +17,26 @@ Uint32 bg_colour;
 
 SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
 glyph gr_map[MAP_HEIGHT*MAP_WIDTH] = {0,};
+glyph *gr_txt;
 
 int curs_yloc = 0, curs_xloc = 0;
 int cam_yloc = 0, cam_xloc = 0;
 int glnumy, glnumx;
-char change[MAP_TILES] = {0,};
+char gr_change[MAP_TILES] = {0,};
+char *txt_change;
+int mode = TMODE;
+
+void gr_mode (int m)
+{
+	mode = m;
+
+	if (m == GMODE && ((m&NOREF) == 0))
+		gr_frefresh();
+}
 
 int to_buffer (int yloc, int xloc)
 {
+	if (mode == TMODE) return glnumx*yloc + xloc;
 	return MAP_WIDTH*yloc + xloc;
 }
 
@@ -36,6 +48,9 @@ void gr_move (int yloc, int xloc)
 
 void gr_movecam (int yloc, int xloc)
 {
+	/* You can't move the camera in text-mode */
+	if (mode == TMODE) return;
+
 	cam_yloc = yloc;
 	cam_xloc = xloc;
 
@@ -56,9 +71,23 @@ void gr_movecam (int yloc, int xloc)
 
 void gr_baddch (int buf, glyph gl)
 {
-	if (gr_map[buf] == gl) return;
+	glyph *map;
+	char *change;
+
+	if (mode == TMODE)
+	{
+		map = gr_txt;
+		change = txt_change;
+	}
+	else
+	{
+		map = gr_map;
+		change = gr_change;
+	}
+
+	if (map[buf] == gl) return;
 	if (gl < 256) gl |= COL_TXT_DEF;
-	gr_map[buf] = gl;
+	map[buf] = gl;
 	change[buf] = 1;
 }
 
@@ -72,14 +101,14 @@ void gr_mvaddch (int yloc, int xloc, glyph gl)
 	gr_baddch (to_buffer(yloc, xloc), gl);
 }
 
-void gr_vprintc(const char *str, va_list args)
+void gr_vprintc (const char *str, va_list args)
 {
 	char buffer[1000];
 	uint32_t i;
 	uint32_t length;
-	uint32_t buf = to_buffer(curs_yloc, curs_xloc);
+	uint32_t buf = to_buffer (curs_yloc, curs_xloc);
 
-	vsprintf(buffer, str, args);
+	vsprintf (buffer, str, args);
 	length = strlen(buffer);
 	if (length + buf >= MAP_TILES)
 		length = MAP_TILES - buf;
@@ -89,23 +118,33 @@ void gr_vprintc(const char *str, va_list args)
 	}
 }
 
-void gr_printc(const char *str, ...)
+void gr_printc (const char *str, ...)
 {
 	va_list args;
 
-	va_start(args, str);
-	gr_vprintc(str, args);
-	va_end(args);
+	va_start (args, str);
+	gr_vprintc (str, args);
+	va_end (args);
 }
 
-void gr_mvprintc(int y, int x, const char *str, ...)
+void gr_mvprintc (int y, int x, const char *str, ...)
 {
 	va_list args;
 
-	gr_move(y, x);
-	va_start(args, str);
-	gr_vprintc(str, args);
-	va_end(args);
+	gr_move (y, x);
+	va_start (args, str);
+	gr_vprintc (str, args);
+	va_end (args);
+}
+
+void gr_setline (int line, glyph gl)
+{
+	/* You can't set whole lines outside of text mode */
+	if (mode == GMODE) return;
+
+	int i;
+	for (i = 0; i < glnumx; ++ i)
+		gr_mvaddch (line, i, gl);
 }
 
 #define GL_TRD ((gl&0xF0000000)>>24)
@@ -122,26 +161,54 @@ inline void blit_glyph (glyph gl, int yloc, int xloc)
 
 	SDL_FillRect (glyph_col, NULL, SDL_MapRGB (glyph_col->format, GL_BRD, GL_BGN, GL_BBL));
 	SDL_BlitSurface (tiles, &srcrect, glyph_col, NULL);
-
-	int t = GLW*GLH, p;
-	uint32_t white = SDL_MapRGB (glyph_col->format, 255, 255, 255), tcol = SDL_MapRGB (glyph_col->format, GL_TRD, GL_TGN, GL_TBL);
-	uint32_t *pixels = glyph_col->pixels;
 	
-	if (SDL_MUSTLOCK (glyph_col)) SDL_LockSurface (glyph_col);
-
-	for (p = 0; p < t; ++ p)
-	{
-		if (pixels[p] == white)
-			pixels[p] = tcol;
-	}
-
-	if (SDL_MUSTLOCK (glyph_col)) SDL_UnlockSurface (glyph_col);
-
+	SDL_FillRect (screen, &dstrect, SDL_MapRGB (screen->format, GL_TRD, GL_TGN, GL_TBL));
 	SDL_BlitSurface (glyph_col, NULL, screen, &dstrect);
+}
+
+void gr_trefresh ()
+{
+	int w, changed_total, cur_rect;
+	SDL_Rect rects[100];
+
+	changed_total = 0;
+	for (w = 0; w < glnumx*glnumy; ++ w)
+		if (txt_change[w])
+			++ changed_total;
+
+	if (!changed_total) return; /* Nothing to do. */
+
+	cur_rect = 0;
+
+	for (w = 0; w < glnumx*glnumy; ++ w)
+	{
+		if (txt_change[w])
+		{
+			blit_glyph (gr_txt[w], w/glnumx, w%glnumx);
+			if (changed_total < 100)
+			{
+				rects[cur_rect].x = GLW*(w%glnumx);
+				rects[cur_rect].y = GLH*(w/glnumx);
+				rects[cur_rect].w = GLW;
+				rects[cur_rect].h = GLH;
+				++ cur_rect;
+			}
+		}
+		txt_change[w] = 0;
+	}
+	if (changed_total < 100)
+		SDL_UpdateRects (screen, changed_total, rects);
+	else
+		SDL_UpdateRect (screen, 0, 0, 0, 0);
 }
 
 void gr_refresh ()
 {
+	if (mode == TMODE)
+	{
+		gr_trefresh ();
+		return;
+	}
 	int x, y, changed_total, cur_rect;
 	SDL_Rect rects[100];
 
@@ -151,7 +218,8 @@ void gr_refresh ()
 		for (y = 0; y < glnumy; ++ y)
 		{
 			int gly = y + cam_yloc, glx = x + cam_xloc;
-			if (change[to_buffer(gly, glx)])
+
+			if (gr_change[to_buffer(gly, glx)])
 				++ changed_total;
 		}
 	}
@@ -165,7 +233,7 @@ void gr_refresh ()
 		for (y = 0; y < glnumy; ++ y)
 		{
 			int gly = y + cam_yloc, glx = x + cam_xloc;
-			if (change[to_buffer(gly, glx)])
+			if (gr_change[to_buffer(gly, glx)])
 			{
 				blit_glyph (gr_map[to_buffer(gly, glx)], y, x);
 				if (changed_total < 100)
@@ -177,7 +245,7 @@ void gr_refresh ()
 					++ cur_rect;
 				}
 			}
-			change[to_buffer(gly, glx)] = 0;
+			gr_change[to_buffer(gly, glx)] = 0;
 		}
 	}
 
@@ -197,18 +265,40 @@ void gr_frefresh ()
 		{
 			int gly = y + cam_yloc, glx = x + cam_xloc;
 			blit_glyph (gr_map[to_buffer(gly, glx)], y, x);
-			change[to_buffer(gly, glx)] = 0;
+			gr_change[to_buffer(gly, glx)] = 0;
 		}
 	}
 	SDL_UpdateRect (screen, 0, 0, 0, 0);
 }
 
+void gr_mvforce (int yloc, int xloc)
+{
+	int w = to_buffer (yloc, xloc);
+	if (mode == TMODE)
+		txt_change[w] = 1;
+	else
+		gr_change[w] = 1;
+}
+
+void gr_tclear ()
+{
+	int i;
+	for (i = 0; i < glnumy*glnumx; ++ i)
+		gr_baddch (i, ' ');
+	gr_refresh ();
+}
+
 void gr_clear ()
 {
+	if (mode == TMODE)
+	{
+		gr_tclear ();
+		return;
+	}
 	int i;
 	for (i = 0; i < MAP_TILES; ++ i)
 		gr_baddch (i, ' ');
-	gr_refresh();
+	gr_refresh ();
 }
 
 int echoing = 1;
@@ -366,7 +456,7 @@ void gr_init ()
 	
 	atexit (SDL_Quit);
 	
-	screen = SDL_SetVideoMode (1280, 804, 32, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode (640, 480, 32, SDL_SWSURFACE);
 	if (screen == NULL)
 	{
 		fprintf (stderr, "Error initialising video mode: %s\n", SDL_GetError ());
@@ -379,9 +469,15 @@ void gr_init ()
 	void *tmp = SDL_CreateRGBSurface (SDL_SWSURFACE, GLW, GLH, 32, rmask, gmask, bmask, amask);
 	glyph_col = SDL_DisplayFormat (tmp);
 	SDL_FreeSurface (tmp);
+	SDL_SetColorKey (glyph_col, SDL_SRCCOLORKEY, SDL_MapRGB (glyph_col->format, 255, 255, 255));
 	
 	glnumy = screen->h / GLH;
 	glnumx = screen->w / GLW;
+	
+	gr_txt = malloc (sizeof(glyph) * glnumy * glnumx);
+	memset (gr_txt, 0, sizeof(glyph) * glnumy * glnumx);
+	txt_change = malloc (glnumy * glnumx);
+	memset (txt_change, 0, glnumy * glnumx);
 
 	/* Finish housekeeping */
 	SDL_EnableUNICODE (1);

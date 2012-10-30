@@ -1,4 +1,4 @@
-/* pack.c Linden Ralph */
+/* pack.c */
 
 #include "include/all.h"
 #include "include/pack.h"
@@ -44,7 +44,7 @@ int item_type_flags(struct Item *item, uint32_t accepted)
 		break;
 	}
 	panic("item_type_flags() found a strange item type.");
-	return -1;					/* Won't ever get here. */
+	return -1;
 }
 
 void show_contents(struct Pack pack, uint32_t accepted)

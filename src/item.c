@@ -11,6 +11,7 @@
    be able to carry 30000g before getting burdened, and weak would be just
    5000g or so */
 
+int NUM_ITEMS;
 #define ITEM(nm,ch,tp,wt,attr,col) {nm,ch,tp,wt,attr,col}
 #define DMG(a,b) (((a)<<4)+(b))
 
@@ -25,19 +26,20 @@ struct item_struct items[] = {
 	ITEM("short sword",    ITEM_WEAPON, IT_SHORTSWORD, 2000,  DMG(1, 4),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)                 ),
 	ITEM("gloves",         ITEM_ARMOUR, IT_GLOVES,     70,    0,          COL_TXT_GREEN(11)                                     ),
 	ITEM("gold",           ITEM_DOSH,   IT_MONEY,      1,     0,          COL_TXT_RED(11)   | COL_TXT_GREEN(11) | COL_TXT_BRIGHT),
-	ITEM("Water charm",    ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(11)                                      ),
-	ITEM("Air charm",      ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_GREEN(11) | COL_TXT_BRIGHT                    ),
-	ITEM("Fire charm",     ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_RED(11)   | COL_TXT_BRIGHT                    ),
-	ITEM("Volt charm",     ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(11)  | COL_TXT_RED(11)   | COL_TXT_BRIGHT),
-	ITEM("Ice charm",      ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(11)  | COL_TXT_BRIGHT                    ),
-	ITEM("Earth charm",    ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_GREEN(11) | COL_TXT_RED(11)                   ),
-	ITEM("",               0,           0,             0,     0,          0)
+	ITEM("water charm",    ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(11)                                      ),
+	ITEM("air charm",      ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_GREEN(11) | COL_TXT_BRIGHT                    ),
+	ITEM("fire charm",     ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_RED(11)   | COL_TXT_BRIGHT                    ),
+	ITEM("volt charm",     ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(11)  | COL_TXT_RED(11)   | COL_TXT_BRIGHT),
+	ITEM("ice charm",      ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(11)  | COL_TXT_BRIGHT                    ),
+	ITEM("earth charm",    ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_GREEN(11) | COL_TXT_RED(11)                   ),
+	ITEM("jewel",          ITEM_JEWEL,  IT_JEWEL,      100,   0,          COL_TXT_BRIGHT                                        ),
+	ITEM("",               0,           0,             0,     0,          0                                                     )
 	/* item name             display         type     weight  attributes           colour */
 };
 
 char *get_item_desc(struct Item item)
 {
-	char *ret = malloc(sizeof(char) * 80);
+	char *ret = malloc(80);
 	if (item.name != NULL && item.name[0] != '\0')
 	{
 		pline("NULULULULUL");
@@ -45,8 +47,7 @@ char *get_item_desc(struct Item item)
 	else
 	{
 		// const char *str = itoa((item.attr&ITEM_PLUS(3)>>3))
-		sprintf(ret, "%s%s%s%d %s%s", ((item.attr & ITEM_KBUC) ? ((item.attr & ITEM_BLES) ? "blessed " : (item.attr & ITEM_CURS) ? "cursed " : "uncursed ") : ""),	/* BUC 
-																																									 */
+		sprintf(ret, "%s%s%s%d %s%s", ((item.attr & ITEM_KBUC) ? ((item.attr & ITEM_BLES) ? "blessed " : (item.attr & ITEM_CURS) ? "cursed " : "uncursed ") : ""), /* BUC */
 				/* greasedness */
 				((item.attr & ITEM_GREASED) ? "greased " : ""),
 				/* enchantment value */
@@ -103,6 +104,7 @@ void item_piles(struct List *piles, struct List *items)
 			if (stackable(j->data, i->data))
 				break;
 		}
+
 		if (iter_good(j))		/* break'd */
 		{
 			increase_pile(j->data, 1);
@@ -115,6 +117,10 @@ void item_piles(struct List *piles, struct List *items)
 			ip->num = 1;
 		}
 	}
+}
+
+void spell_simulator ()
+{
 }
 
 void what_am_I_wearing(struct Monster *self)

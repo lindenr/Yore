@@ -1,4 +1,4 @@
-/* rank.c Linden Ralph */
+/* rank.c */
 
 #include "include/all.h"
 #include "include/rank.h"

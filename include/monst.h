@@ -3,6 +3,7 @@
 
 #include "include/graphics.h"
 #include "include/pack.h"
+#include "include/magic.h"
 
 #define A_PARAM 3				/* AdB damage, of type C */
 #define A_NUM   6				/* number of normal attacks per monster (like NH) */
@@ -41,6 +42,8 @@ enum S_HUN
 #define HN_LIMIT_5 2000
 extern char *s_hun[];
 
+#define BELT_JEWELS 5
+
 /* For U.playing: */
 #define PLAYER_STARTING (-1)
 #define PLAYER_PLAYING  0
@@ -62,6 +65,7 @@ struct player_status
 	int32_t luck;
 	uint64_t m_glflags;
 	int magic;
+	enum JEWEL_TYPE jewel[BELT_JEWELS];
 } extern U;
 
 enum ABLTY /* ability */
