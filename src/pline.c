@@ -164,11 +164,13 @@ void mlines (int num_lines, ...)
 {
 	va_list args;
 	struct List list = LIST_INIT;
+	int num = num_lines;
 
 	va_start (args, num_lines);
 
-	while (num_lines--)
+	do
 		push_back (&list, va_arg (args, char *));
+	while (--num);
 
 	va_end (args);
 
@@ -176,7 +178,7 @@ void mlines (int num_lines, ...)
 	list_free (&list);
 }
 
-void mlines_list(struct List list, int num_lines)
+void mlines_list (struct List list, int num_lines)
 {
 	struct list_iter *i;
 	int l_no;
@@ -188,6 +190,7 @@ void mlines_list(struct List list, int num_lines)
 		aline (list.beg->data, true);
 	else
 	{
+		gr_mode (TMODE);
 		gr_clear ();
 		for (l_no = 0, i = list.beg; iter_good(i); ++l_no, next_iter(&i))
 		{
@@ -199,13 +202,12 @@ void mlines_list(struct List list, int num_lines)
 				l_no = -1;
 			}
 		}
-		gr_move (glnumy - 1, 0);
-		fprintf (stdout, "--END--");
+		gr_mvprintc (glnumy - 1, 0, "--END--");
 		gr_move (glnumy - 1, 7);
+		gr_refresh ();
 	}
 	gr_getch ();
-	gr_move (glnumy - 1, 0);
-	fprintf (stdout, "       ");
+	gr_mode (GMODE);
 }
 
 void mask_list (struct List *ret, struct List things)

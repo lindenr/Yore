@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <time.h>
 
 #define XSTRINGIFY(x) STRINGIFY(x)
 #define STRINGIFY(x) #x
@@ -301,15 +302,30 @@ void gr_clear ()
 	gr_refresh ();
 }
 
+int tout_num = 0;
+void gr_tout (int t)
+{
+	tout_num = t;
+}
+
 int echoing = 1;
 
 char gr_getch ()
 {
 	SDL_Event event;
+	clock_t end = 0;
+	if (tout_num)
+		end = tout_num * CLOCKS_PER_SEC / 1000 + clock();
 	
 	while (1)
 	{
-		SDL_WaitEvent (&event);
+		if (end && clock() >= end) break;
+		if (!SDL_PollEvent (&event))
+		{
+			wait_ms (20);
+			continue;
+		}
+
 		switch (event.type)
 		{
 			case SDL_KEYDOWN:
@@ -350,8 +366,7 @@ char gr_getch ()
 				break;
 		}
 	}
-	panic ("gr_getch()");
-	return 0;
+	return EOF;
 }
 
 void gr_getstr (char *out)

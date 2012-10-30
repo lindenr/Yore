@@ -61,6 +61,7 @@ void gr_frefresh();
 void gr_mvforce (int, int);
 
 void gr_clear   ();
+void gr_tclear  ();
 void gr_mode    (int);
 
 /* Input */
@@ -69,6 +70,8 @@ void gr_getstr  (char *);
 
 void gr_echo    ();
 void gr_noecho  ();
+
+void gr_tout    (int);
 
 /* Misc */
 int  to_buffer  (int, int);

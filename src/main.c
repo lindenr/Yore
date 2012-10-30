@@ -52,45 +52,49 @@ void draw_box_fill(uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs, uint32_t 
 			gr_mvaddch(yl + y, xl + x, fill);
 	draw_box(yl, xl, ys, xs);
 }
-/*
+
 bool game_intro()
 {
-	int c;
-	//screenshot();
-	draw_box(5, 15, 9, 50);
-	gr_mvprintc(7, 17, "Back in the days of Yore, in a land far removed");
-	gr_mvprintc(8, 17, "from our current understanding of the universe,");
-	gr_mvprintc(9, 18,  "when magic flowed throughout the air as water");
-	gr_mvprintc(10, 18, "flowed through the sea, and the Gods lived in");
-	gr_mvprintc(11, 19,  "harmony with the people; it was a time when");
-	gr_mvprintc(12, 21,    "anything and everything was possible...");
-	refresh();
-	noecho();
-	in_tout(666);
+	int c, by, bx, bh = 9, bw = 50;
+	by = (glnumy - bh - 10)/2;
+	bx = (glnumx - bw)/2;
+	gr_clear ();
+	draw_box (by, bx, bh, bw);
+	gr_mvprintc (by+2, bx+2, "Back in the days of Yore, in a land far removed");
+	gr_mvprintc (by+3, bx+2, "from our current understanding of the universe,");
+	gr_mvprintc (by+4, bx+3,  "when magic flowed throughout the air as water");
+	gr_mvprintc (by+5, bx+3,  "flowed through the sea, and the Gods lived in");
+	gr_mvprintc (by+6, bx+4,   "harmony with the people; it was a time when");
+	gr_mvprintc (by+7, bx+6,     "anything and everything was possible...");
+	gr_refresh ();
+	gr_noecho ();
+	gr_tout (666);
 	while (1)
 	{
-		gr_mvprintc(16, 25, "[hit the spacebar to continue]");
+		gr_mvprintc (by+11, (glnumx - 30)/2, "[hit the spacebar to continue]");
+		gr_refresh ();
 		do
-			c = getch();
+			c = gr_getch();
 		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
 		if (c == ' ')
 			break;
 		if (c == 'q' || c == 'Q')
 			return false;
-		gr_mvprintc(16, 25, "                              ");
+		gr_mvprintc (by+11, (glnumx - 30)/2, "                              ");
+		gr_refresh ();
 		do
-			c = getch();
+			c = gr_getch();
 		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
 		if (c == ' ')
 			break;
 		if (c == 'q' || c == 'Q')
 			return false;
 	}
-	in_tout(0);
-	echo();
-	unscreenshot();
+	gr_tout (0);
+	gr_echo ();
+	gr_clear ();
 	return true;
-}*/ // TODO graphically
+}
 
 int main (int argc, char *argv[])
 {
@@ -104,11 +108,11 @@ int main (int argc, char *argv[])
 	setup_U();
 	atexit (all_things_free);
 
-	//if (!game_intro())
-	//	goto quit_game;
+	if (!game_intro())
+		goto quit_game;
 	
 	//init_map();
-	//panel(10);
+	//mlines (3, "asdf", "qwer", "zxcv");
 	print_intro();
 	mons_gen(0, 0);
 
