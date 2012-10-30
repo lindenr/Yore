@@ -46,7 +46,6 @@ void main_loop()
 			/* U.player == PLAYER_LOSTGAME if this happens */
 			if (!mons_take_move(mon))
 				return;
-			update_stats();
 		}
 		gr_move(pl->yloc, pl->xloc);
 		if (pl_mon->HP <= 0)
@@ -56,7 +55,7 @@ void main_loop()
 		}
 
 		/* The player can live with no dexterity and/or charisma, but there
-		   are other penalties (fumbling, aggravation etc). */
+		 * are other penalties (fumbling, aggravation etc). */
 		if (U.attr[AB_ST] <= 0)
 			msg = "weakness";
 		if (U.attr[AB_CO] <= 0)
@@ -80,4 +79,5 @@ void main_loop()
 			return;
 		}
 	}
+	update_stats();
 }

@@ -29,4 +29,13 @@ Could do it like NH - have a set list of descriptions of jewels ('red', 'black',
 
 ##Graphics
 
-Why is it so laggy!? Halp.
+I think the reason it's laggy is because update_stats is called once per move *per monster*.
+So, at the beginning everything is fast; as monsters are generated (which you can't even see) they slow you down.
+Evidence: as I was playing every few turns my movements seemed to slow down slightly.
+gr_refresh, I suspect, has basically no impact on speed.
+
+I'm not sure how to fix this though; some optimisation in visualise_map is certainly called for.
+Maybe check each time all_things is modified if it will affect the screen; then only those squares which have changed need to be gone through in visualise_map.
+Alternatively if anything visible has changed call visualise_map normally, otherwise don't call it at all.
+Easier, simpler and probably just as quick. Monsters moving out of sight won't impact on speed.
+Even cruder: only call update_stats at the end of each turn. I think I'll do that, for now. In fact, it works excellently. Yay :)
