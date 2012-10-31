@@ -421,26 +421,24 @@ int mons_take_move (struct Monster *self)
 			screenshotted = true;
 			struct List Li = LIST_INIT;
 			struct Thing *t_;
-			ITER_THINGS(li, num)
+			ITER_THING(li, to_buffer (th->yloc, th->xloc))
 			{
 				t_ = li->data;
 				if (t_->type != THING_ITEM)
 					continue;
-				if (t_->xloc == th->xloc && t_->yloc == th->yloc)
-				{
-					push_back(&Li, t_);
-				}
+				push_back(&Li, t_);
 			}
-			if (Li.beg == Li.end)	/* One element in list - pick up
-									   immediately. */
+
+			if (Li.beg == Li.end) 
 			{
-				pack_add(&self->pack,
-						 ((struct Thing *)(Li.beg->data))->thing);
+				/* One element in list - pick up immediately. */
+				pack_add(&self->pack, ((struct Thing *)(Li.beg->data))->thing);
 				rem_by_data(((struct Thing *)(Li.beg->data))->thing);
 				free(Li.beg);
 			}
-			else			/* Multiple items - ask which to pick up. */
+			else
 			{
+				/* Multiple items - ask which to pick up. */
 				screenshotted = true;
 				struct List ret_list = LIST_INIT;
 
@@ -456,11 +454,9 @@ int mons_take_move (struct Monster *self)
 				free(li->prev);
 
 				/* Put items in ret_list into inventory. The loop
-				   continues until ret_list is done or the pack is full. */
+				 * continues until ret_list is done or the pack is full. */
 				for (li = ret_list.beg;
-					 iter_good(li)
-					 && pack_add(&self->pack,
-								 ((struct Thing *)li->data)->thing);
+					 iter_good(li) && pack_add(&self->pack, ((struct Thing *)li->data)->thing);
 					 next_iter(&li))
 				{
 					/* Remove selected items from main play */
@@ -510,19 +506,14 @@ int mons_take_move (struct Monster *self)
 			screenshot();
 			screenshotted = true;
 			int k = 0;
-			ITER_THINGS(n, num)
+			ITER_THING(n, to_buffer (th->yloc, th->xloc))
 			{
 				struct Thing *t_ = n->data;
 				if (t_->type != THING_ITEM)
 					continue;
-				if (t_->xloc == th->xloc && t_->yloc == th->yloc)
-				{
-					char *line =
-						get_inv_line(((struct Thing *)(n->data))->thing);
-					pline("You%s see here %s. ", ((k++) ? " also" : ""),
-						  line);
-					free(line);
-				}
+				char *line = get_inv_line(((struct Thing *)(n->data))->thing);
+				pline("You%s see here %s. ", ((k++) ? " also" : ""), line);
+				free(line);
 			}
 			if (k == 0)
 				pline("You see nothing here. ");
@@ -553,7 +544,7 @@ int mons_take_move (struct Monster *self)
 			screenshot();
 			screenshotted = true;
 			pline("Unknown command '%s%c'. ",
-				  (escape(in) == in ? "" : "^"), escape(in));
+			      (escape(in) == in ? "" : "^"), escape(in));
 		}
 	}
 	return true;

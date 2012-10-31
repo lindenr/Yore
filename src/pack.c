@@ -28,20 +28,22 @@ int item_type_flags(struct Item *item, uint32_t accepted)
 {
 	switch (item->type->ch)
 	{
-	case ITEM_WEAPON:
-		return (accepted & ITCAT_WEAPON);
-	case ITEM_TOOL:
-		return (accepted & ITCAT_TOOL);
-	case ITEM_STRANGE:
-		return (accepted & ITCAT_STRANGE);
-	case ITEM_ARMOUR:
-		return (accepted & ITCAT_ARMOUR);
-	case ITEM_FOOD:
-		return (accepted & ITCAT_FOOD);
-	case ITEM_DOSH:
-		return (accepted & ITCAT_DOSH);
-	default:
-		break;
+		case ITEM_WEAPON:
+			return (accepted & ITCAT_WEAPON);
+		case ITEM_TOOL:
+			return (accepted & ITCAT_TOOL);
+		case ITEM_STRANGE:
+			return (accepted & ITCAT_STRANGE);
+		case ITEM_ARMOUR:
+			return (accepted & ITCAT_ARMOUR);
+		case ITEM_FOOD:
+			return (accepted & ITCAT_FOOD);
+		case ITEM_DOSH:
+			return (accepted & ITCAT_DOSH);
+		case ITEM_CHARM:
+			return (accepted & ITCAT_CHARM);
+		case ITEM_JEWEL:
+			return (accepted & ITCAT_JEWEL);
 	}
 	panic("item_type_flags() found a strange item type.");
 	return -1;

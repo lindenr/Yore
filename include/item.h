@@ -49,6 +49,8 @@ enum ITEM_TYPE
 #define ITCAT_FOOD    0x0008
 #define ITCAT_TOOL    0x0010
 #define ITCAT_STRANGE 0x0020
+#define ITCAT_CHARM   0x0040
+#define ITCAT_JEWEL   0x0080
 
 #define ITCAT_ALL     (-1)
 

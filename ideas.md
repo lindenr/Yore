@@ -39,3 +39,14 @@ Maybe check each time all_things is modified if it will affect the screen; then 
 Alternatively if anything visible has changed call visualise_map normally, otherwise don't call it at all.
 Easier, simpler and probably just as quick. Monsters moving out of sight won't impact on speed.
 Even cruder: only call update_stats at the end of each turn. I think I'll do that, for now. In fact, it works excellently. Yay :)
+
+##That niche bug
+
+There was this bug (fixed as of this commit) where when an item was picked up from a niche (a space where there should be wall) Yore crashed the next turn.
+I fixed it by putting a lit space in the same square as a niche -- so when you picked up something there was something there still, not just "empty space".
+The funny thing was, when I put the lit space *after* the item in the list, Yore still crashed. Reordering the things in the list changed its behaviour. How weird is that?
+So I figure:
+
+ * there is a bug in list_rem, or
+ * there is a bug in ITER_THING[S], or
+ * everything is totally messed up. :(

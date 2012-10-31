@@ -110,8 +110,7 @@ int main (int argc, char *argv[])
 
 	if (!game_intro())
 		goto quit_game;
-	
-	//init_map();
+
 	//mlines (3, "asdf", "qwer", "zxcv");
 	print_intro();
 	mons_gen(0, 0);

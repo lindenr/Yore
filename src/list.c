@@ -36,7 +36,8 @@ struct list_iter *next_iter (struct list_iter **li)
 bool iter_equal (struct list_iter li1, struct list_iter li2)
 {
 	return ((li1.data == li2.data) &&
-			(li1.prev == li2.prev) && (li1.next == li2.next));
+	        (li1.prev == li2.prev) &&
+	        (li1.next == li2.next));
 }
 
 void push_back (struct List *list, void *data)

@@ -179,10 +179,11 @@ void generate_map (enum LEVEL_TYPE type)
 		{
 			do
 			{
-				y = RN(MAP_HEIGHT);
-				x = RN(MAP_WIDTH);
+				y = RN (MAP_HEIGHT);
+				x = RN (MAP_WIDTH);
 			}
-			while (!is_safe_gen(y, x));
+			while (!is_safe_gen (y, x));
+			ADD_MAP (DOT, to_buffer (y, x));
 			new_thing (THING_ITEM, y, x, gen_item ());
 		}
 

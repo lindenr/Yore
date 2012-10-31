@@ -258,8 +258,10 @@ void rem_by_data(void *data)
 		if (t->thing == data)
 			break;
 	}
+
+	/* failed? */
 	if (!iter_good(i))
-		return;					/* fail */
+		return;
 
 	list_rem(&all_things[num], i);
 	free(i);
