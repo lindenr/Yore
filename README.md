@@ -4,7 +4,7 @@ Yore is an under-developement roguelike game.
 
 ##Build instructions
 
-Yore can run on any machine which is supported by SDL. The include files for SDL are provided (except for the 300kb opengl header) so you only need the runtime binaries.
+Yore can run on any machine which is supported by SDL. It expects the header files in "SDL/*".
 
 ####To build for Linux:
 
