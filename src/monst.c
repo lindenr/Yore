@@ -475,16 +475,14 @@ int mons_take_move (struct Monster *self)
 		}
 		else if (in == 'e')
 		{
-			struct Item *It =
-				player_use_pack(th, "Eat what?", &screenshotted, ITCAT_FOOD);
+			struct Item *It = player_use_pack(th, "Eat what?", &screenshotted, ITCAT_FOOD);
 			if (It == NULL)
 				continue;
 			mons_eat(self, It);
 		}
 		else if (in == 'd')
 		{
-			struct Item *It =
-				player_use_pack(th, "Drop what?", &screenshotted, ITCAT_ALL);
+			struct Item *It = player_use_pack(th, "Drop what?", &screenshotted, ITCAT_ALL);
 			if (It == NULL)
 				continue;
 			unsigned u = PACK_AT(get_Itref(self->pack, It));
@@ -520,24 +518,14 @@ int mons_take_move (struct Monster *self)
 		}
 		else if (in == 'w')
 		{
-		  retry:
-			line_reset();
-			pline("Wield what?");
-			in = gr_getch();
-			if (in == ' ')
-			{
-				line_reset();
-				pline("Never mind.");
+			struct Item *It = player_use_pack(th, "Wield what?", &screenshotted, ITCAT_ALL);
+			if (It == NULL)
 				continue;
-			}
-			struct Item *it = get_Itemc(self->pack, in);
-			if (it == NULL)
-			{
-				pline("No such item.");
-				goto retry;
-			}
+			unsigned u = PACK_AT(get_Itref(self->pack, It));
+			self->pack.items[u] = NULL;
+			new_thing(THING_ITEM, th->yloc, th->xloc, It);
 			if (mons_unwield(self))
-				mons_wield(self, it);
+				mons_wield(self, It);
 		}
 		else
 		{
