@@ -1,7 +1,6 @@
 /* graphics.c */
 /* Map size: 100 glyphs down, 300 across */
 
-#include "include/SDL/SDL_image.h"
 #include "include/graphics.h"
 
 #include <stdio.h>

@@ -1,8 +1,9 @@
 #ifndef GRAPHICS_H_INCLUDED
 #define GRAPHICS_H_INCLUDED
 
-#include "include/SDL/SDL.h"
+#include "SDL/SDL.h"
 #include "include/all.h"
+#include <stdint.h>
 
 /* Structure of a glyph:
  * A glyph is 32 bits wide. From highest to lowest there is:
@@ -16,14 +17,9 @@
  * COL_BG_BLUE     0 - F  (4 bits)
  * character data  0 - FF (8 bits)
  **********************************/
-typedef Uint32 glyph;
-#ifdef __WIN32__
-#  ifdef main
-#    undef main
-#  endif
-#  include <stdint.h>
-#else
-  typedef long long unsigned uint64_t;
+typedef uint32_t glyph;
+#ifdef main
+#  undef main
 #endif
 
 #define GMODE 0
