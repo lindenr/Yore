@@ -280,6 +280,10 @@ struct Thing *new_thing(uint32_t type, uint32_t y, uint32_t x, void *actual_thin
 void visualise_map()
 {
 	uint32_t type[MAP_TILES] = {0,};
+
+	if (gr_nearedge (get_player()->yloc, get_player()->xloc))
+		gr_centcam (get_player()->yloc, get_player()->xloc);
+
 	ITER_THINGS(i, at)
 	{
 		struct Thing *T = i->data;

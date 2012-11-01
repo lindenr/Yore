@@ -69,6 +69,11 @@ void gr_movecam (int yloc, int xloc)
 	gr_frefresh ();
 }
 
+void gr_centcam (int yloc, int xloc)
+{
+	gr_movecam (yloc - glnumy/2, xloc - glnumx/2);
+}
+
 void gr_baddch (int buf, glyph gl)
 {
 	glyph *map;
@@ -514,3 +519,11 @@ void wait_ms (unsigned ms)
 	usleep (ms);
 }
 #endif
+
+#define GR_NEAR 5
+int gr_nearedge (int yloc, int xloc)
+{
+	yloc -= cam_yloc; xloc -= cam_xloc;
+	return (yloc <= GR_NEAR || yloc >= (glnumy-GR_NEAR) ||
+	        xloc <= GR_NEAR || xloc >= (glnumx-GR_NEAR));
+}

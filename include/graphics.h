@@ -42,6 +42,7 @@ void gr_init    (void);
 /* Output */
 void gr_move    (int, int);
 void gr_movecam (int, int);
+void gr_centcam (int, int);
 
 void gr_addch   (glyph);
 void gr_mvaddch (int, int, glyph);
@@ -71,6 +72,7 @@ void gr_tout    (int);
 
 /* Misc */
 int  to_buffer  (int, int);
+int  gr_nearedge(int, int);
 void wait_ms    (unsigned);
 
 /* Unusual characters */
