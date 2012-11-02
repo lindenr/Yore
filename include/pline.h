@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "include/bool.h"
-#include "include/list.h"
+#include "include/vector.h"
 
 #define LINE_OF_SPACES " \
                                                                                \
@@ -22,7 +22,7 @@ void pmsg          (void);
 bool pline_check   (void);
 void pline_get_his (void);
 void mlines        (int, ...);
-void mlines_list   (struct List, int);
-void mask_list     (struct List *, struct List);
+void mlines_vec    (Vector);
+void mask_vec      (Vector, Vector);
 
 #endif /* PLINE_H_INCLUDED */

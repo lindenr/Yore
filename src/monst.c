@@ -370,7 +370,7 @@ int mons_take_move (struct Monster *self)
 			line_reset();
 		if (in == 'Q')
 		{
-			if (!quit())
+			//if (!quit())
 			{
 				U.playing = PLAYER_LOSTGAME;
 				return false;
@@ -379,7 +379,7 @@ int mons_take_move (struct Monster *self)
 		}
 		if (in == 'S')
 		{
-			if (!save(get_filename()))
+			//if (!save(get_filename()))
 			{
 				U.playing = PLAYER_SAVEGAME;
 				return false;
@@ -419,48 +419,42 @@ int mons_take_move (struct Monster *self)
 		{
 			screenshot();
 			screenshotted = true;
-			struct List Li = LIST_INIT;
+			Vector ground = v_init (20);
 			struct Thing *t_;
-			ITER_THING(li, to_buffer (th->yloc, th->xloc))
+			int n = to_buffer (th->yloc, th->xloc);
+			LOOP_THING(n, i)
 			{
-				t_ = li->data;
-				if (t_->type != THING_ITEM)
-					continue;
-				push_back(&Li, t_);
+				t_ = THING(n, i);
+				if (t_->type == THING_ITEM)
+					v_push (ground, t_);
 			}
 
-			if (Li.beg == Li.end) 
+			if (ground->len == 1) 
 			{
-				/* One element in list - pick up immediately. */
-				pack_add(&self->pack, ((struct Thing *)(Li.beg->data))->thing);
-				rem_by_data(((struct Thing *)(Li.beg->data))->thing);
-				free(Li.beg);
+				/* One item on ground -- pick up immediately. */
+				pack_add (&self->pack, v_thing (ground, 0));
+				rem_loc (n, i);
+				v_free (ground);
 			}
 			else
 			{
 				/* Multiple items - ask which to pick up. */
 				screenshotted = true;
-				struct List ret_list = LIST_INIT;
+				Vector pickup = v_init (20);
 
 				/* Ask which */
-				mask_list(&ret_list, Li);
+				mask_vec (pickup, ground);
 
-				/* Empty Li */
-				for (li = Li.beg; iter_good(li); next_iter(&li))
-				{
-					if (li != Li.beg)
-						free(li->prev);
-				}
-				free(li->prev);
+				v_free (ground);
 
 				/* Put items in ret_list into inventory. The loop
 				 * continues until ret_list is done or the pack is full. */
-				for (li = ret_list.beg;
-					 iter_good(li) && pack_add(&self->pack, ((struct Thing *)li->data)->thing);
-					 next_iter(&li))
+				for (i = 0;
+					 i < pickup->len && pack_add (&self->pack, v_thing (pickup, i));
+					 ++ i)
 				{
 					/* Remove selected items from main play */
-					rem_by_data(((struct Thing *)li->data)->thing);
+					rem_by_data (v_thing (pickup, i));
 				}
 			}
 		}
@@ -504,12 +498,13 @@ int mons_take_move (struct Monster *self)
 			screenshot();
 			screenshotted = true;
 			int k = 0;
-			ITER_THING(n, to_buffer (th->yloc, th->xloc))
+			int n = to_buffer (th->yloc, th->xloc);
+			LOOP_THING(n, i)
 			{
-				struct Thing *t_ = n->data;
+				struct Thing *t_ = THING(n, i);
 				if (t_->type != THING_ITEM)
 					continue;
-				char *line = get_inv_line(((struct Thing *)(n->data))->thing);
+				char *line = get_inv_line(((struct Thing *)THING(n, i))->thing);
 				pline("You%s see here %s. ", ((k++) ? " also" : ""), line);
 				free(line);
 			}
@@ -538,7 +533,7 @@ int mons_take_move (struct Monster *self)
 	return true;
 }
 
-void mons_dead(struct Monster *from, struct Monster *to)
+void mons_dead (struct Monster *from, struct Monster *to)
 {
 	if (IS_PLAYER(to))
 	{
@@ -554,26 +549,25 @@ void mons_dead(struct Monster *from, struct Monster *to)
 		from->exp += mons[to->type].exp;
 		update_level(from);
 	}
-	struct item_struct *c = find_corpse(to);
-	struct list_iter *i = get_iter(to);
-	struct Thing *t = i->data;
-	struct Item *it = malloc(sizeof(struct Item));
+	struct item_struct *c = find_corpse (to);
+	struct Thing *t = get_thing (to);
+	struct Item *it = malloc (sizeof(struct Item));
 	it->type = c;
 	it->attr = 0;
 	it->name = NULL;
 	it->cur_weight = 0;
-	new_thing(THING_ITEM, t->yloc, t->xloc, it);
-	rem_by_data(to);
-	thing_free(t);
+	new_thing (THING_ITEM, t->yloc, t->xloc, it);
+	rem_by_data (to);
+	thing_free (t);
 }
 
 /* TODO is it polymorphed? */
-inline bool mons_edible(struct Monster *self, struct Item *item)
+inline bool mons_edible (struct Monster *self, struct Item *item)
 {
 	return (item->type->ch == ITEM_FOOD);
 }
 
-bool mons_eating(struct Monster * self)
+bool mons_eating (struct Monster * self)
 {
 	int hunger_loss;
 	struct Item *item = self->eating;
@@ -602,7 +596,7 @@ bool mons_eating(struct Monster * self)
 	return true;
 }
 
-void mons_eat(struct Monster *self, struct Item *item)
+void mons_eat (struct Monster *self, struct Item *item)
 {
 	if (!mons_edible(self, item))
 	{
@@ -622,14 +616,14 @@ void mons_eat(struct Monster *self, struct Item *item)
 		item->cur_weight = item->type->wt;
 }
 
-inline struct Item **mons_get_weap(struct Monster *self)
+inline struct Item **mons_get_weap (struct Monster *self)
 {
 	return &self->wearing.rweap;
 }
 
-bool mons_unwield(struct Monster * self)
+bool mons_unwield (struct Monster * self)
 {
-	struct Item **pweap = mons_get_weap(self);
+	struct Item **pweap = mons_get_weap (self);
 	struct Item *weap = *pweap;
 	if (weap == NULL)
 		return true;
@@ -638,7 +632,7 @@ bool mons_unwield(struct Monster * self)
 		if (IS_PLAYER(self))
 		{
 			line_reset();
-			pline("You can't. It's cursed.");
+			pline ("You can't. It's cursed.");
 		}
 		return false;
 	}
@@ -647,45 +641,45 @@ bool mons_unwield(struct Monster * self)
 	return true;
 }
 
-bool mons_wield(struct Monster * self, struct Item * it)
+bool mons_wield (struct Monster * self, struct Item * it)
 {
 	self->wearing.rweap = it;
 	it->attr ^= ITEM_WIELDED;
 	if (IS_PLAYER(self))
 	{
-		line_reset();
-		item_look(it);
+		line_reset ();
+		item_look (it);
 	}
 	return true;
 }
 
-bool mons_wear(struct Monster * self, struct Item * it)
+bool mons_wear (struct Monster * self, struct Item * it)
 {
 	if (it->type->ch != ITEM_ARMOUR)
 	{
 		if (IS_PLAYER(self))
 		{
-			line_reset();
-			pline("You can't wear that!");
+			line_reset ();
+			pline ("You can't wear that!");
 		}
 		return false;
 	}
 	switch (it->type->type)
 	{
-	case IT_GLOVES:
+		case IT_GLOVES:
 		{
 			self->wearing.hands = it;
 			break;
 		}
-	default:
+		default:
 		{
-			panic("Armour not recognised");
+			panic ("Armour not recognised");
 		}
 	}
 	return true;
 }
 
-void mons_passive_attack(struct Monster *self, struct Monster *to)
+void mons_passive_attack (struct Monster *self, struct Monster *to)
 {
 	uint32_t t;
 	char *posv;
@@ -696,12 +690,12 @@ void mons_passive_attack(struct Monster *self, struct Monster *to)
 		return;
 	switch (mons[self->type].attacks[t][2] >> 16)
 	{
-	case ATYP_ACID:
+		case ATYP_ACID:
 		{
 			posv = malloc(strlen(mons[self->type].name) + 5);
 			gram_pos(posv, (char *)mons[self->type].name);
 			if (IS_PLAYER(self))
-				pline("You splash the %s with your acid!",
+				pline("You splash the %s with acid!",
 					  mons[to->type].name);
 			else if (IS_PLAYER(to))
 				pline("You are splashed by the %s acid!", posv);
@@ -709,14 +703,14 @@ void mons_passive_attack(struct Monster *self, struct Monster *to)
 	}
 }
 
-int mons_get_st(struct Monster *self)
+int mons_get_st (struct Monster *self)
 {
 	if (IS_PLAYER(self))
 		return U.attr[AB_ST];
 	return 1;
 }
 
-inline void apply_attack(struct Monster *from, struct Monster *to)
+inline void apply_attack (struct Monster *from, struct Monster *to)
 {
 	int t, strength;
 

@@ -76,20 +76,13 @@ struct Item
 	char *name;
 };
 
-/* a pile of several items */
-struct Item_Pile
-{
-	struct Item *item;
-	int num;
-};
-
 extern struct item_struct items[];
 extern int NUM_ITEMS;
 
-void item_piles(struct List *, struct List *);
+void item_piles     (Vector, Vector);
 
-char *get_item_desc(struct Item);
-void item_look(struct Item *);
-char *get_inv_line(struct Item *);
+char *get_item_desc (struct Item);
+void item_look      (struct Item *);
+char *get_inv_line  (struct Item *);
 
 #endif /* ITEM_H_INCLUDED */

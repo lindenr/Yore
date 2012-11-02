@@ -8,6 +8,7 @@
 #include "include/map.h"
 #include "include/magic.h"
 #include "include/graphics.h"
+#include "include/vector.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -69,7 +70,7 @@ bool check_area (int y, int x, int ys, int xs)
 		while (j)
 		{
 			i = to_buffer (y+j, x+k);
-			if (!list_isempty (all_things[i])) return false;
+			if (all_things[i]->len != 0) return false;
 			-- j;
 		}
 		-- k;
@@ -105,9 +106,9 @@ void add_another_room ()
 
     do
         i = RN(MAP_TILES);
-    while (list_isempty (all_things[i]));
+    while (all_things[i]->len == 0);
 
-    if (list_isempty (all_things[i+1]))
+    if (all_things[i+1]->len == 0)
     {
         int x = (i+1)%MAP_WIDTH, y = (i+1)/MAP_WIDTH;
         if (attempt_room (y - 2 - RN(3), x + 1, 6 + RN(3), 6))
@@ -116,7 +117,7 @@ void add_another_room ()
             ADD_MAP(DOT, i+2);
         }
     }
-    else if (list_isempty (all_things[i-1]))
+    else if (all_things[i-1]->len == 0)
     {
         int x = (i-1)%MAP_WIDTH, y = (i-1)/MAP_WIDTH;
         if (attempt_room (y - 2 - RN(3), x - 8, 6 + RN(3), 6))
@@ -125,7 +126,7 @@ void add_another_room ()
             ADD_MAP(DOT, i-2);
         }
     }
-    else if (list_isempty (all_things[i-MAP_WIDTH]))
+    else if (all_things[i-MAP_WIDTH]->len == 0)
     {
         int x = (i-MAP_WIDTH)%MAP_WIDTH, y = (i-MAP_WIDTH)/MAP_WIDTH;
         if (attempt_room (y - 8, x - 3 - RN(5), 6, 8 + RN(5)))
@@ -134,7 +135,7 @@ void add_another_room ()
             ADD_MAP(DOT, i-MAP_WIDTH*2);
         }
     }
-    else if (list_isempty (all_things[i+MAP_WIDTH]))
+    else if (all_things[i+MAP_WIDTH]->len == 0)
     {
         int x = (i+MAP_WIDTH)%MAP_WIDTH, y = (i+MAP_WIDTH)/MAP_WIDTH;
         if (attempt_room (y + 1, x - 3 - RN(5), 6, 8 + RN(5)))
@@ -195,7 +196,7 @@ void generate_map (enum LEVEL_TYPE type)
 
 		/* fill the rest up with walls */
 		for (i = 0; i < MAP_TILES; ++i)
-			if (list_isempty (all_things[i]))
+			if (all_things[i]->len == 0)
                 ADD_MAP ('W', i);
 	}
 	else if (type == LEVEL_MAZE)
@@ -209,12 +210,13 @@ bool is_safe_gen (uint32_t yloc, uint32_t xloc)
 {
 	struct Thing *T;
 	struct map_item_struct *m;
-	ITER_THINGS(i, num)
+	int n = to_buffer(yloc, xloc);
+	LOOP_THING(n, i)
 	{
-		T = i->data;
-		if (T->type == THING_MONS && T->yloc == yloc && T->xloc == xloc)
+		T = THING(n, i);
+		if (T->type == THING_MONS)
 			return false;
-		if (T->type == THING_DGN && T->yloc == yloc && T->xloc == xloc)
+		if (T->type == THING_DGN)
 		{
 			m = T->thing;
 			if (!m->attr & 1)
@@ -239,22 +241,19 @@ uint32_t mons_gen (int type, int32_t param)
 	{
 		int i;
 		for (i = 0; i < MAP_TILES; ++ i)
-		{
-			all_things[i].beg = &list_beg;
-			all_things[i].end = &list_end;
-		}
+			all_things[i] = v_dinit ();
+
 		start = param;
 		upsy = start / MAP_WIDTH;
 		upsx = start % MAP_WIDTH;
-		struct Monster asdf =
-			{ MTYP_HUMAN, 1, 0, 20, 20, 0, 0, {{0},}, {0,}, 0, 0 };
-		Pl = malloc(sizeof(asdf));
-		memcpy(Pl, &asdf, sizeof(asdf));
+		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0, 0, {{0},}, {0,}, 0, 0};
+		Pl = malloc (sizeof(asdf));
+		memcpy (Pl, &asdf, sizeof(asdf));
 
 		real_player_name = malloc(85);
 		Pl->name = real_player_name;
 		strcpy (Pl->name, "_");
-		U.player = new_thing(THING_MONS, upsy, upsx, Pl);
+		U.player = new_thing (THING_MONS, upsy, upsx, Pl);
 	}
 	else if (type == 1)
 	{
@@ -279,17 +278,17 @@ uint32_t mons_gen (int type, int32_t param)
 			return 0;
 
 		struct Monster *p = malloc(sizeof(*p));
-		memclr(p, sizeof(*p));
-		p->type = player_gen_type();
+		memclr (p, sizeof(*p));
+		p->type = player_gen_type ();
 		p->HP = (mons[p->type].flags >> 28) + (mons[p->type].exp >> 1);
 		p->HP += RN(p->HP / 3);
 		p->HP_max = p->HP;
 		p->name = NULL;
 		uint32_t xloc = RN(MAP_WIDTH), yloc = RN(MAP_HEIGHT);
 		if (is_safe_gen(yloc, xloc))
-			new_thing(THING_MONS, yloc, xloc, p);
+			new_thing (THING_MONS, yloc, xloc, p);
 		else
-			free(p);
+			free (p);
 	}
 	return 0;
 }

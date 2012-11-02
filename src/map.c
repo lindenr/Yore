@@ -13,11 +13,12 @@
 /* remember -- ONLY ONE MONSTER PER SQUARE */
 struct Monster *get_square_monst (uint32_t yloc, uint32_t xloc, int level)
 {
-	ITER_THING(i, to_buffer(yloc, xloc))
+	int n = to_buffer(yloc, xloc);
+	LOOP_THING(n, i)
 	{
-		struct Thing *th = i->data;
+		struct Thing *th = THING(n, i);
 		if (th->type == THING_MONS)
-			return (((struct Thing *)i->data)->thing);
+			return (th->thing);
 	}
 	/* no monster */
 	return NULL;
@@ -30,9 +31,10 @@ uint32_t get_square_attr (uint32_t yloc, uint32_t xloc, int level)
 	if (yloc >= MAP_HEIGHT || xloc >= MAP_WIDTH)
 		return -1;
 
-	ITER_THING(i, to_buffer(yloc, xloc))
+	int n = to_buffer(yloc, xloc);
+	LOOP_THING(n, i)
 	{
-		struct Thing *th = i->data;
+		struct Thing *th = THING(n, i);
 		if (th->type == THING_MONS)
 		{
 			mvbl = 2;		/* attack */
@@ -49,7 +51,7 @@ uint32_t get_square_attr (uint32_t yloc, uint32_t xloc, int level)
 	return mvbl;
 }
 
-uint32_t can_move_to(uint32_t attr)
+uint32_t can_move_to (uint32_t attr)
 {
 	if (attr == (uint32_t) - 1)
 		return (uint32_t) - 1;

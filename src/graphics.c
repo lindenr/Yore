@@ -373,23 +373,12 @@ char gr_getch ()
 	return EOF;
 }
 
-void gr_getstr (char *out)
+void gr_getstr (char *out, int len)
 {
 	int i = 0;
 	do
 	{
 		char in = gr_getch ();
-		if (in == 0) /* Modifier (eg shift) */
-		{
-			if (curs_xloc == 0)
-			{
-				curs_xloc = MAP_WIDTH-1;
-				-- curs_yloc;
-			}
-			else
-				-- curs_xloc;
-			continue;
-		}
 		if (in == CH_LF || in == CH_CR) break;
 		if (in == CH_BS)
 		{
@@ -415,6 +404,17 @@ void gr_getstr (char *out)
 			out[i] = 0;
 			gr_addch(' ');
 			gr_refresh();
+			continue;
+		}
+		if (in == 0 || i >= len) /* Modifier (eg shift) */
+		{
+			if (curs_xloc == 0)
+			{
+				curs_xloc = MAP_WIDTH-1;
+				-- curs_yloc;
+			}
+			else
+				-- curs_xloc;
 			continue;
 		}
 		out[i] = in;

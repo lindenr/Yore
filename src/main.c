@@ -16,6 +16,7 @@
 #include "include/graphics.h"
 #include "include/save.h"
 #include "include/magic.h"
+#include "include/vector.h"
 
 void print_intro()
 {
@@ -101,22 +102,22 @@ int main (int argc, char *argv[])
 	int i;
 	uint32_t rseed;
 
-	gr_init();
+	gr_init ();
 
-	rseed = RNG_get_seed();
-	RNG_main = RNG_INIT(rseed);
-	setup_U();
+	rseed = RNG_get_seed ();
+	RNG_main = RNG_INIT (rseed);
+	setup_U ();
 	atexit (all_things_free);
 
 	if (!game_intro())
 		goto quit_game;
 
 	//mlines (3, "asdf", "qwer", "zxcv");
-	print_intro();
-	mons_gen(0, 0);
+	print_intro ();
+	mons_gen (0, 0);
 
-	gr_mvprintc(8, 6, "Who are you? ");
-	gr_refresh();
+	gr_mvprintc (8, 6, "Who are you? ");
+	gr_refresh ();
 
 	for (i = 0, *(real_player_name + 1) = '\0';
 		 i < 10 && *(real_player_name + 1) == '\0';
@@ -126,7 +127,7 @@ int main (int argc, char *argv[])
 			gr_mvprintc(10, 6, "Please type in your name.");
 		gr_refresh();
 		gr_move(8, 19);
-		gr_getstr(real_player_name + 1);
+		gr_getstr(real_player_name + 1, 83);
 	}
 
 	if (*(real_player_name + 1) == '\0')

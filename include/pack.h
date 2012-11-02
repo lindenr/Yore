@@ -2,6 +2,7 @@
 #define PACK_H_INCLUDED
 
 #include "include/item.h"
+#include "include/bool.h"
 #include "include/graphics.h"
 
 #define MAX_ITEMS_IN_PACK 52
@@ -21,13 +22,13 @@ struct Bag
 	struct Item *items[MAX_ITEMS_IN_BAG];
 };
 
-void pack_get_letters(struct Pack, char *);
-struct Item *pack_rem(struct Pack *, char);
-bool pack_add(struct Pack *, struct Item *);
-unsigned PACK_AT(char);
-void show_contents(struct Pack, uint32_t);
-struct Item *get_Item(struct Pack, unsigned);
-struct Item *get_Itemc(struct Pack, char);
-char get_Itref(struct Pack, struct Item *);
+void pack_get_letters   (struct Pack, char *);
+struct Item *pack_rem   (struct Pack *, char);
+bool pack_add           (struct Pack *, struct Item *);
+unsigned PACK_AT        (char);
+void show_contents      (struct Pack, uint32_t);
+struct Item *get_Item   (struct Pack, unsigned);
+struct Item *get_Itemc  (struct Pack, char);
+char get_Itref          (struct Pack, struct Item *);
 
 #endif /* PACK_H_INCLUDED */

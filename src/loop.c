@@ -9,6 +9,7 @@
 #include "include/output.h"
 #include "include/generate.h"
 #include "include/graphics.h"
+#include "include/vector.h"
 
 uint64_t Time = 1;
 
@@ -29,15 +30,14 @@ void main_loop()
 	struct Monster *pl_mon = pl->thing, *mon;
 	next_time ();
 	mons_gen (2, U.luck);
-	
-	struct List mons_so_far = LIST_INIT;
-	ITER_THINGS(i, n)
+	Vector mons_so_far = v_init (20);
+	LOOP_THINGS(n, i)
 	{
-		th = i->data;
-		if (th->type != THING_MONS || list_contains (&mons_so_far, th))
+		th = THING(n, i);
+		if (th->type != THING_MONS || v_isin (mons_so_far, th))
 			continue;
 
-		push_back (&mons_so_far, th);
+		v_push (mons_so_far, th);
 		mon = th->thing;
 		mon->cur_speed += mons[mon->type].speed;
 		while (mon->cur_speed >= 12)
@@ -79,5 +79,6 @@ void main_loop()
 			return;
 		}
 	}
+	v_free (mons_so_far);
 	update_stats();
 }

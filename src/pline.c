@@ -160,44 +160,42 @@ bool pline_check ()
 	return ret;
 }
 
-void mlines (int num_lines, ...)
+void mlines (int num, ...)
 {
 	va_list args;
-	struct List list = LIST_INIT;
-	int num = num_lines;
+	Vector lines = v_init (num + 1);
 
-	va_start (args, num_lines);
+	va_start (args, num);
 
 	do
-		push_back (&list, va_arg (args, char *));
+		v_push (lines, va_arg (args, char *));
 	while (--num);
 
 	va_end (args);
 
-	mlines_list (list, num_lines);
-	list_free (&list);
+	mlines_vec (lines);
+	v_free (lines);
 }
 
-void mlines_list (struct List list, int num_lines)
+void mlines_vec (Vector lines)
 {
-	struct list_iter *i;
+	int i;
 	int l_no;
 
-	screenshot();
-	if (num_lines <= 0)
+	if (lines->len <= 0)
 		return;
-	else if (num_lines == 1)
-		aline (list.beg->data, true);
+	else if (lines->len == 1)
+		aline (lines->data[0], true);
 	else
 	{
 		gr_mode (TMODE);
 		gr_clear ();
-		for (l_no = 0, i = list.beg; iter_good(i); ++l_no, next_iter(&i))
+		for (l_no = 0, i = 0; i < lines->len; ++l_no, ++ i)
 		{
-			gr_mvprintc (l_no, 0, "%s", i->data);
+			gr_mvprintc (l_no, 0, "%s", lines->data[i]);
 			if (l_no == glnumy - 2)
 			{
-				gr_mvprintc (l_no + 1, 0, "--more--");
+				gr_mvprintc (glnumy - 1, 0, "--more--");
 				gr_getch ();
 				l_no = -1;
 			}
@@ -210,26 +208,19 @@ void mlines_list (struct List list, int num_lines)
 	gr_mode (GMODE);
 }
 
-void mask_list (struct List *ret, struct List things)
+void mask_vec (Vector ret, Vector things)
 {
-	struct List piles = LIST_INIT;
+	Vector piles = v_init (things->len + 1);
 
 	/* Divide up into piles */
-	item_piles (&piles, &things);
+	item_piles (piles, things);
 
 	/* TODO ask the player; delete loop */
-	struct list_iter *li;
-	for (li = things.beg; iter_good(li); next_iter(&li))
+	int i;
+	for (i = 0; i < piles->len; ++ i)
 	{
-		push_back(ret, li->data);
+		v_push (ret, piles->data[i]);
 	}
 
-	/* Empty piles */
-	for (li = piles.beg; iter_good(li); next_iter(&li))
-	{
-		free(li->data);
-		if (li != piles.beg)
-			free(li->prev);
-	}
-	free (li->prev);
+	v_free (piles);
 }

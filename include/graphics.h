@@ -63,7 +63,7 @@ void gr_mode    (int);
 
 /* Input */
 char gr_getch   ();
-void gr_getstr  (char *);
+void gr_getstr  (char *, int);
 
 void gr_echo    ();
 void gr_noecho  ();

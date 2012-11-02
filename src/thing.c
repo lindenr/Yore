@@ -1,6 +1,5 @@
 /* thing.c */
 
-#include <assert.h>
 #include "include/all.h"
 #include "include/thing.h"
 #include "include/item.h"
@@ -11,7 +10,10 @@
 #include "include/output.h"
 #include "include/graphics.h"
 
-struct List all_things[MAP_HEIGHT*MAP_WIDTH];
+#include <assert.h>
+#include <malloc.h>
+
+Vector all_things[MAP_HEIGHT*MAP_WIDTH];
 
 /* At any given point: 0 if we can't see past that square (e.g. wall); 1 if we 
    can remember it (e.g. sword); and 2 if we can't remember its position (e.g. 
@@ -78,14 +80,8 @@ uint32_t WALL_TYPE (uint32_t y, uint32_t u,
         uint32_t h, uint32_t j, uint32_t k, uint32_t l,
 					uint32_t b, uint32_t n)
 {
-	int H = !(h == DOT),
-		J = !(j == DOT),
-		K = !(k == DOT),
-        L = !(l == DOT),
-        Y = !(y == DOT),
-        U = !(u == DOT),
-        B = !(b == DOT),
-        N = !(n == DOT);
+	int H = !(h == DOT), J = !(j == DOT), K = !(k == DOT), L = !(l == DOT),
+        Y = !(y == DOT), U = !(u == DOT), B = !(b == DOT), N = !(n == DOT);
 	return ACS_ARRAY[wall_output[(((((((((((((Y<<1)+H)<<1)+B)<<1)+J)<<1)+N)<<1)+L)<<1)+U)<<1)+K]];
 }
 
@@ -195,29 +191,20 @@ void thing_bmove (struct Thing *thing, int num)
 
 void thing_move (struct Thing *thing, int new_y, int new_x)
 {
-	int num = to_buffer(thing->yloc, thing->xloc);
-	ITER_THING(li, num)
+	int n = to_buffer(thing->yloc, thing->xloc);
+	LOOP_THING(n, i)
 	{
-		if (li->data == thing)
+		if (thing == THING(n, i))
 			break;
 	}
-	if (!iter_good(li)) return; /* Couldn't find thing in list */
-	list_rem (&all_things[num], li);
+	/* Couldn't find thing in list */
+	if (n >= MAP_TILES)
+		return;
+	v_rem (all_things[n], i);
 	thing->yloc = new_y;
 	thing->xloc = new_x;
-	num = to_buffer(thing->yloc, thing->xloc);
-	push_back (&all_things[num], thing);
-}
-
-inline struct list_iter *get_iter(void *data)
-{
-	ITER_THINGS(i, num)
-	{
-		struct Thing *t = i->data;
-		if (t->thing == data)
-			return i;
-	}
-	return NULL;
+	n = to_buffer(thing->yloc, thing->xloc);
+	v_push (all_things[n], thing);
 }
 
 void thing_free(struct Thing *thing)
@@ -250,29 +237,27 @@ void thing_free(struct Thing *thing)
 	free(thing);
 }
 
-void rem_by_data(void *data)
+void rem_by_data (void *data)
 {
-	ITER_THINGS(i, num)
+	LOOP_THINGS(n, i)
 	{
-		struct Thing *t = i->data;
+		struct Thing *t = THING(n, i);
 		if (t->thing == data)
 			break;
 	}
-
-	/* failed? */
-	if (!iter_good(i))
+	/* Couldn't find thing in list */
+	if (n >= MAP_TILES)
 		return;
 
-	list_rem(&all_things[num], i);
-	free(i);
+	v_rem (all_things[n], i);
 }
 
-struct Thing *new_thing(uint32_t type, uint32_t y, uint32_t x, void *actual_thing)
+struct Thing *new_thing (uint32_t type, uint32_t y, uint32_t x, void *actual_thing)
 {
-	struct Thing t = { type, y, x, actual_thing };
-	struct Thing *thing = malloc(sizeof(struct Thing));
-	memcpy(thing, &t, sizeof(struct Thing));
-	push_back(&all_things[to_buffer(y, x)], thing);
+	struct Thing t = {type, y, x, actual_thing};
+	struct Thing *thing = malloc (sizeof(struct Thing));
+	memcpy (thing, &t, sizeof(struct Thing));
+	v_push (all_things[to_buffer(y, x)], thing);
 	return thing;
 }
 
@@ -284,9 +269,9 @@ void visualise_map()
 	if (gr_nearedge (get_player()->yloc, get_player()->xloc))
 		gr_centcam (get_player()->yloc, get_player()->xloc);
 
-	ITER_THINGS(i, at)
+	LOOP_THINGS(at, i)
 	{
-		struct Thing *T = i->data;
+		struct Thing *T = THING(at, i);
 		struct Thing th = *T;
 		bool changed = false;
 		switch (th.type)
@@ -342,12 +327,12 @@ void visualise_map()
 	gr_refresh();
 }
 
-struct Thing *get_thing(void *data)
+struct Thing *get_thing (void *data)
 {
-	ITER_THINGS(i, num)
+	LOOP_THINGS(n, i)
 	{
-		if (((struct Thing *)(i->data))->thing == data)
-			return i->data;
+		if (THING(n, i)->thing == data)
+			return THING(n, i);
 	}
 	/* CRASH! */
 	return NULL;
@@ -355,6 +340,6 @@ struct Thing *get_thing(void *data)
 
 void all_things_free()
 {
-	ITER_THINGS(i, num)
-		thing_free(i->data);
+	LOOP_THINGS(n, i)
+		thing_free (THING(n, i));
 }

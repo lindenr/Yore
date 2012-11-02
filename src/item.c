@@ -5,7 +5,10 @@
 #include "include/grammar.h"
 #include "include/monst.h"
 #include "include/pline.h"
+#include "include/vector.h"
+
 #include <stdio.h>
+#include <malloc.h>
 
 /* Item weight should roughly be in grams - so a stong person (St >= 18) would 
    be able to carry 30000g before getting burdened, and weak would be just
@@ -37,7 +40,7 @@ struct item_struct items[] = {
 	/* item name             display         type     weight  attributes           colour */
 };
 
-char *get_item_desc(struct Item item)
+char *get_item_desc (struct Item item)
 {
 	char *ret = malloc(80);
 	if (item.name != NULL && item.name[0] != '\0')
@@ -65,56 +68,50 @@ char *get_item_desc(struct Item item)
 	return ret;
 }
 
-void item_look(struct Item *item)
+void item_look (struct Item *item)
 {
-	pline("%s", get_inv_line(item));
+	pline ("%s", get_inv_line(item));
 }
 
-char *get_inv_line(struct Item *item)
+char *get_inv_line (struct Item *item)
 {
 	struct Monster *m = (get_player()->thing);
 	char ch = get_Itref(m->pack, item);
-	char *ret = malloc(sizeof(char) * 80), *orig = get_item_desc(*item);
+	char *ret = malloc (sizeof(char) * 80), *orig = get_item_desc(*item);
 	if (!ch)
-		sprintf(ret, "%s", orig);
+		sprintf (ret, "%s", orig);
 	else
-		sprintf(ret, "%c - %s", ch, orig);
-	free(orig);
+		sprintf (ret, "%c - %s", ch, orig);
+	free (orig);
 	return ret;
 }
 
-bool stackable(struct Item_Pile * ip, struct Item * i)
+bool stackable (Vector pile, struct Item *it)
 {
-	return memcmp(ip->item, i, sizeof(struct Item)) == 0;
+	struct Item *pitem = pile->data[0];
+	return (memcmp (pitem->type, it->type, sizeof(struct item_struct)) == 0);
 }
 
-void increase_pile(struct Item_Pile *ip, int num)
+void item_piles (Vector piles, Vector items)
 {
-	ip->num += num;
-}
-
-void item_piles(struct List *piles, struct List *items)
-{
-	struct list_iter *i;
-	for (i = items->beg; iter_good(i); next_iter(&i))
+	int i;
+	for (i = 0; i < items->len; ++ i)
 	{
-		struct list_iter *j;
-		for (j = piles->beg; iter_good(j); next_iter(&j))
+		int j;
+		for (j = 0; j < piles->len; ++ j)
 		{
-			if (stackable(j->data, i->data))
+			if (stackable (piles->data[j], piles->data[i]))
 				break;
 		}
 
-		if (iter_good(j))		/* break'd */
+		if (j < piles->len) /* break'd */
 		{
-			increase_pile(j->data, 1);
+			v_push (piles->data[j], piles->data[i]);
 		}
 		else
 		{
-			push_back(piles, malloc(sizeof(struct Item_Pile)));
-			struct Item_Pile *ip = piles->end->data;
-			ip->item = i->data;
-			ip->num = 1;
+			piles->data[j] = v_dinit ();
+			v_push (piles->data[j], piles->data[i]);
 		}
 	}
 }
@@ -123,7 +120,7 @@ void spell_simulator ()
 {
 }
 
-void what_am_I_wearing(struct Monster *self)
+void what_am_I_wearing (struct Monster *self)
 {
 	return;
 }

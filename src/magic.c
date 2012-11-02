@@ -5,6 +5,7 @@
 #include "include/monst.h"
 
 #include <stdio.h>
+#include <malloc.h>
 
 #define NUM_SPELLS ((sizeof(spells) / sizeof(*spells))-1)
 #define SPELL(c,t,p) {c,t,p}

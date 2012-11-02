@@ -6,6 +6,8 @@
 #include "include/util.h"
 #include "include/pline.h"
 
+#include <malloc.h>
+
 inline unsigned PACK_AT(char a)
 {
 	if (a < 65 || a > 122 || (a > 90 && a < 97))
@@ -51,19 +53,18 @@ int item_type_flags(struct Item *item, uint32_t accepted)
 
 void show_contents(struct Pack pack, uint32_t accepted)
 {
-	int i, k;
-	struct List list[1] = { LIST_INIT };
+	int i;
+	Vector inv = v_init (55);
 
-	push_back(list, "Inventory");
-	push_back(list, "");
-	for (i = 0, k = 0; i < 52; ++i)
+	v_push (inv, "Inventory");
+	v_push (inv, "");
+	for (i = 0; i < 52; ++i)
 	{
-		if (!(pack.items[i] && item_type_flags(pack.items[i], accepted)))
-			continue;
-		++k;
-		push_back(list, get_inv_line(pack.items[i]));
+		if (pack.items[i] && item_type_flags (pack.items[i], accepted))
+			v_push (inv, get_inv_line(pack.items[i]));
 	}
-	mlines_list(*list, k);
+	mlines_vec (inv);
+	v_free (inv);
 }
 
 void pack_get_letters(struct Pack pack, char *ret)

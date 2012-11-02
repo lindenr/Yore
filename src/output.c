@@ -14,9 +14,9 @@
 
 void check_weird ()
 {printf("w! ");
-	ITER_THINGS(li, num)
+	LOOP_THINGS(n, i)
 	{
-		struct Thing *th = li->data;
+		struct Thing *th = THING(n, i);
 		if (th->type > 6) printf("WEIRD\n");
 	}
 }
