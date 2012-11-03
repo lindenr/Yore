@@ -37,14 +37,14 @@ uint32_t get_square_attr (uint32_t yloc, uint32_t xloc, int level)
 		struct Thing *th = THING(n, i);
 		if (th->type == THING_MONS)
 		{
-			mvbl = 2;		/* attack */
+			mvbl = 2; /* attack */
 			break;
 		}
 		if (th->type == THING_DGN)
 		{
 			if ((((struct map_item_struct *)(th->thing))->attr & 1) == 0)
 			{
-				mvbl = 0;	/* unmoveable */
+				mvbl = 0; /* unmoveable */
 			}
 		}
 	}
@@ -62,7 +62,7 @@ uint32_t can_move_to (uint32_t attr)
 
 struct map_item_struct map_items[] = {
 	MAPITEM("lit space", ACS_BULLET, M_TSPT, 0),
-	MAPITEM("wall", 255, M_OPQ, 0),
+	MAPITEM("wall", ACS_WALL, M_OPQ, 0),
 	MAPITEM("downstair", '>', M_TSPT, 0),
 	MAPITEM("upstair", '<', M_TSPT, 0),
 	MAPITEM("tree", '+', M_OPQ, 0),

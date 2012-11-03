@@ -1,7 +1,7 @@
 #ifndef UTIL_H_INCLUDED
 #define UTIL_H_INCLUDED
 
-#include "include/bool.h"
+#include <stdbool.h>
 #include "include/monst.h"
 
 #define YORE_VERSION "0.0.5 pre-alpha"

@@ -54,8 +54,9 @@ int item_type_flags(struct Item *item, uint32_t accepted)
 void show_contents(struct Pack pack, uint32_t accepted)
 {
 	int i;
-	Vector inv = v_init (55);
+	Vector inv;
 
+	inv = v_init (sizeof(char *), 55);
 	v_push (inv, "Inventory");
 	v_push (inv, "");
 	for (i = 0; i < 52; ++i)
@@ -78,10 +79,7 @@ void pack_get_letters(struct Pack pack, char *ret)
 			++k;
 		}
 	}
-	ret[k + 0] = ' ';
-	ret[k + 1] = '?';
-	ret[k + 2] = '*';
-	ret[k + 3] = 0;
+	strcpy (ret + k, " ?*");
 }
 
 struct Item *pack_rem(struct Pack *pack, char it)

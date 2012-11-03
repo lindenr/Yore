@@ -30,14 +30,15 @@ void main_loop()
 	struct Monster *pl_mon = pl->thing, *mon;
 	next_time ();
 	mons_gen (2, U.luck);
-	Vector mons_so_far = v_init (20);
+	Vector mons_so_far;
+	v_init (mons_so_far, 20);
 	LOOP_THINGS(n, i)
 	{
 		th = THING(n, i);
-		if (th->type != THING_MONS || v_isin (mons_so_far, th))
+		if (th->type != THING_MONS || v_isin (mons_so_far, *th))
 			continue;
 
-		v_push (mons_so_far, th);
+		v_push (mons_so_far, *th);
 		mon = th->thing;
 		mon->cur_speed += mons[mon->type].speed;
 		while (mon->cur_speed >= 12)

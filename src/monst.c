@@ -5,7 +5,7 @@
 #include "include/pline.h"
 #include "include/rand.h"
 #include "include/util.h"
-#include "include/bool.h"
+#include <stdbool.h>
 #include "include/loop.h"
 #include "include/save.h"
 #include "include/vision.h"
@@ -419,14 +419,15 @@ int mons_take_move (struct Monster *self)
 		{
 			screenshot();
 			screenshotted = true;
-			Vector ground = v_init (20);
+			Vector ground;
 			struct Thing *t_;
 			int n = to_buffer (th->yloc, th->xloc);
+			v_init (ground, 20);
 			LOOP_THING(n, i)
 			{
 				t_ = THING(n, i);
 				if (t_->type == THING_ITEM)
-					v_push (ground, t_);
+					v_push (ground, *t_);
 			}
 
 			if (ground->len == 1) 
@@ -440,7 +441,8 @@ int mons_take_move (struct Monster *self)
 			{
 				/* Multiple items - ask which to pick up. */
 				screenshotted = true;
-				Vector pickup = v_init (20);
+				Vector pickup;
+				v_init (pickup, 20);
 
 				/* Ask which */
 				mask_vec (pickup, ground);
@@ -450,11 +452,11 @@ int mons_take_move (struct Monster *self)
 				/* Put items in ret_list into inventory. The loop
 				 * continues until ret_list is done or the pack is full. */
 				for (i = 0;
-					 i < pickup->len && pack_add (&self->pack, v_thing (pickup, i));
+					 i < pickup->len && pack_add (&self->pack, &pickup->data[i]);
 					 ++ i)
 				{
 					/* Remove selected items from main play */
-					rem_by_data (v_thing (pickup, i));
+					rem_by_data (&pickup->data[i]);
 				}
 			}
 		}
@@ -504,7 +506,7 @@ int mons_take_move (struct Monster *self)
 				struct Thing *t_ = THING(n, i);
 				if (t_->type != THING_ITEM)
 					continue;
-				char *line = get_inv_line(((struct Thing *)THING(n, i))->thing);
+				char *line = get_inv_line (v_thing (all_things[n], i));
 				pline("You%s see here %s. ", ((k++) ? " also" : ""), line);
 				free(line);
 			}

@@ -86,13 +86,13 @@ char *get_inv_line (struct Item *item)
 	return ret;
 }
 
-bool stackable (Vector pile, struct Item *it)
+bool stackable (Vector(struct Thing) pile, struct Thing *it)
 {
 	struct Item *pitem = pile->data[0];
 	return (memcmp (pitem->type, it->type, sizeof(struct item_struct)) == 0);
 }
 
-void item_piles (Vector piles, Vector items)
+void item_piles (Vector(Vector(struct Thing)) piles, Vector(struct Thing) items)
 {
 	int i;
 	for (i = 0; i < items->len; ++ i)
@@ -100,18 +100,18 @@ void item_piles (Vector piles, Vector items)
 		int j;
 		for (j = 0; j < piles->len; ++ j)
 		{
-			if (stackable (piles->data[j], piles->data[i]))
+			if (stackable (piles->data[j], items->data[i]))
 				break;
 		}
 
-		if (j < piles->len) /* break'd */
+		if (j < piles->len) /* stackable */
 		{
-			v_push (piles->data[j], piles->data[i]);
+			v_push (piles->data[j], items->data[i]);
 		}
 		else
 		{
 			piles->data[j] = v_dinit ();
-			v_push (piles->data[j], piles->data[i]);
+			v_push (piles->data[j], items->data[i]);
 		}
 	}
 }

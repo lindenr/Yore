@@ -1,65 +1,72 @@
 /* vector.c */
 
 #include "include/vector.h"
-#include <malloc.h>
 
-Vector v_dinit ()
+#include <malloc.h>
+#include <string.h>
+#include <stdio.h>
+
+#define V_DEFAULT_LENGTH 2
+Vector v_dinit (int siz)
 {
-	return calloc (sizeof(struct vector_), 1);
+	return vector_init (siz, V_DEFAULT_LENGTH);
 }
 
-Vector v_init (int mlen)
+Vector v_init (int siz, int mlen)
 {
-	Vector vec = malloc (sizeof(struct vector_));
-	vec->data = malloc (sizeof(void *) * mlen);
-	vec->mlen = mlen;
+	Vector vec = malloc (sizeof(*Vector));
+	vec->data = malloc (siz * mlen);
+	vec->siz = siz;
 	vec->len = 0;
+	vec->mlen = mlen;
 	return vec;
 }
 
-#define V_DEFAULT_LENGTH 2
 #define V_NEXT_LENGTH(cur) (cur*2)
+#define DATA(i)            (vec->data + ((i)*(vec->siz)))
 void v_push (Vector vec, void *data)
 {
+	if (vec->data == NULL)
+		panic("NULL vector");
 	if (vec->len < vec->mlen)
 	{
-		vec->data[vec->len] = data;
+		memcpy (DATA(vec->len), data, vec->siz);
 		++ vec->len;
 		return;
 	}
-	if (vec->data == NULL)
-	{
-		vec->data = malloc (sizeof(void*) * V_DEFAULT_LENGTH);
-		vec->mlen = V_DEFAULT_LENGTH;
-		vec->len = 1;
-		vec->data[0] = data;
-		return;
-	}
 	vec->mlen = V_NEXT_LENGTH(vec->mlen);
-	vec->data = realloc (vec->data, vec->mlen * sizeof(void*));
-	vec->data[vec->len] = data;
+	vec->data = realloc (vec->data, vec->mlen * vec->siz);
+	memcpy (DATA(vec->len), data, vec->siz);
 	++ vec->len;
 }
 
-void v_rem (Vector vec, int rem)
+void vector_rem (Vector vec, int rem)
 {
-	if (rem >= vec->len) return;
 	int i;
+	if (rem >= vec->len) return;
+
 	for (i = rem; i < vec->len; ++ i)
-		vec->data[i] = vec->data[i+1];
+		memcpy (DATA(i), DATA(i+1), vec->siz);
 	-- vec->len;
 }
 
-void v_free (Vector vec)
+void v_free ()
 {
 	free (vec->data);
 	free (vec);
 }
 
-bool v_isin (Vector vec, void *data)
+void v_print (Vector vec)
+{
+	printf("%p %d %d %d\n", vec->data, vec->siz, vec->len, vec->mlen);
+	for (i = 0; i < vec->len; ++ i) printf("%d, ", *(int*)DATA(i));
+	printf("\n");
+}
+
+bool vector_isin (Vector vec, void *data)
 {
 	int i;
 	for (i = 0; i < vec->len; ++ i)
-		if (vec->data[i] == data) return true;
+		if (memcmp (DATA(i), data, vec->siz) == 0) return true;
 	return false;
 }

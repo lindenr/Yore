@@ -2,7 +2,7 @@
 #define PACK_H_INCLUDED
 
 #include "include/item.h"
-#include "include/bool.h"
+#include <stdbool.h>
 #include "include/graphics.h"
 
 #define MAX_ITEMS_IN_PACK 52

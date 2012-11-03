@@ -7,6 +7,8 @@
 #define M_OPQ  0
 #define M_TSPT 1
 
+#define ACS_WALL 255
+
 struct map_item_struct
 {
 	char name[20];

@@ -13,7 +13,7 @@
 #include <assert.h>
 #include <malloc.h>
 
-Vector all_things[MAP_HEIGHT*MAP_WIDTH];
+Vector(struct Thing) all_things[MAP_HEIGHT*MAP_WIDTH];
 
 /* At any given point: 0 if we can't see past that square (e.g. wall); 1 if we 
    can remember it (e.g. sword); and 2 if we can't remember its position (e.g. 
@@ -113,7 +113,7 @@ void walls_test()
 	}
 }
 
-#define US(w) (sq_seen[w]?(sq_attr[w]?DOT:255):255)
+#define US(w) (sq_seen[w]?(sq_attr[w]?DOT:ACS_WALL):ACS_WALL)
 
 inline void set_can_see(uint32_t * unseen)
 {
@@ -257,7 +257,7 @@ struct Thing *new_thing (uint32_t type, uint32_t y, uint32_t x, void *actual_thi
 	struct Thing t = {type, y, x, actual_thing};
 	struct Thing *thing = malloc (sizeof(struct Thing));
 	memcpy (thing, &t, sizeof(struct Thing));
-	v_push (all_things[to_buffer(y, x)], thing);
+	v_push (all_things[to_buffer(y, x)], *thing);
 	return thing;
 }
 

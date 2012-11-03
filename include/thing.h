@@ -14,7 +14,7 @@
  * outer one will as well. */
 #define LOOP_THING(n,i)  int i = 0x79999999;                                                                for (i = 0; i < all_things[n]->len; ++ i)
 #define LOOP_THINGS(n,i) int i = 0x79999999, n; for (n = 0; n < MAP_TILES && i >= all_things[n]->len; ++ n) for (i = 0; i < all_things[n]->len; ++ i)
-#define THING(n,i) ((struct Thing*)(all_things[n]->data[i]))
+#define THING(n,i) ((struct Thing*)&(all_things[n]->data[i]))
 
 #define rem_loc(n,i) v_rem (all_things[n], i)
 
@@ -52,7 +52,7 @@ struct Thing *get_thing    (void *);
 void thing_move            (struct Thing *, int, int);
 void thing_bmove           (struct Thing *, int);
 
-extern Vector all_things[];
+extern Vector(struct Thing) all_things[];
 extern uint8_t sq_seen[MAP_TILES];
 
 #endif /* THING_H_INCLUDED */

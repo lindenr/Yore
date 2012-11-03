@@ -147,6 +147,12 @@ int main (int argc, char *argv[])
 	gr_mode (GMODE);
 	
 	generate_map (LEVEL_NORMAL);
+	LOOP_THINGS(where, which)
+	{
+		struct Thing *th = THING(where, which);
+		printf ("%p: %d   %dx%d   %p\n", th, th->type, th->yloc, th->xloc, th->thing);
+	}
+	printf("END--\n");
 	gr_clear ();
 	pline_check ();
 

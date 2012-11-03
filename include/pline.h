@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "include/bool.h"
+#include <stdbool.h>
 #include "include/vector.h"
 
 #define LINE_OF_SPACES " \

@@ -197,7 +197,7 @@ void generate_map (enum LEVEL_TYPE type)
 		/* fill the rest up with walls */
 		for (i = 0; i < MAP_TILES; ++i)
 			if (all_things[i]->len == 0)
-                ADD_MAP ('W', i);
+                ADD_MAP (ACS_WALL, i);
 	}
 	else if (type == LEVEL_MAZE)
 	{
@@ -241,7 +241,7 @@ uint32_t mons_gen (int type, int32_t param)
 	{
 		int i;
 		for (i = 0; i < MAP_TILES; ++ i)
-			all_things[i] = v_dinit ();
+			v_dinit (all_things[i]);
 
 		start = param;
 		upsy = start / MAP_WIDTH;

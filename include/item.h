@@ -79,7 +79,7 @@ struct Item
 extern struct item_struct items[];
 extern int NUM_ITEMS;
 
-void item_piles     (Vector, Vector);
+void item_piles     (Vector(Vector(struct Thing)), Vector(struct Thing));
 
 char *get_item_desc (struct Item);
 void item_look      (struct Item *);

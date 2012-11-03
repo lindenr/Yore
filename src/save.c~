@@ -5,7 +5,7 @@
 #include "include/pline.h"
 #include "include/monst.h"
 #include "include/loop.h"
-#include "include/list.h"
+#include "include/vector.h"
 #include "include/thing.h"
 #include "include/pack.h"
 #include "include/util.h"
@@ -71,7 +71,7 @@ void save_item(struct Item *item)
 /* The three main things needing saving are: the List all_things, the uint64_t Time, and
  * the player_struct U. There is also the list of things you have seen.
  * This function saves in the following order: Time; U; all_things; sq_attr. */
-bool save(char *filename)
+bool save (char *filename)
 {
 	int i;
 	if (pask("yn", "Save and quit?") == 'y')
@@ -94,9 +94,9 @@ bool save(char *filename)
 		SAVE_NATIVE(U.magic);
 		
 		/* all_things */
-		ITER_THINGS(li, num)
+		LOOP_THINGS(n, i)
 		{
-			struct Thing *th = li->data;
+			struct Thing *th = THING(n, i);
 			int enum_saver = (int)(th->type);
 			assert(enum_saver);
 			SAVE_NATIVE(enum_saver);

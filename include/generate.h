@@ -2,7 +2,7 @@
 #define GENERATE_H_INCLUDED
 
 #include "include/graphics.h"
-#include "include/bool.h"
+#include <stdbool.h>
 
 enum LEVEL_TYPE
 {

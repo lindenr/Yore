@@ -2,7 +2,7 @@
 #define MAGIC_H_INCLUDED
 
 #include "include/all.h"
-#include "include/bool.h"
+#include <stdbool.h>
 #include "include/graphics.h"
 
 #define SP_FIRE  (0x00000001 | COL_TXT_RED(15))

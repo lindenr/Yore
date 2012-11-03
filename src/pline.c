@@ -163,8 +163,9 @@ bool pline_check ()
 void mlines (int num, ...)
 {
 	va_list args;
-	Vector lines = v_init (num + 1);
+	SVector lines;
 
+	v_init (lines, num + 1);
 	va_start (args, num);
 
 	do
@@ -177,7 +178,7 @@ void mlines (int num, ...)
 	v_free (lines);
 }
 
-void mlines_vec (Vector lines)
+void mlines_vec (SVector lines)
 {
 	int i;
 	int l_no;
@@ -208,9 +209,9 @@ void mlines_vec (Vector lines)
 	gr_mode (GMODE);
 }
 
-void mask_vec (Vector ret, Vector things)
+void mask_vec (Vector(struct Thing) ret, Vector(struct Thing) things)
 {
-	Vector piles = v_init (things->len + 1);
+	Vector(Vector(struct Thing)) piles = v_init (things->len + 1);
 
 	/* Divide up into piles */
 	item_piles (piles, things);
