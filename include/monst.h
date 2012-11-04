@@ -4,12 +4,12 @@
 #include "include/graphics.h"
 #include "include/pack.h"
 #include "include/magic.h"
+#include "include/map.h"
 
 #define A_PARAM 3				/* AdB damage, of type C */
 #define A_NUM   6				/* number of normal attacks per monster (like NH) */
 // extern const int CORPSE_WEIGHTS[7];
 
-#define IS_PLAYER(m) ((m)->name && (m)->name[0]=='_')
 #define get_filename() "Yore-savegame.sav"
 
 #define WOW_INIT 0
@@ -132,36 +132,37 @@ struct Monster
 };
 
 /* general monster functions */
-void mons_attack(struct Monster *, int, int);	/* attack in direction */
-int mons_move(struct Monster *, int, int);	/* move in given directions */
-void mons_dead(struct Monster *, struct Monster *);	/* this monster is dead */
-int mons_take_move(struct Monster *);	/* give a move (AI or player) */
-bool mons_unwield(struct Monster *);	/* unwield what is currently wielded */
-bool mons_wield(struct Monster *, struct Item *);	/* wield an item (any item) */
-void mons_eat(struct Monster *, struct Item *);	/* eat something */
-bool mons_eating(struct Monster *);	/* continue eating something */
-bool mons_can_hear(struct Monster *);	/* has ears? no? */
-struct Item **mons_get_weap(struct Monster *);	/* what weapon is wielded? */
+void   mons_attack     (struct Thing *, int, int);         /* attack in direction                      */
+int    mons_move       (struct Thing *, int, int);         /* move in given directions                 */
+void   mons_dead       (struct Thing *, struct Thing *);   /* this monster is dead                     */
+int    mons_take_move  (struct Thing *);                   /* give a move (AI or player)               */
+bool   mons_unwield    (struct Thing *);                   /* unwield what is currently wielded        */
+bool   mons_wield      (struct Thing *, struct Item *);    /* wield an item (any item)                 */
+void   mons_eat        (struct Thing *, struct Item *);    /* eat something                            */
+bool   mons_eating     (struct Thing *);                   /* continue eating something                */
+bool   mons_can_hear   (struct Thing *);                   /* has ears? no?                            */
+void  *mons_get_weap   (struct Thing *);                   /* what weapon is wielded?                  */
 
 /* player functions */
-uint32_t player_gen_type(void);                     /* get a valid monster type for fighting */
-void player_dead(const char *, ...);                /* the player is dead; absolute end of game */
-void player_exc(enum ABLTY, uint32_t);              /* exercise a given ablty by a given amount */
-bool player_magic(char);                            /* cast a spell */
-struct item_struct *find_corpse(struct Monster *);  /* gets a corpse type for a given monster */
-void custom_free(void);                             /* frees custom types (now only corpses) */
+int    player_gen_type (void);                             /* get a valid monster type for fighting    */
+void   player_dead     (const char *, ...);                /* the player is dead; absolute end of game */
+void   player_exc      (enum ABLTY, uint32_t);             /* exercise a given ablty by a given amount */
+bool   player_magic    (char);                             /* cast a spell                             */
+ityp   find_corpse     (struct Thing *);                   /* gets a corpse type for a given monster   */
+void   custom_free     (void);                             /* frees custom types (now only corpses)    */
 
 /* player_status functions */
-char *get_hungerstr(void);		/* gets player's hunger ("Starved" etc) */
-bool digesting(void);			/* is the player digesting? */
-void setup_U(void);				/* populate the U struct */
-void get_cinfo(void);			/* called at start, gets input from player */
+char  *get_hungerstr   (void);                             /* gets player's hunger ("Starved" etc)     */
+bool   digesting       (void);                             /* is the player digesting?                 */
+void   setup_U         (void);                             /* populate the U struct                    */
+void   get_cinfo       (void);                             /* called at start, gets input from player  */
 
-void apply_attack(struct Monster *, struct Monster *);
-struct Monster *get_square_monst(uint32_t, uint32_t, int);
-uint32_t get_square_attr(uint32_t, uint32_t, int);
-uint32_t can_move_to(uint32_t);
+void   do_attack       (struct Thing *, struct Thing *);   /* applies an attack                        */
+void  *get_sqmons      (uint32_t, uint32_t, int);          /* returns the monster on a square          */
+SqAttr get_sqattr      (uint32_t, uint32_t, int);          /* returns the SqAttr of a square           */
+int    can_amove       (int);                              /* returns if a square can be moved on to   */
 
-int AI_Attack(int, int, int, int, struct Monster *);
+/* AI functions */
+int    AI_Attack       (struct Thing *, int, int);         /* moves a monster towards the player       */
 
 #endif /* MONST_H_INCLUDED */

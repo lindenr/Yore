@@ -1,7 +1,7 @@
 #if !defined(SAVE_C_INCLUDED)
 #define SAVE_C_INCLUDED
 
-#include "bool.h"
+#include <stdbool.h>
 
 bool save(char *);
 bool quit();

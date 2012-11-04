@@ -8,7 +8,6 @@
 #include "include/vector.h"
 #include "include/thing.h"
 #include "include/pack.h"
-#include "include/util.h"
 #include "include/map.h"
 #include "include/graphics.h"
 
@@ -29,7 +28,7 @@ struct ref_it_type
 
 struct List blocks = LIST_INIT;
 
-void store_type(struct item_struct *ptr)
+void store_type(ityp *ptr)
 {
 	struct block_ptr *bp = malloc(sizeof(*bp));
 	bp->ptr = ptr;

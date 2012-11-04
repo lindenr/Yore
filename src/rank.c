@@ -1,6 +1,7 @@
 /* rank.c */
 
 #include "include/all.h"
+#include "include/thing.h"
 #include "include/rank.h"
 #include "include/monst.h"
 #include "include/pline.h"
@@ -17,10 +18,9 @@ struct Rankings all_ranks[] =
 	{{"Dentist", "Nurse", "Assistant", "GP", "Specialist", "Surgeon"}},
 	{{"Thug", "Butcher", "Hitman", "Mercenary", "Cutthroat", "Executioner"}} };
 
-char *get_rank()
+char *get_rank ()
 {
-	struct Monster *mon = U.player->thing;
-	uint32_t level = mon->level;
+	uint32_t level = pmons.level;
 
 	if (level == 0)
 		return NULL;
@@ -33,18 +33,20 @@ char *get_rank()
 int level_boundary[30] =
 	{ 0, 10, 20, 30, 50, 80, 130, 210, 340, 550, 890, 1440 };
 
-void update_level(struct Monster *mon)
+void update_level (struct Thing *th)
 {
-	uint32_t exp = mon->exp;
+	uint32_t exp = th->thing.mons.exp;
+	struct Monster *mon = &th->thing.mons;
 	int i;
+
 	for (i = 0; level_boundary[i] <= exp; ++i)
 		exp -= level_boundary[i];
 
-	if (IS_PLAYER(mon))
+	if (th == player)
 	{
 		if (i > mon->level)
 		{
-			pline("You are now level %d!", i);
+			pline("Level up! You are now level %d.", i);
 			mon->HP_max += mon->level * 3 + 2;
 		}
 		if (i < mon->level)

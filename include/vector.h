@@ -16,8 +16,7 @@ Vector v_dinit (int);
 Vector v_init  (int, int);
 
 /* write */
-#define v_rem(vec,i)  vector_rem  (vec, sizeof(*(vec->data)), i)
-void   v_push  (Vector, void *);
+void  *v_push  (Vector, void *);
 void   v_rem   (Vector, int);
 void   v_free  (Vector);
 
@@ -25,7 +24,8 @@ void   v_free  (Vector);
 bool   v_isin  (Vector, void *);
 
 /* misc */
-#define v_thing(vec,i) (((struct Thing *)(vec->data[i]))->thing)
+#define v_thing(vec,i) (((struct Thing *) v_at ((vec), (i)))->thing)
+#define v_at(vec,i)    (((vec)->data) + (i)*((vec)->siz))
 void    v_print (Vector);
 
 #endif /* VECTOR_H_INCLUDED */

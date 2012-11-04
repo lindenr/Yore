@@ -32,7 +32,7 @@ void update_map()
 {
 	int i;
 	char line1[80], line2[80];
-	struct Thing *th = get_player();
+	struct Thing *th = player;
 	struct Monster *mn = th->thing;
 
 	for (i = 0; i < 80; ++i)

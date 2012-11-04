@@ -13,7 +13,7 @@
 #include <assert.h>
 #include <malloc.h>
 
-Vector(struct Thing) all_things[MAP_HEIGHT*MAP_WIDTH];
+Vector all_things[MAP_TILES];
 
 /* At any given point: 0 if we can't see past that square (e.g. wall); 1 if we 
    can remember it (e.g. sword); and 2 if we can't remember its position (e.g. 
@@ -32,6 +32,12 @@ uint32_t sq_unseen[MAP_TILES] = { 0, };
 uint8_t *get_sq_attr()
 {
 	return sq_attr;
+}
+
+int curID = 0;
+int getID ()
+{
+	return (++curID);
 }
 
 char ACS_ARRAY[] = {
@@ -115,13 +121,13 @@ void walls_test()
 
 #define US(w) (sq_seen[w]?(sq_attr[w]?DOT:ACS_WALL):ACS_WALL)
 
-inline void set_can_see(uint32_t * unseen)
+inline void set_can_see (uint32_t * unseen)
 {
-	int Yloc = get_player()->yloc, Xloc = get_player()->xloc;
+	int Yloc = player->yloc, Xloc = player->xloc;
 	int Y, X, w;
 
 	/* Initialise the bres thing */
-	bres_start(Yloc, Xloc, sq_seen, sq_attr);
+	bres_start (Yloc, Xloc, sq_seen, sq_attr);
 
 	/* Anything you could see before you can't necessarily now */
 	for (w = 0; w < MAP_TILES; ++w)
@@ -131,13 +137,13 @@ inline void set_can_see(uint32_t * unseen)
 	/* This puts values on the grid -- whether or not we can see (or have
 	   seen) this square */
 	for (w = 0; w < MAP_TILES; ++w)
-        bres_draw(w / MAP_WIDTH, w % MAP_WIDTH);
+        bres_draw (w / MAP_WIDTH, w % MAP_WIDTH);
 		//sq_seen[w] = 2;
 
 	/* Make everything we can't see dark */
 	for (w = 0; w < MAP_TILES; ++w)
 		if (!sq_seen[w])
-			gr_baddch(w, ' ');
+			gr_baddch (w, ' ');
 
 	/* Do the drawing */
 	for (Y = 0, w = 0; Y < MAP_HEIGHT; ++Y)
@@ -194,20 +200,20 @@ void thing_move (struct Thing *thing, int new_y, int new_x)
 	int n = to_buffer(thing->yloc, thing->xloc);
 	LOOP_THING(n, i)
 	{
-		if (thing == THING(n, i))
+		if (thing->ID == THING(n, i)->ID)
 			break;
 	}
-	/* Couldn't find thing in list */
+	/* Couldn't find thing in the tile */
 	if (n >= MAP_TILES)
 		return;
-	v_rem (all_things[n], i);
 	thing->yloc = new_y;
 	thing->xloc = new_x;
-	n = to_buffer(thing->yloc, thing->xloc);
-	v_push (all_things[n], thing);
+	int new = to_buffer(thing->yloc, thing->xloc);
+	v_push (all_things[new], thing);
+	v_rem (all_things[n], i);
 }
 
-void thing_free(struct Thing *thing)
+void thing_free (struct Thing *thing)
 {
 	if (!thing)
 		return;
@@ -216,49 +222,40 @@ void thing_free(struct Thing *thing)
 	{
 		case THING_ITEM:
 		{
-			struct Item *i = thing->thing;
+			struct Item *i = &thing->thing.item;
 			if (i->name)
-				free(i->name);
+				free (i->name);
 			break;
 		}
 		case THING_MONS:
 		{
-			struct Monster *monst = thing->thing;
+			struct Monster *monst = &thing->thing.mons;
 			if (monst->name && monst->name[0])
-				free(monst->name);
+				free (monst->name);
 			if (monst->eating)
-				free(monst->eating);
+				free (monst->eating);
 			break;
 		}
 		default:
 			break;
 	}
-	free(thing->thing);
-	free(thing);
 }
 
-void rem_by_data (void *data)
-{
-	LOOP_THINGS(n, i)
-	{
-		struct Thing *t = THING(n, i);
-		if (t->thing == data)
-			break;
-	}
-	/* Couldn't find thing in list */
-	if (n >= MAP_TILES)
-		return;
+int TSIZ[] = {
+	0,
+	sizeof (struct Item),
+	sizeof (struct Monster),
+	sizeof (struct map_item_struct),
+	0
+};
 
-	v_rem (all_things[n], i);
-}
-
-struct Thing *new_thing (uint32_t type, uint32_t y, uint32_t x, void *actual_thing)
+struct Thing *new_thing (uint32_t type, int dlevel, uint32_t y, uint32_t x, void *actual_thing)
 {
-	struct Thing t = {type, y, x, actual_thing};
-	struct Thing *thing = malloc (sizeof(struct Thing));
-	memcpy (thing, &t, sizeof(struct Thing));
-	v_push (all_things[to_buffer(y, x)], *thing);
-	return thing;
+	//printf ("New: %u %d %dx%d  %p\n", type, dlevel, y, x, actual_thing);
+	int n = to_buffer (y, x);
+	struct Thing t = {type, dlevel, getID(), y, x, {}};
+	memcpy (&t.thing, actual_thing, TSIZ[type]);
+	return v_push (all_things[n], &t);
 }
 
 /* Directly modifies gr_map[] */
@@ -266,23 +263,22 @@ void visualise_map()
 {
 	uint32_t type[MAP_TILES] = {0,};
 
-	if (gr_nearedge (get_player()->yloc, get_player()->xloc))
-		gr_centcam (get_player()->yloc, get_player()->xloc);
+	if (gr_nearedge (player->yloc, player->xloc))
+		gr_centcam (player->yloc, player->xloc);
 
 	LOOP_THINGS(at, i)
 	{
-		struct Thing *T = THING(at, i);
-		struct Thing th = *T;
+		struct Thing *th = THING(at, i);
 		bool changed = false;
-		switch (th.type)
+		switch (th->type)
 		{
 			case THING_MONS:
 			{
-				struct Monster *m = th.thing;
+				struct Monster *m = &th->thing.mons;
 				changed = true;
 				gr_baddch(at, mons[m->type].col | mons[m->type].ch);
 				if (m->name)
-					if (IS_PLAYER(m))
+					if (th == player)
 					{
 						gr_map[at] |= COL_TXT_BRIGHT;
 					}
@@ -293,8 +289,8 @@ void visualise_map()
 			{
 				if (type[at] != THING_MONS)
 				{
-					struct Item *t = th.thing;
-					gr_baddch(at, t->type->col | t->type->ch);
+					struct Item *t = &th->thing.item;
+					gr_baddch(at, t->type.col | t->type.ch);
 					changed = true;
 				}
 				sq_unseen[at] = gr_map[at];
@@ -305,7 +301,7 @@ void visualise_map()
 			{
 				if (type[at] == THING_NONE)
 				{
-					struct map_item_struct *m = th.thing;
+					struct map_item_struct *m = &th->thing.mis;
 					gr_baddch(at, (glyph) ((unsigned char)(m->ch)));
 					sq_attr[at] = m->attr & 1;
 					changed = true;
@@ -315,27 +311,18 @@ void visualise_map()
 			}
 			default:
 			{
-				panic("default reached in visualise_map()");
+				printf ("%d %d %d\n", at, i, th->type);
+				getchar();
+				panic ("default reached in visualise_map()");
 			}
 		}
 		if (changed)
 		{
-			type[at] = th.type;
+			type[at] = th->type;
 		}
 	}
 	set_can_see(sq_unseen);
 	gr_refresh();
-}
-
-struct Thing *get_thing (void *data)
-{
-	LOOP_THINGS(n, i)
-	{
-		if (THING(n, i)->thing == data)
-			return THING(n, i);
-	}
-	/* CRASH! */
-	return NULL;
 }
 
 void all_things_free()
@@ -343,3 +330,4 @@ void all_things_free()
 	LOOP_THINGS(n, i)
 		thing_free (THING(n, i));
 }
+

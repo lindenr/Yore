@@ -1,7 +1,8 @@
 #!/bin/bash
-make -j4 -B
+echo "[36;41m===STARTING BUILD===[0m"
+make -B -j4
 echo "Run the game??? (y) "
 read ANSWER
 if [ "$ANSWER" == "y" ]; then
-    ./bin/Yore
+    gdb ./bin/Yore
 fi

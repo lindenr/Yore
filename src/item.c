@@ -1,11 +1,12 @@
 /* item.c */
 
 #include "include/all.h"
-#include "include/item.h"
+#include "include/thing.h"
 #include "include/grammar.h"
 #include "include/monst.h"
 #include "include/pline.h"
 #include "include/vector.h"
+#include "include/item.h"
 
 #include <stdio.h>
 #include <malloc.h>
@@ -19,7 +20,7 @@ int NUM_ITEMS;
 #define DMG(a,b) (((a)<<4)+(b))
 
 /* No corpse -- they are a custom item (see src/monst.c). */
-struct item_struct items[] = {
+ityp items[] = {
 	/* item name             display         type     weight  attributes           colour */
 	ITEM("long sword",     ITEM_WEAPON, IT_LONGSWORD,  2000,  DMG(1, 5),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)),
 	ITEM("fencing sword",  ITEM_WEAPON, IT_LONGSWORD,  1500,  DMG(1, 5),  COL_TXT_RED(11)   | COL_TXT_BLUE(11) ),
@@ -61,7 +62,7 @@ char *get_item_desc (struct Item item)
 				((item.attr & (ITEM_MINS(3))) | 1 ? (item.
 													 attr & ((ITEM_PLUS(3)) >>
 															 3)) : 0),
-				item.type->name,
+				item.type.name,
 				(item.attr & ITEM_WIELDED ? " (being used)" : ""));
 		gram_a(ret, ret);
 	}
@@ -75,8 +76,7 @@ void item_look (struct Item *item)
 
 char *get_inv_line (struct Item *item)
 {
-	struct Monster *m = (get_player()->thing);
-	char ch = get_Itref(m->pack, item);
+	char ch = get_Itref (pmons.pack, item);
 	char *ret = malloc (sizeof(char) * 80), *orig = get_item_desc(*item);
 	if (!ch)
 		sprintf (ret, "%s", orig);
@@ -86,13 +86,14 @@ char *get_inv_line (struct Item *item)
 	return ret;
 }
 
-bool stackable (Vector(struct Thing) pile, struct Thing *it)
+bool stackable (int n, Vector *pile, int i)
 {
-	struct Item *pitem = pile->data[0];
-	return (memcmp (pitem->type, it->type, sizeof(struct item_struct)) == 0);
+	struct Item *item1 = &THING(n, *(int*)v_at (*pile, 0))->thing.item,
+	            *item2 = &THING(n, i)->thing.item;
+	return (memcmp (&item1->type, &item2->type, sizeof(ityp)) == 0);
 }
 
-void item_piles (Vector(Vector(struct Thing)) piles, Vector(struct Thing) items)
+void item_piles (int n, Vector piles, Vector items)
 {
 	int i;
 	for (i = 0; i < items->len; ++ i)
@@ -100,19 +101,14 @@ void item_piles (Vector(Vector(struct Thing)) piles, Vector(struct Thing) items)
 		int j;
 		for (j = 0; j < piles->len; ++ j)
 		{
-			if (stackable (piles->data[j], items->data[i]))
+			if (stackable (n, v_at (piles, j), *(int*)v_at (items, i)))
 				break;
 		}
 
-		if (j < piles->len) /* stackable */
-		{
-			v_push (piles->data[j], items->data[i]);
-		}
-		else
-		{
-			piles->data[j] = v_dinit ();
-			v_push (piles->data[j], items->data[i]);
-		}
+		if (j >= piles->len)
+			*(Vector*)v_at (piles, j) = v_dinit (sizeof(int));
+
+		v_push (*(Vector*)v_at (piles, j), v_at (items, i));
 	}
 }
 

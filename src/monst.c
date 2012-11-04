@@ -1,11 +1,9 @@
 /* monst.c */
 
 #include "include/all.h"
-#include "include/monst.h"
+#include "include/thing.h"
 #include "include/pline.h"
 #include "include/rand.h"
-#include "include/util.h"
-#include <stdbool.h>
 #include "include/loop.h"
 #include "include/save.h"
 #include "include/vision.h"
@@ -13,15 +11,17 @@
 #include "include/rank.h"
 #include "include/grammar.h"
 #include "include/pline.h"
-#include "include/util.h"
 #include "include/all_mon.h"
 #include "include/magic.h"
 #include "include/output.h"
 #include "include/event.h"
 #include "include/graphics.h"
+#include "include/dlevel.h"
+#include "include/monst.h"
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #define CONTROL_(c) ((c)-0x40)
 
@@ -56,7 +56,7 @@ bool digesting()
 	return true;
 }
 
-void setup_U()
+void setup_U ()
 {
 	int i;
 
@@ -89,27 +89,27 @@ void setup_U()
 	U.playing = PLAYER_STARTING;
 }
 
-void get_cinfo()
+void get_cinfo ()
 {
 	char in;
 
-	gr_mvprintc(0, 0, "What role would you like to take up?");
-	gr_mvprintc(0, glnumx - 11, "(q to quit)");
-	gr_mvprintc(2, 3, "a     Assassin");
-	gr_mvprintc(3, 3, "d     Doctor");
-	gr_mvprintc(4, 3, "s     Soldier");
-	gr_move(0, 37);
-	gr_refresh();
+	gr_mvprintc (0, 0, "What role would you like to take up?");
+	gr_mvprintc (0, glnumx - 11, "(q to quit)");
+	gr_mvprintc (2, 3, "a     Assassin");
+	gr_mvprintc (3, 3, "d     Doctor");
+	gr_mvprintc (4, 3, "s     Soldier");
+	gr_move (0, 37);
+	gr_refresh ();
 
 	do
 	{
-		in = gr_getch();
+		in = gr_getch ();
 		if (in == 'q' || in == 0x1B)
 			return;
 	}
 	while (in != 'd' && in != 's' && in != 'a');
 
-	gr_mvprintc(0, glnumx - 11, "           ");
+	gr_mvprintc (0, glnumx - 11, "           ");
 
 	if (in == 's')
 		U.role = 1;
@@ -118,12 +118,12 @@ void get_cinfo()
 	else if (in == 'a')
 		U.role = 3;
 	else
-		return;					/* shouldn't get here -- we will quit */
+		panic ("get_cinfo failed");
 
 	U.playing = PLAYER_PLAYING;
 }
 
-uint32_t expcmp(uint32_t p_exp, uint32_t m_exp)
+int expcmp (int p_exp, int m_exp)
 {
 	if (p_exp >= m_exp * 2)
 		return 5;
@@ -134,7 +134,7 @@ uint32_t expcmp(uint32_t p_exp, uint32_t m_exp)
 	return 0;
 }
 
-bool nogen(uint32_t mons_id)
+bool nogen (int mons_id)
 {
 	if (mons_id == MTYP_SATAN)
 		return ((U.m_glflags&MGL_GSAT) != 0);
@@ -142,10 +142,10 @@ bool nogen(uint32_t mons_id)
 	return 0;
 }
 
-uint32_t player_gen_type()
+int player_gen_type ()
 {
-	uint32_t i, array[NUM_MONS];
-	uint32_t p_exp = get_pmonster()->exp;
+	int i, array[NUM_MONS];
+	uint32_t p_exp = pmons.exp;
 	uint32_t total_weight = 0;
 
 	for (i = 0; i < NUM_MONS; ++i)
@@ -167,54 +167,51 @@ uint32_t player_gen_type()
 	return 0;
 }
 
-inline int mons_get_wt(struct Monster *self)
+inline int mons_get_wt (int type)
 {
-	return CORPSE_WEIGHTS[mons[self->type].flags >> 29];
+	return CORPSE_WEIGHTS[mons[type].flags >> 29];
 }
 
-struct item_struct *find_corpse(struct Monster *m)
+ityp find_corpse (struct Thing *th)
 {
-	/* mallocate for new type of corpse */
-	struct item_struct *new_item = malloc(sizeof(struct item_struct));
+	int type = th->thing.mons.type;
+	ityp new_item;
 
-	/* fill in the item_struct data */
-	sprintf(new_item->name, "%s corpse", mons[m->type].name);
-	new_item->ch = ITEM_FOOD;
-	new_item->type = IT_CORPSE;
-	new_item->wt = mons_get_wt(m);
-	new_item->attr = m->type << 8;
-	new_item->col = mons[m->type].col;
+	/* fill in the data */
+	sprintf (new_item.name, "%s corpse", mons[type].name);
+	new_item.ch   = ITEM_FOOD;
+	new_item.type = IT_CORPSE;
+	new_item.wt   = mons_get_wt(type);
+	new_item.attr = type << 8;
+	new_item.col  = mons[type].col;
 	
 	return new_item;
 }
 
-void mons_attack(struct Monster *self, int y, int x) /* each either -1, 0 or 1 */
+void mons_attack (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 {
-	struct Thing *th = get_thing(self);
-	apply_attack(self,
-				 get_square_monst(th->yloc + y, th->xloc + x, self->level));
+	do_attack (th, get_sqmons(th->yloc + y, th->xloc + x, th->dlevel));
 }
 
-int mons_move(struct Monster *self, int y, int x)	/* each either -1, 0 or 1 */
+int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 {
-	if (!IS_PLAYER(self))
+	if (th != player)
 		if (!(x | y))
 			return false;
-	struct Thing *t = get_thing(self);
-	int can = can_move_to(get_square_attr(t->yloc + y, t->xloc + x, self->level));
+	int can = can_amove (get_sqattr (th->yloc + y, th->xloc + x, th->thing.mons.level));
 	/* like a an unmoveable boulder or something */
 	if (!can)
 		return false;
 	/* you can and everything's fine, nothing doing */
 	else if (can == 1)
 	{
-		thing_move (t, t->yloc+y, t->xloc+x);
+		thing_move (th, th->yloc+y, th->xloc+x);
 		return true;
 	}
 	/* melee attack! */
 	else if (can == 2)
 	{
-		mons_attack(self, y, x);
+		mons_attack (th, y, x);
 		return true;
 	}
 	/* off map or something */
@@ -224,13 +221,14 @@ int mons_move(struct Monster *self, int y, int x)	/* each either -1, 0 or 1 */
 		return false;
 	}
 	/* shouldn't get to here -- been a mistake */
+	panic ("mons_move() end reached");
 	return false;
 }
 
 /* if a is in the range 0 <= a < 0x20 (' ' in ASCII) then a+64 is returned (so 
-   a backspace becomes '?'). This is the standard way to print non-printable
-   characters. */
-inline char escape(unsigned char a)
+ * a backspace becomes '?'). This is the standard way to print non-printable
+ * characters. */
+inline char escape (unsigned char a)
 {
 	if (a < 0x20)
 		return a + 0x40;
@@ -238,7 +236,7 @@ inline char escape(unsigned char a)
 		return a;
 }
 
-inline bool mons_take_input(struct Thing * th, char in)
+inline bool player_take_input (char in)
 {
 	int xmove = 0, ymove = 0;
 	if (in == 'h')
@@ -272,17 +270,17 @@ inline bool mons_take_input(struct Thing * th, char in)
 	else
 		return (-1);
 
-	return (mons_move(th->thing, ymove, xmove));
+	return (mons_move (player, ymove, xmove));
 }
 
-void thing_move_level(struct Thing *th, int32_t where)
+void thing_move_level (struct Thing *th, int32_t where)
 {
 	uint32_t wh;
 	if (where == 0) /* Uncontrolled teleport within level */
 	{
 		do
 			wh = RN(MAP_TILES);
-		while (!is_safe_gen(wh / MAP_WIDTH, wh % MAP_WIDTH));
+		while (!is_safe_gen (cur_dlevel, wh / MAP_WIDTH, wh % MAP_WIDTH));
 		th->yloc = wh / MAP_WIDTH;
 		th->xloc = wh % MAP_WIDTH;
 	}
@@ -298,40 +296,37 @@ void thing_move_level(struct Thing *th, int32_t where)
 	}
 }
 
-struct Item *player_use_pack (struct Thing *player, char *msg, bool *psc, uint32_t accepted)
+struct Item *player_use_pack (char *msg, uint32_t accepted)
 {
 	struct Item *It = NULL;
 	char in, cs[100];
-	struct Monster *self = player->thing;
 	bool tried = false;
 
 	do
 	{
 		if (tried)
-			pline("No such item.");
+			pline ("No such item.");
 		tried = false;
 
-		line_reset();
-		pack_get_letters(self->pack, cs);
-		in = pask(cs, msg);
+		line_reset ();
+		pack_get_letters (pmons.pack, cs);
+		in = pask (cs, msg);
 		if (in == '?')
 		{
-			show_contents(self->pack, accepted);
-			gr_getch();
-			unscreenshot();
+			show_contents (pmons.pack, accepted);
+			gr_getch ();
 			continue;
 		}
 		if (in == ' ' || in == 0x1B)
 			break;
 		if (in == '*')
 		{
-			show_contents(self->pack, ITCAT_ALL);
-			gr_getch();
-			unscreenshot();
+			show_contents (pmons.pack, ITCAT_ALL);
+			gr_getch ();
 			continue;
 		}
 
-		It = get_Itemc(self->pack, in);
+		It = get_Itemc (pmons.pack, in);
 		tried = true;
 	}
 	while (It == NULL);
@@ -339,32 +334,23 @@ struct Item *player_use_pack (struct Thing *player, char *msg, bool *psc, uint32
 	return It;
 }
 
-int mons_take_move (struct Monster *self)
+int mons_take_move (struct Thing *th)
 {
 	char in;
+	struct Monster *self = &th->thing.mons;
 	if (self->HP < self->HP_max && RN(50) < U.attr[AB_CO])
 		self->HP += (self->level + 10) / 10;
-	if (mons_eating(self))
+	if (mons_eating(th))
 		return true;
-	struct Thing *th = get_thing(self);
-	bool screenshotted = false;
-	if (!IS_PLAYER(self))
+	if (th != player)
 	{
-		struct Thing *pl = get_player();
-		AI_Attack(th->yloc, th->xloc, pl->yloc, pl->xloc, self);
+		AI_Attack (th, player->yloc, player->xloc);
 		return true;
 	}
 	while (1)
 	{
-		if (mons_eating(self))
-			return true;
 		gr_refresh ();
 		gr_move (th->yloc + 1, th->xloc);
-		//if (screenshotted)
-		//{
-		//	screenshotted = false;
-		//	unscreenshot();
-		//}
 		in = gr_getch();
 		if (pline_check())
 			line_reset();
@@ -387,7 +373,7 @@ int mons_take_move (struct Monster *self)
 			continue;
 		}
 
-		bool mv = mons_take_input(th, in);
+		bool mv = player_take_input (in);
 		if (mv != -1)
 		{
 			if (U.playing == PLAYER_WONGAME)
@@ -417,73 +403,68 @@ int mons_take_move (struct Monster *self)
 		}
 		else if (in == ',')
 		{
-			screenshot();
-			screenshotted = true;
-			Vector ground;
-			struct Thing *t_;
+			Vector ground = v_init (sizeof (int), 20);
 			int n = to_buffer (th->yloc, th->xloc);
-			v_init (ground, 20);
+
 			LOOP_THING(n, i)
 			{
-				t_ = THING(n, i);
-				if (t_->type == THING_ITEM)
-					v_push (ground, *t_);
+				if (THING(n, i)->type == THING_ITEM)
+					v_push (ground, &i);
 			}
 
 			if (ground->len == 1) 
 			{
 				/* One item on ground -- pick up immediately. */
-				pack_add (&self->pack, v_thing (ground, 0));
-				rem_loc (n, i);
+				if (pack_add (&pmons.pack, &THING(n, i)->thing.item));
+					rem_ref (n, i);
 				v_free (ground);
 			}
 			else
 			{
 				/* Multiple items - ask which to pick up. */
-				screenshotted = true;
-				Vector pickup;
-				v_init (pickup, 20);
+				Vector pickup = v_init (sizeof(int), 20);
 
-				/* Ask which */
-				mask_vec (pickup, ground);
-
+				/* Do the asking */
+				mask_vec (n, pickup, ground);
 				v_free (ground);
 
 				/* Put items in ret_list into inventory. The loop
 				 * continues until ret_list is done or the pack is full. */
-				for (i = 0;
-					 i < pickup->len && pack_add (&self->pack, &pickup->data[i]);
-					 ++ i)
+				for (i = 0; i < pickup->len; ++ i)
 				{
-					/* Remove selected items from main play */
-					rem_by_data (&pickup->data[i]);
+					/* Pick up the item; quit if the bag is full */
+					if (!pack_add (&self->pack, &THING(n, *(int*)v_at (pickup, i))->thing.item))
+						break;
+					/* Remove item from main play */
+					rem_ref (n, i);
 				}
+				v_free (pickup);
 			}
 		}
 		else if (in == CONTROL_('P'))
 		{
-			pline_get_his();
+			pline_get_his ();
 		}
 		else if (in == 'm')
 		{
-			pline("Press Ctrl+Q to leave magic mode.");
+			pline ("Press Ctrl+Q to leave magic mode.");
 			U.magic = true;
 		}
 		else if (in == 'e')
 		{
-			struct Item *It = player_use_pack(th, "Eat what?", &screenshotted, ITCAT_FOOD);
+			struct Item *It = player_use_pack ("Eat what?", ITCAT_FOOD);
 			if (It == NULL)
 				continue;
-			mons_eat(self, It);
+			mons_eat (th, It);
 		}
 		else if (in == 'd')
 		{
-			struct Item *It = player_use_pack(th, "Drop what?", &screenshotted, ITCAT_ALL);
+			struct Item *It = player_use_pack ("Drop what?", ITCAT_ALL);
 			if (It == NULL)
 				continue;
 			unsigned u = PACK_AT(get_Itref(self->pack, It));
 			self->pack.items[u] = NULL;
-			new_thing(THING_ITEM, th->yloc, th->xloc, It);
+			new_thing (THING_ITEM, cur_dlevel, th->yloc, th->xloc, It);
 		}
 		else if (in == '>')
 			thing_move_level(th, 0);
@@ -491,14 +472,11 @@ int mons_take_move (struct Monster *self)
 			thing_move_level(th, -1);
 		else if (in == 'i')
 		{
-			screenshotted = true;
-			show_contents(self->pack, ITCAT_ALL);
+			show_contents (self->pack, ITCAT_ALL);
 			continue;
 		}
 		else if (in == ':')
 		{
-			screenshot();
-			screenshotted = true;
 			int k = 0;
 			int n = to_buffer (th->yloc, th->xloc);
 			LOOP_THING(n, i)
@@ -506,28 +484,26 @@ int mons_take_move (struct Monster *self)
 				struct Thing *t_ = THING(n, i);
 				if (t_->type != THING_ITEM)
 					continue;
-				char *line = get_inv_line (v_thing (all_things[n], i));
-				pline("You%s see here %s. ", ((k++) ? " also" : ""), line);
-				free(line);
+				char *line = get_inv_line (&THING(n, i)->thing.item);
+				pline ("You%s see here %s. ", ((k++) ? " also" : ""), line);
+				free (line);
 			}
 			if (k == 0)
 				pline("You see nothing here. ");
 		}
 		else if (in == 'w')
 		{
-			struct Item *It = player_use_pack(th, "Wield what?", &screenshotted, ITCAT_ALL);
+			struct Item *It = player_use_pack ("Wield what?", ITCAT_ALL);
 			if (It == NULL)
 				continue;
 			unsigned u = PACK_AT(get_Itref(self->pack, It));
 			self->pack.items[u] = NULL;
-			new_thing(THING_ITEM, th->yloc, th->xloc, It);
-			if (mons_unwield(self))
-				mons_wield(self, It);
+			new_thing (THING_ITEM, cur_dlevel, th->yloc, th->xloc, It);
+			if (mons_unwield (th))
+				mons_wield (th, It);
 		}
 		else
 		{
-			screenshot();
-			screenshotted = true;
 			pline("Unknown command '%s%c'. ",
 			      (escape(in) == in ? "" : "^"), escape(in));
 		}
@@ -535,103 +511,99 @@ int mons_take_move (struct Monster *self)
 	return true;
 }
 
-void mons_dead (struct Monster *from, struct Monster *to)
+void mons_dead (struct Thing *from, struct Thing *to)
 {
-	if (IS_PLAYER(to))
+	if (to == player)
 	{
 		player_dead("");
 		return;
 	}
 
 	event_mkill (from, to);
-	if (IS_PLAYER(from))
+	if (from == player)
 	{
-		if (to->type == MTYP_SATAN)
+		if (to->thing.mons.type == MTYP_SATAN)
 			U.playing = PLAYER_WONGAME;
-		from->exp += mons[to->type].exp;
-		update_level(from);
+		from->thing.mons.exp += mons[to->type].exp;
+		update_level (from);
 	}
-	struct item_struct *c = find_corpse (to);
-	struct Thing *t = get_thing (to);
-	struct Item *it = malloc (sizeof(struct Item));
-	it->type = c;
-	it->attr = 0;
-	it->name = NULL;
-	it->cur_weight = 0;
-	new_thing (THING_ITEM, t->yloc, t->xloc, it);
-	rem_by_data (to);
-	thing_free (t);
+	ityp c = find_corpse (to);
+	struct Item it;
+	it.type = c;
+	it.attr = 0;
+	it.name = NULL;
+	it.cur_weight = 0;
+	new_thing (THING_ITEM, cur_dlevel, to->yloc, to->xloc, &it);
+	thing_free (to);
 }
 
 /* TODO is it polymorphed? */
-inline bool mons_edible (struct Monster *self, struct Item *item)
+inline bool mons_edible (struct Thing *th, struct Item *item)
 {
-	return (item->type->ch == ITEM_FOOD);
+	return (item->type.ch == ITEM_FOOD);
 }
 
-bool mons_eating (struct Monster * self)
+bool mons_eating (struct Thing *th)
 {
 	int hunger_loss;
-	struct Item *item = self->eating;
+	struct Item *item = th->thing.mons.eating;
 	if (!item)
 		return false;
 	if (item->cur_weight <= 1200)
 	{
-		if (IS_PLAYER(self))
+		if (th == player)
 		{
 			U.hunger -= (item->cur_weight) >> 4;	/* U.hunger is signed */
-			line_reset();
-			pline("You finish eating.");
+			line_reset ();
+			pline ("You finish eating.");
 		}
-		self->status &= ~M_EATING;
-		self->eating = NULL;
-		free(item->type);
-		rem_by_data(item);
-		self->pack.items[PACK_AT(get_Itref(self->pack, item))] = NULL;
-		update_stats();
+		th->thing.mons.status &= ~M_EATING;
+		th->thing.mons.eating = NULL;
+		th->thing.mons.pack.items[PACK_AT(get_Itref(th->thing.mons.pack, item))] = NULL;
 		return false;
 	}
 	hunger_loss = RN(25) + 50;
 	item->cur_weight -= hunger_loss << 4;
-	if (IS_PLAYER(self))
+	if (th == player)
 		U.hunger -= hunger_loss;
 	return true;
 }
 
-void mons_eat (struct Monster *self, struct Item *item)
+void mons_eat (struct Thing *th, struct Item *item)
 {
-	if (!mons_edible(self, item))
+	if (!mons_edible (th, item))
 	{
-		if (IS_PLAYER(self))
+		if (th == player)
 			pline("You can't eat that!");
 		return;
 	}
-	if ((self->status) & M_EATING)
+
+	if ((th->thing.mons.status) & M_EATING)
 	{
-		if (IS_PLAYER(self))
+		if (th == player)
 			pline("You're already eating!");
 		return;
 	}
-	self->status |= M_EATING;
-	self->eating = item;
+	th->thing.mons.status |= M_EATING;
+	th->thing.mons.eating = item;
 	if (!item->cur_weight)
-		item->cur_weight = item->type->wt;
+		item->cur_weight = item->type.wt;
 }
 
-inline struct Item **mons_get_weap (struct Monster *self)
+inline void *mons_get_weap (struct Thing *th)
 {
-	return &self->wearing.rweap;
+	return &th->thing.mons.wearing.rweap;
 }
 
-bool mons_unwield (struct Monster * self)
+bool mons_unwield (struct Thing *th)
 {
-	struct Item **pweap = mons_get_weap (self);
+	struct Item **pweap = mons_get_weap (th);
 	struct Item *weap = *pweap;
 	if (weap == NULL)
 		return true;
 	if (weap->attr & ITEM_CURS)
 	{
-		if (IS_PLAYER(self))
+		if (th == player)
 		{
 			line_reset();
 			pline ("You can't. It's cursed.");
@@ -643,11 +615,11 @@ bool mons_unwield (struct Monster * self)
 	return true;
 }
 
-bool mons_wield (struct Monster * self, struct Item * it)
+bool mons_wield (struct Thing *th, struct Item *it)
 {
-	self->wearing.rweap = it;
+	th->thing.mons.wearing.rweap = it;
 	it->attr ^= ITEM_WIELDED;
-	if (IS_PLAYER(self))
+	if (th == player)
 	{
 		line_reset ();
 		item_look (it);
@@ -655,22 +627,23 @@ bool mons_wield (struct Monster * self, struct Item * it)
 	return true;
 }
 
-bool mons_wear (struct Monster * self, struct Item * it)
+bool mons_wear (struct Thing *th, struct Item *it)
 {
-	if (it->type->ch != ITEM_ARMOUR)
+	if (it->type.ch != ITEM_ARMOUR)
 	{
-		if (IS_PLAYER(self))
+		if (th == player)
 		{
 			line_reset ();
 			pline ("You can't wear that!");
 		}
 		return false;
 	}
-	switch (it->type->type)
+
+	switch (it->type.type)
 	{
 		case IT_GLOVES:
 		{
-			self->wearing.hands = it;
+			th->thing.mons.wearing.hands = it;
 			break;
 		}
 		default:
@@ -681,47 +654,49 @@ bool mons_wear (struct Monster * self, struct Item * it)
 	return true;
 }
 
-void mons_passive_attack (struct Monster *self, struct Monster *to)
+void mons_passive_attack (struct Thing *from, struct Thing *to)
 {
 	uint32_t t;
+	int type = from->thing.mons.type;
 	char *posv;
 	for (t = 0; t < A_NUM; ++t)
-		if ((mons[self->type].attacks[t][2] & 0xFFFF) == ATTK_PASS)
+		if ((mons[type].attacks[t][2] & 0xFFFF) == ATTK_PASS)
 			break;
-	if (t == A_NUM)
+	if (t >= A_NUM)
 		return;
-	switch (mons[self->type].attacks[t][2] >> 16)
+
+	switch (mons[type].attacks[t][2] >> 16)
 	{
 		case ATYP_ACID:
 		{
-			posv = malloc(strlen(mons[self->type].name) + 5);
-			gram_pos(posv, (char *)mons[self->type].name);
-			if (IS_PLAYER(self))
-				pline("You splash the %s with acid!",
-					  mons[to->type].name);
-			else if (IS_PLAYER(to))
-				pline("You are splashed by the %s acid!", posv);
+			posv = malloc(strlen(mons[type].name) + 5);
+			gram_pos (posv, (char *)mons[type].name);
+			if (from == player)
+				pline ("You splash the %s with acid!", mons[type].name);
+			else if (to == player)
+				pline ("You are splashed by the %s acid!", posv);
 		}
 	}
 }
 
-int mons_get_st (struct Monster *self)
+int mons_get_st (struct Thing *th)
 {
-	if (IS_PLAYER(self))
+	if (th == player)
 		return U.attr[AB_ST];
 	return 1;
 }
 
-inline void apply_attack (struct Monster *from, struct Monster *to)
+inline void do_attack (struct Thing *from, struct Thing *to)
 {
-	int t, strength;
+	int t, strength, type = from->thing.mons.type;
+	int *toHP = &to->thing.mons.HP;
 
 	for (t = 0; t < A_NUM; ++t)
 	{
-		if (!mons[from->type].attacks[t][0])
+		if (!mons[type].attacks[t][0])
 			break;
 
-		switch (mons[from->type].attacks[t][2] & 0xFFFF)
+		switch (mons[type].attacks[t][2] & 0xFFFF)
 		{
 			case ATTK_HIT:
 			{
@@ -729,30 +704,29 @@ inline void apply_attack (struct Monster *from, struct Monster *to)
 				if (!it || !(*it))
 				{
 					strength = RN(mons_get_st(from)) >> 1;
-					to->HP -=
-						RND(mons[from->type].attacks[t][0],
-							mons[from->type].attacks[t][1]) +
+					*toHP -=
+						RND(mons[type].attacks[t][0],
+							mons[type].attacks[t][1]) +
                         strength +
-					    RN(3 * from->level);
+					    RN(3 * from->thing.mons.level);
 				}
 				else
 				{
-					struct item_struct is = *((*it)->type);
+					int attr = (*it)->type.attr;
 					strength = RN(mons_get_st(from)) >> 1;
-					to->HP -=
-						RND(is.attr & 15, (is.attr >> 4) & 15) + strength;
+					*toHP -= RND(attr & 15, (attr >> 4) & 15) + strength;
 				}
 
-				mons_passive_attack(to, from);
+				mons_passive_attack (to, from);
 				break;
 			}
 			case ATTK_TOUCH:
 			{
-				to->HP -=
-					RND(mons[from->type].attacks[t][0],
-						mons[from->type].attacks[t][1]);
+				*toHP -=
+					RND(mons[type].attacks[t][0],
+						mons[type].attacks[t][1]);
 
-				mons_passive_attack(to, from);
+				mons_passive_attack (to, from);
 				break;
 			}
 			case ATTK_MAGIC:
@@ -761,28 +735,28 @@ inline void apply_attack (struct Monster *from, struct Monster *to)
 			}
 			case ATTK_CLAW:
 			{
-				to->HP -=
-					RND(mons[from->type].attacks[t][0],
-						mons[from->type].attacks[t][1]);
+				*toHP -=
+					RND(mons[type].attacks[t][0],
+						mons[type].attacks[t][1]);
 
-				mons_passive_attack(to, from);
+				mons_passive_attack (to, from);
 				break;
 			}
 			case ATTK_BITE:
 			{
-				to->HP -=
-					RND(mons[from->type].attacks[t][0],
-						mons[from->type].attacks[t][1]);
+				*toHP -=
+					RND(mons[type].attacks[t][0],
+						mons[type].attacks[t][1]);
 
-				mons_passive_attack(to, from);
+				mons_passive_attack (to, from);
 				break;
 			}
 		}
-		event_mhit (from, to, mons[from->type].attacks[t][2] & 0xFFFF);
+		event_mhit (from, to, mons[type].attacks[t][2] & 0xFFFF);
 
-		if (to->HP <= 0)
+		if ((*toHP) <= 0)
 		{
-			mons_dead(from, to);
+			mons_dead (from, to);
 			break;
 		}
 	}
@@ -822,28 +796,27 @@ bool player_magic (char c)
 }
 
 /* Rudimentary AI system -- move towards player if player is visible. */
-int AI_Attack (int fromy, int fromx, int toy, int tox, struct Monster *monst)
+int AI_Attack (struct Thing *th, int toy, int tox)
 {
 	int xmove = 0, ymove = 0;
-	bres_start(fromy, fromx, NULL, get_sq_attr());
-	if (!bres_draw(toy, tox))
+	bres_start (th->yloc, th->xloc, NULL, sq_attr);
+	if (!bres_draw (toy, tox))
 	{
-		mons_move(monst, RN(3) - 1, RN(3) - 1);
+		mons_move (th, RN(3) - 1, RN(3) - 1);
 		return 1;
 	}
-	if (fromy < toy)
+	if      (th->yloc < toy)
 		ymove = 1;
-	else if (fromy > toy)
+	else if (th->yloc > toy)
 		ymove = -1;
-	if (fromx < tox)
+	if      (th->xloc < tox)
 		xmove = 1;
-	else if (fromx > tox)
+	else if (th->xloc > tox)
 		xmove = -1;
-	if (!mons_move(monst, ymove, xmove))
-		if (!mons_move(monst, ymove, 0))
-			if (!mons_move(monst, 0, xmove))
-				if (!mons_move(monst, -ymove, xmove))
-				{
-				}
+	if (!mons_move (th, ymove, xmove))
+		if (!mons_move (th, ymove, 0))
+			if (!mons_move (th, 0, xmove))
+				if (!mons_move (th, -ymove, xmove))
+					mons_move (th, RN(3) - 1, RN(3) - 1);
 	return 1;
 }

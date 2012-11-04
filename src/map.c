@@ -3,28 +3,28 @@
 #include "include/all.h"
 
 #include "include/map.h"
-#include "include/monst.h"
 #include "include/thing.h"
+#include "include/monst.h"
 #include "include/generate.h"
 #include "include/graphics.h"
 
 #define MAP_MOVEABLE 3
 
 /* remember -- ONLY ONE MONSTER PER SQUARE */
-struct Monster *get_square_monst (uint32_t yloc, uint32_t xloc, int level)
+void *get_sqmons (uint32_t yloc, uint32_t xloc, int level)
 {
 	int n = to_buffer(yloc, xloc);
 	LOOP_THING(n, i)
 	{
 		struct Thing *th = THING(n, i);
 		if (th->type == THING_MONS)
-			return (th->thing);
+			return th;
 	}
 	/* no monster */
 	return NULL;
 }
 
-uint32_t get_square_attr (uint32_t yloc, uint32_t xloc, int level)
+uint32_t get_sqattr (uint32_t yloc, uint32_t xloc, int level)
 {
 	uint32_t mvbl = 1;
 
@@ -42,7 +42,7 @@ uint32_t get_square_attr (uint32_t yloc, uint32_t xloc, int level)
 		}
 		if (th->type == THING_DGN)
 		{
-			if ((((struct map_item_struct *)(th->thing))->attr & 1) == 0)
+			if ((th->thing.mis.attr & 1) == 0)
 			{
 				mvbl = 0; /* unmoveable */
 			}
@@ -51,11 +51,11 @@ uint32_t get_square_attr (uint32_t yloc, uint32_t xloc, int level)
 	return mvbl;
 }
 
-uint32_t can_move_to (uint32_t attr)
+int can_amove (int attr)
 {
 	if (attr == (uint32_t) - 1)
-		return (uint32_t) - 1;
-	return (attr & MAP_MOVEABLE);
+		return attr;
+	return ((attr & MAP_MOVEABLE) > 0);
 }
 
 #define MAPITEM(nm,ch,at,cl) {nm,ch,at}

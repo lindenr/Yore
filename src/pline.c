@@ -1,9 +1,9 @@
 /* pline.c */
 
 #include "include/all.h"
+#include "include/thing.h"
 #include "include/pline.h"
 #include "include/loop.h"
-#include "include/util.h"
 #include "include/graphics.h"
 
 #include <stdio.h>
@@ -60,7 +60,7 @@ char pask (const char *in, const char *out, ...)
 	/* wait for answer */
 	do
 		c = gr_getch ();
-	while ((!is_in (in, c)) && c != ' ' && c != 0x1B);
+	while (strchr (in, c) == NULL && c != ' ' && c != 0x1B);
 	return c;
 }
 
@@ -163,13 +163,15 @@ bool pline_check ()
 void mlines (int num, ...)
 {
 	va_list args;
-	SVector lines;
+	Vector lines = v_init (sizeof(char*), num + 1);
 
-	v_init (lines, num + 1);
 	va_start (args, num);
 
 	do
-		v_push (lines, va_arg (args, char *));
+	{
+		char *str = va_arg (args, char *);
+		v_push (lines, &str);
+	}
 	while (--num);
 
 	va_end (args);
@@ -178,7 +180,7 @@ void mlines (int num, ...)
 	v_free (lines);
 }
 
-void mlines_vec (SVector lines)
+void mlines_vec (Vector lines)
 {
 	int i;
 	int l_no;
@@ -186,14 +188,14 @@ void mlines_vec (SVector lines)
 	if (lines->len <= 0)
 		return;
 	else if (lines->len == 1)
-		aline (lines->data[0], true);
+		aline (*(char**)v_at (lines, 0), true);
 	else
 	{
 		gr_mode (TMODE);
 		gr_clear ();
 		for (l_no = 0, i = 0; i < lines->len; ++l_no, ++ i)
 		{
-			gr_mvprintc (l_no, 0, "%s", lines->data[i]);
+			gr_mvprintc (l_no, 0, "%s", *(char**)v_at(lines, i));
 			if (l_no == glnumy - 2)
 			{
 				gr_mvprintc (glnumy - 1, 0, "--more--");
@@ -209,19 +211,10 @@ void mlines_vec (SVector lines)
 	gr_mode (GMODE);
 }
 
-void mask_vec (Vector(struct Thing) ret, Vector(struct Thing) things)
+void mask_vec (int n, Vector ret, Vector things)
 {
-	Vector(Vector(struct Thing)) piles = v_init (things->len + 1);
-
-	/* Divide up into piles */
-	item_piles (piles, things);
-
 	/* TODO ask the player; delete loop */
 	int i;
-	for (i = 0; i < piles->len; ++ i)
-	{
-		v_push (ret, piles->data[i]);
-	}
-
-	v_free (piles);
+	for (i = 0; i < things->len; ++ i)
+		v_push (ret, v_at (things, i));
 }

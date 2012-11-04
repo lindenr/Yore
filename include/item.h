@@ -57,7 +57,7 @@ enum ITEM_TYPE
 #define ITEM_INIT = {0,0,""}
 
 /* type of item */
-struct item_struct
+typedef struct
 {
 	char name[20];				/* name of that type of item */
 	char ch;					/* for the display */
@@ -65,21 +65,22 @@ struct item_struct
 	uint32_t wt;				/* weight */
 	uint32_t attr;				/* can be used for damage (weapons) (8 bits) */
 	uint32_t col;
-};
+}
+ityp;
 
 /* an actual physical item */
 struct Item
 {
-	struct item_struct *type;
+	ityp type;
 	uint32_t attr;
 	uint32_t cur_weight;
 	char *name;
 };
 
-extern struct item_struct items[];
+extern ityp items[];
 extern int NUM_ITEMS;
 
-void item_piles     (Vector(Vector(struct Thing)), Vector(struct Thing));
+void item_piles     (int, Vector, Vector);
 
 char *get_item_desc (struct Item);
 void item_look      (struct Item *);

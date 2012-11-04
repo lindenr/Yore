@@ -2,7 +2,7 @@
 
 #include "include/magic.h"
 #include "include/pline.h"
-#include "include/monst.h"
+#include "include/thing.h"
 
 #include <stdio.h>
 #include <malloc.h>
@@ -46,6 +46,8 @@ void magic_alter (struct Spell *sp, enum JEWEL_TYPE jwl)
 		{
 			//
 		}
+		default:
+			break;
 	}
 }
 
@@ -74,7 +76,7 @@ bool magic_plspell (char c)
 	if (sp == NULL) return false;
 	for (i = 0; i < BELT_JEWELS; ++ i)
 		magic_alter (sp, U.jewel[i]);
-	magic_apply (get_player(), sp);
+	magic_apply (player, sp);
 	return true;
 }
 

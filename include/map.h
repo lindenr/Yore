@@ -9,6 +9,8 @@
 
 #define ACS_WALL 255
 
+typedef uint32_t SqAttr;
+
 struct map_item_struct
 {
 	char name[20];

@@ -18,6 +18,7 @@
  * character data  0 - FF (8 bits)
  **********************************/
 typedef uint32_t glyph;
+
 #ifdef main
 #  undef main
 #endif
@@ -32,6 +33,7 @@ typedef uint32_t glyph;
 #define MAP_HEIGHT 100
 #define MAP_WIDTH  300
 #define MAP_TILES (MAP_HEIGHT*MAP_WIDTH)
+
 extern int glnumy, glnumx;
 extern int cam_yloc, cam_xloc;
 extern glyph gr_map[MAP_TILES];

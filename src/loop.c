@@ -1,15 +1,16 @@
 /* loop.c */
 
 #include "include/all.h"
+#include "include/thing.h"
 #include "include/loop.h"
 #include "include/pline.h"
 #include "include/monst.h"
 #include "include/rand.h"
-#include "include/thing.h"
 #include "include/output.h"
 #include "include/generate.h"
 #include "include/graphics.h"
 #include "include/vector.h"
+#include "include/dlevel.h"
 
 uint64_t Time = 1;
 
@@ -26,30 +27,29 @@ void next_time()
 void main_loop()
 {
 	char *msg = 0;
-	struct Thing *pl = get_player(), *th;
-	struct Monster *pl_mon = pl->thing, *mon;
+	struct Thing *th;
+	struct Monster *mon;
 	next_time ();
-	mons_gen (2, U.luck);
-	Vector mons_so_far;
-	v_init (mons_so_far, 20);
+	mons_gen (cur_dlevel, 2, U.luck);
+	Vector mons_so_far = v_init (sizeof(int), 20);
 	LOOP_THINGS(n, i)
 	{
 		th = THING(n, i);
-		if (th->type != THING_MONS || v_isin (mons_so_far, *th))
+		if (th->type != THING_MONS || v_isin (mons_so_far, &th->ID))
 			continue;
 
-		v_push (mons_so_far, *th);
-		mon = th->thing;
+		v_push (mons_so_far, &th->ID);
+		mon = &th->thing.mons;
 		mon->cur_speed += mons[mon->type].speed;
 		while (mon->cur_speed >= 12)
 		{
 			mon->cur_speed -= 12;
 			/* U.player == PLAYER_LOSTGAME if this happens */
-			if (!mons_take_move(mon))
+			if (!mons_take_move(th))
 				return;
 		}
-		gr_move(pl->yloc, pl->xloc);
-		if (pl_mon->HP <= 0)
+		gr_move (player->yloc, player->xloc);
+		if (pmons.HP <= 0)
 		{
 			U.playing = PLAYER_LOSTGAME;
 			return;
@@ -66,7 +66,7 @@ void main_loop()
 		if (U.attr[AB_WI] <= 0)
 			msg = "foolishness";
 
-		if (pl_mon->level <= 0 || pl_mon->exp < 0)
+		if (pmons.level <= 0 || pmons.exp < 0)
 			msg = "inexperience";
 		if (U.hunger > HN_LIMIT_5)
 			msg = "hunger";
@@ -75,11 +75,11 @@ void main_loop()
 
 		if (msg)
 		{
-			player_dead("You die of %s.", msg);
+			player_dead ("You die of %s.", msg);
 			U.playing = PLAYER_LOSTGAME;
 			return;
 		}
 	}
 	v_free (mons_so_far);
-	update_stats();
+	update_stats ();
 }

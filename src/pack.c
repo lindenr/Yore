@@ -1,9 +1,9 @@
 /* pack.c */
 
 #include "include/all.h"
+#include "include/thing.h"
 #include "include/pack.h"
 #include "include/item.h"
-#include "include/util.h"
 #include "include/pline.h"
 
 #include <malloc.h>
@@ -28,7 +28,7 @@ inline char LETTER_AT(unsigned i)
 
 int item_type_flags(struct Item *item, uint32_t accepted)
 {
-	switch (item->type->ch)
+	switch (item->type.ch)
 	{
 		case ITEM_WEAPON:
 			return (accepted & ITCAT_WEAPON);

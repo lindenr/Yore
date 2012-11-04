@@ -11,7 +11,7 @@ enum RANKS
 	RNK_ASSASSIN
 };
 
-char *get_rank(void);
-void update_level(struct Monster *);
+char *get_rank    (void);
+void update_level (struct Thing *);
 
 #endif /* RANK_H_INCLUDED */

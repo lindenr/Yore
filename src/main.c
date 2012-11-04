@@ -1,22 +1,22 @@
 /* main.c */
 
 #include "include/all.h"
-#include <stdlib.h>
-#include <stdio.h>
-
+#include "include/thing.h"
 #include "include/monst.h"
 #include "include/rand.h"
 #include "include/vision.h"
 #include "include/loop.h"
 #include "include/pline.h"
 #include "include/generate.h"
-#include "include/thing.h"
 #include "include/output.h"
-#include "include/util.h"
 #include "include/graphics.h"
 #include "include/save.h"
 #include "include/magic.h"
 #include "include/vector.h"
+#include "include/dlevel.h"
+
+#include <stdlib.h>
+#include <stdio.h>
 
 void print_intro()
 {
@@ -103,9 +103,10 @@ int main (int argc, char *argv[])
 	uint32_t rseed;
 
 	gr_init ();
-
+	dlevel_init ();
 	rseed = RNG_get_seed ();
 	RNG_main = RNG_INIT (rseed);
+
 	setup_U ();
 	atexit (all_things_free);
 
@@ -114,7 +115,7 @@ int main (int argc, char *argv[])
 
 	//mlines (3, "asdf", "qwer", "zxcv");
 	print_intro ();
-	mons_gen (0, 0);
+	mons_gen (cur_dlevel, 0, 15150);
 
 	gr_mvprintc (8, 6, "Who are you? ");
 	gr_refresh ();
@@ -146,17 +147,12 @@ int main (int argc, char *argv[])
 
 	gr_mode (GMODE);
 	
-	generate_map (LEVEL_NORMAL);
-	LOOP_THINGS(where, which)
-	{
-		struct Thing *th = THING(where, which);
-		printf ("%p: %d   %dx%d   %p\n", th, th->type, th->yloc, th->xloc, th->thing);
-	}
-	printf("END--\n");
+	generate_map (cur_dlevel, LEVEL_NORMAL);
+
 	gr_clear ();
 	pline_check ();
 
-	gr_movecam (get_player()->yloc - (glnumy/2), get_player()->xloc - (glnumx/2));
+	gr_movecam (player->yloc - (glnumy/2), player->xloc - (glnumx/2));
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 
@@ -168,13 +164,13 @@ int main (int argc, char *argv[])
 
   quit_game:
 	if (U.playing == PLAYER_LOSTGAME)
-		printf("Goodbye %s...\n", get_pmonster()->name + 1);
+		printf("Goodbye %s...\n", pmons.name + 1);
 	else if (U.playing == PLAYER_SAVEGAME)
 		printf("See you soon...\n");
 	else if (U.playing == PLAYER_STARTING)
 		printf("Give it a try next time...\n");
 	else if (U.playing == PLAYER_WONGAME)
-		printf("Congratulations %s...\n", get_pmonster()->name + 1);
+		printf("Congratulations %s...\n", pmons.name + 1);
 
 	exit(0);
 }

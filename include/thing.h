@@ -4,19 +4,24 @@
 #include <string.h>
 #include "include/vector.h"
 #include "include/graphics.h"
+#include "include/item.h"
+#include "include/monst.h"
+#include "include/map.h"
 
-#define get_player() (U.player)
-#define get_pmonster() ((struct Monster*)U.player->thing)
+#define player (U.player)
+#define pmons  (player->thing.mons)
 
 /* How ITER_THINGS works: it's a loop through a vector, within a loop through the tiles.
  * Since break'ing would only exit one loop (straight into the other) the condition
  * (iter_good(it) == 0) was added -- this ensures that, if the inner loop break's, the
  * outer one will as well. */
-#define LOOP_THING(n,i)  int i = 0x79999999;                                                                for (i = 0; i < all_things[n]->len; ++ i)
-#define LOOP_THINGS(n,i) int i = 0x79999999, n; for (n = 0; n < MAP_TILES && i >= all_things[n]->len; ++ n) for (i = 0; i < all_things[n]->len; ++ i)
-#define THING(n,i) ((struct Thing*)&(all_things[n]->data[i]))
+#define LOOP_THING(n,i)  int i;                                     for (i = 0; i < all_things[n]->len; ++ i)
+#define LOOP_THINGS(n,i) int i, n; for (n = 0; n < MAP_TILES; ++ n) for (i = 0; i < all_things[n]->len; ++ i)
+#define BREAK(n)         {n = MAP_TILES; break;}
 
-#define rem_loc(n,i) v_rem (all_things[n], i)
+#define THING(n,i)       ((struct Thing*)(all_things[n]->data + i*sizeof(struct Thing)))
+
+#define rem_ref(n,i) v_rem (all_things[n], i)
 
 enum THING_TYPE
 {
@@ -30,18 +35,21 @@ enum THING_TYPE
 struct Thing
 {
 	enum THING_TYPE type;
+	int dlevel, ID;
 	uint32_t yloc, xloc;
-	void *thing;
+	union
+	{
+		struct Item item;
+		struct Monster mons;
+		struct map_item_struct mis;
+	}
+	thing;
 };
 
-uint8_t *get_sq_attr       (void);
-uint8_t *get_sq_seen       (void);
-
-void rem_by_data           (void *);
 void thing_free            (struct Thing *);
 void all_things_free       (void);
 
-struct Thing *new_thing    (uint32_t, uint32_t, uint32_t, void *);
+struct Thing *new_thing    (uint32_t, int, uint32_t, uint32_t, void *);
 
 void visualise_map         (void);
 
@@ -52,7 +60,9 @@ struct Thing *get_thing    (void *);
 void thing_move            (struct Thing *, int, int);
 void thing_bmove           (struct Thing *, int);
 
-extern Vector(struct Thing) all_things[];
-extern uint8_t sq_seen[MAP_TILES];
+int getID                  ();
+
+extern Vector all_things[];
+extern uint8_t sq_seen[], sq_attr[];
 
 #endif /* THING_H_INCLUDED */

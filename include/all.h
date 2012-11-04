@@ -6,14 +6,8 @@
 
 /* Player options go here */
 
-/* operating system: either FOONIX or WINDOWS */
-#define SDL
-
 /* #define AMERICAN */
 #define USING_COL
-
-/* debugging only */
-/* #define LIST_TEST */
 
 /* Int sizes (do not change) */
 #if UINT_MAX>>32 == 0
@@ -46,5 +40,7 @@
 #else
 //#error operating system not defined
 #endif /* WINDOWS, FOONIX */
+
+#define YORE_VERSION "0.0.6 pre-alpha"
 
 #endif /* ALL_H_INCLUDED */

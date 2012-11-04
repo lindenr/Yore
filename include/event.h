@@ -5,9 +5,9 @@
 #include "include/thing.h"
 #include "include/monst.h"
 
-void event_mhit   (struct Monster *, struct Monster *, uint32_t);
-void event_mkill  (struct Monster *, struct Monster *);
-void event_mlevel (struct Monster *);
+void event_mhit   (struct Thing *, struct Thing *, uint32_t);
+void event_mkill  (struct Thing *, struct Thing *);
+void event_mlevel (struct Thing *);
 void event_anoise ();
 
 #endif /* EVENT_H_INCLUDED */
