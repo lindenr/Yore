@@ -358,7 +358,6 @@ char gr_getch ()
 					}
 					else
 						++ curs_xloc;
-					gr_refresh();
 				}
 				return event.key.keysym.unicode;
 			}
@@ -402,11 +401,11 @@ void gr_getstr (char *out, int len)
 			if (i)
 				-- i;
 			out[i] = 0;
-			gr_addch(' ');
-			gr_refresh();
+			gr_addch (' ');
+			gr_refresh ();
 			continue;
 		}
-		if (in == 0 || i >= len) /* Modifier (eg shift) */
+		if (in == 0 || i >= len) /* Modifier (eg shift) or too long */
 		{
 			if (curs_xloc == 0)
 			{
@@ -415,8 +414,11 @@ void gr_getstr (char *out, int len)
 			}
 			else
 				-- curs_xloc;
+			gr_addch (' ');
+			gr_refresh ();
 			continue;
 		}
+		gr_refresh();
 		out[i] = in;
 		++ i;
 	}

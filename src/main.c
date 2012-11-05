@@ -128,7 +128,7 @@ int main (int argc, char *argv[])
 			gr_mvprintc(10, 6, "Please type in your name.");
 		gr_refresh();
 		gr_move(8, 19);
-		gr_getstr(real_player_name + 1, 83);
+		gr_getstr(real_player_name + 1, 80);
 	}
 
 	if (*(real_player_name + 1) == '\0')
