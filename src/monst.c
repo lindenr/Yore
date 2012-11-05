@@ -236,7 +236,7 @@ inline char escape (unsigned char a)
 		return a;
 }
 
-inline bool player_take_input (char in)
+inline int player_take_input (char in)
 {
 	int xmove = 0, ymove = 0;
 	if (in == 'h')
@@ -373,7 +373,7 @@ int mons_take_move (struct Thing *th)
 			continue;
 		}
 
-		bool mv = player_take_input (in);
+		int mv = player_take_input (in);
 		if (mv != -1)
 		{
 			if (U.playing == PLAYER_WONGAME)
@@ -412,6 +412,9 @@ int mons_take_move (struct Thing *th)
 					v_push (ground, &i);
 			}
 
+			int asdf = 0;
+			for (asdf = 0; asdf < ground->len; ++ asdf)
+				printf("%d\n", *(int*)v_at (ground, asdf));
 			if (ground->len == 1) 
 			{
 				/* One item on ground -- pick up immediately. */
