@@ -155,14 +155,14 @@ inline void set_can_see (uint32_t * unseen)
                      b = DOT, n = DOT;
 
 			//if (sq_seen[w] == 2 && sq_attr[w] == 0 && us[w] != ' ')
-			//	us[w] |= COL_TXT_BRIGHT;	/* Brighten what you can see iff it's a wall. */
+			//	us[w] |= COL_TXT_BRIGHT; /* Brighten what you can see iff it's a wall. */
 
-            /* Replace something unseeable with what's behind it. */
+			/* Replace something unseeable with what's behind it. */
 			if (sq_seen[w] == 1 && sq_attr[w] == 2)
 				gr_baddch (w, unseen[w]);
 
 			if (sq_attr[w] != 0 || (gr_map[w] & 0xFF) == ' ')
-				continue;		/* Only keep going if it is a wall. */
+				continue; /* Only keep going if it is a wall. */
 
 			if (X)
 				h = US(w - 1);
