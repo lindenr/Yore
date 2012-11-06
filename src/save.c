@@ -1,15 +1,16 @@
 /* save.c */
 
 #include "include/all.h"
+#include "include/thing.h"
 #include "include/save.h"
 #include "include/pline.h"
 #include "include/monst.h"
 #include "include/loop.h"
 #include "include/vector.h"
-#include "include/thing.h"
 #include "include/pack.h"
 #include "include/map.h"
 #include "include/graphics.h"
+#include "include/dlevel.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,12 +49,12 @@ void save_block()
 	}
 }*/
 
-void save_item(struct Item *item)
+void save_item (struct Item *item)
 {
 	void *p = NULL;
 	//if (!item)
 	{
-		fwrite(&p, sizeof(p), 1, game_save_file);
+		SAVE_NATIVE(p);
 		return;
 	}
 	//store_type(item->type);
@@ -105,12 +106,12 @@ bool save (char *filename)
 			{
 				case THING_ITEM:
 				{
-					save_item(th->thing);
+					save_item (&th->thing.item);
 					break;
 				}
 				case THING_MONS:
 				{
-					struct Monster *mn = th->thing;
+					struct Monster *mn = &th->thing.mons;
 					SAVE_NATIVE(mn->type);
 					SAVE_NATIVE(mn->level);
 					SAVE_NATIVE(mn->exp);
@@ -119,49 +120,49 @@ bool save (char *filename)
 					SAVE_NATIVE(mn->cur_speed);
 
 					if (mn->name)
-						fwrite(mn->name, 20, 1, game_save_file);
+						fwrite (mn->name, 20, 1, game_save_file);
 					else
-						fwrite("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20, 1, game_save_file);
+						fwrite ("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20, 1, game_save_file);
 
 					/* pack */
 					for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
-						save_item(mn->pack.items[i]);
+						save_item (mn->pack.items[i]);
 
 					/* wearing */
-					save_item(mn->wearing.head);
-					save_item(mn->wearing.torso);
-					save_item(mn->wearing.legs);
-					save_item(mn->wearing.feet);
-					save_item(mn->wearing.hands);
-					save_item(mn->wearing.arms);
-					save_item(mn->wearing.rfin);
-					save_item(mn->wearing.lfin);
-					save_item(mn->wearing.rweap);
-					save_item(mn->wearing.lweap);
+					save_item (mn->wearing.head);
+					save_item (mn->wearing.torso);
+					save_item (mn->wearing.legs);
+					save_item (mn->wearing.feet);
+					save_item (mn->wearing.hands);
+					save_item (mn->wearing.arms);
+					save_item (mn->wearing.rfin);
+					save_item (mn->wearing.lfin);
+					save_item (mn->wearing.rweap);
+					save_item (mn->wearing.lweap);
 					SAVE_NATIVE(mn->wearing.two_weaponing);
 
 					SAVE_NATIVE(mn->status);
-					save_item(mn->eating);
+					save_item (mn->eating);
 					break;
 				}
 				case THING_DGN:
 				{
-					struct map_item_struct *mapit = th->thing;
+					struct map_item_struct *mapit = &th->thing.mis;
 					long type = GETMAPITEMID(mapit->ch);
-					SAVE_NATIVE(type);
+					SAVE_NATIVE (type);
 				}
 				default:
 				{
 				}
 			}
 		}
-		fprintf(game_save_file, "1111");
+		fprintf (game_save_file, "1111");
 
 		for (i = 0; i < 1680; ++ i) fprintf(game_save_file, "%c", sq_seen[i]);
 		
 		//save_block();
 		
-		fclose(game_save_file);
+		fclose (game_save_file);
 		return false;
 	}
 	return true;
@@ -184,7 +185,7 @@ void load_block()
 {
 }*/
 
-void load_item(struct Item **out_item)
+void load_item (struct Item **out_item)
 {
 	void *ptr;
 	LOAD_NATIVE(ptr);
@@ -193,8 +194,8 @@ void load_item(struct Item **out_item)
 		*out_item = NULL;
 		return;
 	}
-	struct Item *item = malloc(sizeof(*item));
-	item->type = items;
+	struct Item *item = malloc (sizeof(*item));
+	memcpy (&item->type, items, sizeof(ityp));
 	//store_load_block(&item->type, ptr, sizeof(*item->type));
 	LOAD_NATIVE(item->attr);
 	LOAD_NATIVE(item->cur_weight);
@@ -211,22 +212,23 @@ void load_item(struct Item **out_item)
 	*out_item = item;
 }
 
-void restore(char *filename)
+void restore (char *filename)
 {
 	int i;
 	U.playing = PLAYER_ERROR; /* for premature returning */
-	game_save_file = fopen(filename, "rb");
-	if (!game_save_file) panic("Save file incorrect\n");
+	game_save_file = fopen (filename, "rb");
+	if (!game_save_file) panic ("Save file nonexistent\n");
 	
-	char *ftest = malloc(strlen("YOREv"YORE_VERSION))+1;
+	char *ftest = malloc (strlen("YOREv"YORE_VERSION))+1;
 
-	fread(ftest, strlen("YOREv"YORE_VERSION)+1, 1, game_save_file);
-	if (strcmp(ftest, "YOREv"YORE_VERSION)) panic("Save file incorrect\n");
+	fread (ftest, strlen("YOREv"YORE_VERSION) + 1, 1, game_save_file);
+	if (strcmp (ftest, "YOREv"YORE_VERSION))
+		panic ("Save file invalid\n");
 
 	LOAD_NATIVE(Time);
 
 	LOAD_NATIVE(U.hunger);
-	U.player = NULL;
+	player = NULL;
 	LOAD_NATIVE(U.role);
 	LOAD_NATIVE(U.playing);
 	for (i = 0; i < 6; ++ i)
@@ -237,29 +239,29 @@ void restore(char *filename)
 
 	while (1)
 	{
-		struct Thing *th = malloc(sizeof(*th));
-		if (!U.player) U.player = th;
-		LOAD_NATIVE(th->type);
-		if (th->type == 0x31313131)
-		{
-			free(th);
+		struct Thing th;
+
+		LOAD_NATIVE(th.type);
+		if (th.type == 0x31313131)
 			break;
-		}
-		if (th->type > 6) panic("Loading files is messed up.");
-		LOAD_NATIVE(th->yloc);
-		LOAD_NATIVE(th->xloc);
+
+		if (th.type > 6)
+			panic ("Load file is messed up.");
+
+		LOAD_NATIVE(th.yloc);
+		LOAD_NATIVE(th.xloc);
 		
-		switch(th->type)
+		switch (th.type)
 		{
 			case THING_ITEM:
 			{
-				struct Item *it = th->thing;
-				load_item(&it);
+				struct Item *it = &th.thing.item;
+				load_item (&it);
 				break;
 			}
 			case THING_MONS:
 			{
-				struct Monster *mn = malloc(sizeof(*mn));
+				struct Monster *mn = &th.thing.mons;
 
 				LOAD_NATIVE(mn->type);
 				LOAD_NATIVE(mn->level);
@@ -267,44 +269,44 @@ void restore(char *filename)
 				LOAD_NATIVE(mn->HP);
 				LOAD_NATIVE(mn->HP_max);
 				LOAD_NATIVE(mn->cur_speed);
-				mn->name = malloc(20);
-				fread(mn->name, 20, 1, game_save_file);
+				mn->name = malloc (20);
+				fread (mn->name, 20, 1, game_save_file);
 
 				for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
-					load_item(&(mn->pack.items[i]));
+					load_item (&(mn->pack.items[i]));
 
-				load_item(&mn->wearing.head);
-				load_item(&mn->wearing.torso);
-				load_item(&mn->wearing.legs);
-				load_item(&mn->wearing.feet);
-				load_item(&mn->wearing.hands);
-				load_item(&mn->wearing.arms);
-				load_item(&mn->wearing.rfin);
-				load_item(&mn->wearing.lfin);
-				load_item(&mn->wearing.rweap);
-				load_item(&mn->wearing.lweap);
+				load_item (&mn->wearing.head);
+				load_item (&mn->wearing.torso);
+				load_item (&mn->wearing.legs);
+				load_item (&mn->wearing.feet);
+				load_item (&mn->wearing.hands);
+				load_item (&mn->wearing.arms);
+				load_item (&mn->wearing.rfin);
+				load_item (&mn->wearing.lfin);
+				load_item (&mn->wearing.rweap);
+				load_item (&mn->wearing.lweap);
 				LOAD_NATIVE(mn->wearing.two_weaponing);
 
 				LOAD_NATIVE(mn->status);
-				load_item(&mn->eating);
-
-				th->thing = mn;
+				load_item (&mn->eating);
 				break;
 			}
 			case THING_DGN:
 			{
 				long num;
-				struct map_item_struct *mapit = malloc(sizeof(*mapit));
 				LOAD_NATIVE(num);
-				memcpy(mapit, &map_items[num], sizeof(*mapit));
-				th->thing = mapit;
+				memcpy (&th.thing.mis, &map_items[num], sizeof(*map_items));
 				break;
 			}
 			default:
 			{
 			}
 		}
-		push_back(&all_things[to_buffer(th->yloc, th->xloc)], th);
+
+		if (!player)
+			player = new_thing (th.type, cur_dlevel, th.yloc, th.xloc, &th.thing);
+		else
+			new_thing (th.type, cur_dlevel, th.yloc, th.xloc, &th.thing);
 	}
 
 	for (i = 0; i < 1680; ++ i) LOAD_NATIVE(sq_seen[i]);

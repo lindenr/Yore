@@ -320,7 +320,7 @@ char gr_getch ()
 	clock_t end = 0;
 	if (tout_num)
 		end = tout_num * CLOCKS_PER_SEC / 1000 + clock();
-	
+
 	while (1)
 	{
 		if (end && clock() >= end) break;
@@ -516,9 +516,9 @@ void wait_ms (unsigned ms)
 #else
 #include <unistd.h>
 
-void wait_ms (unsigned ms)
+void wait_ms (unsigned time_ms)
 {
-	usleep (ms);
+	//usleep (time_ms);
 }
 #endif
 
