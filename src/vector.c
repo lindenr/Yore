@@ -38,6 +38,11 @@ void *v_push (Vector vec, void *data)
 	return v_at (vec, vec->len - 1);
 }
 
+void *v_pptr (Vector vec, void *ptr)
+{
+	return v_push (vec, &ptr);
+}
+
 void v_rem (Vector vec, int rem)
 {
 	int i;

@@ -126,7 +126,7 @@ bool save (char *filename)
 
 					/* pack */
 					for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
-						save_item (mn->pack.items[i]);
+						save_item (&mn->pack.items[i]);
 
 					/* wearing */
 					save_item (mn->wearing.head);
@@ -184,19 +184,18 @@ void *store_load_block(void **mem, int len)
 void load_block()
 {
 }*/
-
-void load_item (struct Item **out_item)
+/*
+void load_item (struct Item *item)
 {
 	void *ptr;
 	LOAD_NATIVE(ptr);
-	if (!ptr)
+	if (!(ptr&255))
 	{
-		*out_item = NULL;
+		memclr (item, sizeof(*item));
 		return;
 	}
-	struct Item *item = malloc (sizeof(*item));
-	memcpy (&item->type, items, sizeof(ityp));
-	//store_load_block(&item->type, ptr, sizeof(*item->type));
+	memcpy (&item->type, &items[0], sizeof(ityp));
+	//store_load_block(&item->type, ptr, sizeof(ityp));
 	LOAD_NATIVE(item->attr);
 	LOAD_NATIVE(item->cur_weight);
 	char temp[100];
@@ -208,14 +207,16 @@ void load_item (struct Item **out_item)
 		item->name = malloc(len+1);
 		strcpy(item->name, temp);
 	}
+}
 
-	*out_item = item;
+struct Item *make_item ()
+{
 }
 
 void restore (char *filename)
 {
 	int i;
-	U.playing = PLAYER_ERROR; /* for premature returning */
+	U.playing = PLAYER_ERROR; * for premature returning *
 	game_save_file = fopen (filename, "rb");
 	if (!game_save_file) panic ("Save file nonexistent\n");
 	
@@ -255,8 +256,7 @@ void restore (char *filename)
 		{
 			case THING_ITEM:
 			{
-				struct Item *it = &th.thing.item;
-				load_item (&it);
+				load_item (&th.thing.item);
 				break;
 			}
 			case THING_MONS:
@@ -317,8 +317,8 @@ void restore (char *filename)
 
 	fclose (game_save_file);
 
-	U.playing = PLAYER_PLAYING;	/* success */
-}
+	U.playing = PLAYER_PLAYING;	* success *
+}*/
 
 /* false is quit, true is stay */
 bool quit ()

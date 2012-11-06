@@ -26,7 +26,7 @@ inline char LETTER_AT(unsigned i)
 		return i + 97;
 }
 
-int item_type_flags(struct Item *item, uint32_t accepted)
+int item_type_flags (struct Item *item, uint32_t accepted)
 {
 	switch (item->type.ch)
 	{
@@ -47,28 +47,28 @@ int item_type_flags(struct Item *item, uint32_t accepted)
 		case ITEM_JEWEL:
 			return (accepted & ITCAT_JEWEL);
 	}
-	panic("item_type_flags() found a strange item type.");
+	panic ("item_type_flags() found a strange item type.");
 	return -1;
 }
 
-void show_contents(struct Pack pack, uint32_t accepted)
+void show_contents (struct Pack pack, uint32_t accepted)
 {
 	int i;
 	Vector inv;
 
 	inv = v_init (sizeof(char *), 55);
-	v_push (inv, "Inventory");
-	v_push (inv, "");
-	for (i = 0; i < 52; ++i)
+	v_pptr (inv, "Inventory");
+	v_pptr (inv, "");
+	for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
 	{
 		if (pack.items[i] && item_type_flags (pack.items[i], accepted))
-			v_push (inv, get_inv_line(pack.items[i]));
+			v_pptr (inv, get_inv_line (pack.items[i]));
 	}
 	mlines_vec (inv);
 	v_free (inv);
 }
 
-void pack_get_letters(struct Pack pack, char *ret)
+void pack_get_letters (struct Pack pack, char *ret)
 {
 	unsigned k, u;
 	for (u = 0, k = 0; u < MAX_ITEMS_IN_PACK; ++u)
@@ -82,7 +82,7 @@ void pack_get_letters(struct Pack pack, char *ret)
 	strcpy (ret + k, " ?*");
 }
 
-struct Item *pack_rem(struct Pack *pack, char it)
+struct Item *pack_rem (struct Pack *pack, char it)
 {
 	unsigned u = PACK_AT(it);
 	struct Item *ret = pack->items[u];
@@ -90,7 +90,7 @@ struct Item *pack_rem(struct Pack *pack, char it)
 	return ret;
 }
 
-bool pack_add(struct Pack * pack, struct Item * it)
+bool pack_add (struct Pack *pack, struct Item *it)
 {
 	uint32_t u;
 	char *msg;
@@ -99,23 +99,26 @@ bool pack_add(struct Pack * pack, struct Item * it)
 	{
 		if (!pack->items[u])
 		{
-			pack->items[u] = it;
-			msg = get_inv_line(it);
-			pline("%s", msg);
-			free(msg);
+			/* Put in pack */
+			pack->items[u] = malloc (sizeof(*it));
+			memcpy (pack->items[u], it, sizeof(*it));
+			/* Say so */
+			msg = get_inv_line (it);
+			pline ("%s", msg);
+			free (msg);
 			return true;
 		}
 	}
-	pline("No space. :/");
+	pline ("No space. :/");
 	return false;
 }
 
-struct Item *get_Item(struct Pack pack, unsigned itnum)
+struct Item *get_Item (struct Pack pack, unsigned itnum)
 {
 	return pack.items[itnum];
 }
 
-struct Item *get_Itemc(struct Pack pack, char itch)
+struct Item *get_Itemc (struct Pack pack, char itch)
 {
 	unsigned where = PACK_AT(itch);
 	if (where == -1)
@@ -123,7 +126,7 @@ struct Item *get_Itemc(struct Pack pack, char itch)
 	return pack.items[where];
 }
 
-char get_Itref(struct Pack pack, struct Item *item)
+char get_Itref (struct Pack pack, struct Item *item)
 {
 	unsigned i;
 

@@ -235,7 +235,6 @@ bool is_safe_gen (int clevel, uint32_t yloc, uint32_t xloc)
 }
 
 char *real_player_name;
-struct Monster *Pl;
 
 /* type:
  * 0 : initialised at start of game
@@ -255,7 +254,7 @@ uint32_t mons_gen (int clevel, int type, int32_t param)
 		upsy = start / MAP_WIDTH;
 		upsx = start % MAP_WIDTH;
 		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0, 0, {{0},}, {0,}, 0, 0};
-		asdf.name = malloc(85);
+		asdf.name = malloc (85);
 		strcpy (asdf.name, "_");
 		real_player_name = asdf.name;
 		player = new_thing (THING_MONS, clevel, upsy, upsx, &asdf);

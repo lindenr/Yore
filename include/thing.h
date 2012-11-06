@@ -19,7 +19,7 @@
 #define LOOP_THINGS(n,i) int i, n; for (n = 0; n < MAP_TILES; ++ n) for (i = 0; i < all_things[n]->len; ++ i)
 #define BREAK(n)         {n = MAP_TILES; break;}
 
-#define THING(n,i)       ((struct Thing*)(all_things[n]->data + i*sizeof(struct Thing)))
+#define THING(n,i)       ((struct Thing*)(all_things[n]->data + (i)*sizeof(struct Thing)))
 
 #define rem_ref(n,i) v_rem (all_things[n], i)
 
