@@ -412,10 +412,10 @@ int mons_take_move (struct Thing *th)
 					v_push (ground, &i);
 			}
 
-			if (ground->len == 1) 
+			if (ground->len == 1)
 			{
 				/* One item on ground -- pick up immediately. */
-				if (pack_add (&pmons.pack, &THING(n, i)->thing.item));
+				if (pack_add (&pmons.pack, &THING(n, *(int*)v_at (ground, 0))->thing.item));
 					rem_ref (n, i);
 				v_free (ground);
 			}
