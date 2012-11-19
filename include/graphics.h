@@ -74,6 +74,8 @@ void gr_tout    (int);
 
 /* Misc */
 int  to_buffer  (int, int);
+int  map_buffer (int, int);
+
 int  gr_nearedge(int, int);
 void wait_ms    (unsigned);
 

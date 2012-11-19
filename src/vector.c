@@ -48,8 +48,9 @@ void v_rem (Vector vec, int rem)
 	int i;
 	if (rem >= vec->len) return;
 
-	for (i = rem; i < vec->len; ++ i)
+	for (i = rem; i < vec->len - 1; ++ i)
 		memcpy (DATA(i), DATA(i+1), vec->siz);
+	memclr (DATA(i), vec->siz);
 	-- vec->len;
 }
 

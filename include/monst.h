@@ -58,7 +58,7 @@ typedef uint32_t player_attr[6];
 struct player_status
 {
 	int32_t hunger, oldhunger;
-	struct Thing *player;
+	struct Thing *pl;
 	int role;
 	int playing;
 	player_attr attr; /* st, co, ch, etc */
@@ -131,6 +131,7 @@ struct Monster
 	struct Item *eating;		/* eating something (0 if not) */
 };
 
+struct Thing;
 /* general monster functions */
 void   mons_attack     (struct Thing *, int, int);         /* attack in direction                      */
 int    mons_move       (struct Thing *, int, int);         /* move in given directions                 */

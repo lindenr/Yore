@@ -14,7 +14,7 @@
 
 uint64_t Time = 1;
 
-void next_time()
+void next_time ()
 {
 	++ Time;
 	U.oldhunger = U.hunger;
@@ -24,30 +24,45 @@ void next_time()
 	}
 }
 
-void main_loop()
+void main_loop ()
 {
+	//sanitycheck ();
 	char *msg = 0;
+	int ID;
 	struct Thing *th;
 	struct Monster *mon;
+
 	next_time ();
 	mons_gen (cur_dlevel, 2, U.luck);
 	Vector mons_so_far = v_init (sizeof(int), 20);
 	LOOP_THINGS(n, i)
 	{
 		th = THING(n, i);
-		if (th->type != THING_MONS || v_isin (mons_so_far, &th->ID))
+		if (th->type != THING_MONS)
 			continue;
 
-		v_push (mons_so_far, &th->ID);
+		if (v_isin (mons_so_far, &th->ID))
+			continue;
+		else
+			v_push (mons_so_far, &th->ID);
+
+		ID = th->ID;
+
 		mon = &th->thing.mons;
 		mon->cur_speed += mons[mon->type].speed;
 		while (mon->cur_speed >= 12)
 		{
 			mon->cur_speed -= 12;
+
 			/* U.player == PLAYER_LOSTGAME if this happens */
 			if (!mons_take_move(th))
 				return;
+
+			th = THIID(ID);
+			mon = &th->thing.mons;
+			update_stats ();
 		}
+
 		gr_move (player->yloc, player->xloc);
 		if (pmons.HP <= 0)
 		{
@@ -81,5 +96,4 @@ void main_loop()
 		}
 	}
 	v_free (mons_so_far);
-	update_stats ();
 }

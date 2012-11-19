@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "[36;41m===STARTING BUILD===[0m"
-make -B -j4
+make -B
 echo "Run the game??? (y) "
 read ANSWER
 if [ "$ANSWER" == "y" ]; then

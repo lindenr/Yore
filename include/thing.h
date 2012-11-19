@@ -8,7 +8,7 @@
 #include "include/monst.h"
 #include "include/map.h"
 
-#define player (U.player)
+#define player (*(struct Thing **) v_at (all_ids, 1))
 #define pmons  (player->thing.mons)
 
 /* How ITER_THINGS works: it's a loop through a vector, within a loop through the tiles.
@@ -19,9 +19,13 @@
 #define LOOP_THINGS(n,i) int i, n; for (n = 0; n < MAP_TILES; ++ n) for (i = 0; i < all_things[n]->len; ++ i)
 #define BREAK(n)         {n = MAP_TILES; break;}
 
+#define THIID(id)        (*(struct Thing **) v_at (all_ids, (id)))
 #define THING(n,i)       ((struct Thing*)(all_things[n]->data + (i)*sizeof(struct Thing)))
+/* Things that could screw up pointers are:
+ * new_thing()
+ * rem_ref   *fixed* */
 
-#define rem_ref(n,i) v_rem (all_things[n], i)
+#define get_ref(n,p) ((((long long)(p)) - ((long long)all_things[n]->data)) / sizeof(struct Thing))
 
 enum THING_TYPE
 {
@@ -55,7 +59,6 @@ void visualise_map         (void);
 
 int get_thing_type         (char);
 const char *get_thing_name (struct Thing);
-struct Thing *get_thing    (void *);
 
 void thing_move            (struct Thing *, int, int);
 void thing_bmove           (struct Thing *, int);
@@ -63,6 +66,7 @@ void thing_bmove           (struct Thing *, int);
 int getID                  ();
 
 extern Vector all_things[];
+extern Vector all_ids;
 extern uint8_t sq_seen[], sq_attr[];
 
 #endif /* THING_H_INCLUDED */

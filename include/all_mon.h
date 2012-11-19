@@ -55,7 +55,7 @@ const struct monster_struct mons[] = {
 			   AT_NONE, AT_NONE, AT_NONE), FL_HMND | FL_SIZ3,
 		  COL_TXT_RED(11) | COL_TXT_GREEN(11),
 		  36),
-	MONST("human", '@', 12,
+	MONST("human", '@', 24,
 		  ATTK(A(1, 4, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HMND | FL_SIZ4,
 		  COL_TXT_BLUE(11) | COL_TXT_RED(11) | COL_TXT_GREEN(11),

@@ -4,12 +4,14 @@
 #include "include/all.h"
 #include <stdbool.h>
 
-typedef struct vector_
+struct vector_;
+typedef struct vector_ *Vector;
+
+struct vector_
 {
 	void *data;
 	int siz, len, mlen;
-}
-*Vector;
+};
 
 /* init */
 Vector v_dinit (int);

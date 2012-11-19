@@ -40,6 +40,11 @@ int to_buffer (int yloc, int xloc)
 	return MAP_WIDTH*yloc + xloc;
 }
 
+int map_buffer (int yloc, int xloc)
+{
+	return MAP_WIDTH*yloc + xloc;
+}
+
 void gr_move (int yloc, int xloc)
 {
 	curs_yloc = yloc;
@@ -359,6 +364,7 @@ char gr_getch ()
 					else
 						++ curs_xloc;
 				}
+
 				return event.key.keysym.unicode;
 			}
 			

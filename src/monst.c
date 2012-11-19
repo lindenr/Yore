@@ -59,6 +59,10 @@ bool digesting()
 void setup_U ()
 {
 	int i;
+	void *t = NULL;
+
+	all_ids = v_dinit (sizeof(void*));
+	v_push (all_ids, &t);
 
 	U.playing = PLAYER_ERROR;	/* If this function returns early */
 	U.hunger = 100;
@@ -139,7 +143,7 @@ bool nogen (int mons_id)
 	if (mons_id == MTYP_SATAN)
 		return ((U.m_glflags&MGL_GSAT) != 0);
 
-	return 0;
+	return false;
 }
 
 int player_gen_type ()
@@ -197,32 +201,32 @@ int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 {
 	if (th != player)
 		if (!(x | y))
-			return false;
-	int can = can_amove (get_sqattr (th->yloc + y, th->xloc + x, th->thing.mons.level));
+			return 0;
+	int can = can_amove (get_sqattr (th->yloc + y, th->xloc + x, th->dlevel));
 	/* like a an unmoveable boulder or something */
 	if (!can)
-		return false;
+		return 0;
 	/* you can and everything's fine, nothing doing */
 	else if (can == 1)
 	{
 		thing_move (th, th->yloc+y, th->xloc+x);
-		return true;
+		return 1;
 	}
 	/* melee attack! */
 	else if (can == 2)
 	{
 		mons_attack (th, y, x);
-		return true;
+		return 1;
 	}
 	/* off map or something */
 	else if (can == -1)
 	{
-		/* nothing to do except return false (move not allowed) */
-		return false;
+		/* nothing to do except return 0 (move not allowed) */
+		return 0;
 	}
 	/* shouldn't get to here -- been a mistake */
 	panic ("mons_move() end reached");
-	return false;
+	return 0;
 }
 
 /* if a is in the range 0 <= a < 0x20 (' ' in ASCII) then a+64 is returned (so 
@@ -352,6 +356,7 @@ int mons_take_move (struct Thing *th)
 		gr_refresh ();
 		gr_move (th->yloc + 1, th->xloc);
 		in = gr_getch();
+
 		if (pline_check())
 			line_reset();
 		if (in == 'Q')
@@ -363,6 +368,7 @@ int mons_take_move (struct Thing *th)
 			}
 			continue;
 		}
+
 		if (in == 'S')
 		{
 			//if (!save(get_filename()))
@@ -417,6 +423,7 @@ int mons_take_move (struct Thing *th)
 				/* One item on ground -- pick up immediately. */
 				if (pack_add (&pmons.pack, &THING(n, *(int*)v_at (ground, 0))->thing.item))
 					rem_ref (n, *(int*)v_at (ground, 0));
+
 				v_free (ground);
 			}
 			else
@@ -513,6 +520,7 @@ int mons_take_move (struct Thing *th)
 
 void mons_dead (struct Thing *from, struct Thing *to)
 {
+	printf("MONSDEAD");
 	if (to == player)
 	{
 		player_dead("");
@@ -529,12 +537,13 @@ void mons_dead (struct Thing *from, struct Thing *to)
 	}
 	ityp c = find_corpse (to);
 	struct Item it;
-	it.type = c;
+	memcpy (&it.type, &c, sizeof(ityp));
 	it.attr = 0;
 	it.name = NULL;
 	it.cur_weight = 0;
-	new_thing (THING_ITEM, cur_dlevel, to->yloc, to->xloc, &it);
-	thing_free (to);
+	new_thing (THING_ITEM, to->dlevel, to->yloc, to->xloc, &it);
+	int n = to_buffer (to->yloc, to->xloc);
+	rem_ref (n, get_ref (n, to));
 }
 
 /* TODO is it polymorphed? */
@@ -553,7 +562,7 @@ bool mons_eating (struct Thing *th)
 	{
 		if (th == player)
 		{
-			U.hunger -= (item->cur_weight) >> 4;	/* U.hunger is signed */
+			U.hunger -= (item->cur_weight) >> 4;
 			line_reset ();
 			pline ("You finish eating.");
 		}
@@ -795,6 +804,15 @@ bool player_magic (char c)
 	return true;
 }
 
+void sanitycheck ()
+{
+	LOOP_THINGS(n, i)
+	{
+		if (player == THING(n, i)) fprintf(stderr, "%d %d PLAAAYER", n, i);
+	}
+	fprintf(stderr, "ENDCHECK\n");
+}
+
 /* Rudimentary AI system -- move towards player if player is visible. */
 int AI_Attack (struct Thing *th, int toy, int tox)
 {
@@ -805,6 +823,7 @@ int AI_Attack (struct Thing *th, int toy, int tox)
 		mons_move (th, RN(3) - 1, RN(3) - 1);
 		return 1;
 	}
+
 	if      (th->yloc < toy)
 		ymove = 1;
 	else if (th->yloc > toy)

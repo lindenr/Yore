@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define ASDF fprintf(stderr, "%d\n", pmons.level)
 void print_intro()
 {
 	gr_mvprintc(1, 00, "Welcome to Yore v"YORE_VERSION);
@@ -52,6 +53,11 @@ void draw_box_fill(uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs, uint32_t 
 		for (y = 1; y < ys; ++y)
 			gr_mvaddch(yl + y, xl + x, fill);
 	draw_box(yl, xl, ys, xs);
+}
+
+struct Thing *GETPLAYER ()
+{
+	return player;
 }
 
 bool game_intro()

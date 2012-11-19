@@ -50,11 +50,7 @@ void get_downstair (uint32_t * yloc, uint32_t * xloc)
 	*xloc = downsx;
 }
 
-#define ADD_MAP(c, i) {\
-struct map_item_struct *mis = malloc (sizeof(struct map_item_struct));\
-memcpy (mis, &(map_items[GETMAPITEMID(c)]), sizeof (struct map_item_struct));\
-new_thing (THING_DGN, clevel, (i) / MAP_WIDTH, (i) % MAP_WIDTH, mis);\
-}
+#define ADD_MAP(c, i) new_thing (THING_DGN, clevel, (i) / MAP_WIDTH, (i) % MAP_WIDTH, &map_items[GETMAPITEMID(c)])
 
 bool check_area (int y, int x, int ys, int xs)
 {
@@ -257,7 +253,7 @@ uint32_t mons_gen (int clevel, int type, int32_t param)
 		asdf.name = malloc (85);
 		strcpy (asdf.name, "_");
 		real_player_name = asdf.name;
-		player = new_thing (THING_MONS, clevel, upsy, upsx, &asdf);
+		new_thing (THING_MONS, clevel, upsy, upsx, &asdf);
 	}
 	else if (type == 1)
 	{

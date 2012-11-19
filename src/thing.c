@@ -14,6 +14,7 @@
 #include <malloc.h>
 
 Vector all_things[MAP_TILES];
+Vector all_ids;
 
 /* At any given point: 0 if we can't see past that square (e.g. wall); 1 if we 
    can remember it (e.g. sword); and 2 if we can't remember its position (e.g. 
@@ -91,7 +92,7 @@ uint32_t WALL_TYPE (uint32_t y, uint32_t u,
 	return ACS_ARRAY[wall_output[(((((((((((((Y<<1)+H)<<1)+B)<<1)+J)<<1)+N)<<1)+L)<<1)+U)<<1)+K]];
 }
 
-void walls_test()
+void walls_test ()
 {
 	int i;
 	for (i = 0; i < 256; ++ i)
@@ -121,7 +122,7 @@ void walls_test()
 
 #define US(w) (sq_seen[w]?(sq_attr[w]?DOT:ACS_WALL):ACS_WALL)
 
-inline void set_can_see (uint32_t * unseen)
+void set_can_see (uint32_t *unseen)
 {
 	int Yloc = player->yloc, Xloc = player->xloc;
 	int Y, X, w;
@@ -137,8 +138,8 @@ inline void set_can_see (uint32_t * unseen)
 	/* This puts values on the grid -- whether or not we can see (or have
 	   seen) this square */
 	for (w = 0; w < MAP_TILES; ++w)
-        bres_draw (w / MAP_WIDTH, w % MAP_WIDTH);
-		//sq_seen[w] = 2;
+        //bres_draw (w / MAP_WIDTH, w % MAP_WIDTH);
+		sq_seen[w] = 2;
 
 	/* Make everything we can't see dark */
 	for (w = 0; w < MAP_TILES; ++w)
@@ -195,22 +196,42 @@ void thing_bmove (struct Thing *thing, int num)
 	thing_move (thing, num/MAP_WIDTH, num%MAP_WIDTH);
 }
 
+void thing_watchvec (int n)
+{
+	Vector vec = all_things[n];
+	int i;
+	for (i = 0; i < vec->len; ++ i)
+	{
+		struct Thing *th = v_at (vec, i);
+		*(struct Thing **) v_at (all_ids, th->ID) = th;
+	}
+}
+
+void rem_ref (int n, int i)
+{
+	v_rem (all_things[n], i);
+	thing_watchvec (n);
+}
+
 void thing_move (struct Thing *thing, int new_y, int new_x)
 {
-	int n = to_buffer(thing->yloc, thing->xloc);
-	LOOP_THING(n, i)
-	{
-		if (thing->ID == THING(n, i)->ID)
-			break;
-	}
-	/* Couldn't find thing in the tile */
-	if (n >= MAP_TILES)
+	if (thing->yloc == new_y && thing->xloc == new_x)
 		return;
+
+	int n = to_buffer (thing->yloc, thing->xloc);
+	int i = get_ref (n, thing);
+
+	/* Couldn't find thing? */
+	if (i < 0 || all_things[n]->len <= i)
+		return;
+
 	thing->yloc = new_y;
 	thing->xloc = new_x;
-	int new = to_buffer(thing->yloc, thing->xloc);
+	int new = to_buffer (thing->yloc, thing->xloc);
 	v_push (all_things[new], thing);
-	v_rem (all_things[n], i);
+	rem_ref (n, i);
+
+	thing_watchvec (new);
 }
 
 void thing_free (struct Thing *thing)
@@ -252,10 +273,19 @@ int TSIZ[] = {
 struct Thing *new_thing (uint32_t type, int dlevel, uint32_t y, uint32_t x, void *actual_thing)
 {
 	//printf ("New: %u %d %dx%d  %p\n", type, dlevel, y, x, actual_thing);
-	int n = to_buffer (y, x);
+	int n = map_buffer (y, x);
 	struct Thing t = {type, dlevel, getID(), y, x, {}};
+
+	if (t.ID != all_ids->len)
+		panic ("IDs error");
+
 	memcpy (&t.thing, actual_thing, TSIZ[type]);
-	return v_push (all_things[n], &t);
+	struct Thing *ret = v_push (all_things[n], &t);
+
+	thing_watchvec (n);
+	v_push (all_ids, ret);
+
+	return ret;
 }
 
 /* Directly modifies gr_map[] */
@@ -276,11 +306,11 @@ void visualise_map()
 			{
 				struct Monster *m = &th->thing.mons;
 				changed = true;
-				gr_baddch(at, mons[m->type].col | mons[m->type].ch);
+				gr_baddch (at, mons[m->type].col | mons[m->type].ch);
 				if (m->name)
 					if (th == player)
 					{
-						gr_map[at] |= COL_TXT_BRIGHT;
+						//gr_map[ati] |= COL_TXT_BRIGHT;
 					}
 				sq_attr[at] = 2;
 				break;
@@ -290,8 +320,8 @@ void visualise_map()
 				if (type[at] != THING_MONS)
 				{
 					struct Item *t = &th->thing.item;
-					gr_baddch(at, t->type.col | t->type.ch);
-					changed = true;
+					gr_baddch (at, t->type.col | t->type.ch);
+					changed =  true;
 				}
 				sq_unseen[at] = gr_map[at];
 				sq_attr[at] = 1;
@@ -302,7 +332,7 @@ void visualise_map()
 				if (type[at] == THING_NONE)
 				{
 					struct map_item_struct *m = &th->thing.mis;
-					gr_baddch(at, (glyph) ((unsigned char)(m->ch)));
+					gr_baddch (at, (glyph) ((unsigned char)(m->ch)));
 					sq_attr[at] = m->attr & 1;
 					changed = true;
 				}
@@ -312,7 +342,7 @@ void visualise_map()
 			default:
 			{
 				printf ("%d %d %d\n", at, i, th->type);
-				getchar();
+				getchar ();
 				panic ("default reached in visualise_map()");
 			}
 		}
@@ -321,13 +351,16 @@ void visualise_map()
 			type[at] = th->type;
 		}
 	}
-	set_can_see(sq_unseen);
-	gr_refresh();
+	set_can_see (sq_unseen);
+	gr_refresh ();
 }
 
 void all_things_free()
 {
 	LOOP_THINGS(n, i)
 		thing_free (THING(n, i));
+	for (n = 0; n < MAP_TILES; ++ n)
+		v_free (all_things[n]);
+	v_free (all_ids);
 }
 
