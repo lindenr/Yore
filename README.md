@@ -26,6 +26,7 @@ The executable is created as ./bin/Yore (Linux) or bin\Yore (Windows).
  *  Ubuntu 11.10
  *  Windows XP
  *  Windows 7
+ *  Arch
 
 Feel free to add to the list if you have a different operating system handy.
 
