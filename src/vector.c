@@ -38,9 +38,18 @@ void *v_push (Vector vec, void *data)
 	return v_at (vec, vec->len - 1);
 }
 
-void *v_pptr (Vector vec, void *ptr)
+void *v_pstr (Vector vec, char *data)
 {
-	return v_push (vec, &ptr);
+	if (vec->data == NULL)
+		panic("NULL str vector");
+	if (vec->len >= vec->mlen)
+	{
+		vec->mlen = V_NEXT_LENGTH(vec->mlen);
+		vec->data = realloc (vec->data, vec->mlen * vec->siz);
+	}
+	memcpy (DATA(vec->len), data, strlen (data) + 1);
+	++ vec->len;
+	return v_at (vec, vec->len - 1);
 }
 
 void v_rem (Vector vec, int rem)

@@ -56,13 +56,17 @@ void show_contents (struct Pack pack, uint32_t accepted)
 	int i;
 	Vector inv;
 
-	inv = v_init (sizeof(char *), 55);
-	v_pptr (inv, "Inventory");
-	v_pptr (inv, "");
+	inv = v_init (256, MAX_ITEMS_IN_PACK);
+	v_pstr (inv, "Inventory");
+	v_pstr (inv, "");
 	for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
 	{
 		if (pack.items[i] && item_type_flags (pack.items[i], accepted))
-			v_pptr (inv, get_inv_line (pack.items[i]));
+		{
+			char *line = get_inv_line (pack.items[i]);
+			v_pstr (inv, line);
+			free (line);
+		}
 	}
 	mlines_vec (inv);
 	v_free (inv);

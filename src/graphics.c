@@ -473,6 +473,12 @@ void gr_load_tiles ()
 	SDL_FreeSurface(temp);
 }
 
+void gr_cleanup ()
+{
+	SDL_FreeSurface (screen);
+	SDL_Quit ();
+}
+
 void gr_init ()
 {
 	if (SDL_Init (SDL_INIT_VIDEO) < 0)
@@ -481,7 +487,7 @@ void gr_init ()
 		exit (1);
 	}
 	
-	atexit (SDL_Quit);
+	atexit (gr_cleanup);
 	
 	screen = SDL_SetVideoMode (640, 480, 32, SDL_SWSURFACE);
 	if (screen == NULL)

@@ -282,8 +282,8 @@ struct Thing *new_thing (uint32_t type, int dlevel, uint32_t y, uint32_t x, void
 	memcpy (&t.thing, actual_thing, TSIZ[type]);
 	struct Thing *ret = v_push (all_things[n], &t);
 
-	thing_watchvec (n);
 	v_push (all_ids, ret);
+	thing_watchvec (n);
 
 	return ret;
 }

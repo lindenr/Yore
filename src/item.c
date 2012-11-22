@@ -71,7 +71,9 @@ char *get_item_desc (struct Item item)
 
 void item_look (struct Item *item)
 {
-	pline ("%s", get_inv_line(item));
+	char *str = get_inv_line (item);
+	pline ("%s", str);
+	free (str);
 }
 
 char *get_inv_line (struct Item *item)

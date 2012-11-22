@@ -19,7 +19,7 @@ Vector v_init  (int, int);
 
 /* write */
 void  *v_push  (Vector, void *);
-void  *v_pptr  (Vector, void *);
+void  *v_pstr  (Vector, char *);
 void   v_rem   (Vector, int);
 void   v_free  (Vector);
 

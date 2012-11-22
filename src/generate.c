@@ -183,7 +183,10 @@ void generate_map (int clevel, enum LEVEL_TYPE type)
 			}
 			while (!is_safe_gen (clevel, y, x));
 			ADD_MAP (DOT, to_buffer (y, x));
-			new_thing (THING_ITEM, clevel, y, x, gen_item ());
+
+			struct Item *item = gen_item ();
+			new_thing (THING_ITEM, clevel, y, x, item);
+			free (item);
 		}
 
 		/* clear space at the beginning (for the up-stair) */

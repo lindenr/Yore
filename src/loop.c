@@ -56,7 +56,7 @@ void main_loop ()
 
 			/* U.player == PLAYER_LOSTGAME if this happens */
 			if (!mons_take_move(th))
-				return;
+				goto loop_done;
 
 			th = THIID(ID);
 			mon = &th->thing.mons;
@@ -67,7 +67,7 @@ void main_loop ()
 		if (pmons.HP <= 0)
 		{
 			U.playing = PLAYER_LOSTGAME;
-			return;
+			goto loop_done;
 		}
 
 		/* The player can live with no dexterity and/or charisma, but there
@@ -92,8 +92,10 @@ void main_loop ()
 		{
 			player_dead ("You die of %s.", msg);
 			U.playing = PLAYER_LOSTGAME;
-			return;
+			goto loop_done;
 		}
 	}
+
+  loop_done:
 	v_free (mons_so_far);
 }

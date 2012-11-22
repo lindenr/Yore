@@ -188,14 +188,14 @@ void mlines_vec (Vector lines)
 	if (lines->len <= 0)
 		return;
 	else if (lines->len == 1)
-		aline (*(char**)v_at (lines, 0), true);
+		aline (v_at (lines, 0), true);
 	else
 	{
 		gr_mode (TMODE);
 		gr_clear ();
 		for (l_no = 0, i = 0; i < lines->len; ++l_no, ++ i)
 		{
-			gr_mvprintc (l_no, 0, "%s", *(char**)v_at(lines, i));
+			gr_mvprintc (l_no, 0, "%s", v_at(lines, i));
 			if (l_no == glnumy - 2)
 			{
 				gr_mvprintc (glnumy - 1, 0, "--more--");
