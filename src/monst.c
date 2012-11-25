@@ -176,20 +176,17 @@ inline int mons_get_wt (int type)
 	return CORPSE_WEIGHTS[mons[type].flags >> 29];
 }
 
-ityp find_corpse (struct Thing *th)
+void make_corpse (ityp *typ, struct Thing *th)
 {
 	int type = th->thing.mons.type;
-	ityp new_item;
 
 	/* fill in the data */
-	sprintf (new_item.name, "%s corpse", mons[type].name);
-	new_item.ch   = ITEM_FOOD;
-	new_item.type = IT_CORPSE;
-	new_item.wt   = mons_get_wt(type);
-	new_item.attr = type << 8;
-	new_item.col  = mons[type].col;
-	
-	return new_item;
+	sprintf (typ->name, "%s corpse", mons[type].name);
+	typ->ch   = ITEM_FOOD;
+	typ->type = IT_CORPSE;
+	typ->wt   = mons_get_wt(type);
+	typ->attr = type << 8;
+	typ->col  = mons[type].col;
 }
 
 void mons_attack (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
@@ -361,7 +358,7 @@ int mons_take_move (struct Thing *th)
 			line_reset();
 		if (in == 'Q')
 		{
-			//if (!quit())
+			if (!quit())
 			{
 				U.playing = PLAYER_LOSTGAME;
 				return false;
@@ -418,7 +415,9 @@ int mons_take_move (struct Thing *th)
 					v_push (ground, &i);
 			}
 
-			if (ground->len == 1)
+			if (ground->len < 1)
+				continue;
+			else if (ground->len == 1)
 			{
 				/* One item on ground -- pick up immediately. */
 				if (pack_add (&pmons.pack, &THING(n, *(int*)v_at (ground, 0))->thing.item))
@@ -426,7 +425,7 @@ int mons_take_move (struct Thing *th)
 
 				v_free (ground);
 			}
-			else
+			else if (ground->len > 1)
 			{
 				/* Multiple items - ask which to pick up. */
 				Vector pickup = v_init (sizeof(int), 20);
@@ -447,6 +446,7 @@ int mons_take_move (struct Thing *th)
 				}
 				v_free (pickup);
 			}
+			break;
 		}
 		else if (in == CONTROL_('P'))
 		{
@@ -520,7 +520,6 @@ int mons_take_move (struct Thing *th)
 
 void mons_dead (struct Thing *from, struct Thing *to)
 {
-	printf("MONSDEAD");
 	if (to == player)
 	{
 		player_dead("");
@@ -535,15 +534,17 @@ void mons_dead (struct Thing *from, struct Thing *to)
 		from->thing.mons.exp += mons[to->type].exp;
 		update_level (from);
 	}
-	ityp c = find_corpse (to);
-	struct Item it;
-	memcpy (&it.type, &c, sizeof(ityp));
-	it.attr = 0;
-	it.name = NULL;
-	it.cur_weight = 0;
-	new_thing (THING_ITEM, to->dlevel, to->yloc, to->xloc, &it);
-	int n = to_buffer (to->yloc, to->xloc);
-	rem_ref (n, get_ref (n, to));
+
+	/* add corpse */
+	struct Item corpse;
+	make_corpse (&corpse.type, to);
+	corpse.attr = 0;
+	corpse.name = NULL;
+	corpse.cur_weight = 0;
+	new_thing (THING_ITEM, to->dlevel, to->yloc, to->xloc, &corpse);
+
+	/* remove dead monster */
+	rem_id (to->ID);
 }
 
 /* TODO is it polymorphed? */

@@ -207,8 +207,17 @@ void thing_watchvec (int n)
 	}
 }
 
+void rem_id (int id)
+{
+	struct Thing *th = (*(struct Thing**) v_at (all_ids, id));
+	int n = to_buffer (th->yloc, th->xloc);
+	rem_ref (n, get_ref (n, th));
+}
+
 void rem_ref (int n, int i)
 {
+	struct Thing *th = v_at (all_things[n], i);
+	*(void**)v_at (all_ids, th->ID) = NULL;
 	v_rem (all_things[n], i);
 	thing_watchvec (n);
 }
@@ -255,6 +264,13 @@ void thing_free (struct Thing *thing)
 				free (monst->name);
 			if (monst->eating)
 				free (monst->eating);
+			int i;
+			for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
+			{
+				struct Item *item = monst->pack.items[i];
+				if (item)
+					free (item);
+			}
 			break;
 		}
 		default:
@@ -272,7 +288,8 @@ int TSIZ[] = {
 
 struct Thing *new_thing (uint32_t type, int dlevel, uint32_t y, uint32_t x, void *actual_thing)
 {
-	//printf ("New: %u %d %dx%d  %p\n", type, dlevel, y, x, actual_thing);
+	if (type == THING_ITEM)
+		printf ("New: %u %d %dx%d  %p\n", type, dlevel, y, x, actual_thing);
 	int n = map_buffer (y, x);
 	struct Thing t = {type, dlevel, getID(), y, x, {}};
 

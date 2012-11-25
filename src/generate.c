@@ -204,12 +204,6 @@ void generate_map (int clevel, enum LEVEL_TYPE type)
 	{
 		/* TODO */
 	}
-	int w;
-	for (w = 0; w < all_things[15150]->len; ++ w)
-	{
-		struct Thing *t = v_at (all_things[15150], w);
-		printf("%d %d %d %d %d\n", t->type, t->dlevel, t->ID, t->yloc, t->xloc);
-	}
 }
 
 /* can a monster be generated here? (no monsters or walls in the way) */
