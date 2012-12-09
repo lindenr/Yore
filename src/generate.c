@@ -239,10 +239,6 @@ uint32_t mons_gen (int clevel, int type, int32_t param)
 	uint32_t end;
 	if (type == 0)
 	{
-		int i;
-		for (i = 0; i < MAP_TILES; ++ i)
-			all_things[i] = v_dinit (sizeof(struct Thing));
-
 		start = param;
 		upsy = start / MAP_WIDTH;
 		upsx = start % MAP_WIDTH;

@@ -53,6 +53,7 @@ struct Thing
 void thing_free            (struct Thing *);
 void all_things_free       (void);
 void rem_ref               (int, int);
+void rem_id                (int);
 
 struct Thing *new_thing    (uint32_t, int, uint32_t, uint32_t, void *);
 

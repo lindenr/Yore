@@ -51,20 +51,21 @@ char *get_item_desc (struct Item item)
 	else
 	{
 		// const char *str = itoa((item.attr&ITEM_PLUS(3)>>3))
-		sprintf(ret, "%s%s%s%d %s%s", ((item.attr & ITEM_KBUC) ? ((item.attr & ITEM_BLES) ? "blessed " : (item.attr & ITEM_CURS) ? "cursed " : "uncursed ") : ""), /* BUC */
-				/* greasedness */
-				((item.attr & ITEM_GREASED) ? "greased " : ""),
-				/* enchantment value */
-				((item.
-				  attr & (ITEM_MINS(3))) | 1 ? ((item.
-												 attr & (ITEM_MINS(0))) ? "-" :
-												"+") : ""),
-				((item.attr & (ITEM_MINS(3))) | 1 ? (item.
-													 attr & ((ITEM_PLUS(3)) >>
-															 3)) : 0),
-				item.type.name,
-				(item.attr & ITEM_WIELDED ? " (being used)" : ""));
-		gram_a(ret, ret);
+		sprintf (ret, "%s%s%s%d %s%s",
+		         /* beatitude */
+		         !(item.attr & ITEM_KBUC) ? "" :
+		         (item.attr & ITEM_BLES) ? "blessed " :
+		         (item.attr & ITEM_CURS) ? "cursed " : "uncursed ",
+		         /* greasedness */
+		         (item.attr & ITEM_GREASED) ? "greased " : "",
+		         /* enchantment value */
+		         ((item.attr & (ITEM_MINS(3))) | 1 ? ((item.attr & (ITEM_MINS(0))) ? "-" : "+") : ""),
+		         ((item.attr & (ITEM_MINS(3))) | 1 ? (item.attr & ((ITEM_PLUS(3)) >> 3)) : 0),
+		         /* name */
+		         item.type.name,
+		         /* wielded */
+		         item.attr & ITEM_WIELDED ? " (being used)" : "");
+		gram_a (ret, ret);
 	}
 	return ret;
 }

@@ -354,8 +354,8 @@ int mons_take_move (struct Thing *th)
 		gr_move (th->yloc + 1, th->xloc);
 		in = gr_getch();
 
-		if (pline_check())
-			line_reset();
+		//if (pline_check())
+		//	line_reset();
 		if (in == 'Q')
 		{
 			if (!quit())

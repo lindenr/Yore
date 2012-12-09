@@ -505,7 +505,7 @@ void gr_init ()
 	SDL_SetColorKey (glyph_col, SDL_SRCCOLORKEY, SDL_MapRGB (glyph_col->format, 255, 255, 255));
 	
 	glnumy = screen->h / GLH;
-	glnumx = screen->w / GLW;
+	glnumx = screen->w / GLW - 5;
 	
 	gr_txt = malloc (sizeof(glyph) * glnumy * glnumx);
 	memset (gr_txt, 0, sizeof(glyph) * glnumy * glnumx);
@@ -515,6 +515,7 @@ void gr_init ()
 	/* Finish housekeeping */
 	SDL_EnableUNICODE (1);
 	SDL_EnableKeyRepeat (200, 30);
+	SDL_WM_SetCaption ("Yore", "Yore");
 }
 
 #ifdef __WIN32__
