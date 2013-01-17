@@ -486,6 +486,7 @@ void gr_resize (int ysiz, int xsiz)
 {
 	//printf ("%d %d\n", screen->h, screen->w);
 	//SDL_Quit ();
+	SDL_FreeSurface (screen);
 	screen = SDL_SetVideoMode (xsiz, ysiz, 32, SDL_SWSURFACE | SDL_RESIZABLE);
 	glnumy = ysiz / GLH;
 	glnumx = xsiz / GLW;
