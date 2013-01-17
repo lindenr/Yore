@@ -16,14 +16,16 @@
 Uint32 bg_colour;
 
 SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
+
 glyph gr_map[MAP_HEIGHT*MAP_WIDTH] = {0,};
-glyph *gr_txt;
+char gr_change[MAP_TILES] = {0,};
+
+glyph *gr_txt = NULL;
+char *txt_change = NULL;
 
 int curs_yloc = 0, curs_xloc = 0;
 int cam_yloc = 0, cam_xloc = 0;
 int glnumy, glnumx;
-char gr_change[MAP_TILES] = {0,};
-char *txt_change;
 int mode = TMODE;
 
 void gr_mode (int m)
@@ -321,6 +323,13 @@ int echoing = 1;
 
 int gr_equiv (uint32_t key1, uint32_t key2)
 {
+	uint32_t mod1 = key1 >> 16, mod2 = key2 >> 16;
+	printf ("%x %x\n", mod1, mod2);
+
+	/* control */
+	if (((mod1 & KMOD_CTRL) != 0) != ((mod2 & KMOD_CTRL) != 0))
+		return 0;
+
 	return 1;
 }
 
@@ -378,6 +387,18 @@ uint32_t gr_getfullch ()
 				}
 
 				return mod|event.key.keysym.unicode;
+			}
+
+			case SDL_VIDEORESIZE:
+			{
+				if (glnumy == event.resize.h/GLH && glnumx == event.resize.w/GLW)
+				{
+					gr_resize (event.resize.h, event.resize.w);
+					// do something about refreshing screen content
+				}
+				glnumy = event.resize.h/GLH;
+				glnumx = event.resize.w/GLW;
+				break;
 			}
 			
 			case SDL_QUIT:
@@ -459,6 +480,17 @@ void gr_noecho ()
 	echoing = 0;
 }
 
+void gr_resize (int ysiz, int xsiz)
+{
+	glnumy = screen->h / GLH;
+	glnumx = screen->w / GLW;
+	
+	gr_txt = realloc (gr_txt, sizeof(glyph) * glnumy * glnumx);
+	memset (gr_txt, 0, sizeof(glyph) * glnumy * glnumx);
+	txt_change = realloc (txt_change, glnumy * glnumx);
+	memset (txt_change, 0, glnumy * glnumx);
+}
+
 Uint32
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 	rmask = 0xff000000,
@@ -506,12 +538,14 @@ void gr_init ()
 	
 	atexit (gr_cleanup);
 	
-	screen = SDL_SetVideoMode (640, 480, 32, SDL_SWSURFACE);
+	screen = SDL_SetVideoMode (640, 480, 32, SDL_SWSURFACE | SDL_RESIZABLE);
 	if (screen == NULL)
 	{
 		fprintf (stderr, "Error initialising video mode: %s\n", SDL_GetError ());
 		exit (1);
 	}
+
+	gr_resize (480, 640);
 	
 	gr_load_tiles ();
 	SDL_SetColorKey (tiles, SDL_SRCCOLORKEY, SDL_MapRGB (tiles->format, 255, 0, 255));
@@ -520,14 +554,6 @@ void gr_init ()
 	glyph_col = SDL_DisplayFormat (tmp);
 	SDL_FreeSurface (tmp);
 	SDL_SetColorKey (glyph_col, SDL_SRCCOLORKEY, SDL_MapRGB (glyph_col->format, 255, 255, 255));
-	
-	glnumy = screen->h / GLH;
-	glnumx = screen->w / GLW - 5;
-	
-	gr_txt = malloc (sizeof(glyph) * glnumy * glnumx);
-	memset (gr_txt, 0, sizeof(glyph) * glnumy * glnumx);
-	txt_change = malloc (glnumy * glnumx);
-	memset (txt_change, 0, glnumy * glnumx);
 
 	/* Finish housekeeping */
 	SDL_EnableUNICODE (1);

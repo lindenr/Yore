@@ -80,6 +80,7 @@ int  map_buffer (int, int);
 
 int  gr_nearedge(int, int);
 void gr_wait    (int);
+void gr_resize  (int, int);
 
 /* Unusual characters */
 #define CH_BS        0x08
