@@ -269,6 +269,7 @@ void gr_refresh ()
 
 void gr_frefresh ()
 {
+	//printf("%d %d\n", glnumy, glnumx);
 	int x, y;
 
 	for (x = 0; x < glnumx; ++ x)
@@ -391,13 +392,14 @@ uint32_t gr_getfullch ()
 
 			case SDL_VIDEORESIZE:
 			{
-				if (glnumy == event.resize.h/GLH && glnumx == event.resize.w/GLW)
-				{
+				// /* do nothing unless user has *finished* resizing window then gr_resize and stuff. */
+				//if (glnumy == event.resize.h/GLH && glnumx == event.resize.w/GLW)
+				//{
 					gr_resize (event.resize.h, event.resize.w);
-					// do something about refreshing screen content
-				}
-				glnumy = event.resize.h/GLH;
-				glnumx = event.resize.w/GLW;
+				//	// do something about refreshing screen content
+				//}
+				//glnumy = event.resize.h/GLH;
+				//glnumx = event.resize.w/GLW;
 				break;
 			}
 			
@@ -482,8 +484,11 @@ void gr_noecho ()
 
 void gr_resize (int ysiz, int xsiz)
 {
-	glnumy = screen->h / GLH;
-	glnumx = screen->w / GLW;
+	//printf ("%d %d\n", screen->h, screen->w);
+	//SDL_Quit ();
+	screen = SDL_SetVideoMode (xsiz, ysiz, 32, SDL_SWSURFACE | SDL_RESIZABLE);
+	glnumy = ysiz / GLH;
+	glnumx = xsiz / GLW;
 	
 	gr_txt = realloc (gr_txt, sizeof(glyph) * glnumy * glnumx);
 	memset (gr_txt, 0, sizeof(glyph) * glnumy * glnumx);
