@@ -319,10 +319,16 @@ void gr_tout (int t)
 
 int echoing = 1;
 
-char gr_getch ()
+int gr_equiv (uint32_t key1, uint32_t key2)
+{
+	return 1;
+}
+
+uint32_t gr_getfullch ()
 {
 	SDL_Event event;
 	clock_t end = 0;
+	uint32_t modifier_keys = (KMOD_SHIFT | KMOD_CAPS | KMOD_NUM) << 16;
 	if (tout_num)
 		end = tout_num * CLOCKS_PER_SEC / 1000 + clock();
 
@@ -331,7 +337,7 @@ char gr_getch ()
 		if (end && clock() >= end) break;
 		if (!SDL_PollEvent (&event))
 		{
-			wait_ms (20);
+			gr_wait (20);
 			continue;
 		}
 
@@ -339,16 +345,22 @@ char gr_getch ()
 		{
 			case SDL_KEYDOWN:
 			{
+				uint32_t mod = event.key.keysym.mod << 16;
+				if (mod & (~modifier_keys) && (event.key.keysym.unicode != 0))
+				{
+					//printf ("%d %d\n", event.key.keysym.sym, event.key.keysym.unicode);
+					return mod|event.key.keysym.sym;
+				}
 				if (!echoing)
 				{
 					if (event.key.keysym.sym == SDLK_UP)
-						return GRK_UP;
+						return mod|GRK_UP;
 					if (event.key.keysym.sym == SDLK_DOWN)
-						return GRK_DN;
+						return mod|GRK_DN;
 					if (event.key.keysym.sym == SDLK_LEFT)
-						return GRK_LF;
+						return mod|GRK_LF;
 					if (event.key.keysym.sym == SDLK_RIGHT)
-						return GRK_RT;
+						return mod|GRK_RT;
 				}
 				if (event.key.keysym.unicode == 0)
 					break;
@@ -365,7 +377,7 @@ char gr_getch ()
 						++ curs_xloc;
 				}
 
-				return event.key.keysym.unicode;
+				return mod|event.key.keysym.unicode;
 			}
 			
 			case SDL_QUIT:
@@ -376,6 +388,11 @@ char gr_getch ()
 		}
 	}
 	return EOF;
+}
+
+char gr_getch ()
+{
+	return (char)(gr_getfullch () & 0xFF);
 }
 
 void gr_getstr (char *out, int len)
@@ -518,22 +535,10 @@ void gr_init ()
 	SDL_WM_SetCaption ("Yore", "Yore");
 }
 
-#ifdef __WIN32__
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-void wait_ms (unsigned ms)
+void gr_wait (int ms)
 {
-	Sleep (ms);
+	SDL_Delay (ms);
 }
-#else
-#include <unistd.h>
-
-void wait_ms (unsigned time_ms)
-{
-	//usleep (time_ms);
-}
-#endif
 
 #define GR_NEAR 5
 int gr_nearedge (int yloc, int xloc)

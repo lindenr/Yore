@@ -18,18 +18,17 @@
 #include "include/graphics.h"
 #include "include/dlevel.h"
 #include "include/monst.h"
+#include "include/player.h"
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdbool.h>
 
-#define CONTROL_(c) ((c)-0x40)
 
 struct player_status U;
 char *s_hun[] = {
 	"Full",
-	"",							/* So that it takes up no space if there is
-								   nothing to say */
+	"",
 	"Hungry",
 	"Hungry!",
 	"Starved",
@@ -226,17 +225,6 @@ int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 	return 0;
 }
 
-/* if a is in the range 0 <= a < 0x20 (' ' in ASCII) then a+64 is returned (so 
- * a backspace becomes '?'). This is the standard way to print non-printable
- * characters. */
-inline char escape (unsigned char a)
-{
-	if (a < 0x20)
-		return a + 0x40;
-	else
-		return a;
-}
-
 inline int player_take_input (char in)
 {
 	int xmove = 0, ymove = 0;
@@ -335,6 +323,14 @@ struct Item *player_use_pack (char *msg, uint32_t accepted)
 	return It;
 }
 
+char escape (unsigned char a)
+{
+	if (a < 0x20)
+		return a + 0x40;
+	else
+		return a;
+}
+
 int mons_take_move (struct Thing *th)
 {
 	char in;
@@ -352,35 +348,17 @@ int mons_take_move (struct Thing *th)
 	{
 		gr_refresh ();
 		gr_move (th->yloc + 1, th->xloc);
-		in = gr_getch();
+		uint32_t key = gr_getfullch();
+		in = (char) key;
 
 		//if (pline_check())
 		//	line_reset();
-		if (in == 'Q')
-		{
-			if (!quit())
-			{
-				U.playing = PLAYER_LOSTGAME;
-				return false;
-			}
-			continue;
-		}
-
-		if (in == 'S')
-		{
-			//if (!save(get_filename()))
-			{
-				U.playing = PLAYER_SAVEGAME;
-				return false;
-			}
-			continue;
-		}
 
 		int mv = player_take_input (in);
 		if (mv != -1)
 		{
 			if (U.playing == PLAYER_WONGAME)
-				return 0;
+				return false;
 			if (mv)
 				break;
 		}
@@ -392,9 +370,7 @@ int mons_take_move (struct Thing *th)
 			gr_movecam (cam_yloc, cam_xloc - 10);
 		else if (in == GRK_RT)
 			gr_movecam (cam_yloc, cam_xloc + 10);
-		else if (in == '.')
-			break;
-		else if (in == CONTROL_('Q') && U.magic == true)
+/*		else if (in == CONTROL_('Q') && U.magic == true)
 		{
 			pline("Press <m> to re-enter magic mode.");
 			U.magic = false;
@@ -404,50 +380,6 @@ int mons_take_move (struct Thing *th)
 			if (player_magic(in))
 				break;
 		}
-		else if (in == ',')
-		{
-			Vector ground = v_init (sizeof (int), 20);
-			int n = to_buffer (th->yloc, th->xloc);
-
-			LOOP_THING(n, i)
-			{
-				if (THING(n, i)->type == THING_ITEM)
-					v_push (ground, &i);
-			}
-
-			if (ground->len < 1)
-				continue;
-			else if (ground->len == 1)
-			{
-				/* One item on ground -- pick up immediately. */
-				if (pack_add (&pmons.pack, &THING(n, *(int*)v_at (ground, 0))->thing.item))
-					rem_ref (n, *(int*)v_at (ground, 0));
-
-				v_free (ground);
-			}
-			else if (ground->len > 1)
-			{
-				/* Multiple items - ask which to pick up. */
-				Vector pickup = v_init (sizeof(int), 20);
-
-				/* Do the asking */
-				mask_vec (n, pickup, ground);
-				v_free (ground);
-
-				/* Put items in ret_list into inventory. The loop
-				 * continues until ret_list is done or the pack is full. */
-				for (i = 0; i < pickup->len; ++ i)
-				{
-					/* Pick up the item; quit if the bag is full */
-					if (!pack_add (&self->pack, &THING(n, *(int*)v_at (pickup, i))->thing.item))
-						break;
-					/* Remove item from main play */
-					rem_ref (n, i);
-				}
-				v_free (pickup);
-			}
-			break;
-		}
 		else if (in == CONTROL_('P'))
 		{
 			pline_get_his ();
@@ -456,63 +388,16 @@ int mons_take_move (struct Thing *th)
 		{
 			pline ("Press Ctrl+Q to leave magic mode.");
 			U.magic = true;
-		}
-		else if (in == 'e')
-		{
-			struct Item *It = player_use_pack ("Eat what?", ITCAT_FOOD);
-			if (It == NULL)
-				continue;
-			mons_eat (th, It);
-		}
-		else if (in == 'd')
-		{
-			struct Item *It = player_use_pack ("Drop what?", ITCAT_ALL);
-			if (It == NULL)
-				continue;
-			unsigned u = PACK_AT(get_Itref(self->pack, It));
-			self->pack.items[u] = NULL;
-			new_thing (THING_ITEM, cur_dlevel, th->yloc, th->xloc, It);
-		}
-		else if (in == '>')
-			thing_move_level(th, 0);
-		else if (in == '<')
-			thing_move_level(th, -1);
-		else if (in == 'i')
-		{
-			show_contents (self->pack, ITCAT_ALL);
-			continue;
-		}
-		else if (in == ':')
-		{
-			int k = 0;
-			int n = to_buffer (th->yloc, th->xloc);
-			LOOP_THING(n, i)
-			{
-				struct Thing *t_ = THING(n, i);
-				if (t_->type != THING_ITEM)
-					continue;
-				char *line = get_inv_line (&THING(n, i)->thing.item);
-				pline ("You%s see here %s. ", ((k++) ? " also" : ""), line);
-				free (line);
-			}
-			if (k == 0)
-				pline("You see nothing here. ");
-		}
-		else if (in == 'w')
-		{
-			struct Item *It = player_use_pack ("Wield what?", ITCAT_ALL);
-			if (It == NULL)
-				continue;
-			unsigned u = PACK_AT(get_Itref(self->pack, It));
-			self->pack.items[u] = NULL;
-			new_thing (THING_ITEM, cur_dlevel, th->yloc, th->xloc, It);
-			if (mons_unwield (th))
-				mons_wield (th, It);
-		}
+		}*/
 		else
 		{
-			pline("Unknown command '%s%c'. ",
-			      (escape(in) == in ? "" : "^"), escape(in));
+			int res = key_lookup (key);
+			if (res == 1)
+				break;
+			else if (res == 0)
+				continue;
+			else
+				return false;
 		}
 	}
 	return true;

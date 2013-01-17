@@ -21,11 +21,9 @@
 
 #define THIID(id)        (*(struct Thing **) v_at (all_ids, (id)))
 #define THING(n,i)       ((struct Thing*)(all_things[n]->data + (i)*sizeof(struct Thing)))
-/* Things that could screw up pointers are:
- * new_thing()
- * rem_ref   *fixed* */
 
-#define get_ref(n,p) ((((long long)(p)) - ((long long)all_things[n]->data)) / sizeof(struct Thing))
+#define get_ref(n,p) ((((uintptr_t)(p)) - ((uintptr_t)all_things[n]->data)) / sizeof(struct Thing))
+#define CONTROL_(c) ((KMOD_CTRL << 16) | (c))
 
 enum THING_TYPE
 {

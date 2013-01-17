@@ -288,8 +288,8 @@ int TSIZ[] = {
 
 struct Thing *new_thing (uint32_t type, int dlevel, uint32_t y, uint32_t x, void *actual_thing)
 {
-	if (type == THING_ITEM)
-		printf ("New: %u %d %dx%d  %p\n", type, dlevel, y, x, actual_thing);
+	//if (type == THING_ITEM)
+	//	printf ("New: %u %d %dx%d  %p\n", type, dlevel, y, x, actual_thing);
 	int n = map_buffer (y, x);
 	struct Thing t = {type, dlevel, getID(), y, x, {}};
 

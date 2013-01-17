@@ -145,6 +145,7 @@ bool   mons_can_hear   (struct Thing *);                   /* has ears? no?     
 void  *mons_get_weap   (struct Thing *);                   /* what weapon is wielded?                  */
 
 /* player functions */
+struct Item *player_use_pack (char *, uint32_t);           /* asks player for an item of some type    */
 int    player_gen_type (void);                             /* get a valid monster type for fighting    */
 void   player_dead     (const char *, ...);                /* the player is dead; absolute end of game */
 void   player_exc      (enum ABLTY, uint32_t);             /* exercise a given ablty by a given amount */
@@ -162,6 +163,7 @@ void   do_attack       (struct Thing *, struct Thing *);   /* applies an attack 
 void  *get_sqmons      (uint32_t, uint32_t, int);          /* returns the monster on a square          */
 SqAttr get_sqattr      (uint32_t, uint32_t, int);          /* returns the SqAttr of a square           */
 int    can_amove       (int);                              /* returns if a square can be moved on to   */
+char   escape          (unsigned char);                    /* escapes a character                      */
 
 /* AI functions */
 int    AI_Attack       (struct Thing *, int, int);         /* moves a monster towards the player       */

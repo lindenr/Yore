@@ -65,7 +65,9 @@ void gr_mode    (int);
 
 /* Input */
 char gr_getch   ();
+uint32_t gr_getfullch ();
 void gr_getstr  (char *, int);
+int  gr_equiv   (uint32_t, uint32_t);
 
 void gr_echo    ();
 void gr_noecho  ();
@@ -77,7 +79,7 @@ int  to_buffer  (int, int);
 int  map_buffer (int, int);
 
 int  gr_nearedge(int, int);
-void wait_ms    (unsigned);
+void gr_wait    (int);
 
 /* Unusual characters */
 #define CH_BS        0x08
