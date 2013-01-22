@@ -66,6 +66,7 @@ void thing_bmove           (struct Thing *, int);
 int getID                  ();
 
 extern Vector all_things[];
+extern Vector all_mons;
 extern Vector all_ids;
 extern uint8_t sq_seen[], sq_attr[];
 

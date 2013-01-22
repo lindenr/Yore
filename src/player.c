@@ -1,10 +1,12 @@
 /* player.c */
 
 #include "include/player.h"
-#include "include/pline.h"
+#include "include/panel.h"
 #include "include/vector.h"
 #include "include/dlevel.h"
 #include "include/save.h"
+#include "include/item.h"
+#include "include/vector.h"
 
 struct KStruct Keys[] = {
 	{',', &Kpickup},
@@ -22,7 +24,7 @@ struct KStruct Keys[] = {
 int Kpickup ()
 {
 	Vector ground = v_init (sizeof (int), 20);
-	int n = to_buffer (player->yloc, player->xloc);
+	int n = gr_buffer (player->yloc, player->xloc);
 	
 	LOOP_THING(n, i)
 	{
@@ -47,7 +49,7 @@ int Kpickup ()
 		Vector pickup = v_init (sizeof(int), 20);
 	
 		/* Do the asking */
-		mask_vec (n, pickup, ground);
+		ask_items (pickup, ground);
 		v_free (ground);
 	
 		/* Put items in ret_list into inventory. The loop
@@ -99,7 +101,7 @@ int Kinv ()
 int Knlook ()
 {
 	int k = 0;
-	int n = to_buffer (player->yloc, player->xloc);
+	int n = gr_buffer (player->yloc, player->xloc);
 
 	LOOP_THING(n, i)
 	{
@@ -108,11 +110,11 @@ int Knlook ()
 			continue;
 
 		char *line = get_inv_line (&THING(n, i)->thing.item);
-		pline ("You%s see here %s. ", ((k++) ? " also" : ""), line);
+		p_msg ("You%s see here %s. ", ((k++) ? " also" : ""), line);
 		free (line);
 	}
 	if (k == 0)
-		pline("You see nothing here. ");
+		p_msg("You see nothing here. ");
 
 	return 0;
 }
@@ -163,7 +165,7 @@ int key_lookup (uint32_t key)
 		if (ch == (char)(Keys[i].key&0xff) && gr_equiv (key, Keys[i].key))
 			return (*Keys[i].action) ();
 	}
-	pline ("Unknown command '%s%c'.",
+	p_msg ("Unknown command '%s%c'.",
 	       (escape(ch) == ch ? "" : "^"),
 		   escape(ch));
 	return 0;

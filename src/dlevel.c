@@ -9,6 +9,7 @@ int    cur_dlevel;
 void dlevel_init ()
 {
 	int i;
+	all_mons = v_dinit (sizeof(int));
 	for (i = 0; i < MAP_TILES; ++ i)
 		all_things[i] = v_dinit (sizeof(struct Thing));
 

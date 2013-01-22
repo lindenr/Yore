@@ -65,7 +65,7 @@ bool check_area (int y, int x, int ys, int xs)
 		j = ys;
 		while (j)
 		{
-			i = to_buffer (y+j, x+k);
+			i = gr_buffer (y+j, x+k);
 			if (all_things[i]->len != 0) return false;
 			-- j;
 		}
@@ -86,7 +86,7 @@ bool attempt_room (int clevel, int y, int x, int ys, int xs)
 		j = ys;
 		while (j)
 		{
-			i = to_buffer (y+j, x+k);
+			i = gr_buffer (y+j, x+k);
             ADD_MAP (DOT, i);
 			-- j;
 		}
@@ -171,7 +171,7 @@ void generate_map (int clevel, enum LEVEL_TYPE type)
         do add_another_room (clevel);
         while (total_rooms < 100);
 
-        start = to_buffer (MAP_HEIGHT/2, MAP_WIDTH/2);
+        start = gr_buffer (MAP_HEIGHT/2, MAP_WIDTH/2);
 		end = mons_gen (clevel, 1, start);
 		
 		for (i = 0; i < 100; ++ i)
@@ -182,7 +182,7 @@ void generate_map (int clevel, enum LEVEL_TYPE type)
 				x = RN (MAP_WIDTH);
 			}
 			while (!is_safe_gen (clevel, y, x));
-			ADD_MAP (DOT, to_buffer (y, x));
+			ADD_MAP (DOT, gr_buffer (y, x));
 
 			struct Item *item = gen_item ();
 			new_thing (THING_ITEM, clevel, y, x, item);
@@ -208,10 +208,10 @@ void generate_map (int clevel, enum LEVEL_TYPE type)
 
 /* can a monster be generated here? (no monsters or walls in the way) */
 bool is_safe_gen (int clevel, uint32_t yloc, uint32_t xloc)
-{
+{++ clevel; // TODO
 	struct Thing *T;
 	struct map_item_struct *m;
-	int n = to_buffer(yloc, xloc);
+	int n = gr_buffer(yloc, xloc);
 	LOOP_THING(n, i)
 	{
 		T = THING(n, i);
@@ -236,7 +236,7 @@ char *real_player_name;
 uint32_t mons_gen (int clevel, int type, int32_t param)
 {
 	int32_t luck, start;
-	uint32_t end;
+	int32_t end;
 	if (type == 0)
 	{
 		start = param;
@@ -256,7 +256,7 @@ uint32_t mons_gen (int clevel, int type, int32_t param)
 
 		/* Down-stair */
 		do
-			end = RN(MAP_TILES);
+			end = (int32_t) RN(MAP_TILES);
 		while (end == start);
 		ADD_MAP('>', end);
 
@@ -267,7 +267,7 @@ uint32_t mons_gen (int clevel, int type, int32_t param)
 	else if (type == 2)
 	{
 		luck = param;
-		if (RN(100) >= (15 - 2*luck))
+		if (RN(100) >= (uint32_t) (15 - 2*luck))
 			return 0;
 
 		struct Monster p;

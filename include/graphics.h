@@ -23,9 +23,10 @@ typedef uint32_t glyph;
 #  undef main
 #endif
 
-#define GMODE 0
-#define TMODE 1
-#define NOREF 2
+//#define GMODE 0 /* graphics mode */
+//#define TMODE 1 /* text mode     */
+//#define NOREF 2 /* no refresh    */
+//#define OMODE 4 /* overlay mode  */
 
 #define GLW 8
 #define GLH 12
@@ -33,6 +34,7 @@ typedef uint32_t glyph;
 #define MAP_HEIGHT 100
 #define MAP_WIDTH  300
 #define MAP_TILES (MAP_HEIGHT*MAP_WIDTH)
+#define TXT_TILES (glnumy*glnumx)
 
 extern int glnumy, glnumx;
 extern int cam_yloc, cam_xloc;
@@ -50,18 +52,20 @@ void gr_addch   (glyph);
 void gr_mvaddch (int, int, glyph);
 void gr_baddch  (int, glyph);
 
-void gr_printc  (const char *, ...);
-void gr_mvprintc(int, int, const char *, ...);
 void gr_setline (int, glyph);
 
 void gr_refresh ();
-void gr_trefresh();
+//void gr_trefresh();
 void gr_frefresh();
-void gr_mvforce (int, int);
 
 void gr_clear   ();
-void gr_tclear  ();
-void gr_mode    (int);
+//void gr_tclear  ();
+//void gr_mode    (int);
+
+void txt_mvaddch(int, int, glyph);
+void txt_baddch (int, glyph);
+
+void txt_mvprint(int, int, const char *, ...);
 
 /* Input */
 char gr_getch   ();
@@ -75,8 +79,8 @@ void gr_noecho  ();
 void gr_tout    (int);
 
 /* Misc */
-int  to_buffer  (int, int);
-int  map_buffer (int, int);
+int  gr_buffer  (int, int);
+int  txt_buffer (int, int);
 
 int  gr_nearedge(int, int);
 void gr_wait    (int);

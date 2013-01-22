@@ -4,7 +4,8 @@
 #include "include/thing.h"
 #include "include/rank.h"
 #include "include/monst.h"
-#include "include/pline.h"
+#include "include/panel.h"
+
 #include <assert.h>
 
 struct Rankings
@@ -12,11 +13,12 @@ struct Rankings
 	char *ranks[6];
 };
 
-struct Rankings all_ranks[] =
-	{ {{0, 0, 0, 0, 0, 0}},
+struct Rankings all_ranks[] = {
+	{{0, 0, 0, 0, 0, 0}},
 	{{"Private", "Corporal", "Liutenant", "Captain", "Seargant", "General"}},
 	{{"Dentist", "Nurse", "Assistant", "GP", "Specialist", "Surgeon"}},
-	{{"Thug", "Butcher", "Hitman", "Mercenary", "Cutthroat", "Executioner"}} };
+	{{"Thug", "Butcher", "Hitman", "Mercenary", "Cutthroat", "Executioner"}}
+};
 
 char *get_rank ()
 {
@@ -46,11 +48,11 @@ void update_level (struct Thing *th)
 	{
 		if (i > mon->level)
 		{
-			pline("Level up! You are now level %d.", i);
+			p_msg ("Level up! You are now level %d.", i);
 			mon->HP_max += mon->level * 3 + 2;
 		}
 		if (i < mon->level)
-			pline("Level down... You dropped to level %d.", i);
+			p_msg ("Level down... You dropped to level %d.", i);
 	}
 	mon->level = i;
 }

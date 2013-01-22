@@ -6,7 +6,7 @@
 #include "include/rand.h"
 #include "include/vision.h"
 #include "include/loop.h"
-#include "include/pline.h"
+#include "include/panel.h"
 #include "include/generate.h"
 #include "include/output.h"
 #include "include/graphics.h"
@@ -18,31 +18,30 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define ASDF fprintf(stderr, "%d\n", pmons.level)
-void print_intro()
+void print_intro ()
 {
-	gr_mvprintc(1, 00, "Welcome to Yore v"YORE_VERSION);
-	gr_mvprintc(2, 10, "* A game guide is not yet in place.");
-	gr_mvprintc(3, 10, "* A wiki is not yet in place.");
-	gr_refresh();
+	txt_mvprint (1, 00, "Welcome to Yore v"YORE_VERSION);
+	txt_mvprint (2, 10, "* A game guide is not yet in place.");
+	txt_mvprint (3, 10, "* A wiki is not yet in place.");
+	gr_refresh ();
 }
 
-void draw_box(uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs)
+void draw_box (uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs)
 {
 	uint32_t xt = xs - 1, yt = ys - 1;
-	gr_mvaddch(yl, xl, ACS_ULCORNER);
-	gr_mvaddch(yl + ys, xl, ACS_LLCORNER);
-	gr_mvaddch(yl, xl + xs, ACS_URCORNER);
-	gr_mvaddch(yl + ys, xl + xs, ACS_LRCORNER);
+	txt_mvaddch (yl, xl, ACS_ULCORNER);
+	txt_mvaddch (yl + ys, xl, ACS_LLCORNER);
+	txt_mvaddch (yl, xl + xs, ACS_URCORNER);
+	txt_mvaddch (yl + ys, xl + xs, ACS_LRCORNER);
 	while (xt--)
 	{
-		gr_mvaddch(yl, xl + xt + 1, ACS_HLINE);
-		gr_mvaddch(yl + ys, xl + xt + 1, ACS_HLINE);
+		txt_mvaddch(yl, xl + xt + 1, ACS_HLINE);
+		txt_mvaddch(yl + ys, xl + xt + 1, ACS_HLINE);
 	}
 	while (yt--)
 	{
-		gr_mvaddch(yl + yt + 1, xl, ACS_VLINE);
-		gr_mvaddch(yl + yt + 1, xl + xs, ACS_VLINE);
+		txt_mvaddch(yl + yt + 1, xl, ACS_VLINE);
+		txt_mvaddch(yl + yt + 1, xl + xs, ACS_VLINE);
 	}
 }
 
@@ -51,34 +50,29 @@ void draw_box_fill(uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs, uint32_t 
 	int x, y;
 	for (x = 1; x < xs; ++x)
 		for (y = 1; y < ys; ++y)
-			gr_mvaddch(yl + y, xl + x, fill);
+			txt_mvaddch(yl + y, xl + x, fill);
 	draw_box(yl, xl, ys, xs);
 }
 
-struct Thing *GETPLAYER ()
-{
-	return player;
-}
-
-bool game_intro()
+bool game_intro ()
 {
 	int c, by, bx, bh = 9, bw = 50;
 	by = (glnumy - bh - 10)/2;
 	bx = (glnumx - bw)/2;
 	gr_clear ();
 	draw_box (by, bx, bh, bw);
-	gr_mvprintc (by+2, bx+2, "Back in the days of Yore, in a land far removed");
-	gr_mvprintc (by+3, bx+2, "from our current understanding of the universe,");
-	gr_mvprintc (by+4, bx+3,  "when magic flowed throughout the air as water");
-	gr_mvprintc (by+5, bx+3,  "flowed through the sea, and the Gods lived in");
-	gr_mvprintc (by+6, bx+4,   "harmony with the people; it was a time when");
-	gr_mvprintc (by+7, bx+6,     "anything and everything was possible...");
+	txt_mvprint (by+2, bx+2, "Back in the days of Yore, in a land far removed");
+	txt_mvprint (by+3, bx+2, "from our current understanding of the universe,");
+	txt_mvprint (by+4, bx+3,  "when magic flowed throughout the air as water");
+	txt_mvprint (by+5, bx+3,  "flowed through the sea, and the Gods lived in");
+	txt_mvprint (by+6, bx+4,   "harmony with the people; it was a time when");
+	txt_mvprint (by+7, bx+6,     "anything and everything was possible...");
 	gr_refresh ();
 	gr_noecho ();
 	gr_tout (666);
 	while (1)
 	{
-		gr_mvprintc (by+11, (glnumx - 30)/2, "[hit the spacebar to continue]");
+		txt_mvprint (by+11, (glnumx - 30)/2, "[hit the spacebar to continue]");
 		gr_refresh ();
 		do
 			c = gr_getch();
@@ -87,7 +81,7 @@ bool game_intro()
 			break;
 		if (c == 'q' || c == 'Q')
 			return false;
-		gr_mvprintc (by+11, (glnumx - 30)/2, "                              ");
+		txt_mvprint (by+11, (glnumx - 30)/2, "                              ");
 		gr_refresh ();
 		do
 			c = gr_getch();
@@ -109,6 +103,7 @@ int main (int argc, char *argv[])
 	uint32_t rseed;
 
 	gr_init ();
+	p_init ();
 	dlevel_init ();
 	rseed = RNG_get_seed ();
 	RNG_main = RNG_INIT (rseed);
@@ -119,11 +114,10 @@ int main (int argc, char *argv[])
 	if (!game_intro())
 		goto quit_game;
 
-	//mlines (3, "asdf", "qwer", "zxcv");
 	print_intro ();
 	mons_gen (cur_dlevel, 0, 15150);
 
-	gr_mvprintc (8, 6, "Who are you? ");
+	txt_mvprint (8, 6, "Who are you? ");
 	gr_refresh ();
 
 	for (i = 0, *(real_player_name + 1) = '\0';
@@ -131,10 +125,10 @@ int main (int argc, char *argv[])
 		 ++i)
 	{
 		if (i)
-			gr_mvprintc(10, 6, "Please type in your name.");
-		gr_refresh();
-		gr_move(8, 19);
-		gr_getstr(real_player_name + 1, 80);
+			txt_mvprint (10, 6, "Please type in your name.");
+		gr_refresh ();
+		gr_move (8, 19);
+		gr_getstr (real_player_name + 1, 80);
 	}
 
 	if (*(real_player_name + 1) == '\0')
@@ -151,12 +145,10 @@ int main (int argc, char *argv[])
 	if (U.playing != PLAYER_PLAYING)
 		goto quit_game;
 
-	gr_mode (GMODE);
 	
 	generate_map (cur_dlevel, LEVEL_NORMAL);
 
 	gr_clear ();
-	pline_check ();
 
 	gr_movecam (player->yloc - (glnumy/2), player->xloc - (glnumx/2));
 

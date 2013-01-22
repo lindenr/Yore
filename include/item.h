@@ -81,6 +81,7 @@ extern ityp items[];
 extern int NUM_ITEMS;
 
 void item_piles     (int, Vector, Vector);
+void ask_items      (Vector, Vector);
 
 char *get_item_desc (struct Item);
 void item_look      (struct Item *);

@@ -4,7 +4,7 @@
 #include "include/thing.h"
 #include "include/pack.h"
 #include "include/item.h"
-#include "include/pline.h"
+#include "include/panel.h"
 
 #include <malloc.h>
 
@@ -68,7 +68,7 @@ void show_contents (struct Pack pack, uint32_t accepted)
 			free (line);
 		}
 	}
-	mlines_vec (inv);
+	p_lines (inv);
 	v_free (inv);
 }
 
@@ -108,12 +108,12 @@ bool pack_add (struct Pack *pack, struct Item *it)
 			memcpy (pack->items[u], it, sizeof(*it));
 			/* Say so */
 			msg = get_inv_line (it);
-			pline ("%s", msg);
+			p_msg ("%s", msg);
 			free (msg);
 			return true;
 		}
 	}
-	pline ("No space. :/");
+	p_msg ("No space. :/");
 	return false;
 }
 

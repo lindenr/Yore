@@ -2,15 +2,15 @@
 
 #include "include/all.h"
 #include "include/thing.h"
-#include "include/pline.h"
+
 #include "include/rand.h"
 #include "include/loop.h"
 #include "include/save.h"
 #include "include/vision.h"
 #include "include/generate.h"
 #include "include/rank.h"
-#include "include/grammar.h"
-#include "include/pline.h"
+#include "include/words.h"
+#include "include/panel.h"
 #include "include/all_mon.h"
 #include "include/magic.h"
 #include "include/output.h"
@@ -96,11 +96,11 @@ void get_cinfo ()
 {
 	char in;
 
-	gr_mvprintc (0, 0, "What role would you like to take up?");
-	gr_mvprintc (0, glnumx - 11, "(q to quit)");
-	gr_mvprintc (2, 3, "a     Assassin");
-	gr_mvprintc (3, 3, "d     Doctor");
-	gr_mvprintc (4, 3, "s     Soldier");
+	txt_mvprint (0, 0, "What role would you like to take up?");
+	txt_mvprint (0, glnumx - 11, "(q to quit)");
+	txt_mvprint (2, 3, "a     Assassin");
+	txt_mvprint (3, 3, "d     Doctor");
+	txt_mvprint (4, 3, "s     Soldier");
 	gr_move (0, 37);
 	gr_refresh ();
 
@@ -112,7 +112,7 @@ void get_cinfo ()
 	}
 	while (in != 'd' && in != 's' && in != 'a');
 
-	gr_mvprintc (0, glnumx - 11, "           ");
+	txt_mvprint (0, glnumx - 11, "           ");
 
 	if (in == 's')
 		U.role = 1;
@@ -294,12 +294,12 @@ struct Item *player_use_pack (char *msg, uint32_t accepted)
 	do
 	{
 		if (tried)
-			pline ("No such item.");
+			p_msg ("No such item.");
 		tried = false;
 
-		line_reset ();
+		//line_reset ();
 		pack_get_letters (pmons.pack, cs);
-		in = pask (cs, msg);
+		in = p_ask (cs, msg);
 		if (in == '?')
 		{
 			show_contents (pmons.pack, accepted);
@@ -348,11 +348,9 @@ int mons_take_move (struct Thing *th)
 	{
 		gr_refresh ();
 		gr_move (th->yloc + 1, th->xloc);
+
 		uint32_t key = gr_getfullch();
 		in = (char) key;
-
-		//if (pline_check())
-		//	line_reset();
 
 		int mv = player_take_input (in);
 		if (mv != -1)
@@ -372,7 +370,7 @@ int mons_take_move (struct Thing *th)
 			gr_movecam (cam_yloc, cam_xloc + 10);
 /*		else if (in == CONTROL_('Q') && U.magic == true)
 		{
-			pline("Press <m> to re-enter magic mode.");
+			p_msg("Press <m> to re-enter magic mode.");
 			U.magic = false;
 		}
 		else if (U.magic)
@@ -380,13 +378,9 @@ int mons_take_move (struct Thing *th)
 			if (player_magic(in))
 				break;
 		}
-		else if (in == CONTROL_('P'))
-		{
-			pline_get_his ();
-		}
 		else if (in == 'm')
 		{
-			pline ("Press Ctrl+Q to leave magic mode.");
+			p_msg ("Press Ctrl+Q to leave magic mode.");
 			U.magic = true;
 		}*/
 		else
@@ -449,8 +443,8 @@ bool mons_eating (struct Thing *th)
 		if (th == player)
 		{
 			U.hunger -= (item->cur_weight) >> 4;
-			line_reset ();
-			pline ("You finish eating.");
+			//line_reset ();
+			p_msg ("You finish eating.");
 		}
 		th->thing.mons.status &= ~M_EATING;
 		th->thing.mons.eating = NULL;
@@ -469,14 +463,14 @@ void mons_eat (struct Thing *th, struct Item *item)
 	if (!mons_edible (th, item))
 	{
 		if (th == player)
-			pline("You can't eat that!");
+			p_msg("You can't eat that!");
 		return;
 	}
 
 	if ((th->thing.mons.status) & M_EATING)
 	{
 		if (th == player)
-			pline("You're already eating!");
+			p_msg("You're already eating!");
 		return;
 	}
 	th->thing.mons.status |= M_EATING;
@@ -500,8 +494,8 @@ bool mons_unwield (struct Thing *th)
 	{
 		if (th == player)
 		{
-			line_reset();
-			pline ("You can't. It's cursed.");
+			//line_reset();
+			p_msg ("You can't. It's cursed.");
 		}
 		return false;
 	}
@@ -516,7 +510,7 @@ bool mons_wield (struct Thing *th, struct Item *it)
 	it->attr ^= ITEM_WIELDED;
 	if (th == player)
 	{
-		line_reset ();
+		//line_reset ();
 		item_look (it);
 	}
 	return true;
@@ -528,8 +522,8 @@ bool mons_wear (struct Thing *th, struct Item *it)
 	{
 		if (th == player)
 		{
-			line_reset ();
-			pline ("You can't wear that!");
+			//line_reset ();
+			p_msg ("You can't wear that!");
 		}
 		return false;
 	}
@@ -565,11 +559,11 @@ void mons_passive_attack (struct Thing *from, struct Thing *to)
 		case ATYP_ACID:
 		{
 			posv = malloc(strlen(mons[type].name) + 5);
-			gram_pos (posv, (char *)mons[type].name);
+			w_pos (posv, (char *)mons[type].name);
 			if (from == player)
-				pline ("You splash the %s with acid!", mons[type].name);
+				p_msg ("You splash the %s with acid!", mons[type].name);
 			else if (to == player)
-				pline ("You are splashed by the %s acid!", posv);
+				p_msg ("You are splashed by the %s acid!", posv);
 		}
 	}
 }
@@ -662,15 +656,15 @@ void player_dead (const char *msg, ...)
 	va_list args;
 	char *actual = malloc(sizeof(char) * 80);
 
-	va_start(args, msg);
+	va_start (args, msg);
 	if (msg[0] == '\0')
 		msg = "You die...";
-	vsprintf(actual, msg, args);
-	line_reset();
-	pline(actual);
-	free(actual);
-	gr_getch();
-	va_end(args);
+	vsprintf (actual, msg, args);
+	//line_reset ();
+	p_msg (actual);
+	free (actual);
+	gr_getch ();
+	va_end (args);
 
 	U.playing = PLAYER_LOSTGAME;
 }
@@ -683,7 +677,7 @@ bool player_magic (char c)
 	}
 	if (!magic_plspell(c))
 	{
-		pline("Unknown spell '%s%c'. ",
+		p_msg("Unknown spell '%s%c'. ",
 			  (escape(c) == c ? "" : "^"), escape(c));
 		return false;
 	}

@@ -1,7 +1,7 @@
 /* magic.c */
 
 #include "include/magic.h"
-#include "include/pline.h"
+
 #include "include/thing.h"
 
 #include <stdio.h>

@@ -14,6 +14,7 @@
 #include <malloc.h>
 
 Vector all_things[MAP_TILES];
+Vector all_mons;
 Vector all_ids;
 
 /* At any given point: 0 if we can't see past that square (e.g. wall); 1 if we 
@@ -105,18 +106,18 @@ void walls_test ()
 		    L = (i&4) > 0,
 		    U = (i&2) > 0,
 		    K = (i&1) > 0;
-		gr_mvaddch(0, 0, Y?'#':' ');
-		gr_mvaddch(1, 0, H?'#':' ');
-		gr_mvaddch(2, 0, B?'#':' ');
-		gr_mvaddch(2, 1, J?'#':' ');
-		gr_mvaddch(2, 2, N?'#':' ');
-		gr_mvaddch(1, 2, L?'#':' ');
-		gr_mvaddch(0, 2, U?'#':' ');
-		gr_mvaddch(0, 1, K?'#':' ');
-		gr_mvaddch(1, 1, ACS_ARRAY[wall_output[i]]);
-		gr_mvprintc(3, 0, "Number %d", i);
-		gr_refresh();
-		gr_getch();
+		txt_mvaddch (0, 0, Y?'#':' ');
+		txt_mvaddch (1, 0, H?'#':' ');
+		txt_mvaddch (2, 0, B?'#':' ');
+		txt_mvaddch (2, 1, J?'#':' ');
+		txt_mvaddch (2, 2, N?'#':' ');
+		txt_mvaddch (1, 2, L?'#':' ');
+		txt_mvaddch (0, 2, U?'#':' ');
+		txt_mvaddch (0, 1, K?'#':' ');
+		txt_mvaddch (1, 1, ACS_ARRAY[wall_output[i]]);
+		txt_mvprint (3, 0, "Number %d", i);
+		gr_refresh ();
+		gr_getch ();
 	}
 }
 
@@ -210,7 +211,7 @@ void thing_watchvec (int n)
 void rem_id (int id)
 {
 	struct Thing *th = (*(struct Thing**) v_at (all_ids, id));
-	int n = to_buffer (th->yloc, th->xloc);
+	int n = gr_buffer (th->yloc, th->xloc);
 	rem_ref (n, get_ref (n, th));
 }
 
@@ -227,7 +228,7 @@ void thing_move (struct Thing *thing, int new_y, int new_x)
 	if (thing->yloc == new_y && thing->xloc == new_x)
 		return;
 
-	int n = to_buffer (thing->yloc, thing->xloc);
+	int n = gr_buffer (thing->yloc, thing->xloc);
 	int i = get_ref (n, thing);
 
 	/* Couldn't find thing? */
@@ -236,7 +237,7 @@ void thing_move (struct Thing *thing, int new_y, int new_x)
 
 	thing->yloc = new_y;
 	thing->xloc = new_x;
-	int new = to_buffer (thing->yloc, thing->xloc);
+	int new = gr_buffer (thing->yloc, thing->xloc);
 	v_push (all_things[new], thing);
 	rem_ref (n, i);
 
@@ -290,8 +291,8 @@ struct Thing *new_thing (uint32_t type, int dlevel, uint32_t y, uint32_t x, void
 {
 	//if (type == THING_ITEM)
 	//	printf ("New: %u %d %dx%d  %p\n", type, dlevel, y, x, actual_thing);
-	int n = map_buffer (y, x);
-	struct Thing t = {type, dlevel, getID(), y, x, {}};
+	int n = gr_buffer (y, x), ID = getID ();
+	struct Thing t = {type, dlevel, ID, y, x, {}};
 
 	if (t.ID != all_ids->len)
 		panic ("IDs error");
@@ -301,6 +302,9 @@ struct Thing *new_thing (uint32_t type, int dlevel, uint32_t y, uint32_t x, void
 
 	v_push (all_ids, ret);
 	thing_watchvec (n);
+
+	if (type == THING_MONS)
+		v_push (all_mons, &ID);
 
 	return ret;
 }

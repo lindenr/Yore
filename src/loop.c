@@ -3,7 +3,7 @@
 #include "include/all.h"
 #include "include/thing.h"
 #include "include/loop.h"
-#include "include/pline.h"
+
 #include "include/monst.h"
 #include "include/rand.h"
 #include "include/output.h"
@@ -28,25 +28,17 @@ void main_loop ()
 {
 	//sanitycheck ();
 	char *msg = 0;
-	int ID;
+	int i, *ID;
 	struct Thing *th;
 	struct Monster *mon;
 
 	next_time ();
 	mons_gen (cur_dlevel, 2, U.luck);
 	Vector mons_so_far = v_init (sizeof(int), 20);
-	LOOP_THINGS(n, i)
+	for (i = 0; i < all_mons->len; ++ i)
 	{
-		th = THING(n, i);
-		if (th->type != THING_MONS)
-			continue;
-
-		if (v_isin (mons_so_far, &th->ID))
-			continue;
-		else
-			v_push (mons_so_far, &th->ID);
-
-		ID = th->ID;
+		ID = v_at (all_mons, i);
+		th = THIID (*ID);
 
 		mon = &th->thing.mons;
 		mon->cur_speed += mons[mon->type].speed;
@@ -58,7 +50,7 @@ void main_loop ()
 			if (!mons_take_move(th))
 				goto loop_done;
 
-			th = THIID(ID);
+			th = THIID(*ID);
 			mon = &th->thing.mons;
 			update_stats ();
 		}

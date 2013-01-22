@@ -48,10 +48,10 @@ bool bres_draw (int ty, int tx)
 		}
 		if (fy == ty && fx == tx)
 			break;
-		if (grid_t[to_buffer(fy, fx)] == 0)
+		if (grid_t[gr_buffer(fy, fx)] == 0)
 			return false;		/* can't see it :( */
 	}
 	if (grid)
-		grid[to_buffer(fy, fx)] = 2;	/* can see it :) */
+		grid[gr_buffer(fy, fx)] = 2;	/* can see it :) */
 	return true;
 }

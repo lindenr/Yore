@@ -13,7 +13,7 @@
 /* remember -- ONLY ONE MONSTER PER SQUARE */
 void *get_sqmons (uint32_t yloc, uint32_t xloc, int level)
 {
-	int n = to_buffer(yloc, xloc);
+	int n = gr_buffer(yloc, xloc);
 	LOOP_THING(n, i)
 	{
 		struct Thing *th = THING(n, i);
@@ -31,7 +31,7 @@ uint32_t get_sqattr (uint32_t yloc, uint32_t xloc, int level)
 	if (yloc >= MAP_HEIGHT || xloc >= MAP_WIDTH)
 		return -1;
 
-	int n = to_buffer (yloc, xloc);
+	int n = gr_buffer (yloc, xloc);
 	LOOP_THING(n, i)
 	{
 		struct Thing *th = THING(n, i);

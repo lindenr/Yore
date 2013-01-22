@@ -6,7 +6,7 @@
 #include "include/monst.h"
 #include "include/loop.h"
 #include "include/rank.h"
-#include "include/grammar.h"
+#include "include/words.h"
 #include "include/graphics.h"
 
 #include <stdio.h>
@@ -41,7 +41,7 @@ void update_map()
 	}
 
 	/ Random '\0's will be sprinkled throughout line1 and line2 *
-	sprintf(line1, "%s the %s", gram_short(mn->name + 1, 15), get_rank());
+	sprintf(line1, "%s the %s", w_short(mn->name + 1, 15), get_rank());
 	sprintf(line1 + 26, "St:%d Dx:%d Co:%d In:%d Wi:%d Ch:%d", U.attr[AB_ST],
 			U.attr[AB_DX], U.attr[AB_CO], U.attr[AB_IN], U.attr[AB_WI],
 			U.attr[AB_CH]);

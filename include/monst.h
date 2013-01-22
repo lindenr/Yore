@@ -66,7 +66,8 @@ struct player_status
 	uint64_t m_glflags;
 	int magic;
 	enum JEWEL_TYPE jewel[BELT_JEWELS];
-} extern U;
+};
+extern struct player_status U;
 
 enum ABLTY /* ability */
 {

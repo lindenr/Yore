@@ -3,7 +3,7 @@
 #include "include/all.h"
 #include "include/thing.h"
 #include "include/save.h"
-#include "include/pline.h"
+#include "include/panel.h"
 #include "include/monst.h"
 #include "include/loop.h"
 #include "include/vector.h"
@@ -74,9 +74,9 @@ void save_item (struct Item *item)
 bool save (char *filename)
 {
 	int i;
-	if (pask("yn", "Save and quit?") == 'y')
+	if (p_ask ("yn", "Save and quit?") == 'y')
 	{
-		pline("Saving...");
+		p_msg("Saving...");
 		game_save_file = fopen(filename, "wb");
 		fwrite("YOREv"YORE_VERSION, sizeof("YOREv"YORE_VERSION), 1, game_save_file);
 
@@ -126,7 +126,7 @@ bool save (char *filename)
 
 					/* pack */
 					for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
-						save_item (&mn->pack.items[i]);
+						save_item (mn->pack.items[i]);
 
 					/* wearing */
 					save_item (mn->wearing.head);
@@ -323,7 +323,7 @@ void restore (char *filename)
 /* false is quit, true is stay */
 bool quit ()
 {
-	if (pask("yn", "Are you sure you want to quit -- permanently?") == 'y')
+	if (p_ask ("yn", "Are you sure you want to quit -- permanently?") == 'y')
 	{
 		printf ("Quitting...\n");
 		destroy_save_file (get_filename());

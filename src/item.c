@@ -2,9 +2,9 @@
 
 #include "include/all.h"
 #include "include/thing.h"
-#include "include/grammar.h"
+#include "include/words.h"
 #include "include/monst.h"
-#include "include/pline.h"
+#include "include/panel.h"
 #include "include/vector.h"
 #include "include/item.h"
 
@@ -41,12 +41,20 @@ ityp items[] = {
 	/* item name             display         type     weight  attributes           colour */
 };
 
+void ask_items (Vector it_out, Vector it_in)
+{
+	int i;
+	// TODO fix
+	for (i = 0; i < it_in->len; ++ i)
+		v_push (it_out, v_at (it_in, i));
+}
+
 char *get_item_desc (struct Item item)
 {
 	char *ret = malloc(80);
 	if (item.name != NULL && item.name[0] != '\0')
 	{
-		pline("NULULULULUL");
+		p_msg ("NULULULULUL");
 	}
 	else
 	{
@@ -65,7 +73,7 @@ char *get_item_desc (struct Item item)
 		         item.type.name,
 		         /* wielded */
 		         item.attr & ITEM_WIELDED ? " (being used)" : "");
-		gram_a (ret, ret);
+		w_a (ret, ret);
 	}
 	return ret;
 }
@@ -73,7 +81,7 @@ char *get_item_desc (struct Item item)
 void item_look (struct Item *item)
 {
 	char *str = get_inv_line (item);
-	pline ("%s", str);
+	p_msg ("%s", str);
 	free (str);
 }
 
