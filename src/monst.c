@@ -297,7 +297,6 @@ struct Item *player_use_pack (char *msg, uint32_t accepted)
 			p_msg ("No such item.");
 		tried = false;
 
-		//line_reset ();
 		pack_get_letters (pmons.pack, cs);
 		in = p_ask (cs, msg);
 		if (in == '?')
@@ -443,7 +442,6 @@ bool mons_eating (struct Thing *th)
 		if (th == player)
 		{
 			U.hunger -= (item->cur_weight) >> 4;
-			//line_reset ();
 			p_msg ("You finish eating.");
 		}
 		th->thing.mons.status &= ~M_EATING;
@@ -494,7 +492,6 @@ bool mons_unwield (struct Thing *th)
 	{
 		if (th == player)
 		{
-			//line_reset();
 			p_msg ("You can't. It's cursed.");
 		}
 		return false;
@@ -510,7 +507,6 @@ bool mons_wield (struct Thing *th, struct Item *it)
 	it->attr ^= ITEM_WIELDED;
 	if (th == player)
 	{
-		//line_reset ();
 		item_look (it);
 	}
 	return true;
@@ -522,7 +518,6 @@ bool mons_wear (struct Thing *th, struct Item *it)
 	{
 		if (th == player)
 		{
-			//line_reset ();
 			p_msg ("You can't wear that!");
 		}
 		return false;
@@ -660,7 +655,6 @@ void player_dead (const char *msg, ...)
 	if (msg[0] == '\0')
 		msg = "You die...";
 	vsprintf (actual, msg, args);
-	//line_reset ();
 	p_msg (actual);
 	free (actual);
 	gr_getch ();
