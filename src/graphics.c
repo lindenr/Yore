@@ -27,19 +27,10 @@ char *txt_change = NULL;
 int curs_yloc = 0, curs_xloc = 0;
 int cam_yloc = 0, cam_xloc = 0;
 int glnumy, glnumx;
-//int mode = TMODE;
 
-/*void gr_mode (int m)
-{
-	mode = m;
-
-	if (m == GMODE && ((m&NOREF) == 0))
-		gr_frefresh();
-}*/
 
 int gr_buffer (int yloc, int xloc)
 {
-//	if (mode == TMODE) return glnumx*yloc + xloc;
 	return MAP_WIDTH*yloc + xloc;
 }
 
@@ -47,11 +38,6 @@ int txt_buffer (int yloc, int xloc)
 {
 	return glnumx*yloc + xloc;
 }
-/*
-int map_buffer (int yloc, int xloc)
-{
-	return MAP_WIDTH*yloc + xloc;
-}*/
 
 void gr_move (int yloc, int xloc)
 {
@@ -160,9 +146,6 @@ void txt_box (int yloc, int xloc, int height, int width)
 
 void gr_setline (int line, glyph gl)
 {
-	/* You can't set whole lines outside of text mode */
-	//if (mode == GMODE) return;
-
 	int i;
 	for (i = 0; i < glnumx; ++ i)
 		gr_mvaddch (line, i, gl);
@@ -361,14 +344,8 @@ uint32_t gr_getfullch ()
 
 			case SDL_VIDEORESIZE:
 			{
-				// /* do nothing unless user has *finished* resizing window then gr_resize and stuff. */
-				//if (glnumy == event.resize.h/GLH && glnumx == event.resize.w/GLW)
-				//{
-					gr_resize (event.resize.h, event.resize.w);
-				//	// do something about refreshing screen content
-				//}
-				//glnumy = event.resize.h/GLH;
-				//glnumx = event.resize.w/GLW;
+				// TODO: something nice about window resizing
+				gr_resize (event.resize.h, event.resize.w);
 				break;
 			}
 			
@@ -479,7 +456,13 @@ Uint32
 	amask = 0xff000000;
 #endif
 
-#define GR_TRY_TILES(a,b) sprintf(filepath, a, b); temp = SDL_LoadBMP (filepath); if (temp) goto success; printf("Couldn't find tiles at %s.\n", filepath)
+#define GR_TRY_TILES(a,b)\
+sprintf (filepath, a, b);\
+temp = SDL_LoadBMP (filepath);\
+if (temp)\
+	goto success;\
+printf("Couldn't find tiles at %s.\n", filepath)
+
 void gr_load_tiles ()
 {
 	char filepath[100] = "";
