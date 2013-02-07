@@ -61,9 +61,6 @@ void gr_move (int yloc, int xloc)
 
 void gr_movecam (int yloc, int xloc)
 {
-	/* You can't move the camera in text-mode */
-	//if (mode == TMODE) return;
-
 	cam_yloc = yloc;
 	cam_xloc = xloc;
 
@@ -86,28 +83,6 @@ void gr_centcam (int yloc, int xloc)
 {
 	gr_movecam (yloc - glnumy/2, xloc - glnumx/2);
 }
-/*
-void gr_baddch (int buf, glyph gl)
-{
-	glyph *map;
-	char *change;
-
-	if (mode == TMODE)
-	{
-		map = gr_txt;
-		change = txt_change;
-	}
-	else
-	{
-		map = gr_map;
-		change = gr_change;
-	}
-
-	if (map[buf] == gl) return;
-	if (gl < 256) gl |= COL_TXT_DEF;
-	map[buf] = gl;
-	change[buf] = 1;
-}*/
 
 void gr_baddch (int buf, glyph gl)
 {
@@ -119,8 +94,8 @@ void gr_baddch (int buf, glyph gl)
 
 void txt_baddch (int buf, glyph gl)
 {
+	if (gl != 0 && gl == (gl&255)) gl |= COL_TXT_DEF;
 	if (txt_map[buf] == gl) return;
-	if (gl == (gl&255)) gl |= COL_TXT_DEF;
 	txt_map[buf] = gl;
 	txt_change[buf] = 1;
 }
@@ -164,6 +139,25 @@ void txt_mvprint (int yloc, int xloc, const char *str, ...)
 	txt_mvaprint (yloc, xloc, out);
 }
 
+void txt_box (int yloc, int xloc, int height, int width)
+{
+	int xt = width - 1, yt = height - 1;
+	txt_mvaddch (yloc, xloc, ACS_ULCORNER);
+	txt_mvaddch (yloc + height, xloc, ACS_LLCORNER);
+	txt_mvaddch (yloc, xloc + width, ACS_URCORNER);
+	txt_mvaddch (yloc + height, xloc + width, ACS_LRCORNER);
+	while (xt--)
+	{
+		txt_mvaddch (yloc, xloc + xt + 1, ACS_HLINE);
+		txt_mvaddch (yloc + height, xloc + xt + 1, ACS_HLINE);
+	}
+	while (yt--)
+	{
+		txt_mvaddch (yloc + yt + 1, xloc, ACS_VLINE);
+		txt_mvaddch (yloc + yt + 1, xloc + width, ACS_VLINE);
+	}
+}
+
 void gr_setline (int line, glyph gl)
 {
 	/* You can't set whole lines outside of text mode */
@@ -193,42 +187,6 @@ inline void blit_glyph (glyph gl, int yloc, int xloc)
 	SDL_BlitSurface (glyph_col, NULL, screen, &dstrect);
 }
 
-void gr_trefresh ()
-{
-	int w, changed_total, cur_rect;
-	SDL_Rect rects[100];
-
-	changed_total = 0;
-	for (w = 0; w < TXT_TILES; ++ w)
-		if (txt_change[w])
-			++ changed_total;
-
-	if (!changed_total) return; /* Nothing to do. */
-
-	cur_rect = 0;
-
-	for (w = 0; w < TXT_TILES; ++ w)
-	{
-		if (txt_change[w])
-		{
-			blit_glyph (txt_map[w], w/glnumx, w%glnumx);
-			if (changed_total < 100)
-			{
-				rects[cur_rect].x = GLW*(w%glnumx);
-				rects[cur_rect].y = GLH*(w/glnumx);
-				rects[cur_rect].w = GLW;
-				rects[cur_rect].h = GLH;
-				++ cur_rect;
-			}
-		}
-		txt_change[w] = 0;
-	}
-	if (changed_total < 100)
-		SDL_UpdateRects (screen, changed_total, rects);
-	else
-		SDL_UpdateRect (screen, 0, 0, 0, 0);
-}
-
 #define CURCHANGED \
 if (changed_total < 100) \
 {\
@@ -241,11 +199,6 @@ rects[cur_rect].h = GLH;\
 
 void gr_refresh ()
 {
-	/*if (mode == TMODE)
-	{
-		gr_trefresh ();
-		return;
-	}*/
 	int x, y, changed_total, cur_rect;
 	SDL_Rect rects[100];
 
@@ -319,15 +272,6 @@ void gr_frefresh ()
 	}
 	SDL_UpdateRect (screen, 0, 0, 0, 0);
 }
-
-/*
-void gr_tclear ()
-{
-	int i;
-	for (i = 0; i < TXT_TILES; ++ i)
-		gr_baddch (i, ' ');
-	gr_refresh ();
-}*/
 
 void gr_clear ()
 {
@@ -576,8 +520,6 @@ void gr_init ()
 		exit (1);
 	}
 
-	gr_resize (480, 640);
-	
 	gr_load_tiles ();
 	SDL_SetColorKey (tiles, SDL_SRCCOLORKEY, SDL_MapRGB (tiles->format, 255, 0, 255));
 	
@@ -586,6 +528,8 @@ void gr_init ()
 	SDL_FreeSurface (tmp);
 	SDL_SetColorKey (glyph_col, SDL_SRCCOLORKEY, SDL_MapRGB (glyph_col->format, 255, 255, 255));
 
+	gr_resize (480, 640);
+	
 	/* Finish housekeeping */
 	SDL_EnableUNICODE (1);
 	SDL_EnableKeyRepeat (200, 30);

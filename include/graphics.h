@@ -67,6 +67,8 @@ void txt_baddch (int, glyph);
 
 void txt_mvprint(int, int, const char *, ...);
 
+void txt_box    (int, int, int, int);
+
 /* Input */
 char gr_getch   ();
 uint32_t gr_getfullch ();

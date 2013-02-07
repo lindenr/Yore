@@ -8,6 +8,7 @@
 #include "include/rank.h"
 #include "include/words.h"
 #include "include/graphics.h"
+#include "include/panel.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -24,6 +25,7 @@ void check_weird ()
 void update_stats ()
 {
 	visualise_map ();
+	p_pane ();
 	gr_refresh ();
 }
 

@@ -26,32 +26,13 @@ void print_intro ()
 	gr_refresh ();
 }
 
-void draw_box (uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs)
-{
-	uint32_t xt = xs - 1, yt = ys - 1;
-	txt_mvaddch (yl, xl, ACS_ULCORNER);
-	txt_mvaddch (yl + ys, xl, ACS_LLCORNER);
-	txt_mvaddch (yl, xl + xs, ACS_URCORNER);
-	txt_mvaddch (yl + ys, xl + xs, ACS_LRCORNER);
-	while (xt--)
-	{
-		txt_mvaddch(yl, xl + xt + 1, ACS_HLINE);
-		txt_mvaddch(yl + ys, xl + xt + 1, ACS_HLINE);
-	}
-	while (yt--)
-	{
-		txt_mvaddch(yl + yt + 1, xl, ACS_VLINE);
-		txt_mvaddch(yl + yt + 1, xl + xs, ACS_VLINE);
-	}
-}
-
-void draw_box_fill(uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs, uint32_t fill)
+void draw_box_fill (uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs, uint32_t fill)
 {
 	int x, y;
 	for (x = 1; x < xs; ++x)
 		for (y = 1; y < ys; ++y)
-			txt_mvaddch(yl + y, xl + x, fill);
-	draw_box(yl, xl, ys, xs);
+			txt_mvaddch (yl + y, xl + x, fill);
+	txt_box (yl, xl, ys, xs);
 }
 
 bool game_intro ()
@@ -60,7 +41,7 @@ bool game_intro ()
 	by = (glnumy - bh - 10)/2;
 	bx = (glnumx - bw)/2;
 	gr_clear ();
-	draw_box (by, bx, bh, bw);
+	txt_box (by, bx, bh, bw);
 	txt_mvprint (by+2, bx+2, "Back in the days of Yore, in a land far removed");
 	txt_mvprint (by+3, bx+2, "from our current understanding of the universe,");
 	txt_mvprint (by+4, bx+3,  "when magic flowed throughout the air as water");
@@ -103,7 +84,6 @@ int main (int argc, char *argv[])
 	uint32_t rseed;
 
 	gr_init ();
-	p_init ();
 	dlevel_init ();
 	rseed = RNG_get_seed ();
 	RNG_main = RNG_INIT (rseed);
@@ -154,6 +134,7 @@ int main (int argc, char *argv[])
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 
+	p_pane ();
 	update_stats();
 
 	do
