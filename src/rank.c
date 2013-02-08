@@ -32,8 +32,7 @@ char *get_rank ()
 	return all_ranks[U.role].ranks[(level - 1) / 5];
 }
 
-int level_boundary[30] =
-	{ 0, 10, 20, 30, 50, 80, 130, 210, 340, 550, 890, 1440 };
+int level_boundary[30] = {0, 10, 20, 30, 50, 80, 130, 210, 340, 550, 890, 1440};
 
 void update_level (struct Thing *th)
 {

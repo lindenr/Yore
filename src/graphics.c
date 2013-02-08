@@ -277,7 +277,7 @@ int echoing = 1;
 int gr_equiv (uint32_t key1, uint32_t key2)
 {
 	uint32_t mod1 = key1 >> 16, mod2 = key2 >> 16;
-	printf ("%x %x\n", mod1, mod2);
+	//printf ("%x %x\n", mod1, mod2);
 
 	/* control */
 	if (((mod1 & KMOD_CTRL) != 0) != ((mod2 & KMOD_CTRL) != 0))
@@ -393,7 +393,7 @@ void gr_getstr (char *out, int len)
 			if (i)
 				-- i;
 			out[i] = 0;
-			gr_addch (' ');
+			txt_mvaddch (curs_yloc, curs_xloc, ' ');
 			gr_refresh ();
 			continue;
 		}
@@ -406,7 +406,7 @@ void gr_getstr (char *out, int len)
 			}
 			else
 				-- curs_xloc;
-			gr_addch (' ');
+			txt_mvaddch (curs_yloc, curs_xloc, ' ');
 			gr_refresh ();
 			continue;
 		}
