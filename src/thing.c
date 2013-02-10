@@ -18,13 +18,13 @@ Vector all_mons;
 Vector all_ids;
 
 /* At any given point: 0 if we can't see past that square (e.g. wall); 1 if we 
-   can remember it (e.g. sword); and 2 if we can't remember its position (e.g. 
-   monster). The options are mutually exclusive. */
+ * can remember it (e.g. sword); and 2 if we can't remember its position (e.g. 
+ * monster). The options are mutually exclusive. */
 uint8_t sq_attr[MAP_TILES] = { 0, };
 
 /* Output of the bresenham algorithm (vision.c): 0 if we can't see it (outside 
-   our field of vision); 1 if we remember it; and 2 if we are looking at it.
-   The options are again mutually exclusive. */
+ * our field of vision); 1 if we remember it; and 2 if we are looking at it.
+ * The options are again mutually exclusive. */
 uint8_t sq_seen[MAP_TILES] = { 0, };
 
 /* What to see instead if it turns out that we can't remember something */
@@ -82,8 +82,8 @@ int wall_output[256] = {
 };
 
 /* What this function does is purely cosmetic - given whether or not
-   the squares surrounding are walls or spaces, this function returns what
-   character should be displayed (corner, straight line, tee, etc). */
+ * the squares surrounding are walls or spaces, this function returns what
+ * character should be displayed (corner, straight line, tee, etc). */
 uint32_t WALL_TYPE (uint32_t y, uint32_t u,
         uint32_t h, uint32_t j, uint32_t k, uint32_t l,
 					uint32_t b, uint32_t n)
@@ -116,7 +116,6 @@ void walls_test ()
 		txt_mvaddch (0, 1, K?'#':' ');
 		txt_mvaddch (1, 1, ACS_ARRAY[wall_output[i]]);
 		txt_mvprint (3, 0, "Number %d", i);
-		gr_refresh ();
 		gr_getch ();
 	}
 }
@@ -136,8 +135,7 @@ void set_can_see (uint32_t *unseen)
 		if (sq_seen[w] == 2)
 			sq_seen[w] = 1;
 
-	/* This puts values on the grid -- whether or not we can see (or have
-	   seen) this square */
+	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
 	for (w = 0; w < MAP_TILES; ++w)
         //bres_draw (w / MAP_WIDTH, w % MAP_WIDTH);
 		sq_seen[w] = 2;
@@ -373,7 +371,6 @@ void visualise_map()
 		}
 	}
 	set_can_see (sq_unseen);
-	gr_refresh ();
 }
 
 void all_things_free()

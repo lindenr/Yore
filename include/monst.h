@@ -146,7 +146,7 @@ bool   mons_can_hear   (struct Thing *);                   /* has ears? no?     
 void  *mons_get_weap   (struct Thing *);                   /* what weapon is wielded?                  */
 
 /* player functions */
-struct Item *player_use_pack (char *, uint32_t);           /* asks player for an item of some type    */
+struct Item *player_use_pack (char *, uint32_t);           /* asks player for an item of some type     */
 int    player_gen_type (void);                             /* get a valid monster type for fighting    */
 void   player_dead     (const char *, ...);                /* the player is dead; absolute end of game */
 void   player_exc      (enum ABLTY, uint32_t);             /* exercise a given ablty by a given amount */

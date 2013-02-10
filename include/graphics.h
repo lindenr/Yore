@@ -9,13 +9,13 @@
  * A glyph is 32 bits wide. From highest to lowest there is:
  *********************************
  *    what         range   width
- * COL_TXT_RED     0 - F  (4 bits)
- * COL_TXT_GREEN   0 - F  (4 bits)
- * COL_TXT_BLUE    0 - F  (4 bits)
- * COL_BG_RED      0 - F  (4 bits)
- * COL_BG_GREEN    0 - F  (4 bits)
- * COL_BG_BLUE     0 - F  (4 bits)
- * character data  0 - FF (8 bits)
+ * COL_TXT_RED      0 -  F (4 bits)
+ * COL_TXT_GREEN    0 -  F (4 bits)
+ * COL_TXT_BLUE     0 -  F (4 bits)
+ * COL_BG_RED       0 -  F (4 bits)
+ * COL_BG_GREEN     0 -  F (4 bits)
+ * COL_BG_BLUE      0 -  F (4 bits)
+ * character data  00 - FF (8 bits)
  **********************************/
 typedef uint32_t glyph;
 
@@ -23,20 +23,16 @@ typedef uint32_t glyph;
 #  undef main
 #endif
 
-//#define GMODE 0 /* graphics mode */
-//#define TMODE 1 /* text mode     */
-//#define NOREF 2 /* no refresh    */
-//#define OMODE 4 /* overlay mode  */
-
 #define GLW 8
 #define GLH 12
 
 #define MAP_HEIGHT 100
 #define MAP_WIDTH  300
 #define MAP_TILES (MAP_HEIGHT*MAP_WIDTH)
-#define TXT_TILES (glnumy*glnumx)
+#define TXT_TILES (snumy*snumx)
 
-extern int glnumy, glnumx;
+extern int snumy, snumx;
+extern int pnumy, pnumx;
 extern int cam_yloc, cam_xloc;
 extern glyph gr_map[MAP_TILES];
 
@@ -52,15 +48,10 @@ void gr_addch   (glyph);
 void gr_mvaddch (int, int, glyph);
 void gr_baddch  (int, glyph);
 
-void gr_setline (int, glyph);
-
 void gr_refresh ();
-//void gr_trefresh();
 void gr_frefresh();
 
 void gr_clear   ();
-//void gr_tclear  ();
-//void gr_mode    (int);
 
 void txt_mvaddch(int, int, glyph);
 void txt_baddch (int, glyph);
@@ -68,6 +59,7 @@ void txt_baddch (int, glyph);
 void txt_mvprint(int, int, const char *, ...);
 
 void txt_box    (int, int, int, int);
+void txt_fbox   (int, int, int, int, glyph);
 
 /* Input */
 char gr_getch   ();

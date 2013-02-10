@@ -34,7 +34,6 @@ void main_loop ()
 
 	next_time ();
 	mons_gen (cur_dlevel, 2, U.luck);
-	Vector mons_so_far = v_init (sizeof(int), 20);
 	for (i = 0; i < all_mons->len; ++ i)
 	{
 		ID = v_at (all_mons, i);
@@ -87,7 +86,6 @@ void main_loop ()
 			goto loop_done;
 		}
 	}
-
-  loop_done:
-	v_free (mons_so_far);
+loop_done:
+	;
 }

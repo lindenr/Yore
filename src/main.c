@@ -23,23 +23,13 @@ void print_intro ()
 	txt_mvprint (1, 00, "Welcome to Yore v"YORE_VERSION);
 	txt_mvprint (2, 10, "* A game guide is not yet in place.");
 	txt_mvprint (3, 10, "* A wiki is not yet in place.");
-	gr_refresh ();
-}
-
-void draw_box_fill (uint32_t yl, uint32_t xl, uint32_t ys, uint32_t xs, uint32_t fill)
-{
-	int x, y;
-	for (x = 1; x < xs; ++x)
-		for (y = 1; y < ys; ++y)
-			txt_mvaddch (yl + y, xl + x, fill);
-	txt_box (yl, xl, ys, xs);
 }
 
 bool game_intro ()
 {
 	int c, by, bx, bh = 9, bw = 50;
-	by = (glnumy - bh - 10)/2;
-	bx = (glnumx - bw)/2;
+	by = (snumy - bh - 10)/2;
+	bx = (snumx - bw)/2;
 	gr_clear ();
 	txt_box (by, bx, bh, bw);
 	txt_mvprint (by+2, bx+2, "Back in the days of Yore, in a land far removed");
@@ -48,13 +38,11 @@ bool game_intro ()
 	txt_mvprint (by+5, bx+3,  "flowed through the sea, and the Gods lived in");
 	txt_mvprint (by+6, bx+4,   "harmony with the people; it was a time when");
 	txt_mvprint (by+7, bx+6,     "anything and everything was possible...");
-	gr_refresh ();
 	gr_noecho ();
 	gr_tout (666);
 	while (1)
 	{
-		txt_mvprint (by+11, (glnumx - 30)/2, "[hit the spacebar to continue]");
-		gr_refresh ();
+		txt_mvprint (by+11, (snumx - 30)/2, "[hit the spacebar to continue]");
 		do
 			c = gr_getch();
 		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
@@ -62,8 +50,7 @@ bool game_intro ()
 			break;
 		if (c == 'q' || c == 'Q')
 			return false;
-		txt_mvprint (by+11, (glnumx - 30)/2, "                              ");
-		gr_refresh ();
+		txt_mvprint (by+11, (snumx - 30)/2, "                              ");
 		do
 			c = gr_getch();
 		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
@@ -98,7 +85,6 @@ int main (int argc, char *argv[])
 	mons_gen (cur_dlevel, 0, 15150);
 
 	txt_mvprint (8, 6, "Who are you? ");
-	gr_refresh ();
 
 	for (i = 0, *(real_player_name + 1) = '\0';
 		 i < 10 && *(real_player_name + 1) == '\0';
@@ -106,7 +92,6 @@ int main (int argc, char *argv[])
 	{
 		if (i)
 			txt_mvprint (10, 6, "Please type in your name.");
-		gr_refresh ();
 		gr_move (8, 19);
 		gr_getstr (real_player_name + 1, 80);
 	}
@@ -130,7 +115,7 @@ int main (int argc, char *argv[])
 
 	gr_clear ();
 
-	gr_movecam (player->yloc - (glnumy/2), player->xloc - (glnumx/2));
+	gr_centcam (player->yloc, player->xloc);
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 

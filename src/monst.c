@@ -97,12 +97,11 @@ void get_cinfo ()
 	char in;
 
 	txt_mvprint (0, 0, "What role would you like to take up?");
-	txt_mvprint (0, glnumx - 11, "(q to quit)");
+	txt_mvprint (0, snumx - 11, "(q to quit)");
 	txt_mvprint (2, 3, "a     Assassin");
 	txt_mvprint (3, 3, "d     Doctor");
 	txt_mvprint (4, 3, "s     Soldier");
 	gr_move (0, 37);
-	gr_refresh ();
 
 	do
 	{
@@ -112,7 +111,7 @@ void get_cinfo ()
 	}
 	while (in != 'd' && in != 's' && in != 'a');
 
-	txt_mvprint (0, glnumx - 11, "           ");
+	txt_mvprint (0, snumx - 11, "           ");
 
 	if (in == 's')
 		U.role = 1;
@@ -345,7 +344,6 @@ int mons_take_move (struct Thing *th)
 	}
 	while (1)
 	{
-		gr_refresh ();
 		gr_move (th->yloc + 1, th->xloc);
 
 		uint32_t key = gr_getfullch();
@@ -398,6 +396,7 @@ int mons_take_move (struct Thing *th)
 
 void mons_dead (struct Thing *from, struct Thing *to)
 {
+	int i;
 	if (to == player)
 	{
 		player_dead("");
@@ -409,7 +408,8 @@ void mons_dead (struct Thing *from, struct Thing *to)
 	{
 		if (to->thing.mons.type == MTYP_SATAN)
 			U.playing = PLAYER_WONGAME;
-		from->thing.mons.exp += mons[to->type].exp;
+		fprintf (stderr, "%d\n", to->type);
+		from->thing.mons.exp += mons[to->thing.mons.type].exp;
 		update_level (from);
 	}
 
@@ -422,6 +422,14 @@ void mons_dead (struct Thing *from, struct Thing *to)
 	new_thing (THING_ITEM, to->dlevel, to->yloc, to->xloc, &corpse);
 
 	/* remove dead monster */
+	for (i = 0; i < all_mons->len; ++ i)
+	{
+		if (*(int*) v_at (all_mons, i) == to->ID)
+		{
+			v_rem (all_mons, i);
+			break;
+		}
+	}
 	rem_id (to->ID);
 }
 

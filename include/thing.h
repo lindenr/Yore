@@ -11,10 +11,6 @@
 #define player (*(struct Thing **) v_at (all_ids, 1))
 #define pmons  (player->thing.mons)
 
-/* How ITER_THINGS works: it's a loop through a vector, within a loop through the tiles.
- * Since break'ing would only exit one loop (straight into the other) the condition
- * (iter_good(it) == 0) was added -- this ensures that, if the inner loop break's, the
- * outer one will as well. */
 #define LOOP_THING(n,i)  int i;                                     for (i = 0; i < all_things[n]->len; ++ i)
 #define LOOP_THINGS(n,i) int i, n; for (n = 0; n < MAP_TILES; ++ n) for (i = 0; i < all_things[n]->len; ++ i)
 #define BREAK(n)         {n = MAP_TILES; break;}

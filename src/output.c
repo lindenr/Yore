@@ -26,7 +26,6 @@ void update_stats ()
 {
 	visualise_map ();
 	p_pane ();
-	gr_refresh ();
 }
 
 /*
