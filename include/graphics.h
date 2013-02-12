@@ -77,7 +77,7 @@ int  gr_buffer  (int, int);
 int  txt_buffer (int, int);
 
 int  gr_nearedge(int, int);
-void gr_wait    (int);
+void gr_wait    (uint32_t);
 void gr_resize  (int, int);
 
 /* Unusual characters */

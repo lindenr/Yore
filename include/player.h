@@ -3,9 +3,11 @@
 
 #include "include/all.h"
 #include "include/thing.h"
+#include "include/graphics.h"
 
 #define NUM_KEYS (sizeof(Keys)/sizeof(*Keys))
 
+int Kwait   ();
 int Kpickup ();
 int Keat    ();
 int Ksdrop  ();
@@ -24,7 +26,7 @@ struct KStruct
 }
 extern Keys[];
 
-int key_lookup (uint32_t);
+int key_lookup (glyph);
 
 #endif /* PLAYER_H_INCLUDED */
 

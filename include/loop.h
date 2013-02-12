@@ -7,8 +7,7 @@
 #define CLEAR_AT(p) mvaddch(p,' ')
 #define CLEAR_LINE(y) gr_mvprintc(y,0,LINE_OF_SPACES)
 
-void main_loop(void);
-// char in;
+void main_loop ();
 
 extern uint64_t Time;
 

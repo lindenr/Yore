@@ -2,7 +2,7 @@
 
 #include "include/all.h"
 #include "include/thing.h"
-
+#include "include/panel.h"
 #include "include/rand.h"
 #include "include/loop.h"
 #include "include/save.h"
@@ -10,7 +10,6 @@
 #include "include/generate.h"
 #include "include/rank.h"
 #include "include/words.h"
-#include "include/panel.h"
 #include "include/all_mon.h"
 #include "include/magic.h"
 #include "include/output.h"
@@ -344,6 +343,7 @@ int mons_take_move (struct Thing *th)
 	}
 	while (1)
 	{
+		p_pane ();
 		gr_move (th->yloc + 1, th->xloc);
 
 		uint32_t key = gr_getfullch();
@@ -365,6 +365,10 @@ int mons_take_move (struct Thing *th)
 			gr_movecam (cam_yloc, cam_xloc - 10);
 		else if (in == GRK_RT)
 			gr_movecam (cam_yloc, cam_xloc + 10);
+		else if (in == 'x')
+			p_sidebar (10);
+		else if (in == 'z')
+			p_sidebar (0);
 /*		else if (in == CONTROL_('Q') && U.magic == true)
 		{
 			p_msg("Press <m> to re-enter magic mode.");
@@ -408,8 +412,7 @@ void mons_dead (struct Thing *from, struct Thing *to)
 	{
 		if (to->thing.mons.type == MTYP_SATAN)
 			U.playing = PLAYER_WONGAME;
-		fprintf (stderr, "%d\n", to->type);
-		from->thing.mons.exp += mons[to->thing.mons.type].exp;
+		pmons.exp += mons[to->thing.mons.type].exp;
 		update_level (from);
 	}
 

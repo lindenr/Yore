@@ -14,9 +14,12 @@
 #define STRINGIFY(x) #x
 #define TILE_FILE "t"XSTRINGIFY(GLW)"x"XSTRINGIFY(GLH)".bmp"
 
-Uint32 bg_colour;
+uint32_t bg_colour;
 
 SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
+
+/* starting size */
+int screenY = 780, screenX = 1000;
 
 glyph gr_map[MAP_HEIGHT*MAP_WIDTH] = {0,};
 char gr_change[MAP_TILES] = {0,};
@@ -210,15 +213,15 @@ void gr_refresh ()
 		{
 			int gly = y + cam_yloc, glx = x + cam_xloc;
 			int txtbuf = txt_buffer (y, x), grbuf = gr_buffer (gly, glx);
-			if (txt_change[txtbuf])
+			if (txt_change[txtbuf] && txt_map[txtbuf])
 			{
 				blit_glyph (txt_map[txtbuf], y, x);
 				CURCHANGED;
 				txt_change[txtbuf] = 0;
 			}
-			if (txt_map[txtbuf]&255)
+			if (txt_map[txtbuf])
 				continue;
-			if (gr_change[grbuf])
+			if (gr_change[grbuf] || txt_change[txtbuf])
 			{
 				blit_glyph (gr_map[grbuf], y, x);
 				CURCHANGED;
@@ -292,14 +295,14 @@ uint32_t gr_getfullch ()
 	gr_refresh ();
 
 	SDL_Event event;
-	clock_t end = 0;
+	uint32_t end = 0;
 	uint32_t modifier_keys = (KMOD_SHIFT | KMOD_CAPS | KMOD_NUM) << 16;
 	if (tout_num)
-		end = tout_num * CLOCKS_PER_SEC / 1000 + clock();
+		end = tout_num + SDL_GetTicks ();
 
 	while (1)
 	{
-		if (end && clock() >= end) break;
+		if ((end) && (SDL_GetTicks () >= end)) break;
 		if (!SDL_PollEvent (&event))
 		{
 			gr_wait (20);
@@ -500,7 +503,7 @@ void gr_init ()
 	
 	atexit (gr_cleanup);
 	
-	screen = SDL_SetVideoMode (1000, 600, 32, SDL_SWSURFACE | SDL_RESIZABLE);
+	screen = SDL_SetVideoMode (screenX, screenY, 32, SDL_SWSURFACE | SDL_RESIZABLE);
 	if (screen == NULL)
 	{
 		fprintf (stderr, "Error initialising video mode: %s\n", SDL_GetError ());
@@ -515,7 +518,7 @@ void gr_init ()
 	SDL_FreeSurface (tmp);
 	SDL_SetColorKey (glyph_col, SDL_SRCCOLORKEY, SDL_MapRGB (glyph_col->format, 255, 255, 255));
 
-	gr_resize (600, 1000);
+	gr_resize (screenY, screenX);
 	
 	/* Finish housekeeping */
 	SDL_EnableUNICODE (1);
@@ -523,7 +526,7 @@ void gr_init ()
 	SDL_WM_SetCaption ("Yore", "Yore");
 }
 
-void gr_wait (int ms)
+void gr_wait (uint32_t ms)
 {
 	SDL_Delay (ms);
 }

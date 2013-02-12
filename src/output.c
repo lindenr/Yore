@@ -25,7 +25,7 @@ void check_weird ()
 void update_stats ()
 {
 	visualise_map ();
-	p_pane ();
+	//p_pane ();
 }
 
 /*

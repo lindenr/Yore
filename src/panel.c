@@ -5,20 +5,25 @@
 #include "include/graphics.h"
 #include "include/words.h"
 #include "include/rank.h"
+#include "include/loop.h"
 
 #include <stdlib.h>
 #include <malloc.h>
 
-int p_width, p_height;
-int p_open = 0;
+int p_height, p_width;
+//int p_open = 0;
+int sb_width;
+glyph *sidebar = NULL;
 
-char *p_tabs[NUM_TABS] = {NULL, };
+//char *p_tabs[NUM_TABS] = {NULL, };
 Vector messages = NULL;
 
 void p_pane ()
 {
-	p_height = snumy - pnumy, p_width = pnumx;
+	p_height = snumy - pnumy, p_width = snumx - 1;
 	int i, j;
+	for (i = 0; i < snumy*snumx; ++ i)
+		txt_baddch (i, 0);
 	int xpan = 0, ypan = pnumy;
 	for (i = 0; i < p_height; ++ i)
 		for (j = 0; j < p_width; ++ j)
@@ -35,22 +40,93 @@ void p_pane ()
 			txt_mvaddch (max - i - 1, pnumx, ' ');
 			continue;
 		}
-		int gpart = (16*i)/max-1, rpart = (16*(max-i))/max-1;
-		gpart = (gpart < 0) ? 0 : gpart;
-		rpart = (rpart < 0) ? 0 : rpart;
-		txt_mvaddch (max - i - 1, pnumx, COL_BG_RED(rpart) | COL_BG_GREEN(gpart) | ' ');
+		int gpart = (16*i)/max, rpart = (16*(max-i))/max;
+		gpart = (gpart == 0) ? 0 : gpart - 1;
+		rpart = (rpart == 0) ? 0 : rpart - 1;
+		txt_mvaddch (max - i - 1, snumx - 1, COL_BG_RED(rpart) | COL_BG_GREEN(gpart) | ' ');
 	}
+
+	txt_mvprint (0, 0, "%lu", Time);
 
 	txt_mvprint (ypan + 1, xpan + 1, "%s", w_short (pmons.name + 1, p_width - 3), get_rank ());
 	txt_mvprint (ypan + 2, xpan + 1, "HP %d:%d", pmons.HP, pmons.HP_max);
 	txt_mvprint (ypan + 3, xpan + 1, "LV %d:%d", pmons.level, pmons.exp);
 	char *rank = get_rank ();
 	int rlen = strlen (rank);
-	txt_mvprint (ypan + p_height - 2, xpan + p_width - 1 - rlen, rank);
+	txt_mvprint (ypan + 1, xpan + p_width - 1 - rlen, rank);
+
+	if (sb_width == 0)
+		goto skip1;
+	for (i = 0; i < pnumy; ++ i)
+	{
+		txt_mvaddch (i, pnumx, ACS_VLINE);
+		for (j = pnumx + 1; j < snumx - 1; ++ j)
+		{
+			txt_mvaddch (i, j, sidebar[sb_buffer(i, j-pnumx)]);
+		}
+	}
+skip1:
+	if (messages == NULL)
+		goto skip2;
+	for (i = 0; i < 10 && i < messages->len; ++ i)
+	{
+		char *msg = v_at (messages, messages->len - i - 1);
+		int len = strlen (msg);
+		txt_mvprint (2*snumy/3 + i, (snumx - len)/2, msg);
+	}
+skip2:
+	;
+}
+
+void p_sidebar (int width)
+{
+	int i, j;
+	if (width == 0)
+	{
+		for (i = 0; i < pnumy; ++ i)
+		{
+			for (j = pnumx; j < snumx - 1; ++ j)
+				txt_mvaddch (i, j, 0);
+		}
+		pnumx += sb_width;
+		sb_width = width;
+	}
+	else
+	{
+		if (sb_width != 0)
+			p_sidebar (0);
+		sb_width = width;
+		pnumx -= sb_width;
+		sidebar = realloc (sidebar, sizeof(glyph) * sb_width * pnumy);
+		for (i = 0; i < sb_width * pnumy; ++ i)
+			sidebar[i] = ' ';
+	}
+}
+
+void sb_baddch (int buf, glyph gl)
+{
+	sidebar[buf] = gl;
+}
+
+void sb_mvaddch (int yloc, int xloc, glyph gl)
+{
+	sb_baddch (sb_buffer (yloc, xloc), gl);
+}
+
+void sb_mvprint (int yloc, int xloc, char *str, ...)
+{
+}
+
+int sb_buffer (int yloc, int xloc)
+{
+	return sb_width*yloc + xloc;
 }
 
 void p_init ()
-{/*
+{
+	if (!messages)
+		messages = v_dinit (1024);
+/*
 	int i;
 	if (!messages)
 		messages = v_dinit (1024);
@@ -109,7 +185,7 @@ void p_messages_display ()
 }
 
 void p_msg (char *str, ...)
-{/*
+{
 	va_list args;
 	char out[1024];
 
@@ -118,7 +194,6 @@ void p_msg (char *str, ...)
 	va_end (args);
 
 	v_pstr (messages, out);
-	p_update ();*/
 }
 
 char p_ask (char *results, char *question)

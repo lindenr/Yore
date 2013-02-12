@@ -9,6 +9,7 @@
 #include "include/vector.h"
 
 struct KStruct Keys[] = {
+	{'.', &Kwait},
 	{',', &Kpickup},
 	{'e', &Keat},
 	{'d', &Ksdrop},
@@ -20,6 +21,11 @@ struct KStruct Keys[] = {
 	{CONTROL_('s'), &Ksave},
 	{CONTROL_('q'), &Kquit}
 };
+
+int Kwait ()
+{
+	return 1;
+}
 
 int Kpickup ()
 {
