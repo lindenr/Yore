@@ -12,7 +12,7 @@
 #include "include/vector.h"
 #include "include/dlevel.h"
 
-uint64_t Time = 1;
+uint64_t Time = 0;
 
 void next_time ()
 {
