@@ -51,7 +51,7 @@ void rem_id                (int);
 
 struct Thing *new_thing    (uint32_t, int, uint32_t, uint32_t, void *);
 
-void visualise_map         (void);
+void draw_map              (void);
 
 int get_thing_type         (char);
 const char *get_thing_name (struct Thing);

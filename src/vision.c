@@ -7,7 +7,7 @@
 int fromy, fromx;
 uint8_t *grid, *grid_t;
 
-void bres_start (int fry, int frx, uint8_t * g, uint8_t * g_t)
+void bres_start (int fry, int frx, uint8_t *g, uint8_t *g_t)
 {
 	fromy = fry;
 	fromx = frx;

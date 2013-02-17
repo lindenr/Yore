@@ -7,7 +7,6 @@
 #include "include/map.h"
 #include "include/generate.h"
 #include "include/vision.h"
-#include "include/output.h"
 #include "include/graphics.h"
 
 #include <assert.h>
@@ -131,17 +130,17 @@ void set_can_see (uint32_t *unseen)
 	bres_start (Yloc, Xloc, sq_seen, sq_attr);
 
 	/* Anything you could see before you can't necessarily now */
-	for (w = 0; w < MAP_TILES; ++w)
+	for (w = 0; w < MAP_TILES; ++ w)
 		if (sq_seen[w] == 2)
 			sq_seen[w] = 1;
 
 	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
-	for (w = 0; w < MAP_TILES; ++w)
-        bres_draw (w / MAP_WIDTH, w % MAP_WIDTH);
+	for (w = 0; w < TXT_TILES; ++ w)
+        bres_draw (cam_yloc + w / snumx, cam_xloc + w % snumx);
 		//sq_seen[w] = 2;
 
 	/* Make everything we can't see dark */
-	for (w = 0; w < MAP_TILES; ++w)
+	for (w = 0; w < MAP_TILES; ++ w)
 		if (!sq_seen[w])
 			gr_baddch (w, ' ');
 
@@ -308,7 +307,7 @@ struct Thing *new_thing (uint32_t type, int dlevel, uint32_t y, uint32_t x, void
 }
 
 /* Directly modifies gr_map[] */
-void visualise_map()
+void draw_map()
 {
 	uint32_t type[MAP_TILES] = {0,};
 
@@ -362,7 +361,7 @@ void visualise_map()
 			{
 				printf ("%d %d %d\n", at, i, th->type);
 				getchar ();
-				panic ("default reached in visualise_map()");
+				panic ("default reached in draw_map()");
 			}
 		}
 		if (changed)

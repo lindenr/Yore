@@ -8,7 +8,6 @@
 #include "include/loop.h"
 #include "include/panel.h"
 #include "include/generate.h"
-#include "include/output.h"
 #include "include/graphics.h"
 #include "include/save.h"
 #include "include/magic.h"
@@ -120,7 +119,7 @@ int main (int argc, char *argv[])
 	//if (argc > 1) restore("Yore-savegame.sav");
 
 	p_pane ();
-	update_stats();
+	draw_map ();
 
 	do
 		main_loop();

@@ -12,7 +12,6 @@
 #include "include/words.h"
 #include "include/all_mon.h"
 #include "include/magic.h"
-#include "include/output.h"
 #include "include/event.h"
 #include "include/graphics.h"
 #include "include/dlevel.h"
@@ -343,6 +342,7 @@ int mons_take_move (struct Thing *th)
 	}
 	while (1)
 	{
+		draw_map ();
 		p_pane ();
 		gr_move (th->yloc + 1, th->xloc);
 

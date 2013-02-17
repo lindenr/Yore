@@ -3,10 +3,8 @@
 #include "include/all.h"
 #include "include/thing.h"
 #include "include/loop.h"
-
 #include "include/monst.h"
 #include "include/rand.h"
-#include "include/output.h"
 #include "include/generate.h"
 #include "include/graphics.h"
 #include "include/vector.h"
@@ -54,7 +52,6 @@ void main_loop ()
 
 			th = THIID(*ID);
 			mon = &th->thing.mons;
-			update_stats ();
 		}
 
 		gr_move (player->yloc, player->xloc);
