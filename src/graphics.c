@@ -2,6 +2,7 @@
 /* Map size: 100 glyphs down, 300 across */
 
 #include "include/graphics.h"
+#include "include/timer.h"
 #include "include/panel.h"
 
 #include <stdio.h>
@@ -305,6 +306,7 @@ uint32_t gr_getfullch ()
 		if ((end) && (SDL_GetTicks () >= end)) break;
 		if (!SDL_PollEvent (&event))
 		{
+			t_idle ();
 			gr_wait (20);
 			continue;
 		}

@@ -13,6 +13,7 @@
 #include "include/magic.h"
 #include "include/vector.h"
 #include "include/dlevel.h"
+#include "include/timer.h"
 
 #include <stdlib.h>
 #include <stdio.h>

@@ -22,7 +22,7 @@ int Kquit   ();
 struct KStruct
 {
 	uint32_t key;
-	int (*action)();
+	int (*action) ();
 }
 extern Keys[];
 
