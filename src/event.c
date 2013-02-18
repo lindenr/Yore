@@ -2,11 +2,17 @@
 
 #include "include/event.h"
 #include "include/panel.h"
+#include "include/timer.h"
+
+#include <stdarg.h>
 
 void event_mhit (struct Thing *from, struct Thing *to, uint32_t atyp)
 {
 	int ftyp = from->thing.mons.type, ttyp = to->thing.mons.type;
 	const char *fname = mons[ftyp].name, *tname = mons[ttyp].name;
+	void (*callback)() = $$(printf, (const char *)"%s", (const char *)"HELLO\n");
+	//$$(gr_mvaddch, (int) to->yloc - cam_yloc, (int) to->xloc - cam_xloc, (char) 'X');
+	t_interval (100, callback);
 	switch (atyp)
 	{
 		case ATTK_HIT:

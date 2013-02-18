@@ -31,7 +31,7 @@ void main_loop ()
 	struct Monster *mon;
 
 	next_time ();
-	mons_gen (cur_dlevel, 2, U.luck);
+	mons_gen (cur_dlevel, 2, U.luck-30);
 	//for (i = 0; i < all_mons->len; ++ i)
 	//	printf("%d\n", *(int*)v_at(all_mons, i));
 	//printf("\n");
