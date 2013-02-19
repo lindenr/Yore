@@ -3,7 +3,6 @@
 
 #include <limits.h>
 #include "include/debug.h"
-#include "function/header.h"
 
 /* Player options go here */
 

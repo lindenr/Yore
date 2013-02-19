@@ -2,4 +2,6 @@
 bin/Yore
 # Save files (testing)
 *.sav
+# function preprocessor
+function
 

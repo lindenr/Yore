@@ -4,15 +4,18 @@ Yore is an under-developement roguelike game.
 
 ##Build instructions
 
-Yore can run on any machine which is supported by SDL. It expects the header files in "SDL/*".
+Yore can run on any machine which is supported by SDL.
 
 ####To build for Linux:
 
 1.  you must have gcc and SDL installed (you probably will anyway);
-2.  [optional] get rid of the -ggdb flags in makefile;
-3.  run <pre>./build-linux.sh</pre>
+2.  you must have [function](http://github.com/lindenr/function) binary in the Yore/ directory;
+3.  [optional] get rid of the -ggdb flags in makefile;
+4.  run <pre>./build-linux.sh</pre>
 
 ####To build for Windows:
+
+NOTE: function has not been tested on Windows
 
 1.  you must have MinGW and SDL installed, with SDL.dll in your bin/ folder;
 2.  [optional] get rid of the -ggdb flags in makefile;
