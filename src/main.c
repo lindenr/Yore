@@ -14,6 +14,7 @@
 #include "include/vector.h"
 #include "include/dlevel.h"
 #include "include/timer.h"
+#include "include/pixel.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -112,6 +113,16 @@ int main (int argc, char *argv[])
 
 	
 	generate_map (cur_dlevel, LEVEL_NORMAL);
+	struct Monster p;
+	memclr (&p, sizeof(p));
+	p.type = 0;
+	p.HP = (mons[p.type].flags >> 28) + (mons[p.type].exp >> 1);
+	p.HP += RN(p.HP / 3);
+	p.HP_max = p.HP;
+	p.name = NULL;
+	uint32_t xloc = 151, yloc = 50;
+	if (is_safe_gen (cur_dlevel, yloc, xloc))
+		new_thing (THING_MONS, cur_dlevel, yloc, xloc, &p);
 
 	gr_clear ();
 

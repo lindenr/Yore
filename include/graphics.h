@@ -35,6 +35,9 @@ extern int snumy, snumx;
 extern int pnumy, pnumx;
 extern int cam_yloc, cam_xloc;
 extern glyph gr_map[MAP_TILES];
+extern char  gr_change[MAP_TILES];
+
+extern SDL_Surface *screen;
 
 /* Initialisation */
 void gr_init    (void);

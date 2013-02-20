@@ -17,6 +17,8 @@
 #include "include/dlevel.h"
 #include "include/monst.h"
 #include "include/player.h"
+#include "include/timer.h"
+#include "include/pixel.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -347,6 +349,7 @@ int mons_take_move (struct Thing *th)
 		gr_move (th->yloc + 1, th->xloc);
 
 		uint32_t key = gr_getfullch();
+		t_flush ();
 		in = (char) key;
 
 		int mv = player_take_input (in);
@@ -585,6 +588,7 @@ inline void do_attack (struct Thing *from, struct Thing *to)
 {
 	int t, strength, type = from->thing.mons.type;
 	int *toHP = &to->thing.mons.HP;
+	px_mvaddbox (to->yloc, to->xloc, BOX_HIT);
 
 	for (t = 0; t < A_NUM; ++t)
 	{
@@ -647,7 +651,7 @@ inline void do_attack (struct Thing *from, struct Thing *to)
 				break;
 			}
 		}
-		event_mhit (from, to, mons[type].attacks[t][2] & 0xFFFF);
+		//event_mhit (from, to, mons[type].attacks[t][2] & 0xFFFF);
 
 		if ((*toHP) <= 0)
 		{

@@ -4,6 +4,7 @@
 #include "include/graphics.h"
 #include "include/timer.h"
 #include "include/panel.h"
+#include "include/pixel.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -231,6 +232,8 @@ void gr_refresh ()
 		}
 	}
 
+	px_showboxes ();
+
 	if (changed_total < 100)
 		SDL_UpdateRects (screen, changed_total, rects);
 	else
@@ -258,12 +261,14 @@ void gr_frefresh ()
 			gr_change[grbuf] = 0;
 		}
 	}
+	px_showboxes ();
 	SDL_UpdateRect (screen, 0, 0, 0, 0);
 }
 
 void gr_clear ()
 {
 	int i;
+	px_showboxes ();
 	for (i = 0; i < MAP_TILES; ++ i)
 		gr_baddch (i, ' ');
 	for (i = 0; i < TXT_TILES; ++ i)
@@ -316,7 +321,7 @@ uint32_t gr_getfullch ()
 			case SDL_KEYDOWN:
 			{
 				uint32_t mod = event.key.keysym.mod << 16;
-				if (mod & (~modifier_keys) && (event.key.keysym.unicode != 0))
+				if ((mod & (~modifier_keys)) && (event.key.keysym.unicode != 0))
 				{
 					//printf ("%d %d\n", event.key.keysym.sym, event.key.keysym.unicode);
 					return mod|event.key.keysym.sym;
