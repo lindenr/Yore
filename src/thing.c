@@ -136,7 +136,7 @@ void set_can_see (uint32_t *unseen)
 
 	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
 	for (w = 0; w < TXT_TILES; ++ w)
-        bres_draw (cam_yloc + w / snumx, cam_xloc + w % snumx);
+		bres_draw (cam_yloc + w / snumx, cam_xloc + w % snumx);
 		//sq_seen[w] = 2;
 
 	/* Make everything we can't see dark */

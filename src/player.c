@@ -8,6 +8,8 @@
 #include "include/item.h"
 #include "include/vector.h"
 
+#include <malloc.h>
+
 struct KStruct Keys[] = {
 	{'.', &Kwait},
 	{',', &Kpickup},

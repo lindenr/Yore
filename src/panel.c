@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <malloc.h>
+#include <stdarg.h>
 
 int p_height, p_width;
 //int p_open = 0;
