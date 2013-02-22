@@ -33,7 +33,7 @@ void px_mvaddbox (int yloc, int xloc, int type)
 	v_push (boxes, &box);
 	gr_change[gr_buffer(yloc, xloc)] = 1;
 	gr_refresh ();
-	t_interval (500, $$ (px_mvrembox, (int) yloc, (int) xloc, (int) type), TMR_STOP);
+	t_interval (500, $$, $.(px_mvrembox, (int) yloc, (int) xloc, (int) type), TMR_STOP);
 }
 
 void px_mvrembox (int yloc, int xloc, int type)

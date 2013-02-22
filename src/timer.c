@@ -6,11 +6,11 @@
 
 Vector times = NULL;
 
-void t_interval (int len, f_ptr callback, int flags)
+void t_interval (int len, f_ptr callback, void *arg, int flags)
 {
 	if (times == NULL)
 		times = v_dinit (sizeof(struct Timer));
-	struct Timer t = {SDL_GetTicks () + len, callback, flags};
+	struct Timer t = {SDL_GetTicks () + len, callback, arg, flags};
 	v_push (times, &t);
 }
 
@@ -24,7 +24,7 @@ void t_idle ()
 		struct Timer *t = v_at (times, i);
 		if (t->time >= current)
 			continue;
-		t->callback ();
+		t->callback (t->arg);
 		v_rem (times, i);
 		-- i;
 	}
@@ -40,7 +40,7 @@ void t_flush ()
 		struct Timer *t = v_at (times, i);
 		if ((t->flags & TMR_STOP) == 0)
 			continue;
-		t->callback ();
+		t->callback (t->arg);
 		v_rem (times, i);
 		-- i;
 	}
