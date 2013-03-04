@@ -33,11 +33,14 @@ int Kpickup ()
 {
 	Vector ground = v_init (sizeof (int), 20);
 	int n = gr_buffer (player->yloc, player->xloc);
+	Vector *things = dlv_things (player->dlevel);
+	struct Thing *th;
 	
-	LOOP_THING(n, i)
+	LOOP_THING(things, n, i)
 	{
-		if (THING(n, i)->type == THING_ITEM)
-			v_push (ground, &i);
+		th = THING(things, n, i);
+		if (th->type == THING_ITEM)
+			v_push (ground, &th->ID);
 	}
 	
 	if (ground->len < 1)
@@ -46,8 +49,8 @@ int Kpickup ()
 	if (ground->len == 1)
 	{
 		/* One item on ground -- pick up immediately. */
-		if (pack_add (&pmons.pack, &THING(n, *(int*)v_at (ground, 0))->thing.item))
-			rem_ref (n, *(int*)v_at (ground, 0));
+		if (pack_add (&pmons.pack, &THING(things, n, *(int*)v_at (ground, 0))->thing.item))
+			rem_id (*(int*)v_at (ground, 0));
 	
 		v_free (ground);
 	}
@@ -65,10 +68,11 @@ int Kpickup ()
 		for (i = 0; i < pickup->len; ++ i)
 		{
 			/* Pick up the item; quit if the bag is full */
-			if (!pack_add (&pmons.pack, &THING(n, *(int*)v_at (pickup, i))->thing.item))
+			th = THING(things, n, *(int*)v_at (pickup, i));
+			if (!pack_add (&pmons.pack, &th->thing.item))
 				break;
 			/* Remove item from main play */
-			rem_ref (n, i);
+			rem_id (th->ID);
 		}
 		v_free (pickup);
 	}
@@ -110,14 +114,15 @@ int Knlook ()
 {
 	int k = 0;
 	int n = gr_buffer (player->yloc, player->xloc);
+	Vector *things = dlv_things (player->dlevel);
 
-	LOOP_THING(n, i)
+	LOOP_THING(things, n, i)
 	{
-		struct Thing *th = THING(n, i);
+		struct Thing *th = THING(things, n, i);
 		if (th->type != THING_ITEM)
 			continue;
 
-		char *line = get_inv_line (&THING(n, i)->thing.item);
+		char *line = get_inv_line (&THING(things, n, i)->thing.item);
 		p_msg ("You%s see here %s. ", ((k++) ? " also" : ""), line);
 		free (line);
 	}

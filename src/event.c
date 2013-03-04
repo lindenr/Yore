@@ -4,6 +4,7 @@
 #include "include/panel.h"
 #include "include/timer.h"
 #include "include/pixel.h"
+#include "include/dlevel.h"
 
 #include <stdarg.h>
 #include <stdio.h>

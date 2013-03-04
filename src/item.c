@@ -7,6 +7,7 @@
 #include "include/panel.h"
 #include "include/vector.h"
 #include "include/item.h"
+#include "include/dlevel.h"
 
 #include <stdio.h>
 #include <malloc.h>
@@ -99,9 +100,10 @@ char *get_inv_line (struct Item *item)
 
 bool stackable (int n, Vector *pile, int i)
 {
-	struct Item *item1 = &THING(n, *(int*)v_at (*pile, 0))->thing.item,
-	            *item2 = &THING(n, i)->thing.item;
-	return (memcmp (&item1->type, &item2->type, sizeof(ityp)) == 0);
+	//struct Item *item1 = &THING(n, *(int*)v_at (*pile, 0))->thing.item,
+	//            *item2 = &THING(n, i)->thing.item;
+	//return (memcmp (&item1->type, &item2->type, sizeof(ityp)) == 0);
+	return false;
 }
 
 void item_piles (int n, Vector piles, Vector items)

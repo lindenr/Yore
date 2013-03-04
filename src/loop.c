@@ -32,12 +32,10 @@ void main_loop ()
 
 	next_time ();
 	mons_gen (cur_dlevel, 2, U.luck-30);
-	//for (i = 0; i < all_mons->len; ++ i)
-	//	printf("%d\n", *(int*)v_at(all_mons, i));
-	//printf("\n");
-	for (i = 0; i < all_mons->len; ++ i)
+
+	for (i = 0; i < cur_dlevel->mons->len; ++ i)
 	{
-		ID = v_at (all_mons, i);
+		ID = v_at (cur_dlevel->mons, i);
 		th = THIID (*ID);
 
 		mon = &th->thing.mons;

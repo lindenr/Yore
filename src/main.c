@@ -72,12 +72,11 @@ int main (int argc, char *argv[])
 	uint32_t rseed;
 
 	gr_init ();
-	dlevel_init ();
+	dlv_init ();
 	rseed = RNG_get_seed ();
 	RNG_main = RNG_INIT (rseed);
 
 	setup_U ();
-	atexit (all_things_free);
 
 	if (!game_intro())
 		goto quit_game;
@@ -112,7 +111,7 @@ int main (int argc, char *argv[])
 		goto quit_game;
 
 	
-	generate_map (cur_dlevel, LEVEL_NORMAL);
+	generate_map (cur_level, LEVEL_NORMAL);
 
 	gr_clear ();
 

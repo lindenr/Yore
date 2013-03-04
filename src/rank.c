@@ -5,6 +5,7 @@
 #include "include/rank.h"
 #include "include/monst.h"
 #include "include/panel.h"
+#include "include/dlevel.h"
 
 #include <assert.h>
 

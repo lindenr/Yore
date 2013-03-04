@@ -7,13 +7,24 @@
 
 struct DLevel
 {
-	Vector all_things[MAP_TILES];
+	int level;
+	Vector *things;
+	Vector mons;
+	uint8_t *sq_seen, *sq_attr;
 };
 
-void          dlevel_init ();
+void dlv_init ();
+void dlv_make (int);
+void dlv_set  (int);
+
+Vector *dlv_things (int);
+Vector  dlv_mons   (int);
+struct DLevel *dlv_lvl (int);
 
 extern Vector all_dlevels;
-extern int    cur_dlevel;
+extern Vector all_ids;
+extern int    cur_level;
+extern struct DLevel *cur_dlevel;
 
 #endif /* DLEVEL_H_INCLUDED */
 

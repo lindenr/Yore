@@ -5,6 +5,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #define V_DEFAULT_LENGTH 2
 Vector v_dinit (int siz)
@@ -61,6 +62,16 @@ void v_rem (Vector vec, int rem)
 		memcpy (DATA(i), DATA(i+1), vec->siz);
 	memclr (DATA(i), vec->siz);
 	-- vec->len;
+}
+
+void v_rptr (Vector vec, void *data)
+{
+	uintptr_t p = (uintptr_t) data;
+	p -= (uintptr_t) vec->data;
+	p /= vec->siz;
+	if (p < 0 || p >= vec->len)
+		return;
+	v_rem (vec, p);
 }
 
 void v_free (Vector vec)

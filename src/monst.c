@@ -58,10 +58,6 @@ bool digesting()
 void setup_U ()
 {
 	int i;
-	void *t = NULL;
-
-	all_ids = v_dinit (sizeof(void*));
-	v_push (all_ids, &t);
 
 	U.playing = PLAYER_ERROR;	/* If this function returns early */
 	U.hunger = 100;
@@ -189,7 +185,7 @@ void make_corpse (ityp *typ, struct Thing *th)
 
 void mons_attack (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 {
-	do_attack (th, get_sqmons(th->yloc + y, th->xloc + x, th->dlevel));
+	do_attack (th, get_sqmons(dlv_things(th->dlevel), th->yloc + y, th->xloc + x));
 }
 
 int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
@@ -197,7 +193,7 @@ int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 	if (th != player)
 		if (!(x | y))
 			return 0;
-	int can = can_amove (get_sqattr (th->yloc + y, th->xloc + x, th->dlevel));
+	int can = can_amove (get_sqattr (dlv_things(th->dlevel), th->yloc + y, th->xloc + x));
 	/* like a an unmoveable boulder or something */
 	if (!can)
 		return 0;
@@ -427,14 +423,14 @@ void mons_dead (struct Thing *from, struct Thing *to)
 	corpse.attr = 0;
 	corpse.name = NULL;
 	corpse.cur_weight = 0;
-	new_thing (THING_ITEM, to->dlevel, to->yloc, to->xloc, &corpse);
+	new_thing (THING_ITEM, dlv_lvl (to->dlevel), to->yloc, to->xloc, &corpse);
 
 	/* remove dead monster */
-	for (i = 0; i < all_mons->len; ++ i)
+	for (i = 0; i < cur_dlevel->mons->len; ++ i)
 	{
-		if (*(int*) v_at (all_mons, i) == to->ID)
+		if (*(int*) v_at (cur_dlevel->mons, i) == to->ID)
 		{
-			v_rem (all_mons, i);
+			v_rem (cur_dlevel->mons, i);
 			break;
 		}
 	}
@@ -710,15 +706,6 @@ bool player_magic (char c)
 		return false;
 	}
 	return true;
-}
-
-void sanitycheck ()
-{
-	LOOP_THINGS(n, i)
-	{
-		if (player == THING(n, i)) fprintf(stderr, "%d %d PLAAAYER", n, i);
-	}
-	fprintf(stderr, "ENDCHECK\n");
 }
 
 /* Rudimentary AI system -- move towards player if player is visible. */

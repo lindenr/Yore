@@ -6,6 +6,7 @@
 #include "include/words.h"
 #include "include/rank.h"
 #include "include/loop.h"
+#include "include/dlevel.h"
 
 #include <stdlib.h>
 #include <malloc.h>

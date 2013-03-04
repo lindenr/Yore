@@ -8,13 +8,10 @@
 #include "include/generate.h"
 #include "include/vision.h"
 #include "include/graphics.h"
+#include "include/dlevel.h"
 
 #include <assert.h>
 #include <malloc.h>
-
-Vector all_things[MAP_TILES];
-Vector all_mons;
-Vector all_ids;
 
 /* At any given point: 0 if we can't see past that square (e.g. wall); 1 if we 
  * can remember it (e.g. sword); and 2 if we can't remember its position (e.g. 
@@ -194,9 +191,8 @@ void thing_bmove (struct Thing *thing, int num)
 	thing_move (thing, num/MAP_WIDTH, num%MAP_WIDTH);
 }
 
-void thing_watchvec (int n)
+void thing_watchvec (Vector vec)
 {
-	Vector vec = all_things[n];
 	int i;
 	for (i = 0; i < vec->len; ++ i)
 	{
@@ -209,15 +205,9 @@ void rem_id (int id)
 {
 	struct Thing *th = (*(struct Thing**) v_at (all_ids, id));
 	int n = gr_buffer (th->yloc, th->xloc);
-	rem_ref (n, get_ref (n, th));
-}
-
-void rem_ref (int n, int i)
-{
-	struct Thing *th = v_at (all_things[n], i);
-	*(void**)v_at (all_ids, th->ID) = NULL;
-	v_rem (all_things[n], i);
-	thing_watchvec (n);
+	struct DLevel *lvl = dlv_lvl (th->dlevel);
+	v_rptr (lvl->things[n], th);
+	thing_watchvec (lvl->things[n]);
 }
 
 void thing_move (struct Thing *thing, int new_y, int new_x)
@@ -225,20 +215,17 @@ void thing_move (struct Thing *thing, int new_y, int new_x)
 	if (thing->yloc == new_y && thing->xloc == new_x)
 		return;
 
-	int n = gr_buffer (thing->yloc, thing->xloc);
-	int i = get_ref (n, thing);
-
-	/* Couldn't find thing? */
-	if (i < 0 || all_things[n]->len <= i)
-		return;
+	Vector *things = dlv_things (thing->dlevel);
+	int old = gr_buffer (thing->yloc, thing->xloc);
 
 	thing->yloc = new_y;
 	thing->xloc = new_x;
 	int new = gr_buffer (thing->yloc, thing->xloc);
-	v_push (all_things[new], thing);
-	rem_ref (n, i);
+	v_push (things[new], thing);
+	v_rptr (things[old], thing); 
 
-	thing_watchvec (new);
+	thing_watchvec (things[new]);
+	thing_watchvec (things[old]);
 }
 
 void thing_free (struct Thing *thing)
@@ -284,39 +271,40 @@ int TSIZ[] = {
 	0
 };
 
-struct Thing *new_thing (uint32_t type, int dlevel, uint32_t y, uint32_t x, void *actual_thing)
+struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)
 {
 	//if (type == THING_ITEM)
 	//	printf ("New: %u %d %dx%d  %p\n", type, dlevel, y, x, actual_thing);
-	int n = gr_buffer (y, x), ID = getID ();
+	int n = gr_buffer (y, x), ID = getID (), dlevel = lvl->level;
 	struct Thing t = {type, dlevel, ID, y, x, {}};
 
 	if (t.ID != all_ids->len)
 		panic ("IDs error");
 
 	memcpy (&t.thing, actual_thing, TSIZ[type]);
-	struct Thing *ret = v_push (all_things[n], &t);
+	struct Thing *ret = v_push (lvl->things[n], &t);
 
 	v_push (all_ids, ret);
-	thing_watchvec (n);
+	thing_watchvec (lvl->things[n]);
 
 	if (type == THING_MONS)
-		v_push (all_mons, &ID);
+		v_push (lvl->mons, &ID);
 
 	return ret;
 }
 
-/* Directly modifies gr_map[] */
-void draw_map()
+void draw_map ()
 {
 	uint32_t type[MAP_TILES] = {0,};
 
 	if (gr_nearedge (player->yloc, player->xloc))
 		gr_centcam (player->yloc, player->xloc);
 
-	LOOP_THINGS(at, i)
+	Vector *things = dlv_things (player->dlevel);
+
+	LOOP_THINGS(things, at, i)
 	{
-		struct Thing *th = THING(at, i);
+		struct Thing *th = THING(things, at, i);
 		bool changed = false;
 		switch (th->type)
 		{
@@ -370,14 +358,5 @@ void draw_map()
 		}
 	}
 	set_can_see (sq_unseen);
-}
-
-void all_things_free()
-{
-	LOOP_THINGS(n, i)
-		thing_free (THING(n, i));
-	for (n = 0; n < MAP_TILES; ++ n)
-		v_free (all_things[n]);
-	v_free (all_ids);
 }
 

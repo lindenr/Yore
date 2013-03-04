@@ -11,12 +11,12 @@
 #define MAP_MOVEABLE 3
 
 /* remember -- ONLY ONE MONSTER PER SQUARE */
-void *get_sqmons (uint32_t yloc, uint32_t xloc, int level)
+void *get_sqmons (Vector *things, int yloc, int xloc)
 {
 	int n = gr_buffer(yloc, xloc);
-	LOOP_THING(n, i)
+	LOOP_THING(things, n, i)
 	{
-		struct Thing *th = THING(n, i);
+		struct Thing *th = THING(things, n, i);
 		if (th->type == THING_MONS)
 			return th;
 	}
@@ -24,7 +24,7 @@ void *get_sqmons (uint32_t yloc, uint32_t xloc, int level)
 	return NULL;
 }
 
-uint32_t get_sqattr (uint32_t yloc, uint32_t xloc, int level)
+uint32_t get_sqattr (Vector *things, int yloc, int xloc)
 {
 	uint32_t mvbl = 1;
 
@@ -32,9 +32,9 @@ uint32_t get_sqattr (uint32_t yloc, uint32_t xloc, int level)
 		return -1;
 
 	int n = gr_buffer (yloc, xloc);
-	LOOP_THING(n, i)
+	LOOP_THING(things, n, i)
 	{
-		struct Thing *th = THING(n, i);
+		struct Thing *th = THING(things, n, i);
 		if (th->type == THING_MONS)
 		{
 			mvbl = 2; /* attack */

@@ -9,6 +9,7 @@
 #include "include/magic.h"
 #include "include/graphics.h"
 #include "include/vector.h"
+#include "include/dlevel.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -50,14 +51,15 @@ void get_downstair (uint32_t * yloc, uint32_t * xloc)
 	*xloc = downsx;
 }
 
-#define ADD_MAP(c, i) new_thing (THING_DGN, clevel, (i) / MAP_WIDTH, (i) % MAP_WIDTH, &map_items[GETMAPITEMID(c)])
+#define ADD_MAP(c, i) new_thing (THING_DGN, lvl, (i) / MAP_WIDTH, (i) % MAP_WIDTH, &map_items[GETMAPITEMID(c)])
 
-bool check_area (int y, int x, int ys, int xs)
+bool check_area (struct DLevel *lvl, int y, int x, int ys, int xs)
 {
+	Vector *things = lvl->things;
 	int i, j, k;
-    if (y < 0 || y + ys >= MAP_HEIGHT ||
-        x < 0 || x + xs >= MAP_WIDTH)
-        return false;
+	if (y < 0 || y + ys >= MAP_HEIGHT ||
+		x < 0 || x + xs >= MAP_WIDTH)
+		return false;
 
 	k = xs;
 	while (k)
@@ -66,19 +68,19 @@ bool check_area (int y, int x, int ys, int xs)
 		while (j)
 		{
 			i = gr_buffer (y+j, x+k);
-			if (all_things[i]->len != 0) return false;
+			if (things[i]->len != 0) return false;
 			-- j;
 		}
 		-- k;
 	}
-    return true;
+	return true;
 }
 
 int total_rooms = 0;
-bool attempt_room (int clevel, int y, int x, int ys, int xs)
+bool attempt_room (struct DLevel *lvl, int y, int x, int ys, int xs)
 {
-    int i, j, k;
-    if (!check_area (y-2, x-2, ys+4, xs+4)) return false;
+	int i, j, k;
+	if (!check_area (lvl, y-2, x-2, ys+4, xs+4)) return false;
 
 	k = xs;
 	while (k)
@@ -87,59 +89,60 @@ bool attempt_room (int clevel, int y, int x, int ys, int xs)
 		while (j)
 		{
 			i = gr_buffer (y+j, x+k);
-            ADD_MAP (DOT, i);
+			ADD_MAP (DOT, i);
 			-- j;
 		}
 		-- k;
 	}
-    ++ total_rooms;
-    return true;
+	++ total_rooms;
+	return true;
 }
 
-void add_another_room (int clevel)
+void add_another_room (struct DLevel *lvl)
 {
-    int i;
+	Vector *things = lvl->things;
+	int i;
 
-    do
-        i = RN(MAP_TILES);
-    while (all_things[i]->len == 0);
+	do
+		i = RN(MAP_TILES);
+	while (things[i]->len == 0);
 
-    if (all_things[i+1]->len == 0)
-    {
-        int x = (i+1)%MAP_WIDTH, y = (i+1)/MAP_WIDTH;
-        if (attempt_room (clevel, y - 2 - RN(3), x + 1, 6 + RN(3), 6))
-        {
-            ADD_MAP(DOT, i+1);
-            ADD_MAP(DOT, i+2);
-        }
-    }
-    else if (all_things[i-1]->len == 0)
-    {
-        int x = (i-1)%MAP_WIDTH, y = (i-1)/MAP_WIDTH;
-        if (attempt_room (clevel, y - 2 - RN(3), x - 8, 6 + RN(3), 6))
-        {
-            ADD_MAP(DOT, i-1);
-            ADD_MAP(DOT, i-2);
-        }
-    }
-    else if (all_things[i-MAP_WIDTH]->len == 0)
-    {
-        int x = (i-MAP_WIDTH)%MAP_WIDTH, y = (i-MAP_WIDTH)/MAP_WIDTH;
-        if (attempt_room (clevel, y - 8, x - 3 - RN(5), 6, 8 + RN(5)))
-        {
-            ADD_MAP(DOT, i-MAP_WIDTH);
-            ADD_MAP(DOT, i-MAP_WIDTH*2);
-        }
-    }
-    else if (all_things[i+MAP_WIDTH]->len == 0)
-    {
-        int x = (i+MAP_WIDTH)%MAP_WIDTH, y = (i+MAP_WIDTH)/MAP_WIDTH;
-        if (attempt_room (clevel, y + 1, x - 3 - RN(5), 6, 8 + RN(5)))
-        {
-            ADD_MAP(DOT, i+MAP_WIDTH);
-            ADD_MAP(DOT, i+MAP_WIDTH*2);
-        }
-    }
+	if (things[i+1]->len == 0)
+	{
+		int x = (i+1)%MAP_WIDTH, y = (i+1)/MAP_WIDTH;
+		if (attempt_room (lvl, y - 2 - RN(3), x + 1, 6 + RN(3), 6))
+		{
+			ADD_MAP(DOT, i+1);
+			ADD_MAP(DOT, i+2);
+		}
+	}
+	else if (things[i-1]->len == 0)
+	{
+		int x = (i-1)%MAP_WIDTH, y = (i-1)/MAP_WIDTH;
+		if (attempt_room (lvl, y - 2 - RN(3), x - 8, 6 + RN(3), 6))
+		{
+			ADD_MAP(DOT, i-1);
+			ADD_MAP(DOT, i-2);
+		}
+	}
+	else if (things[i-MAP_WIDTH]->len == 0)
+	{
+		int x = (i-MAP_WIDTH)%MAP_WIDTH, y = (i-MAP_WIDTH)/MAP_WIDTH;
+		if (attempt_room (lvl, y - 8, x - 3 - RN(5), 6, 8 + RN(5)))
+		{
+			ADD_MAP(DOT, i-MAP_WIDTH);
+			ADD_MAP(DOT, i-MAP_WIDTH*2);
+		}
+	}
+	else if (things[i+MAP_WIDTH]->len == 0)
+	{
+		int x = (i+MAP_WIDTH)%MAP_WIDTH, y = (i+MAP_WIDTH)/MAP_WIDTH;
+		if (attempt_room (lvl, y + 1, x - 3 - RN(5), 6, 8 + RN(5)))
+		{
+			ADD_MAP(DOT, i+MAP_WIDTH);
+			ADD_MAP(DOT, i+MAP_WIDTH*2);
+		}
+	}
 }
 
 struct Item *gen_item ()
@@ -157,6 +160,8 @@ struct Item *gen_item ()
 void generate_map (int clevel, enum LEVEL_TYPE type)
 {
 	int start, end;
+	struct DLevel *lvl = dlv_lvl (clevel);
+	Vector *things = lvl->things;
 
 	if (type == LEVEL_MINES)
 	{
@@ -166,13 +171,13 @@ void generate_map (int clevel, enum LEVEL_TYPE type)
 	{
 		int i, y, x;
 
-        total_rooms = 0;
-		attempt_room (clevel, MAP_HEIGHT/2 - 2 - RN(3), MAP_WIDTH/2 - 3 - RN(5), 15, 20);
-        do add_another_room (clevel);
-        while (total_rooms < 100);
+		total_rooms = 0;
+		attempt_room (lvl, MAP_HEIGHT/2 - 2 - RN(3), MAP_WIDTH/2 - 3 - RN(5), 15, 20);
+		do add_another_room (lvl);
+		while (total_rooms < 100);
 
-        start = gr_buffer (MAP_HEIGHT/2, MAP_WIDTH/2);
-		end = mons_gen (clevel, 1, start);
+		start = gr_buffer (MAP_HEIGHT/2, MAP_WIDTH/2);
+		end = mons_gen (lvl, 1, start);
 		
 		for (i = 0; i < 100; ++ i)
 		{
@@ -181,11 +186,11 @@ void generate_map (int clevel, enum LEVEL_TYPE type)
 				y = RN (MAP_HEIGHT);
 				x = RN (MAP_WIDTH);
 			}
-			while (!is_safe_gen (clevel, y, x));
+			while (!is_safe_gen (lvl, y, x));
 			ADD_MAP (DOT, gr_buffer (y, x));
 
 			struct Item *item = gen_item ();
-			new_thing (THING_ITEM, clevel, y, x, item);
+			new_thing (THING_ITEM, lvl, y, x, item);
 			free (item);
 		}
 
@@ -197,8 +202,8 @@ void generate_map (int clevel, enum LEVEL_TYPE type)
 
 		/* fill the rest up with walls */
 		for (i = 0; i < MAP_TILES; ++i)
-			if (all_things[i]->len == 0)
-                ADD_MAP (ACS_WALL, i);
+			if (things[i]->len == 0)
+				ADD_MAP (ACS_WALL, i);
 	}
 	else if (type == LEVEL_MAZE)
 	{
@@ -207,14 +212,15 @@ void generate_map (int clevel, enum LEVEL_TYPE type)
 }
 
 /* can a monster be generated here? (no monsters or walls in the way) */
-bool is_safe_gen (int clevel, uint32_t yloc, uint32_t xloc)
-{++ clevel; // TODO
+bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
+{
+	Vector *things = lvl->things;
 	struct Thing *T;
 	struct map_item_struct *m;
 	int n = gr_buffer(yloc, xloc);
-	LOOP_THING(n, i)
+	LOOP_THING(things, n, i)
 	{
-		T = THING(n, i);
+		T = THING(things, n, i);
 		if (T->type == THING_MONS)
 			return false;
 		if (T->type == THING_DGN)
@@ -233,7 +239,7 @@ char *real_player_name;
  * 0 : initialised at start of game
  * 1 : generated at start of level
  * 2 : randomly throughout level */
-uint32_t mons_gen (int clevel, int type, int32_t param)
+uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 {
 	int32_t luck, start;
 	int32_t end;
@@ -246,7 +252,7 @@ uint32_t mons_gen (int clevel, int type, int32_t param)
 		asdf.name = malloc (85);
 		strcpy (asdf.name, "_");
 		real_player_name = asdf.name;
-		new_thing (THING_MONS, clevel, upsy, upsx, &asdf);
+		new_thing (THING_MONS, lvl, upsy, upsx, &asdf);
 	}
 	else if (type == 1)
 	{
@@ -278,8 +284,8 @@ uint32_t mons_gen (int clevel, int type, int32_t param)
 		p.HP_max = p.HP;
 		p.name = NULL;
 		uint32_t xloc = RN(MAP_WIDTH), yloc = RN(MAP_HEIGHT);
-		if (is_safe_gen (clevel, yloc, xloc))
-			new_thing (THING_MONS, clevel, yloc, xloc, &p);
+		if (is_safe_gen (lvl, yloc, xloc))
+			new_thing (THING_MONS, lvl, yloc, xloc, &p);
 	}
 	return 0;
 }

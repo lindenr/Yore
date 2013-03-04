@@ -73,17 +73,17 @@ void save_item (struct Item *item)
  * This function saves in the following order: Time; U; all_things; sq_attr. */
 bool save (char *filename)
 {
-	int i;
+	/*int i;
 	if (p_ask ("yn", "Save and quit?") == 'y')
 	{
 		p_msg("Saving...");
 		game_save_file = fopen(filename, "wb");
 		fwrite("YOREv"YORE_VERSION, sizeof("YOREv"YORE_VERSION), 1, game_save_file);
 
-		/* Time */
+		/ * Time * /
 		SAVE_NATIVE(Time);
 
-		/* U */
+		/ * U * /
 		SAVE_NATIVE(U.hunger);
 		SAVE_NATIVE(U.role);
 		SAVE_NATIVE(U.playing);
@@ -93,10 +93,10 @@ bool save (char *filename)
 		SAVE_NATIVE(U.m_glflags);
 		SAVE_NATIVE(U.magic);
 		
-		/* all_things */
-		LOOP_THINGS(n, i)
+		/ * all_things * /
+		LOOP_THINGS((char*)(0xdeadbeef), n, i)
 		{
-			struct Thing *th = THING(n, i);
+			struct Thing *th = THING((char*)(0xdeadbeef), n, i);
 			int enum_saver = (int)(th->type);
 			assert(enum_saver);
 			SAVE_NATIVE(enum_saver);
@@ -124,11 +124,11 @@ bool save (char *filename)
 					else
 						fwrite ("\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 20, 1, game_save_file);
 
-					/* pack */
+					/ * pack * /
 					for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
 						save_item (mn->pack.items[i]);
 
-					/* wearing */
+					/ * wearing * /
 					save_item (mn->wearing.head);
 					save_item (mn->wearing.torso);
 					save_item (mn->wearing.legs);
@@ -164,7 +164,7 @@ bool save (char *filename)
 		
 		fclose (game_save_file);
 		return false;
-	}
+	}*/
 	return true;
 }
 

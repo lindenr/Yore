@@ -5,6 +5,7 @@
 #include "include/pack.h"
 #include "include/magic.h"
 #include "include/map.h"
+#include "include/vector.h"
 
 #define A_PARAM 3				/* AdB damage, of type C */
 #define A_NUM   6				/* number of normal attacks per monster (like NH) */
@@ -166,8 +167,8 @@ void   setup_U         (void);                             /* populate the U str
 void   get_cinfo       (void);                             /* called at start, gets input from player  */
 
 void   do_attack       (struct Thing *, struct Thing *);   /* applies an attack                        */
-void  *get_sqmons      (uint32_t, uint32_t, int);          /* returns the monster on a square          */
-SqAttr get_sqattr      (uint32_t, uint32_t, int);          /* returns the SqAttr of a square           */
+void  *get_sqmons      (Vector *, int, int);               /* returns the monster on a square          */
+SqAttr get_sqattr      (Vector *, int, int);               /* returns the SqAttr of a square           */
 int    can_amove       (int);                              /* returns if a square can be moved on to   */
 char   escape          (unsigned char);                    /* escapes a character                      */
 
