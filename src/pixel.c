@@ -9,12 +9,14 @@ $#
 
 int BOXPOS[BOX_NUM][2] = {
 	{0, 0},
-	{0, 0}
+	{0, 0},
+	{2, 0}
 };
 
 int BOXCOL[BOX_NUM][3] = {
 	{0, 0, 0},
-	{150, 0, 0}
+	{150, 0, 0},
+	{0, 100, 200}
 };
 
 Vector boxes = NULL;
@@ -27,11 +29,11 @@ void px_mvaddbox (int yloc, int xloc, int type)
 		boxes = v_dinit (sizeof(box));
 	for (i = 0; i < boxes->len; ++ i)
 	{
-		if (memcmp (&box, v_at (boxes, i), sizeof(box)))
+		if (!memcmp (&box, v_at (boxes, i), sizeof(box)))
 			return;
 	}
 	v_push (boxes, &box);
-	gr_change[gr_buffer(yloc, xloc)] = 1;
+	txt_change[txt_buffer(yloc-cam_yloc, xloc-cam_xloc)] = 1;
 	gr_refresh ();
 	t_interval (500, $$, $.(px_mvrembox, (int) yloc, (int) xloc, (int) type), TMR_STOP);
 }
@@ -46,17 +48,16 @@ void px_mvrembox (int yloc, int xloc, int type)
 	{
 		if (memcmp (&box, v_at (boxes, i), sizeof(box)))
 			continue;
+
 		v_rem (boxes, i);
-		break;
+		txt_change[txt_buffer(yloc-cam_yloc, xloc-cam_xloc)] = 1;
+		gr_refresh ();
 	}
-	gr_change[gr_buffer(yloc, xloc)] = 1;
-	gr_refresh ();
 }
 
 void px_drawbox (struct Box *box)
 {
 	int yloc = box->yloc, xloc = box->xloc, type = box->type;
-	//printf("%d %d %d\n", yloc, xloc, type);
 	int sy = yloc - cam_yloc, sx = xloc - cam_xloc;
 	if (sy < 0 || sy >= pnumy ||
 	    sx < 0 || sx >= pnumx)
@@ -75,7 +76,7 @@ void px_showboxes ()
 {
 	int i;
 	struct Box *box;
-	if (boxes == NULL || boxes->len == 0)
+	if (boxes == NULL)
 		return;
 	if (SDL_MUSTLOCK (screen))
 		SDL_LockSurface (screen);

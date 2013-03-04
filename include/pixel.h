@@ -5,7 +5,8 @@
 
 #define BOX_NONE  0
 #define BOX_HIT   1
-#define BOX_NUM   2
+#define BOX_KILL  2
+#define BOX_NUM   3
 
 struct Box
 {

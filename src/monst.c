@@ -410,7 +410,9 @@ void mons_dead (struct Thing *from, struct Thing *to)
 		return;
 	}
 
-	event_mkill (from, to);
+	if (player_sense (from->yloc, from->xloc, SENSE_VISION))
+		px_mvaddbox (from->yloc, from->xloc, BOX_KILL);
+	//event_mkill (from, to);
 	if (from == player)
 	{
 		if (to->thing.mons.type == MTYP_SATAN)
@@ -588,7 +590,9 @@ inline void do_attack (struct Thing *from, struct Thing *to)
 {
 	int t, strength, type = from->thing.mons.type;
 	int *toHP = &to->thing.mons.HP;
-	px_mvaddbox (to->yloc, to->xloc, BOX_HIT);
+	int know = player_sense (to->yloc, to->xloc, SENSE_VISION);
+	if (know)
+		px_mvaddbox (to->yloc, to->xloc, BOX_HIT);
 
 	for (t = 0; t < A_NUM; ++t)
 	{
@@ -659,6 +663,21 @@ inline void do_attack (struct Thing *from, struct Thing *to)
 			break;
 		}
 	}
+}
+
+int player_sense (int yloc, int xloc, int senses)
+{
+	if (senses&SENSE_VISION)
+	{
+		bres_start (player->yloc, player->xloc, NULL, sq_attr);
+		if (bres_draw (yloc, xloc))
+			return 1;
+	}
+	if (senses&SENSE_HEARING)
+	{
+		return 1;
+	}
+	return 0;
 }
 
 void player_dead (const char *msg, ...)

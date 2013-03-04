@@ -23,6 +23,10 @@ struct WoW						/* Wielded or Worn */
 	bool two_weaponing;
 };
 
+#define SENSE_NONE    0
+#define SENSE_VISION  1
+#define SENSE_HEARING 2
+
 #define M_EATING 1
 #define M_POLY   2
 
@@ -151,6 +155,7 @@ int    player_gen_type (void);                             /* get a valid monste
 void   player_dead     (const char *, ...);                /* the player is dead; absolute end of game */
 void   player_exc      (enum ABLTY, uint32_t);             /* exercise a given ablty by a given amount */
 bool   player_magic    (char);                             /* cast a spell                             */
+int    player_sense    (int, int, int);                    /* can the player sense a square            */
 ityp   find_corpse     (struct Thing *);                   /* gets a corpse type for a given monster   */
 void   custom_free     (void);                             /* frees custom types (now only corpses)    */
 
