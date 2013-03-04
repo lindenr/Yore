@@ -4,4 +4,5 @@ bin/Yore
 *.sav
 # function preprocessor
 function
+function.exe
 

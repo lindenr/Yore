@@ -4,8 +4,11 @@
 #include "include/graphics.h"
 #include "include/vector.h"
 #include "include/timer.h"
-$#
+
 #include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
+$#
 
 int BOXPOS[BOX_NUM][2] = {
 	{0, 0},
