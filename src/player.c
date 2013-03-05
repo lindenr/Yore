@@ -10,20 +10,6 @@
 
 #include <malloc.h>
 
-struct KStruct Keys[] = {
-	{'.', &Kwait},
-	{',', &Kpickup},
-	{'e', &Keat},
-	{'d', &Ksdrop},
-	{'D', &Kmdrop},
-	{'i', &Kinv},
-	{';', &Knlook},
-	{':', &Kflook},
-	{'w', &Kwield},
-	{CONTROL_('s'), &Ksave},
-	{CONTROL_('q'), &Kquit}
-};
-
 int Kwait ()
 {
 	return 1;
@@ -49,7 +35,7 @@ int Kpickup ()
 	if (ground->len == 1)
 	{
 		/* One item on ground -- pick up immediately. */
-		if (pack_add (&pmons.pack, &THING(things, n, *(int*)v_at (ground, 0))->thing.item))
+		if (pack_add (&pmons.pack, &THIID(*(int*)v_at (ground, 0))->thing.item))
 			rem_id (*(int*)v_at (ground, 0));
 	
 		v_free (ground);
@@ -68,7 +54,7 @@ int Kpickup ()
 		for (i = 0; i < pickup->len; ++ i)
 		{
 			/* Pick up the item; quit if the bag is full */
-			th = THING(things, n, *(int*)v_at (pickup, i));
+			th = THIID(*(int*)v_at (pickup, i));
 			if (!pack_add (&pmons.pack, &th->thing.item))
 				break;
 			/* Remove item from main play */
@@ -153,6 +139,30 @@ int Kwield ()
 	return 1;
 }
 
+int Kgodown ()
+{
+	if (player->dlevel != 1)
+		return 0;
+
+	thing_move (player, 2, player->yloc, player->xloc);
+	dlv_set (2);
+	draw_map ();
+	gr_refresh ();
+	return 1;
+}
+
+int Kgoup ()
+{
+	if (player->dlevel != 2)
+		return 0;
+
+	thing_move (player, 1, player->yloc, player->xloc);
+	dlv_set (1);
+	draw_map ();
+	gr_refresh ();
+	return 1;
+}
+
 int Ksave ()
 {
 	U.playing = PLAYER_SAVEGAME;
@@ -168,6 +178,22 @@ int Kquit ()
 	}
 	return 0;
 }
+
+struct KStruct Keys[] = {
+	{'.', &Kwait},
+	{',', &Kpickup},
+	{'e', &Keat},
+	{'d', &Ksdrop},
+	{'D', &Kmdrop},
+	{'i', &Kinv},
+	{';', &Knlook},
+	{':', &Kflook},
+	{'w', &Kwield},
+	{'>', &Kgodown},
+	{'<', &Kgoup},
+	{CONTROL_('s'), &Ksave},
+	{CONTROL_('q'), &Kquit}
+};
 
 int key_lookup (uint32_t key)
 {

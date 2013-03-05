@@ -56,11 +56,9 @@ void draw_map              (void);
 int get_thing_type         (char);
 const char *get_thing_name (struct Thing);
 
-void thing_move            (struct Thing *, int, int);
-void thing_bmove           (struct Thing *, int);
+void thing_move            (struct Thing *, int, int, int);
+void thing_bmove           (struct Thing *, int, int);
 
 int getID                  ();
-
-extern uint8_t sq_seen[], sq_attr[];
 
 #endif /* THING_H_INCLUDED */

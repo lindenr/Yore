@@ -110,8 +110,8 @@ int main (int argc, char *argv[])
 	if (U.playing != PLAYER_PLAYING)
 		goto quit_game;
 
-	
-	generate_map (cur_level, LEVEL_NORMAL);
+	generate_map (dlv_lvl (1), LEVEL_NORMAL);
+	generate_map (dlv_lvl (2), LEVEL_NORMAL);
 
 	gr_clear ();
 

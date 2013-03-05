@@ -2,6 +2,7 @@
 
 #include "include/dlevel.h"
 #include "include/thing.h"
+#include "include/graphics.h"
 
 Vector all_ids;
 Vector all_dlevels;
@@ -17,13 +18,21 @@ void dlv_init ()
 	v_push (all_ids, &t);
 
 	dlv_make (1);
+	dlv_make (2);
 	dlv_set (1);
 }
 
 void dlv_make (int level)
 {
 	int i;
-	struct DLevel new_level = {level, NULL, v_dinit (sizeof(int))};
+	struct DLevel new_level = {
+		level,
+		NULL,
+		v_dinit (sizeof(int)),
+		malloc (sizeof(uint8_t)*MAP_TILES),
+		malloc (sizeof(uint8_t)*MAP_TILES),
+		malloc (sizeof(glyph)*MAP_TILES)
+	};
 	new_level.things = malloc (sizeof(Vector) * MAP_TILES);
 	for (i = 0; i < MAP_TILES; ++ i)
 		new_level.things[i] = v_dinit (sizeof(struct Thing));
@@ -32,48 +41,8 @@ void dlv_make (int level)
 
 void dlv_set (int level)
 {
-	int i;
-	struct DLevel *lvl;
 	cur_level = level;
-	for (i = 0; i < all_dlevels->len; ++ i)
-	{
-		lvl = v_at (all_dlevels, i);
-		if (lvl->level == level)
-			break;
-	}
-	if (i >= all_dlevels->len)
-		return;
-	cur_dlevel = lvl;
-}
-
-Vector *dlv_things (int level)
-{
-	int i;
-	struct DLevel *lvl;
-	for (i = 0; i < all_dlevels->len; ++ i)
-	{
-		lvl = v_at (all_dlevels, i);
-		if (lvl->level == level)
-			break;
-	}
-	if (i >= all_dlevels->len)
-		return NULL;
-	return lvl->things;
-}
-
-Vector dlv_mons (int level)
-{
-	int i;
-	struct DLevel *lvl;
-	for (i = 0; i < all_dlevels->len; ++ i)
-	{
-		lvl = v_at (all_dlevels, i);
-		if (lvl->level == level)
-			break;
-	}
-	if (i >= all_dlevels->len)
-		return NULL;
-	return lvl->mons;
+	cur_dlevel = dlv_lvl (level);
 }
 
 struct DLevel *dlv_lvl (int level)
@@ -89,5 +58,20 @@ struct DLevel *dlv_lvl (int level)
 	if (i >= all_dlevels->len)
 		return NULL;
 	return lvl;
+}
+
+Vector *dlv_things (int level)
+{
+	return dlv_lvl (level)->things;
+}
+
+Vector dlv_mons (int level)
+{
+	return dlv_lvl (level)->mons;
+}
+
+uint8_t *dlv_attr (int level)
+{
+	return dlv_lvl (level)->attr;
 }
 

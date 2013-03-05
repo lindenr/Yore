@@ -200,7 +200,7 @@ int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 	/* you can and everything's fine, nothing doing */
 	else if (can == 1)
 	{
-		thing_move (th, th->yloc+y, th->xloc+x);
+		thing_move (th, th->dlevel, th->yloc+y, th->xloc+x);
 		return 1;
 	}
 	/* melee attack! */
@@ -278,43 +278,6 @@ void thing_move_level (struct Thing *th, int32_t where)
 	{
 		where >>= 1;
 	}
-}
-
-struct Item *player_use_pack (char *msg, uint32_t accepted)
-{
-	struct Item *It = NULL;
-	char in, cs[100];
-	bool tried = false;
-
-	do
-	{
-		if (tried)
-			p_msg ("No such item.");
-		tried = false;
-
-		pack_get_letters (pmons.pack, cs);
-		in = p_ask (cs, msg);
-		if (in == '?')
-		{
-			show_contents (pmons.pack, accepted);
-			gr_getch ();
-			continue;
-		}
-		if (in == ' ' || in == 0x1B)
-			break;
-		if (in == '*')
-		{
-			show_contents (pmons.pack, ITCAT_ALL);
-			gr_getch ();
-			continue;
-		}
-
-		It = get_Itemc (pmons.pack, in);
-		tried = true;
-	}
-	while (It == NULL);
-
-	return It;
 }
 
 char escape (unsigned char a)
@@ -399,7 +362,6 @@ int mons_take_move (struct Thing *th)
 
 void mons_dead (struct Thing *from, struct Thing *to)
 {
-	int i;
 	if (to == player)
 	{
 		player_dead("");
@@ -426,14 +388,6 @@ void mons_dead (struct Thing *from, struct Thing *to)
 	new_thing (THING_ITEM, dlv_lvl (to->dlevel), to->yloc, to->xloc, &corpse);
 
 	/* remove dead monster */
-	for (i = 0; i < cur_dlevel->mons->len; ++ i)
-	{
-		if (*(int*) v_at (cur_dlevel->mons, i) == to->ID)
-		{
-			v_rem (cur_dlevel->mons, i);
-			break;
-		}
-	}
 	rem_id (to->ID);
 }
 
@@ -661,11 +615,48 @@ inline void do_attack (struct Thing *from, struct Thing *to)
 	}
 }
 
+struct Item *player_use_pack (char *msg, uint32_t accepted)
+{
+	struct Item *It = NULL;
+	char in, cs[100];
+	bool tried = false;
+
+	do
+	{
+		if (tried)
+			p_msg ("No such item.");
+		tried = false;
+
+		pack_get_letters (pmons.pack, cs);
+		in = p_ask (cs, msg);
+		if (in == '?')
+		{
+			show_contents (pmons.pack, accepted);
+			gr_getch ();
+			continue;
+		}
+		if (in == ' ' || in == 0x1B)
+			break;
+		if (in == '*')
+		{
+			show_contents (pmons.pack, ITCAT_ALL);
+			gr_getch ();
+			continue;
+		}
+
+		It = get_Itemc (pmons.pack, in);
+		tried = true;
+	}
+	while (It == NULL);
+
+	return It;
+}
+
 int player_sense (int yloc, int xloc, int senses)
 {
 	if (senses&SENSE_VISION)
 	{
-		bres_start (player->yloc, player->xloc, NULL, sq_attr);
+		bres_start (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel));
 		if (bres_draw (yloc, xloc))
 			return 1;
 	}
@@ -712,7 +703,7 @@ bool player_magic (char c)
 int AI_Attack (struct Thing *th, int toy, int tox)
 {
 	int xmove = 0, ymove = 0;
-	bres_start (th->yloc, th->xloc, NULL, sq_attr);
+	bres_start (th->yloc, th->xloc, NULL, dlv_attr(th->dlevel));
 	if (!bres_draw (toy, tox))
 	{
 		mons_move (th, RN(3) - 1, RN(3) - 1);

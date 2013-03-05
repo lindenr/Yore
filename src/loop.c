@@ -24,9 +24,8 @@ void next_time ()
 
 void main_loop ()
 {
-	//sanitycheck ();
 	char *msg = 0;
-	int i, *ID;
+	int i, id;
 	struct Thing *th;
 	struct Monster *mon;
 
@@ -35,8 +34,8 @@ void main_loop ()
 
 	for (i = 0; i < cur_dlevel->mons->len; ++ i)
 	{
-		ID = v_at (cur_dlevel->mons, i);
-		th = THIID (*ID);
+		id = *(int*)v_at (cur_dlevel->mons, i);
+		th = THIID (id);
 
 		mon = &th->thing.mons;
 		mon->cur_speed += mons[mon->type].speed;
@@ -48,7 +47,7 @@ void main_loop ()
 			if (!mons_take_move(th))
 				goto loop_done;
 
-			th = THIID(*ID);
+			th = THIID(id);
 			mon = &th->thing.mons;
 		}
 

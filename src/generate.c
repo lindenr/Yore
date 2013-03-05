@@ -157,10 +157,9 @@ struct Item *gen_item ()
 	return ret;
 }
 
-void generate_map (int clevel, enum LEVEL_TYPE type)
+void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 {
 	int start, end;
-	struct DLevel *lvl = dlv_lvl (clevel);
 	Vector *things = lvl->things;
 
 	if (type == LEVEL_MINES)

@@ -7,7 +7,7 @@
 
 #define NUM_KEYS (sizeof(Keys)/sizeof(*Keys))
 
-int Kwait   ();
+/*int Kwait   ();
 int Kpickup ();
 int Keat    ();
 int Ksdrop  ();
@@ -17,7 +17,7 @@ int Knlook  ();
 int Kflook  ();
 int Kwield  ();
 int Ksave   ();
-int Kquit   ();
+int Kquit   ();*/
 
 struct KStruct
 {

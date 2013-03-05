@@ -13,25 +13,6 @@
 #include <assert.h>
 #include <malloc.h>
 
-/* At any given point: 0 if we can't see past that square (e.g. wall); 1 if we 
- * can remember it (e.g. sword); and 2 if we can't remember its position (e.g. 
- * monster). The options are mutually exclusive. */
-uint8_t sq_attr[MAP_TILES] = { 0, };
-
-/* Output of the bresenham algorithm (vision.c): 0 if we can't see it (outside 
- * our field of vision); 1 if we remember it; and 2 if we are looking at it.
- * The options are again mutually exclusive. */
-uint8_t sq_seen[MAP_TILES] = { 0, };
-
-/* What to see instead if it turns out that we can't remember something */
-uint32_t sq_unseen[MAP_TILES] = { 0, };
-
-/* This is called by the AI to find out what the monsters can see. */
-uint8_t *get_sq_attr()
-{
-	return sq_attr;
-}
-
 int curID = 0;
 int getID ()
 {
@@ -80,9 +61,9 @@ int wall_output[256] = {
 /* What this function does is purely cosmetic - given whether or not
  * the squares surrounding are walls or spaces, this function returns what
  * character should be displayed (corner, straight line, tee, etc). */
-uint32_t WALL_TYPE (uint32_t y, uint32_t u,
-        uint32_t h, uint32_t j, uint32_t k, uint32_t l,
-					uint32_t b, uint32_t n)
+glyph WALL_TYPE (glyph y, glyph u,
+        glyph h, glyph j, glyph k, glyph l,
+                 glyph b, glyph n)
 {
 	int H = !(h == DOT), J = !(j == DOT), K = !(k == DOT), L = !(l == DOT),
         Y = !(y == DOT), U = !(u == DOT), B = !(b == DOT), N = !(n == DOT);
@@ -116,79 +97,9 @@ void walls_test ()
 	}
 }
 
-#define US(w) (sq_seen[w]?(sq_attr[w]?DOT:ACS_WALL):ACS_WALL)
-
-void set_can_see (uint32_t *unseen)
+void thing_bmove (struct Thing *thing, int level, int num)
 {
-	int Yloc = player->yloc, Xloc = player->xloc;
-	int Y, X, w;
-
-	/* Initialise the bres thing */
-	bres_start (Yloc, Xloc, sq_seen, sq_attr);
-
-	/* Anything you could see before you can't necessarily now */
-	for (w = 0; w < MAP_TILES; ++ w)
-		if (sq_seen[w] == 2)
-			sq_seen[w] = 1;
-
-	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
-	for (w = 0; w < TXT_TILES; ++ w)
-		bres_draw (cam_yloc + w / snumx, cam_xloc + w % snumx);
-		//sq_seen[w] = 2;
-
-	/* Make everything we can't see dark */
-	for (w = 0; w < MAP_TILES; ++ w)
-		if (!sq_seen[w])
-			gr_baddch (w, ' ');
-
-	/* Do the drawing */
-	for (Y = 0, w = 0; Y < MAP_HEIGHT; ++Y)
-	{
-		for (X = 0; X < MAP_WIDTH; ++X, ++w)
-		{
-			uint32_t y = DOT, u = DOT,
-            h = DOT, j = DOT, k = DOT, l = DOT,
-                     b = DOT, n = DOT;
-
-			//if (sq_seen[w] == 2 && sq_attr[w] == 0 && us[w] != ' ')
-			//	us[w] |= COL_TXT_BRIGHT; /* Brighten what you can see iff it's a wall. */
-
-			/* Replace something unseeable with what's behind it. */
-			if (sq_seen[w] == 1 && sq_attr[w] == 2)
-				gr_baddch (w, unseen[w]);
-
-			if (sq_attr[w] != 0 || (gr_map[w] & 0xFF) == ' ')
-				continue; /* Only keep going if it is a wall. */
-
-			if (X)
-				h = US(w - 1);
-			if (Y)
-				k = US(w - MAP_WIDTH);
-			if (X < MAP_WIDTH - 1)
-				l = US(w + 1);
-			if (Y < MAP_HEIGHT - 1)
-				j = US(w + MAP_WIDTH);
-			if (X && Y)
-				y = US(w - MAP_WIDTH - 1);
-			if (X < MAP_WIDTH - 1 && Y)
-				u = US(w - MAP_WIDTH + 1);
-			if (X && Y < MAP_HEIGHT - 1)
-				b = US(w + MAP_WIDTH - 1);
-			if (X < MAP_WIDTH - 1 && Y < MAP_HEIGHT - 1)
-				n = US(w + MAP_WIDTH + 1);
-
-			/* Finally, do the actual drawing of the wall. */
-			if (gr_map[w] & COL_TXT_BRIGHT)
-				gr_baddch (w, (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n) | COL_TXT_BRIGHT);
-			else
-				gr_baddch (w, (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n));
-		}
-	}
-}
-
-void thing_bmove (struct Thing *thing, int num)
-{
-	thing_move (thing, num/MAP_WIDTH, num%MAP_WIDTH);
+	thing_move (thing, level, num/MAP_WIDTH, num%MAP_WIDTH);
 }
 
 void thing_watchvec (Vector vec)
@@ -201,31 +112,56 @@ void thing_watchvec (Vector vec)
 	}
 }
 
+void rem_mons (struct DLevel *lvl, int id)
+{
+	int i;
+	for (i = 0; i < lvl->mons->len; ++ i)
+	{
+		if (*(int*) v_at (lvl->mons, i) == id)
+		{
+			v_rem (lvl->mons, i);
+			break;
+		}
+	}
+}
+
 void rem_id (int id)
 {
 	struct Thing *th = (*(struct Thing**) v_at (all_ids, id));
-	int n = gr_buffer (th->yloc, th->xloc);
 	struct DLevel *lvl = dlv_lvl (th->dlevel);
+	if (th->type == THING_MONS)
+		rem_mons (lvl, th->ID);
+	int n = gr_buffer (th->yloc, th->xloc);
 	v_rptr (lvl->things[n], th);
 	thing_watchvec (lvl->things[n]);
 }
 
-void thing_move (struct Thing *thing, int new_y, int new_x)
+void thing_move (struct Thing *thing, int new_level, int new_y, int new_x)
 {
-	if (thing->yloc == new_y && thing->xloc == new_x)
+	if (thing->yloc == new_y && thing->xloc == new_x && thing->dlevel == new_level)
 		return;
 
-	Vector *things = dlv_things (thing->dlevel);
-	int old = gr_buffer (thing->yloc, thing->xloc);
+	struct DLevel *olv = dlv_lvl (thing->dlevel),
+	              *nlv = dlv_lvl (new_level);
+
+	int old = gr_buffer (thing->yloc, thing->xloc),
+	    new = gr_buffer (new_y, new_x);
+
+	if (thing->type == THING_MONS && new_level != thing->dlevel)
+	{
+		rem_mons (olv, thing->ID);
+		v_push (nlv->mons, &thing->ID);
+	}
 
 	thing->yloc = new_y;
 	thing->xloc = new_x;
-	int new = gr_buffer (thing->yloc, thing->xloc);
-	v_push (things[new], thing);
-	v_rptr (things[old], thing); 
+	thing->dlevel = new_level;
 
-	thing_watchvec (things[new]);
-	thing_watchvec (things[old]);
+	v_push (nlv->things[new], thing);
+	v_rptr (olv->things[old], thing); 
+
+	thing_watchvec (nlv->things[new]);
+	thing_watchvec (olv->things[old]);
 }
 
 void thing_free (struct Thing *thing)
@@ -293,6 +229,76 @@ struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t
 	return ret;
 }
 
+#define US(w) (sq_seen[w]?(sq_attr[w]?DOT:ACS_WALL):ACS_WALL)
+
+void set_can_see (uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
+{
+	int Yloc = player->yloc, Xloc = player->xloc;
+	int Y, X, w;
+
+	/* Initialise the bres thing */
+	bres_start (Yloc, Xloc, sq_seen, sq_attr);
+
+	/* Anything you could see before you can't necessarily now */
+	for (w = 0; w < MAP_TILES; ++ w)
+		if (sq_seen[w] == 2)
+			sq_seen[w] = 1;
+
+	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
+	for (w = 0; w < TXT_TILES; ++ w)
+		bres_draw (cam_yloc + w / snumx, cam_xloc + w % snumx);
+		//sq_seen[w] = 2;
+
+	/* Make everything we can't see dark */
+	for (w = 0; w < MAP_TILES; ++ w)
+		if (!sq_seen[w])
+			gr_baddch (w, ' ');
+
+	/* Do the drawing */
+	for (Y = 0, w = 0; Y < MAP_HEIGHT; ++Y)
+	{
+		for (X = 0; X < MAP_WIDTH; ++X, ++w)
+		{
+			uint32_t y = DOT, u = DOT,
+            h = DOT, j = DOT, k = DOT, l = DOT,
+                     b = DOT, n = DOT;
+
+			//if (sq_seen[w] == 2 && sq_attr[w] == 0 && us[w] != ' ')
+			//	us[w] |= COL_TXT_BRIGHT; /* Brighten what you can see iff it's a wall. */
+
+			/* Replace something unseeable with what's behind it. */
+			if (sq_seen[w] == 1 && sq_attr[w] == 2)
+				gr_baddch (w, sq_unseen[w]);
+
+			if (sq_attr[w] != 0 || (gr_map[w] & 0xFF) == ' ')
+				continue; /* Only keep going if it is a wall. */
+
+			if (X)
+				h = US(w - 1);
+			if (Y)
+				k = US(w - MAP_WIDTH);
+			if (X < MAP_WIDTH - 1)
+				l = US(w + 1);
+			if (Y < MAP_HEIGHT - 1)
+				j = US(w + MAP_WIDTH);
+			if (X && Y)
+				y = US(w - MAP_WIDTH - 1);
+			if (X < MAP_WIDTH - 1 && Y)
+				u = US(w - MAP_WIDTH + 1);
+			if (X && Y < MAP_HEIGHT - 1)
+				b = US(w + MAP_WIDTH - 1);
+			if (X < MAP_WIDTH - 1 && Y < MAP_HEIGHT - 1)
+				n = US(w + MAP_WIDTH + 1);
+
+			/* Finally, do the actual drawing of the wall. */
+			if (gr_map[w] & COL_TXT_BRIGHT)
+				gr_baddch (w, (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n) | COL_TXT_BRIGHT);
+			else
+				gr_baddch (w, (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n));
+		}
+	}
+}
+
 void draw_map ()
 {
 	uint32_t type[MAP_TILES] = {0,};
@@ -300,7 +306,10 @@ void draw_map ()
 	if (gr_nearedge (player->yloc, player->xloc))
 		gr_centcam (player->yloc, player->xloc);
 
-	Vector *things = dlv_things (player->dlevel);
+	struct DLevel *lvl = cur_dlevel;
+	Vector *things = lvl->things;
+	uint8_t *sq_seen = lvl->seen, *sq_attr = lvl->attr;
+	glyph *sq_unseen = lvl->unseen;
 
 	LOOP_THINGS(things, at, i)
 	{
@@ -357,6 +366,6 @@ void draw_map ()
 			type[at] = th->type;
 		}
 	}
-	set_can_see (sq_unseen);
+	set_can_see (sq_seen, sq_attr, sq_unseen);
 }
 
