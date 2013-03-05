@@ -9,27 +9,27 @@ Yore can run on any machine which is supported by SDL.
 ####To build for Linux:
 
 1.  you must have gcc and SDL installed (you probably will anyway);
-2.  you must have [function](http://github.com/lindenr/function) binary in the Yore/ directory;
-3.  [optional] get rid of the -ggdb flags in makefile;
-4.  run <pre>./build-linux.sh</pre>
+2.  you must have the [function](http://github.com/lindenr/function) binary in the top directory;
+3.  run
+<pre>$ ./build-linux.sh</pre>
 
 ####To build for Windows:
 
-NOTE: function has not been tested on Windows
-
 1.  you must have MinGW and SDL installed, with SDL.dll in your bin/ folder;
-2.  [optional] get rid of the -ggdb flags in makefile;
-3.  run <pre>PATH &lt;your_mingw_install_path&gt;\bin<br />build-win</pre>
+2.  you must have the [function](http://github.com/lindenr/function) executable in the top folder;
+3.  run
+<pre>&gt; PATH &lt;your_mingw_install_path&gt;\bin
+&gt; build-win</pre>
+If that doesn't work then try
+<pre>&gt; mingw32-make</pre>
 
-The executable is created as ./bin/Yore (Linux) or bin\Yore (Windows).
-
+The binary "Yore" (or "Yore.exe") is in the bin/ directory.
 
 ###Yore runs (tested) on the following platforms:
 
+ *  Arch Linux
  *  Ubuntu 11.10
- *  Windows XP
- *  Windows 7
- *  Arch
+ *  Windows XP, 7, 8
 
 Feel free to add to the list if you have a different operating system handy.
 
