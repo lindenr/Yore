@@ -13,43 +13,6 @@
 
 #include <stdio.h>
 #include <assert.h>
-#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
-
-#define DIR_UP (-MAP_WIDTH)
-#define DIR_DN (MAP_WIDTH)
-#define DIR_LF (-1)
-#define DIR_RT (1)
-
-#define GETB(a,b) get_buf(a,b,buffer)
-int is_in_buf (int i, int dir)
-{
-	int I = i+dir;
-	int x = (i%MAP_WIDTH);
-	int X = (I%MAP_WIDTH);
-
-	if (I < 0 || I >= MAP_TILES) return 0;
-	return ((X-x)*(X-x) <= 1);
-}
-
-int get_buf (int i, int dir, int *buffer)
-{
-	if (!is_in_buf(i, dir)) return 0;
-	return buffer[i+dir];
-}
-
-uint32_t upsy, upsx, downsy, downsx;
-
-void get_upstair (uint32_t * yloc, uint32_t * xloc)
-{
-	*yloc = upsy;
-	*xloc = upsx;
-}
-
-void get_downstair (uint32_t * yloc, uint32_t * xloc)
-{
-	*yloc = downsy;
-	*xloc = downsx;
-}
 
 #define ADD_MAP(c, i) new_thing (THING_DGN, lvl, (i) / MAP_WIDTH, (i) % MAP_WIDTH, &map_items[GETMAPITEMID(c)])
 
@@ -242,6 +205,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 {
 	int32_t luck, start;
 	int32_t end;
+	uint32_t upsy, upsx;
 	if (type == 0)
 	{
 		start = param;
@@ -288,3 +252,4 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 	}
 	return 0;
 }
+
