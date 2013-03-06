@@ -17,12 +17,12 @@ void dlv_init ()
 	all_ids = v_dinit (sizeof(void *));
 	v_push (all_ids, &t);
 
-	dlv_make (1);
-	dlv_make (2);
+	dlv_make (1, 0, 0);
+	dlv_make (2, 1, 0);
 	dlv_set (1);
 }
 
-void dlv_make (int level)
+void dlv_make (int level, int uplevel, int dnlevel)
 {
 	int i;
 	struct DLevel new_level = {
@@ -31,8 +31,16 @@ void dlv_make (int level)
 		v_dinit (sizeof(int)),
 		malloc (sizeof(uint8_t)*MAP_TILES),
 		malloc (sizeof(uint8_t)*MAP_TILES),
-		malloc (sizeof(glyph)*MAP_TILES)
+		malloc (sizeof(glyph)*MAP_TILES),
+		uplevel,
+		dnlevel
 	};
+	struct DLevel *lvl = dlv_lvl (uplevel);
+	if (lvl)
+		lvl->dnlevel = level;
+	lvl = dlv_lvl (dnlevel);
+	if (lvl)
+		lvl->uplevel = level;
 	new_level.things = malloc (sizeof(Vector) * MAP_TILES);
 	for (i = 0; i < MAP_TILES; ++ i)
 		new_level.things[i] = v_dinit (sizeof(struct Thing));
@@ -49,6 +57,8 @@ struct DLevel *dlv_lvl (int level)
 {
 	int i;
 	struct DLevel *lvl;
+	if (level == 0)
+		return NULL;
 	for (i = 0; i < all_dlevels->len; ++ i)
 	{
 		lvl = v_at (all_dlevels, i);
@@ -73,5 +83,15 @@ Vector dlv_mons (int level)
 uint8_t *dlv_attr (int level)
 {
 	return dlv_lvl (level)->attr;
+}
+
+int dlv_up (int level)
+{
+	return dlv_lvl (level)->uplevel;
+}
+
+int dlv_dn (int level)
+{
+	return dlv_lvl (level)->dnlevel;
 }
 

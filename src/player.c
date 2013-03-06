@@ -100,7 +100,7 @@ int Knlook ()
 {
 	int k = 0;
 	int n = gr_buffer (player->yloc, player->xloc);
-	Vector *things = dlv_things (player->dlevel);
+	Vector *things = cur_dlevel->things;
 
 	LOOP_THING(things, n, i)
 	{
@@ -139,28 +139,42 @@ int Kwield ()
 	return 1;
 }
 
+int Klookdn ()
+{
+	if (cur_dlevel->dnlevel != 0)
+		dlv_set (cur_dlevel->dnlevel);
+	return 0;
+}
+
+int Klookup ()
+{
+	if (cur_dlevel->uplevel != 0)
+		dlv_set (cur_dlevel->uplevel);
+	return 0;
+}
+
 int Kgodown ()
 {
-	if (player->dlevel != 1)
-		return 0;
-
-	thing_move (player, 2, player->yloc, player->xloc);
-	dlv_set (2);
-	draw_map ();
-	gr_refresh ();
-	return 1;
+	int level = cur_dlevel->dnlevel;
+	if (level != 0)
+	{
+		dlv_set (level);
+		thing_move (player, level, player->yloc, player->xloc);
+		return 1;
+	}
+	return 0;
 }
 
 int Kgoup ()
 {
-	if (player->dlevel != 2)
-		return 0;
-
-	thing_move (player, 1, player->yloc, player->xloc);
-	dlv_set (1);
-	draw_map ();
-	gr_refresh ();
-	return 1;
+	int level = cur_dlevel->uplevel;
+	if (level != 0)
+	{
+		dlv_set (level);
+		thing_move (player, level, player->yloc, player->xloc);
+		return 1;
+	}
+	return 0;
 }
 
 int Ksave ()
@@ -186,9 +200,11 @@ struct KStruct Keys[] = {
 	{'d', &Ksdrop},
 	{'D', &Kmdrop},
 	{'i', &Kinv},
-	{';', &Knlook},
-	{':', &Kflook},
+	{':', &Knlook},
+	{';', &Kflook},
 	{'w', &Kwield},
+	{CONTROL_(GRK_DN), &Klookdn},
+	{CONTROL_(GRK_UP), &Klookup},
 	{'>', &Kgodown},
 	{'<', &Kgoup},
 	{CONTROL_('s'), &Ksave},

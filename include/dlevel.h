@@ -23,16 +23,20 @@ struct DLevel
 
 /* What to see instead if it turns out that we can't remember something */
 	glyph *unseen;
+
+	int uplevel, dnlevel;
 };
 
 void dlv_init ();
-void dlv_make (int);
+void dlv_make (int, int, int);
 void dlv_set  (int);
 
 struct DLevel *dlv_lvl (int);
 Vector  *dlv_things (int);
 Vector   dlv_mons   (int);
 uint8_t *dlv_attr   (int);
+int      dlv_dn     (int);
+int      dlv_up     (int);
 
 extern Vector all_dlevels;
 extern Vector all_ids;

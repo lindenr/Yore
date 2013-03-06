@@ -319,13 +319,13 @@ int mons_take_move (struct Thing *th)
 			if (mv)
 				break;
 		}
-		else if (in == GRK_UP)
+		else if (key == GRK_UP)
 			gr_movecam (cam_yloc - 10, cam_xloc);
-		else if (in == GRK_DN)
+		else if (key == GRK_DN)
 			gr_movecam (cam_yloc + 10, cam_xloc);
-		else if (in == GRK_LF)
+		else if (key == GRK_LF)
 			gr_movecam (cam_yloc, cam_xloc - 10);
-		else if (in == GRK_RT)
+		else if (key == GRK_RT)
 			gr_movecam (cam_yloc, cam_xloc + 10);
 		else if (in == 'x')
 			p_sidebar (10);
