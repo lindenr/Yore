@@ -32,7 +32,7 @@ bool game_intro ()
 	by = (snumy - bh - 10)/2;
 	bx = (snumx - bw)/2;
 	gr_clear ();
-	txt_box (by, bx, bh, bw);
+	txt_dbox (by, bx, bh, bw);
 	txt_mvprint (by+2, bx+2, "Back in the days of Yore, in a land far removed");
 	txt_mvprint (by+3, bx+2, "from our current understanding of the universe,");
 	txt_mvprint (by+4, bx+3,  "when magic flowed throughout the air as water");

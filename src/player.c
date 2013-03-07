@@ -10,6 +10,30 @@
 
 #include <malloc.h>
 
+int Kcamup ()
+{
+	gr_movecam (cam_yloc - 10, cam_xloc);
+	return 0;
+}
+
+int Kcamdn ()
+{
+	gr_movecam (cam_yloc + 10, cam_xloc);
+	return 0;
+}
+
+int Kcamlf ()
+{
+	gr_movecam (cam_yloc, cam_xloc - 10);
+	return 0;
+}
+
+int Kcamrt ()
+{
+	gr_movecam (cam_yloc, cam_xloc + 10);
+	return 0;
+}
+
 int Kwait ()
 {
 	return 1;
@@ -156,25 +180,23 @@ int Klookup ()
 int Kgodown ()
 {
 	int level = cur_dlevel->dnlevel;
-	if (level != 0)
-	{
-		dlv_set (level);
-		thing_move (player, level, player->yloc, player->xloc);
-		return 1;
-	}
-	return 0;
+	if (level == 0)
+		return 0;
+
+	dlv_set (level);
+	thing_move (player, level, player->yloc, player->xloc);
+	return 1;
 }
 
 int Kgoup ()
 {
 	int level = cur_dlevel->uplevel;
-	if (level != 0)
-	{
-		dlv_set (level);
-		thing_move (player, level, player->yloc, player->xloc);
-		return 1;
-	}
-	return 0;
+	if (level == 0)
+		return 0;
+
+	dlv_set (level);
+	thing_move (player, level, player->yloc, player->xloc);
+	return 1;
 }
 
 int Ksave ()
@@ -194,6 +216,10 @@ int Kquit ()
 }
 
 struct KStruct Keys[] = {
+	{GRK_UP, &Kcamup},
+	{GRK_DN, &Kcamdn},
+	{GRK_LF, &Kcamlf},
+	{GRK_RT, &Kcamrt},
 	{'.', &Kwait},
 	{',', &Kpickup},
 	{'e', &Keat},

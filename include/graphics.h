@@ -62,6 +62,7 @@ void txt_baddch (int, glyph);
 void txt_mvprint(int, int, const char *, ...);
 
 void txt_box    (int, int, int, int);
+void txt_dbox   (int, int, int, int);
 void txt_fbox   (int, int, int, int, glyph);
 
 /* Input */
@@ -107,6 +108,18 @@ void gr_resize  (int, int);
 #define ACS_TTEE     0xC2
 #define ACS_BTEE     0xC1
 #define ACS_PLUS     0xC5
+
+#define DCS_VLINE    0xBA
+#define DCS_HLINE    0xCD
+#define DCS_ULCORNER 0xC9
+#define DCS_LLCORNER 0xC8
+#define DCS_URCORNER 0xBB
+#define DCS_LRCORNER 0xBC
+#define DCS_LTEE     0xCC
+#define DCS_RTEE     0xB9
+#define DCS_TTEE     0xCB
+#define DCS_BTEE     0xCA
+#define DCS_PLUS     0xCE
 
 /* Colours. 0 <= n < 16 */
 #define COL_TXT_RED(n)   ((n) << 28)

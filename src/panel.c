@@ -13,11 +13,9 @@
 #include <stdarg.h>
 
 int p_height, p_width;
-//int p_open = 0;
 int sb_width;
 glyph *sidebar = NULL;
 
-//char *p_tabs[NUM_TABS] = {NULL, };
 Vector messages = NULL;
 
 void p_pane ()

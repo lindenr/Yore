@@ -130,23 +130,39 @@ void txt_mvprint (int yloc, int xloc, const char *str, ...)
 	txt_mvaprint (yloc, xloc, out);
 }
 
-void txt_box (int yloc, int xloc, int height, int width)
+void glyph_box (int yloc, int xloc, int height, int width,
+                glyph ULCORNER, glyph URCORNER, glyph LLCORNER, glyph LRCORNER,
+				glyph HLINE, glyph VLINE)
 {
 	int xt = width - 1, yt = height - 1;
-	txt_mvaddch (yloc, xloc, ACS_ULCORNER);
-	txt_mvaddch (yloc + height, xloc, ACS_LLCORNER);
-	txt_mvaddch (yloc, xloc + width, ACS_URCORNER);
-	txt_mvaddch (yloc + height, xloc + width, ACS_LRCORNER);
+	txt_mvaddch (yloc, xloc, ULCORNER);
+	txt_mvaddch (yloc + height, xloc, LLCORNER);
+	txt_mvaddch (yloc, xloc + width, URCORNER);
+	txt_mvaddch (yloc + height, xloc + width, LRCORNER);
 	while (xt--)
 	{
-		txt_mvaddch (yloc, xloc + xt + 1, ACS_HLINE);
-		txt_mvaddch (yloc + height, xloc + xt + 1, ACS_HLINE);
+		txt_mvaddch (yloc, xloc + xt + 1, HLINE);
+		txt_mvaddch (yloc + height, xloc + xt + 1, HLINE);
 	}
 	while (yt--)
 	{
-		txt_mvaddch (yloc + yt + 1, xloc, ACS_VLINE);
-		txt_mvaddch (yloc + yt + 1, xloc + width, ACS_VLINE);
+		txt_mvaddch (yloc + yt + 1, xloc, VLINE);
+		txt_mvaddch (yloc + yt + 1, xloc + width, VLINE);
 	}
+}
+
+void txt_box (int yloc, int xloc, int height, int width)
+{
+	glyph_box (yloc, xloc, height, width,
+	           ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER,
+			   ACS_HLINE, ACS_VLINE);
+}
+
+void txt_dbox (int yloc, int xloc, int height, int width)
+{
+	glyph_box (yloc, xloc, height, width,
+	           DCS_ULCORNER, DCS_URCORNER, DCS_LLCORNER, DCS_LRCORNER,
+			   DCS_HLINE, DCS_VLINE);
 }
 
 void txt_fbox (int yloc, int xloc, int height, int width, glyph fill)
