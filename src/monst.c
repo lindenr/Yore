@@ -314,6 +314,8 @@ int mons_take_move (struct Thing *th)
 		int mv = player_take_input (in);
 		if (mv != -1)
 		{
+			if (gr_nearedge (player->yloc, player->xloc))
+				gr_centcam (player->yloc, player->xloc);
 			if (U.playing == PLAYER_WONGAME)
 				return false;
 			if (mv)

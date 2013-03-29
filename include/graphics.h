@@ -97,6 +97,8 @@ void gr_resize  (int, int);
 #define GRK_RT       0x10
 
 #define ACS_BULLET   0xFA
+
+/* line graphics */
 #define ACS_VLINE    0xB3
 #define ACS_HLINE    0xC4
 #define ACS_ULCORNER 0xDA
@@ -109,6 +111,7 @@ void gr_resize  (int, int);
 #define ACS_BTEE     0xC1
 #define ACS_PLUS     0xC5
 
+/* doulbe-line graphics */
 #define DCS_VLINE    0xBA
 #define DCS_HLINE    0xCD
 #define DCS_ULCORNER 0xC9

@@ -498,8 +498,8 @@ void gr_load_tiles ()
 	char filepath[100] = "";
 	void *temp = NULL;
 
-	GR_TRY_TILES("resources/%s", TILE_FILE);
-	GR_TRY_TILES("../resources/%s", TILE_FILE);
+	GR_TRY_TILES("res/%s", TILE_FILE);
+	GR_TRY_TILES("../res/%s", TILE_FILE);
 	GR_TRY_TILES("%s", TILE_FILE);
 
 	fprintf (stderr, "Error loading tileset: %s\n", SDL_GetError ());

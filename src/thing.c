@@ -21,17 +21,17 @@ int getID ()
 
 char ACS_ARRAY[] = {
 	' ',
-	ACS_VLINE,
-	ACS_HLINE,
-	ACS_URCORNER,
-	ACS_ULCORNER,
-	ACS_LRCORNER,
-	ACS_LLCORNER,
-	ACS_RTEE,
-	ACS_LTEE,
-	ACS_TTEE,
-	ACS_BTEE,
-	ACS_PLUS
+	DCS_VLINE,
+	DCS_HLINE,
+	DCS_URCORNER,
+	DCS_ULCORNER,
+	DCS_LRCORNER,
+	DCS_LLCORNER,
+	DCS_RTEE,
+	DCS_LTEE,
+	DCS_TTEE,
+	DCS_BTEE,
+	DCS_PLUS
 };
 
 int wall_output[256] = {
@@ -302,9 +302,6 @@ void set_can_see (uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
 void draw_map ()
 {
 	uint32_t type[MAP_TILES] = {0,};
-
-	if (gr_nearedge (player->yloc, player->xloc))
-		gr_centcam (player->yloc, player->xloc);
 
 	struct DLevel *lvl = cur_dlevel;
 	Vector *things = lvl->things;
