@@ -33,6 +33,7 @@ int curs_yloc = 0, curs_xloc = 0;
 int cam_yloc = 0, cam_xloc = 0;
 int snumy = 10, snumx = 1;
 int pnumy = 0, pnumx = 0;
+int csr_y = 0, csr_x = 0, csr_state = 1;
 
 int gr_buffer (int yloc, int xloc)
 {
@@ -89,12 +90,6 @@ void txt_baddch (int buf, glyph gl)
 	if (txt_map[buf] == gl) return;
 	txt_map[buf] = gl;
 	txt_change[buf] = 1;
-}
-
-void gr_addch (glyph gl)
-{
-	int buf = gr_buffer (curs_yloc, curs_xloc);
-	gr_baddch (buf, gl);
 }
 
 void gr_mvaddch (int yloc, int xloc, glyph gl)
@@ -174,6 +169,39 @@ void txt_fbox (int yloc, int xloc, int height, int width, glyph fill)
 	txt_box (yloc, xloc, height, width);
 }
 
+void csr_move (int yloc, int xloc)
+{
+	if (yloc == csr_y && xloc == csr_x)
+		return;
+	txt_mark (csr_y, csr_x);
+	txt_mark (yloc, xloc);
+	csr_y = yloc;
+	csr_x = xloc;
+	gr_refresh ();
+}
+
+void csr_hide ()
+{
+	csr_state = 2;
+}
+
+void csr_show ()
+{
+	csr_state = 1;
+}
+
+void gr_mark (int yloc, int xloc)
+{
+	txt_mark (yloc - cam_yloc, xloc - cam_xloc);
+}
+
+void txt_mark (int yloc, int xloc)
+{
+	if (yloc >= 0 && yloc < snumy &&
+	    xloc >= 0 && xloc < snumx)
+		txt_change[txt_buffer(yloc, xloc)] = 1;
+}
+
 #define GL_TRD ((gl&0xF0000000)>>24)
 #define GL_TGN ((gl&0x0F000000)>>20)
 #define GL_TBL ((gl&0x00F00000)>>16)
@@ -182,7 +210,9 @@ void txt_fbox (int yloc, int xloc, int height, int width, glyph fill)
 #define GL_BBL ((gl&0x00000F00)>>4)
 inline void blit_glyph (glyph gl, int yloc, int xloc)
 {
-	char ch = (char)gl;
+	if (yloc == csr_y && xloc == csr_x && csr_state == 1)
+		gl = ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
+	char ch = (char) gl;
 	SDL_Rect srcrect = {GLW*(ch&15), GLH*((ch>>4)&15), GLW, GLH};
 	SDL_Rect dstrect = {GLW*xloc, GLH*yloc, GLW, GLH};
 
@@ -398,6 +428,7 @@ void gr_getstr (char *out, int len)
 	int i = 0;
 	do
 	{
+		csr_move (curs_yloc, curs_xloc);
 		char in = gr_getch ();
 		if (in == CH_LF || in == CH_CR) break;
 		if (in == CH_BS)
@@ -547,6 +578,8 @@ void gr_init ()
 	SDL_EnableUNICODE (1);
 	SDL_EnableKeyRepeat (200, 30);
 	SDL_WM_SetCaption ("Yore", "Yore");
+	csr_hide ();
+	px_csr ();
 }
 
 void gr_wait (uint32_t ms)

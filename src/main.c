@@ -81,6 +81,7 @@ int main (int argc, char *argv[])
 	if (!game_intro())
 		goto quit_game;
 
+	csr_show ();
 	print_intro ();
 	mons_gen (cur_dlevel, 0, 15150);
 
@@ -104,6 +105,7 @@ int main (int argc, char *argv[])
 	gr_noecho ();
 
 	gr_clear ();
+	csr_hide ();
 	get_cinfo ();
 
 	/* If the player entered info correctly, then they should be PLAYER_PLAYING: */
@@ -121,6 +123,7 @@ int main (int argc, char *argv[])
 
 	p_pane ();
 	draw_map ();
+	csr_show ();
 
 	do
 		main_loop();

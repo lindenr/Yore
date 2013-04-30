@@ -7,8 +7,8 @@
 
 /* Structure of a glyph:
  * A glyph is 32 bits wide. From highest to lowest there is:
- *********************************
- *    what         range   width
+ **********************************
+ *      what        range   width
  * COL_TXT_RED      0 -  F (4 bits)
  * COL_TXT_GREEN    0 -  F (4 bits)
  * COL_TXT_BLUE     0 -  F (4 bits)
@@ -36,6 +36,7 @@ extern int pnumy, pnumx;
 extern int cam_yloc, cam_xloc;
 extern glyph gr_map[MAP_TILES],    *txt_map;
 extern char  gr_change[MAP_TILES], *txt_change;
+extern int csr_y, csr_x, csr_state;
 
 extern SDL_Surface *screen;
 
@@ -64,6 +65,13 @@ void txt_mvprint(int, int, const char *, ...);
 void txt_box    (int, int, int, int);
 void txt_dbox   (int, int, int, int);
 void txt_fbox   (int, int, int, int, glyph);
+
+void csr_move   (int, int);
+void csr_show   ();
+void csr_hide   ();
+
+void txt_mark   (int, int);
+void gr_mark    (int, int);
 
 /* Input */
 char gr_getch   ();

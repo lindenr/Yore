@@ -10,6 +10,8 @@
 #include <stdlib.h>
 $#
 
+#define CSR_DELAY 600
+
 int BOXPOS[BOX_NUM][2] = {
 	{0, 0},
 	{0, 0},
@@ -24,6 +26,16 @@ int BOXCOL[BOX_NUM][3] = {
 
 Vector boxes = NULL;
 
+void px_csr ()
+{
+	printf ("CSR %d\n", csr_state);
+	txt_mark (csr_y, csr_x);
+	gr_refresh ();
+	if (csr_state != 2)
+		csr_state = !csr_state;
+	t_interval (CSR_DELAY, $$, $.(px_csr), TMR_NONE);
+}
+
 void px_mvaddbox (int yloc, int xloc, int type)
 {
 	int i;
@@ -36,7 +48,7 @@ void px_mvaddbox (int yloc, int xloc, int type)
 			return;
 	}
 	v_push (boxes, &box);
-	txt_change[txt_buffer(yloc-cam_yloc, xloc-cam_xloc)] = 1;
+	gr_mark (yloc, xloc);
 	gr_refresh ();
 	t_interval (500, $$, $.(px_mvrembox, (int) yloc, (int) xloc, (int) type), TMR_STOP);
 }
@@ -53,7 +65,7 @@ void px_mvrembox (int yloc, int xloc, int type)
 			continue;
 
 		v_rem (boxes, i);
-		txt_change[txt_buffer(yloc-cam_yloc, xloc-cam_xloc)] = 1;
+		gr_mark (yloc, xloc);
 		gr_refresh ();
 	}
 }
@@ -80,7 +92,7 @@ void px_showboxes ()
 	int i;
 	struct Box *box;
 	if (boxes == NULL)
-		return;
+		boxes = v_dinit (sizeof(box));
 	if (SDL_MUSTLOCK (screen))
 		SDL_LockSurface (screen);
 	for (i = 0; i < boxes->len; ++ i)

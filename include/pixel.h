@@ -21,5 +21,7 @@ void px_mvaddbox  (int, int, int);
 void px_mvrembox  (int, int, int);
 void px_showboxes ();
 
+void px_csr       ();
+
 #endif /* PIXEL_H_INCLUDED */
 

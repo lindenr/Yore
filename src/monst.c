@@ -306,6 +306,7 @@ int mons_take_move (struct Thing *th)
 		draw_map ();
 		p_pane ();
 		gr_move (th->yloc + 1, th->xloc);
+		csr_move (th->yloc - cam_yloc, th->xloc - cam_xloc);
 
 		uint32_t key = gr_getfullch();
 		t_flush ();
