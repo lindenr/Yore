@@ -28,7 +28,7 @@ Vector boxes = NULL;
 
 void px_csr ()
 {
-	printf ("CSR %d\n", csr_state);
+	//printf ("CSR %d\n", csr_state);
 	txt_mark (csr_y, csr_x);
 	gr_refresh ();
 	if (csr_state != 2)
@@ -92,7 +92,7 @@ void px_showboxes ()
 	int i;
 	struct Box *box;
 	if (boxes == NULL)
-		boxes = v_dinit (sizeof(box));
+		boxes = v_dinit (sizeof(*box));
 	if (SDL_MUSTLOCK (screen))
 		SDL_LockSurface (screen);
 	for (i = 0; i < boxes->len; ++ i)
