@@ -6,7 +6,7 @@
 #include "include/dlevel.h"
 #include "include/save.h"
 #include "include/item.h"
-#include "include/vector.h"
+#include "include/magic.h"
 
 #include <malloc.h>
 
@@ -163,6 +163,18 @@ int Kwield ()
 	return 1;
 }
 
+int Kmagic ()
+{
+	if (!pl_runes)
+		pl_runes = v_dinit (10);
+	Rune rune = sp_rune (3);
+	if (!rune)
+		return 0;
+	v_pstr (pl_runes, sp_rune (3));
+	pl_cast ();
+	return 1;
+}
+
 int Klookdn ()
 {
 	if (cur_dlevel->dnlevel != 0)
@@ -229,6 +241,7 @@ struct KStruct Keys[] = {
 	{':', &Knlook},
 	{';', &Kflook},
 	{'w', &Kwield},
+	{'m', &Kmagic},
 	{CONTROL_(GRK_DN), &Klookdn},
 	{CONTROL_(GRK_UP), &Klookup},
 	{'>', &Kgodown},
@@ -250,5 +263,72 @@ int key_lookup (uint32_t key)
 	       (escape(ch) == ch ? "" : "^"),
 		   escape(ch));
 	return 0;
+}
+
+uint32_t pl_move (int *ymove, int *xmove, uint32_t key)
+{
+	switch (key)
+	{
+		case 'k':
+			*ymove = -1;
+			*xmove =  0;
+			break;
+		case 'j':
+			*ymove =  1;
+			*xmove =  0;
+			break;
+		case 'h':
+			*ymove =  0;
+			*xmove = -1;
+			break;
+		case 'l':
+			*ymove =  0;
+			*xmove =  1;
+			break;
+		case 'y':
+			*xmove = -1;
+			*ymove = -1;
+			break;
+		case 'u':
+			*xmove =  1;
+			*ymove = -1;
+			break;
+		case 'b':
+			*xmove = -1;
+			*ymove =  1;
+			break;
+		case 'n':
+			*xmove =  1;
+			*ymove =  1;
+			break;
+		default:
+			*xmove =  0;
+			*ymove =  0;
+	}
+	return key;
+}
+
+void pl_mvchoose (int *yloc, int *xloc, char *instruct, char *confirm)
+{
+	if (instruct)
+		p_msg (instruct);
+	int xmove, ymove;
+	uint32_t key = pl_move (&ymove, &xmove, gr_getfullch ());
+	while (key != '.' || (confirm && (p_ask ("yn", confirm) != 'y')))
+	{
+		if (ymove == -1 && csr_y > 0)
+			csr_move (csr_y-1, csr_x);
+		else if (ymove == 1 && csr_y < pnumy-1)
+			csr_move (csr_y+1, csr_x);
+		if (xmove == -1 && csr_x > 0)
+			csr_move (csr_y, csr_x-1);
+		else if (xmove == 1 && csr_x < pnumx-1)
+			csr_move (csr_y, csr_x+1);
+		if (gr_nearedge (cam_yloc + csr_y, cam_xloc + csr_x))
+			gr_centcam (cam_yloc + csr_y, cam_xloc + csr_x);
+		key = pl_move (&ymove, &xmove, gr_getfullch ());
+	}
+	*yloc = cam_yloc + csr_y;
+	*xloc = cam_xloc + csr_x;
 }
 

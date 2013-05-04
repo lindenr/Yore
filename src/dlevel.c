@@ -11,6 +11,7 @@ struct DLevel *cur_dlevel;
 
 void dlv_init ()
 {
+	sp_list = v_dinit (sizeof(union Spell));
 	all_dlevels = v_dinit (sizeof(struct DLevel));
 
 	void *t = NULL;

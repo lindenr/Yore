@@ -66,6 +66,8 @@ void txt_box    (int, int, int, int);
 void txt_dbox   (int, int, int, int);
 void txt_fbox   (int, int, int, int, glyph);
 
+void csr_noblink();
+void csr_blink  ();
 void csr_move   (int, int);
 void csr_show   ();
 void csr_hide   ();

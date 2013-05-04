@@ -17,9 +17,8 @@ void next_time ()
 	++ Time;
 	U.oldhunger = U.hunger;
 	if (digesting ())
-	{
 		++ U.hunger;
-	}
+	sp_tick ();
 }
 
 void main_loop ()

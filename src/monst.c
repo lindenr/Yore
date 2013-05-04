@@ -66,8 +66,8 @@ void setup_U ()
 	for (i = 0; i < 6; ++i)
 		U.attr[i] = 10;
 
-	for (i = 0; i < BELT_JEWELS; ++i)
-		U.jewel[i] = NUM_JEWELS;
+//	for (i = 0; i < BELT_JEWELS; ++i)
+//		U.jewel[i] = NUM_JEWELS;
 	
 	for (NUM_ITEMS = 0; items[NUM_ITEMS].name[0]; ++ NUM_ITEMS);
 
@@ -222,36 +222,9 @@ int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 
 inline int player_take_input (char in)
 {
-	int xmove = 0, ymove = 0;
-	if (in == 'h')
-		xmove = -1;
-	else if (in == 'j')
-		ymove = 1;
-	else if (in == 'k')
-		ymove = -1;
-	else if (in == 'l')
-		xmove = 1;
-	else if (in == 'y')
-	{
-		ymove = -1;
-		xmove = -1;
-	}
-	else if (in == 'u')
-	{
-		ymove = -1;
-		xmove = 1;
-	}
-	else if (in == 'n')
-	{
-		ymove = 1;
-		xmove = 1;
-	}
-	else if (in == 'b')
-	{
-		ymove = 1;
-		xmove = -1;
-	}
-	else
+	int xmove, ymove;
+	pl_move (&ymove, &xmove, (uint32_t) in);
+	if (xmove == 0 && ymove == 0)
 		return (-1);
 
 	return (mons_move (player, ymove, xmove));
@@ -322,10 +295,8 @@ int mons_take_move (struct Thing *th)
 			if (mv)
 				break;
 		}
-		else if (in == 'x')
-			p_sidebar (10);
-		else if (in == 'z')
-			p_sidebar (0);
+		//else if (in == '#')
+		//	sp_player_shield ();
 /*		else if (in == CONTROL_('Q') && U.magic == true)
 		{
 			p_msg("Press <m> to re-enter magic mode.");
@@ -364,7 +335,7 @@ void mons_dead (struct Thing *from, struct Thing *to)
 	}
 
 	if (player_sense (from->yloc, from->xloc, SENSE_VISION))
-		px_mvaddbox (from->yloc, from->xloc, BOX_KILL);
+		px_mvaddbox (from->yloc, from->xloc, BOX_KILL, 500);
 	//event_mkill (from, to);
 	if (from == player)
 	{
@@ -537,7 +508,7 @@ inline void do_attack (struct Thing *from, struct Thing *to)
 	int *toHP = &to->thing.mons.HP;
 	int know = player_sense (to->yloc, to->xloc, SENSE_VISION);
 	if (know)
-		px_mvaddbox (to->yloc, to->xloc, BOX_HIT);
+		px_mvaddbox (to->yloc, to->xloc, BOX_HIT, 500);
 
 	for (t = 0; t < A_NUM; ++t)
 	{
@@ -678,7 +649,7 @@ void player_dead (const char *msg, ...)
 
 	U.playing = PLAYER_LOSTGAME;
 }
-
+/*
 bool player_magic (char c)
 {
 	if (c == 'j')
@@ -692,7 +663,7 @@ bool player_magic (char c)
 		return false;
 	}
 	return true;
-}
+}*/
 
 /* Rudimentary AI system -- move towards player if player is visible. */
 int AI_Attack (struct Thing *th, int toy, int tox)

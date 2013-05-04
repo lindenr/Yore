@@ -9,7 +9,7 @@
 typedef void (*f_ptr) (void*);
 struct Timer
 {
-	int time;
+	unsigned time;
 	f_ptr callback;
 	void *arg;
 	int flags;

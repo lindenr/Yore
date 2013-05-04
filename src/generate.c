@@ -113,8 +113,8 @@ struct Item *gen_item ()
 	ityp is;
 	memcpy (&is, &(items[RN(NUM_ITEMS)]), sizeof(is));
 	struct Item it = {is, 0, is.wt, NULL};
-	if (is.type == IT_JEWEL)
-		it.attr |= RN(NUM_JEWELS) << 16;
+	//if (is.type == IT_JEWEL)
+	//	it.attr |= RN(NUM_JEWELS) << 16;
 	struct Item *ret = malloc(sizeof(it));
 	memcpy (ret, &it, sizeof(it));
 	return ret;

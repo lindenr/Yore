@@ -169,6 +169,16 @@ void txt_fbox (int yloc, int xloc, int height, int width, glyph fill)
 	txt_box (yloc, xloc, height, width);
 }
 
+void csr_noblink ()
+{
+	csr_state = 3;
+}
+
+void csr_blink ()
+{
+	csr_state = 1;
+}
+
 void csr_move (int yloc, int xloc)
 {
 	if (yloc == csr_y && xloc == csr_x)
@@ -210,7 +220,7 @@ void txt_mark (int yloc, int xloc)
 #define GL_BBL ((gl&0x00000F00)>>4)
 inline void blit_glyph (glyph gl, int yloc, int xloc)
 {
-	if (yloc == csr_y && xloc == csr_x && csr_state == 1)
+	if (yloc == csr_y && xloc == csr_x && (csr_state&1))
 		gl = ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
 	char ch = (char) gl;
 	SDL_Rect srcrect = {GLW*(ch&15), GLH*((ch>>4)&15), GLW, GLH};

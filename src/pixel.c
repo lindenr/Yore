@@ -15,13 +15,15 @@ $#
 int BOXPOS[BOX_NUM][2] = {
 	{0, 0},
 	{0, 0},
-	{2, 0}
+	{2, 0},
+	{0, 2}
 };
 
 int BOXCOL[BOX_NUM][3] = {
 	{0, 0, 0},
 	{150, 0, 0},
-	{0, 100, 200}
+	{0, 100, 200},
+	{255, 90, 50}
 };
 
 Vector boxes = NULL;
@@ -31,12 +33,12 @@ void px_csr ()
 	//printf ("CSR %d\n", csr_state);
 	txt_mark (csr_y, csr_x);
 	gr_refresh ();
-	if (csr_state != 2)
+	if (csr_state < 2)
 		csr_state = !csr_state;
 	t_interval (CSR_DELAY, $$, $.(px_csr), TMR_NONE);
 }
 
-void px_mvaddbox (int yloc, int xloc, int type)
+void px_mvaddbox (int yloc, int xloc, int type, int len)
 {
 	int i;
 	struct Box box = {yloc, xloc, type};
@@ -50,7 +52,8 @@ void px_mvaddbox (int yloc, int xloc, int type)
 	v_push (boxes, &box);
 	gr_mark (yloc, xloc);
 	gr_refresh ();
-	t_interval (500, $$, $.(px_mvrembox, (int) yloc, (int) xloc, (int) type), TMR_STOP);
+	if (len)
+		t_interval (len, $$, $.(px_mvrembox, (int) yloc, (int) xloc, (int) type), TMR_STOP);
 }
 
 void px_mvrembox (int yloc, int xloc, int type)
@@ -66,8 +69,8 @@ void px_mvrembox (int yloc, int xloc, int type)
 
 		v_rem (boxes, i);
 		gr_mark (yloc, xloc);
-		gr_refresh ();
 	}
+	gr_refresh ();
 }
 
 void px_drawbox (struct Box *box)

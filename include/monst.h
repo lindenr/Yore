@@ -47,7 +47,7 @@ enum S_HUN
 #define HN_LIMIT_5 2000
 extern char *s_hun[];
 
-#define BELT_JEWELS 5
+//#define BELT_JEWELS 5
 
 /* For U.playing: */
 #define PLAYER_STARTING (-1)
@@ -70,7 +70,7 @@ struct player_status
 	int32_t luck;
 	uint64_t m_glflags;
 	int magic;
-	enum JEWEL_TYPE jewel[BELT_JEWELS];
+//	enum JEWEL_TYPE jewel[BELT_JEWELS];
 };
 extern struct player_status U;
 

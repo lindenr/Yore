@@ -10,7 +10,12 @@ void t_interval (int len, f_ptr callback, void *arg, int flags)
 {
 	if (times == NULL)
 		times = v_dinit (sizeof(struct Timer));
-	struct Timer t = {SDL_GetTicks () + len, callback, arg, flags};
+	unsigned end;
+	if (len)
+		end = SDL_GetTicks () + len;
+	else
+		end = (unsigned) -1;
+	struct Timer t = {end, callback, arg, flags};
 	v_push (times, &t);
 }
 

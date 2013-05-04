@@ -6,7 +6,8 @@
 #define BOX_NONE  0
 #define BOX_HIT   1
 #define BOX_KILL  2
-#define BOX_NUM   3
+#define BOX_MAGIC 3
+#define BOX_NUM   4
 
 struct Box
 {
@@ -17,7 +18,7 @@ struct Box
 extern int BOXPOS[BOX_NUM][2];
 extern int BOXCOL[BOX_NUM][3];
 
-void px_mvaddbox  (int, int, int);
+void px_mvaddbox  (int, int, int, int);
 void px_mvrembox  (int, int, int);
 void px_showboxes ();
 

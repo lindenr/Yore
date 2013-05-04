@@ -28,5 +28,8 @@ extern Keys[];
 
 int key_lookup (glyph);
 
+void pl_mvchoose (int *, int *, char *, char *);
+uint32_t pl_move (int *, int *, uint32_t);
+
 #endif /* PLAYER_H_INCLUDED */
 

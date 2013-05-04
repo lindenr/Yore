@@ -40,6 +40,7 @@ bool game_intro ()
 	txt_mvprint (by+6, bx+4,   "harmony with the people; it was a time when");
 	txt_mvprint (by+7, bx+6,     "anything and everything was possible...");
 	gr_noecho ();
+	csr_hide ();
 	gr_tout (666);
 	while (1)
 	{
@@ -72,6 +73,7 @@ int main (int argc, char *argv[])
 	uint32_t rseed;
 
 	gr_init ();
+	//ru_start (3);
 	dlv_init ();
 	rseed = RNG_get_seed ();
 	RNG_main = RNG_INIT (rseed);
@@ -125,6 +127,7 @@ int main (int argc, char *argv[])
 	draw_map ();
 	csr_show ();
 
+	//sp_player_shield ();
 	do
 		main_loop();
 	while (U.playing == PLAYER_PLAYING);
