@@ -361,11 +361,11 @@ skip1:;
 	rem_id (to->ID);
 }
 
-int mons_prhit (struct Thing *at, int energy)
+int mons_prhit (struct Thing *from, struct Thing *to, int energy)
 {
-	at->thing.mons.HP -= 5;
-	if (at->thing.mons.HP <= 0)
-		mons_dead (NULL, at);
+	to->thing.mons.HP -= 5;
+	if (to->thing.mons.HP <= 0)
+		mons_dead (from, to);
 	return 1;
 }
 
@@ -512,6 +512,13 @@ int mons_get_st (struct Thing *th)
 	if (th == player)
 		return U.attr[AB_ST];
 	return 1;
+}
+
+void mons_blast (struct Thing *from, struct Thing *to, int siz)
+{
+	to->thing.mons.HP -= siz*(siz+2);
+	if (to->thing.mons.HP <= 0)
+		mons_dead (from, to);
 }
 
 void do_attack (struct Thing *from, struct Thing *to)

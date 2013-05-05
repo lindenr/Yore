@@ -14,9 +14,35 @@
 Vector sp_list = NULL;
 Vector pl_runes = NULL;
 
+void sp_explosion (struct Thing *from, int yloc, int xloc)
+{
+	struct DLevel *dlevel = dlv_lvl (from->dlevel);
+	int j, k;
+	for (k = -1; k < 2; ++ k) for (j = -1; j < 2; ++ j)
+	{
+		struct Thing *th;
+		int n = gr_buffer (yloc+k, xloc+j);
+		LOOP_THING (dlevel->things, n, i)
+		{
+			th = THING(dlevel->things, n, i);
+			if (th->type == THING_MONS)
+				break;
+		}
+		if (i < dlevel->things[n]->len)
+			mons_blast (from, th, 2 - ((!!j)|(!!k)));
+	}
+}
+
+void sp_player_explosion ()
+{
+	int yloc, xloc;
+	pl_mvchoose (&yloc, &xloc, "Choose where where to explode.", "Cast explosion here?");
+	sp_explosion (player, yloc, xloc);
+}
+
 void sp_sling (struct Thing *from, int yloc, int xloc)
 {
-	projectile ("stone", 3, 10);
+	projectile (from, "stone", 3, 10);
 	bres_callback (from->yloc, from->xloc, &pr_at);
 	bres_draw (yloc, xloc);
 }
@@ -60,7 +86,8 @@ int sp_protected (struct Thing *from, int yloc, int xloc)
 
 struct Spelltype all_spells[] = {
 	{"shield", NULL, &sp_player_shield},
-	{"sling", NULL, &sp_player_sling}
+	{"sling", NULL, &sp_player_sling},
+	{"explosion", NULL, &sp_player_explosion}
 };
 
 #define SP_VEC(a) temp = (struct vector_){(a), 10, sizeof(a)/10, sizeof(a)/10};\
@@ -73,6 +100,7 @@ void sp_init ()
 	int i = 0;
 	SP_VEC ("000010200\0""001000000");
 	SP_VEC ("000021000\0");
+	SP_VEC ("010000002\0""000010200\0""100000000");
 }
 
 int sp_getloc (union Spell *spell, int *yloc, int *xloc)
@@ -172,7 +200,7 @@ Rune sp_rune (int siz)
 	while (key != CH_LF && key != CH_CR && key != CH_ESC)
 	{
 		key = pl_move (&ymove, &xmove, gr_getfullch ());
-		printf("%d\n", key);
+		//printf("%d\n", key);
 		if (key == ' ')
 		{
 			int dy = csr_y - ystart, dx = csr_x - xstart;

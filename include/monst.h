@@ -142,7 +142,7 @@ struct Thing;
 void   mons_attack     (struct Thing *, int, int);         /* attack in direction                      */
 int    mons_move       (struct Thing *, int, int);         /* move in given directions                 */
 void   mons_dead       (struct Thing *, struct Thing *);   /* this monster is dead                     */
-int    mons_prhit      (struct Thing *, int);              /* monster hit by a projectile              */
+int    mons_prhit      (struct Thing *, struct Thing *, int); /* monster hit by a projectile           */
 int    mons_take_move  (struct Thing *);                   /* give a move (AI or player)               */
 bool   mons_unwield    (struct Thing *);                   /* unwield what is currently wielded        */
 bool   mons_wield      (struct Thing *, struct Item *);    /* wield an item (any item)                 */
@@ -150,13 +150,13 @@ void   mons_eat        (struct Thing *, struct Item *);    /* eat something     
 bool   mons_eating     (struct Thing *);                   /* continue eating something                */
 bool   mons_can_hear   (struct Thing *);                   /* has ears? no?                            */
 void  *mons_get_weap   (struct Thing *);                   /* what weapon is wielded?                  */
+void   mons_blast      (struct Thing *, struct Thing *, int); /* monster in an explosion               */
 
 /* player functions */
 struct Item *player_use_pack (char *, uint32_t);           /* asks player for an item of some type     */
 int    player_gen_type (void);                             /* get a valid monster type for fighting    */
 void   player_dead     (const char *, ...);                /* the player is dead; absolute end of game */
-void   player_exc      (enum ABLTY, uint32_t);             /* exercise a given ablty by a given amount */
-bool   player_magic    (char);                             /* cast a spell                             */
+void   player_exc      (enum ABLTY, uint32_t);             /* exercise ability by a given amount       */
 int    player_sense    (int, int, int);                    /* can the player sense a square            */
 ityp   find_corpse     (struct Thing *);                   /* gets a corpse type for a given monster   */
 void   custom_free     (void);                             /* frees custom types (now only corpses)    */

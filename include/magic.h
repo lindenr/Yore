@@ -29,7 +29,8 @@ enum SPELL
 {
 	SP_NONE = 0,
 	SP_SHIELD,
-	SP_SLING
+	SP_SLING,
+	SP_EXPLOSION
 };
 
 union Spell
@@ -37,6 +38,9 @@ union Spell
 	enum SPELL type;
 	struct M_shield shield;
 };
+
+void sp_explosion        (struct Thing *, int, int);
+void sp_player_explosion ();
 
 void sp_sling        (struct Thing *, int, int);
 void sp_player_sling ();

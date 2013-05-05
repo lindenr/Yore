@@ -370,9 +370,11 @@ void draw_map ()
 int pr_type;
 int pr_energy;
 char *pr_name;
+struct Thing *pr_from;
 
-void projectile (char *name, int type, int strength)
+void projectile (struct Thing *from, char *name, int type, int strength)
 {
+	pr_from = from;
 	pr_type = type;
 	pr_energy = type*(strength+10-type)/3;
 	pr_name = name;
@@ -386,11 +388,16 @@ int pr_at (struct DLevel *dlevel, int yloc, int xloc)
 		struct Thing *th = THING(dlevel->things, n, i);
 		if (th->type == THING_MONS)
 		{
-			if (mons_prhit (th, pr_energy))
+			if (mons_prhit (pr_from, th, pr_energy))
 			{
 				pr_energy -= 5;
 				p_msg ("The %s hits the %s!", pr_name, mons[th->thing.mons.type].name);
 			}
+			break;
+		}
+		if (th->type == THING_DGN && th->thing.mis.attr == M_OPQ)
+		{
+			pr_energy = 0;
 			break;
 		}
 	}
