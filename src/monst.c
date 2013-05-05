@@ -206,6 +206,8 @@ int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 	/* melee attack! */
 	else if (can == 2)
 	{
+		if (sp_protected (th, th->yloc+y, th->xloc+x))
+			return 0;
 		mons_attack (th, y, x);
 		return 1;
 	}
@@ -502,7 +504,7 @@ int mons_get_st (struct Thing *th)
 	return 1;
 }
 
-inline void do_attack (struct Thing *from, struct Thing *to)
+void do_attack (struct Thing *from, struct Thing *to)
 {
 	int t, strength, type = from->thing.mons.type;
 	int *toHP = &to->thing.mons.HP;

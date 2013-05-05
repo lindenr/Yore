@@ -168,7 +168,7 @@ int Kmagic ()
 	if (!pl_runes)
 		pl_runes = v_dinit (10);
 	Rune rune = sp_rune (3);
-	printf ("RUNE: '%s'\n", rune);
+	//printf ("RUNE: '%s'\n", rune);
 	if (!rune)
 		return 0;
 	v_pstr (pl_runes, rune);

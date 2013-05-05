@@ -8,7 +8,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
-
+/*
 void event_mhit (struct Thing *from, struct Thing *to, uint32_t atyp)
 {
 	int ftyp = from->thing.mons.type, ttyp = to->thing.mons.type;
@@ -72,7 +72,7 @@ void event_mhit (struct Thing *from, struct Thing *to, uint32_t atyp)
 			break;
 		}
 	}
-}
+}*/
 
 void event_mkill (struct Thing *from, struct Thing *to)
 {

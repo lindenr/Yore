@@ -7,6 +7,7 @@
 
 #include <stdbool.h>
 
+struct Thing;
 #define NUM_SPELLS (sizeof(all_spells)/sizeof(*all_spells))
 typedef char *Rune;
 
@@ -36,7 +37,9 @@ union Spell
 	struct M_shield shield;
 };
 
+void sp_shield        (struct Thing *, int, int);
 void sp_player_shield ();
+int  sp_protected     (struct Thing *, int, int);
 
 void sp_init ();
 Rune sp_rune (int);

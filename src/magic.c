@@ -27,6 +27,22 @@ void sp_player_shield ()
 	sp_shield (player, yloc, xloc);
 }
 
+int sp_protected (struct Thing *from, int yloc, int xloc)
+{
+	int i;
+	if (!sp_list)
+		return 0;
+	for (i = 0; i < sp_list->len; ++ i)
+	{
+		union Spell *spell = v_at (sp_list, i);
+		if (spell->type == SP_SHIELD &&
+		    spell->shield.yloc == yloc &&
+		    spell->shield.xloc == xloc)
+			return 1;
+	}
+	return 0;
+}
+
 struct Spelltype all_spells[] = {
 	{"shield", NULL, &sp_player_shield}
 };
