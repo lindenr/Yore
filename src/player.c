@@ -168,9 +168,10 @@ int Kmagic ()
 	if (!pl_runes)
 		pl_runes = v_dinit (10);
 	Rune rune = sp_rune (3);
+	printf ("RUNE: '%s'\n", rune);
 	if (!rune)
 		return 0;
-	v_pstr (pl_runes, sp_rune (3));
+	v_pstr (pl_runes, rune);
 	pl_cast ();
 	return 1;
 }
@@ -312,6 +313,8 @@ void pl_mvchoose (int *yloc, int *xloc, char *instruct, char *confirm)
 {
 	if (instruct)
 		p_msg (instruct);
+	p_pane ();
+	gr_refresh ();
 	int xmove, ymove;
 	uint32_t key = pl_move (&ymove, &xmove, gr_getfullch ());
 	while (key != '.' || (confirm && (p_ask ("yn", confirm) != 'y')))

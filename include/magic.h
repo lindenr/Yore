@@ -7,14 +7,13 @@
 
 #include <stdbool.h>
 
-#define MAX_RUNES  10
+#define NUM_SPELLS (sizeof(all_spells)/sizeof(*all_spells))
 typedef char *Rune;
 
 struct Spelltype
 {
 	char *name;
-	Rune runes[MAX_RUNES];
-	int len;
+	Vector runes;
 	void (*player_action) ();
 };
 
@@ -38,6 +37,8 @@ union Spell
 };
 
 void sp_player_shield ();
+
+void sp_init ();
 Rune sp_rune (int);
 void sp_tick ();
 

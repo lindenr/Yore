@@ -5,6 +5,7 @@
 #include "include/thing.h"
 #include "include/player.h"
 #include "include/pixel.h"
+#include "include/panel.h"
 
 #include <stdio.h>
 #include <malloc.h>
@@ -27,9 +28,17 @@ void sp_player_shield ()
 }
 
 struct Spelltype all_spells[] = {
-	{"shield", {"000010200", "001000000"}, 2, &sp_player_shield},
-	{NULL, {}, 0, NULL}
+	{"shield", NULL, &sp_player_shield}
 };
+
+#define SP_VEC(i,a,b) temp = (struct vector_){(a), 10, (b), (b)};\
+all_spells[i].runes = malloc(sizeof(temp));\
+memcpy(all_spells[i].runes, &temp, sizeof(temp));
+void sp_init ()
+{
+	struct vector_ temp;
+	SP_VEC (0, "000010200\0""001000000", 2);
+}
 
 int sp_getloc (union Spell *spell, int *yloc, int *xloc)
 {
@@ -90,31 +99,27 @@ void sp_tick ()
 
 void pl_cast ()
 {
-	Vector valid = v_dinit (sizeof(int));
-	Vector done = v_dinit (sizeof(int));
 	int i, j;
-	for (i = 0; all_spells[i].name; ++ i)
-		v_push (valid, &i);
-	for (i = 0; i < MAX_RUNES; ++ i)
+	for (j = 0; j < NUM_SPELLS; ++ j)
 	{
-		for (j = 0; j < valid->len; ++ j)
+		struct Spelltype *sp = &all_spells[j];
+		Vector runes = sp->runes;
+		if (pl_runes->len < runes->len)
+			continue;
+		for (i = 0; i < runes->len; ++ i)
 		{
-			struct Spelltype *sp = &all_spells[v_at (valid, j)];
-			if (i == sp->len)
-			{
-				v_push (done, &i);
-				v_rem (valid, j);
-				-- j;
-				continue;
-			}
-			if (!ru_cmp (sp->runes[sp->len-1-i]))
-				continue;
-			v_rem (valid, j);
-			-- j;
+			if (strcmp (v_at (runes, i), v_at (pl_runes, pl_runes->len - runes->len + i)))
+				break;
 		}
+		if (i >= runes->len)
+			break;
 	}
-	for (i = 0; i < done->len; ++ i)
-		if (pask ("Cast %s?"
+	if (j >= NUM_SPELLS)
+		return;
+	p_msg ("You cast %s!", all_spells[j].name);
+	p_pane ();
+	gr_refresh ();
+	all_spells[j].player_action ();
 }
 
 Rune sp_rune (int siz)
@@ -125,10 +130,11 @@ Rune sp_rune (int siz)
 	csr_move (ystart, xstart);
 	gr_noecho ();
 	csr_noblink ();
-	Rune rune = malloc (siz*siz);
+	Rune rune = malloc (siz*siz+1);
 	memset (rune, '0', siz*siz);
-	int num = 0, ymove, xmove;
-	uint32_t key;
+	rune[siz*siz] = '\0';
+	int ymove, xmove;
+	uint32_t key = ' ';
 	char sp = '1';
 	while (key != CH_LF && key != CH_CR && key != CH_ESC)
 	{
@@ -137,12 +143,12 @@ Rune sp_rune (int siz)
 		if (key == ' ')
 		{
 			int dy = csr_y - ystart, dx = csr_x - xstart;
-			if (rune[dy*siz + dx] == '0')
+			if (rune[dy*siz + dx] > '0')
 				continue;
 			rune[dy*siz + dx] = sp;
 			txt_mvaddch (csr_y, csr_x, sp);
+			gr_refresh ();
 			sp ++;
-			++num;
 			continue;
 		}
 		if (ymove == -1 && csr_y > ystart)
@@ -154,6 +160,12 @@ Rune sp_rune (int siz)
 		else if (xmove == 1 && csr_x < xstart+siz-1)
 			csr_move (csr_y, csr_x+1);
 	}
+	//txt_fbox (ystart-1, xstart-1, siz+1, siz+1, '\0');
+	int i, j;
+	for (i = ystart-1; i <= ystart+siz; ++ i) for (j = xstart-1; j <= xstart+siz; ++ j)
+		txt_mvaddch (i, j, '\0');
+	gr_refresh ();
+	csr_move (player->yloc - cam_yloc, player->xloc - cam_xloc);
 	if (key == CH_ESC)
 		return NULL;
 	return rune;

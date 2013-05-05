@@ -3,6 +3,7 @@
 #include "include/dlevel.h"
 #include "include/thing.h"
 #include "include/graphics.h"
+#include "include/magic.h"
 
 Vector all_ids;
 Vector all_dlevels;
@@ -11,6 +12,7 @@ struct DLevel *cur_dlevel;
 
 void dlv_init ()
 {
+	sp_init ();
 	sp_list = v_dinit (sizeof(union Spell));
 	all_dlevels = v_dinit (sizeof(struct DLevel));
 
@@ -45,6 +47,9 @@ void dlv_make (int level, int uplevel, int dnlevel)
 	new_level.things = malloc (sizeof(Vector) * MAP_TILES);
 	for (i = 0; i < MAP_TILES; ++ i)
 		new_level.things[i] = v_dinit (sizeof(struct Thing));
+	memset (new_level.seen, 0, sizeof(uint8_t)*MAP_TILES);
+	memset (new_level.attr, 0, sizeof(uint8_t)*MAP_TILES);
+	memset (new_level.unseen, 0, sizeof(glyph)*MAP_TILES);
 	v_push (all_dlevels, &new_level);
 }
 

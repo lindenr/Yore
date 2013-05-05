@@ -187,7 +187,6 @@ void csr_move (int yloc, int xloc)
 	txt_mark (yloc, xloc);
 	csr_y = yloc;
 	csr_x = xloc;
-	gr_refresh ();
 }
 
 void csr_hide ()
