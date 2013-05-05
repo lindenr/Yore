@@ -6,12 +6,27 @@
 #include "include/player.h"
 #include "include/pixel.h"
 #include "include/panel.h"
+#include "include/vision.h"
 
 #include <stdio.h>
 #include <malloc.h>
 
 Vector sp_list = NULL;
 Vector pl_runes = NULL;
+
+void sp_sling (struct Thing *from, int yloc, int xloc)
+{
+	projectile ("stone", 3, 10);
+	bres_callback (from->yloc, from->xloc, &pr_at);
+	bres_draw (yloc, xloc);
+}
+
+void sp_player_sling ()
+{
+	int yloc, xloc;
+	pl_mvchoose (&yloc, &xloc, "Choose where to sling.", "Sling at this tile?");
+	sp_sling (player, yloc, xloc);
+}
 
 void sp_shield (struct Thing *from, int yloc, int xloc)
 {
@@ -44,16 +59,20 @@ int sp_protected (struct Thing *from, int yloc, int xloc)
 }
 
 struct Spelltype all_spells[] = {
-	{"shield", NULL, &sp_player_shield}
+	{"shield", NULL, &sp_player_shield},
+	{"sling", NULL, &sp_player_sling}
 };
 
-#define SP_VEC(i,a,b) temp = (struct vector_){(a), 10, (b), (b)};\
+#define SP_VEC(a) temp = (struct vector_){(a), 10, sizeof(a)/10, sizeof(a)/10};\
 all_spells[i].runes = malloc(sizeof(temp));\
-memcpy(all_spells[i].runes, &temp, sizeof(temp));
+memcpy(all_spells[i].runes, &temp, sizeof(temp));\
+i++
 void sp_init ()
 {
 	struct vector_ temp;
-	SP_VEC (0, "000010200\0""001000000", 2);
+	int i = 0;
+	SP_VEC ("000010200\0""001000000");
+	SP_VEC ("000021000\0");
 }
 
 int sp_getloc (union Spell *spell, int *yloc, int *xloc)
@@ -68,7 +87,6 @@ int sp_getloc (union Spell *spell, int *yloc, int *xloc)
 		}
 		default:
 		{
-			panic ("unknown spell in sp_getloc");
 			return 0;
 		}
 	}
@@ -101,7 +119,6 @@ void sp_tick ()
 			}
 			default:
 			{
-				panic ("unknown spell in sp_tick");
 				break;
 			}
 		}
@@ -143,7 +160,7 @@ Rune sp_rune (int siz)
 	int ystart = (pnumy-siz)/2, xstart = (pnumx-siz)/2;
 	txt_fbox (ystart-1, xstart-1, siz+1, siz+1, ' ');
 	csr_show ();
-	csr_move (ystart, xstart);
+	csr_move (ystart+(siz/2), xstart+(siz/2));
 	gr_noecho ();
 	csr_noblink ();
 	Rune rune = malloc (siz*siz+1);
@@ -155,7 +172,7 @@ Rune sp_rune (int siz)
 	while (key != CH_LF && key != CH_CR && key != CH_ESC)
 	{
 		key = pl_move (&ymove, &xmove, gr_getfullch ());
-		//printf("%d\n", key);
+		printf("%d\n", key);
 		if (key == ' ')
 		{
 			int dy = csr_y - ystart, dx = csr_x - xstart;

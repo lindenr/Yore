@@ -336,6 +336,8 @@ void mons_dead (struct Thing *from, struct Thing *to)
 		return;
 	}
 
+	if (!from)
+		goto skip1;
 	if (player_sense (from->yloc, from->xloc, SENSE_VISION))
 		px_mvaddbox (from->yloc, from->xloc, BOX_KILL, 500);
 	//event_mkill (from, to);
@@ -346,7 +348,7 @@ void mons_dead (struct Thing *from, struct Thing *to)
 		pmons.exp += mons[to->thing.mons.type].exp;
 		update_level (from);
 	}
-
+skip1:;
 	/* add corpse */
 	struct Item corpse;
 	make_corpse (&corpse.type, to);
@@ -359,8 +361,16 @@ void mons_dead (struct Thing *from, struct Thing *to)
 	rem_id (to->ID);
 }
 
+int mons_prhit (struct Thing *at, int energy)
+{
+	at->thing.mons.HP -= 5;
+	if (at->thing.mons.HP <= 0)
+		mons_dead (NULL, at);
+	return 1;
+}
+
 /* TODO is it polymorphed? */
-inline bool mons_edible (struct Thing *th, struct Item *item)
+bool mons_edible (struct Thing *th, struct Item *item)
 {
 	return (item->type.ch == ITEM_FOOD);
 }
@@ -651,21 +661,6 @@ void player_dead (const char *msg, ...)
 
 	U.playing = PLAYER_LOSTGAME;
 }
-/*
-bool player_magic (char c)
-{
-	if (c == 'j')
-	{
-		//
-	}
-	if (!magic_plspell(c))
-	{
-		p_msg("Unknown spell '%s%c'. ",
-			  (escape(c) == c ? "" : "^"), escape(c));
-		return false;
-	}
-	return true;
-}*/
 
 /* Rudimentary AI system -- move towards player if player is visible. */
 int AI_Attack (struct Thing *th, int toy, int tox)
@@ -693,3 +688,4 @@ int AI_Attack (struct Thing *th, int toy, int tox)
 					mons_move (th, RN(3) - 1, RN(3) - 1);
 	return 1;
 }
+

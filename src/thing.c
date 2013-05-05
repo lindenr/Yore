@@ -9,6 +9,7 @@
 #include "include/vision.h"
 #include "include/graphics.h"
 #include "include/dlevel.h"
+#include "include/panel.h"
 
 #include <assert.h>
 #include <malloc.h>
@@ -364,5 +365,36 @@ void draw_map ()
 		}
 	}
 	set_can_see (sq_seen, sq_attr, sq_unseen);
+}
+
+int pr_type;
+int pr_energy;
+char *pr_name;
+
+void projectile (char *name, int type, int strength)
+{
+	pr_type = type;
+	pr_energy = type*(strength+10-type)/3;
+	pr_name = name;
+}
+
+int pr_at (struct DLevel *dlevel, int yloc, int xloc)
+{
+	int n = gr_buffer (yloc, xloc);
+	LOOP_THING(dlevel->things, n, i)
+	{
+		struct Thing *th = THING(dlevel->things, n, i);
+		if (th->type == THING_MONS)
+		{
+			if (mons_prhit (th, pr_energy))
+			{
+				pr_energy -= 5;
+				p_msg ("The %s hits the %s!", pr_name, mons[th->thing.mons.type].name);
+			}
+			break;
+		}
+	}
+	-- pr_energy;
+	return (pr_energy > 0);
 }
 

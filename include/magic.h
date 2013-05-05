@@ -18,12 +18,6 @@ struct Spelltype
 	void (*player_action) ();
 };
 
-enum SPELL
-{
-	SP_NONE = 0,
-	SP_SHIELD = 1
-};
-
 struct M_shield
 {
 	int type;
@@ -31,11 +25,21 @@ struct M_shield
 	int turns;
 };
 
+enum SPELL
+{
+	SP_NONE = 0,
+	SP_SHIELD,
+	SP_SLING
+};
+
 union Spell
 {
-	int type;
+	enum SPELL type;
 	struct M_shield shield;
 };
+
+void sp_sling        (struct Thing *, int, int);
+void sp_player_sling ();
 
 void sp_shield        (struct Thing *, int, int);
 void sp_player_shield ();

@@ -6,6 +6,7 @@
 
 int fromy, fromx;
 uint8_t *grid, *grid_t;
+int (*callback) (struct DLevel *, int, int) = NULL;
 
 void bres_start (int fry, int frx, uint8_t *g, uint8_t *g_t)
 {
@@ -15,10 +16,17 @@ void bres_start (int fry, int frx, uint8_t *g, uint8_t *g_t)
 	grid_t = g_t;
 }
 
+void bres_callback (int yloc, int xloc, int (*x) (struct DLevel *, int, int))
+{
+	callback = x;
+	fromy = yloc;
+	fromx = xloc;
+}
+
 /* adapted from wikipedia */
 bool bres_draw (int ty, int tx)
 {
-	if (grid && grid[gr_buffer(ty, tx)] == 2)
+	if ((!callback) && grid && grid[gr_buffer(ty, tx)] == 2)
 		return true;
 	int dy, dx, sy, sx, err, e2, fy, fx;
 	fy = fromy;
@@ -48,6 +56,15 @@ bool bres_draw (int ty, int tx)
 			err += dx;
 			fy += sy;
 		}
+		if (callback)
+		{
+			if (!callback (cur_dlevel, fy, fx))
+			{
+				callback = NULL;
+				return false;
+			}
+			continue;
+		}
 		if (fy == ty && fx == tx)
 			break;
 		if (grid_t[gr_buffer(fy, fx)] == 0)
@@ -57,5 +74,6 @@ bool bres_draw (int ty, int tx)
 	}
 	if (grid)
 		grid[gr_buffer(fy, fx)] = 2;
+	callback = NULL;
 	return true;
 }

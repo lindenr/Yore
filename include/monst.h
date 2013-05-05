@@ -142,6 +142,7 @@ struct Thing;
 void   mons_attack     (struct Thing *, int, int);         /* attack in direction                      */
 int    mons_move       (struct Thing *, int, int);         /* move in given directions                 */
 void   mons_dead       (struct Thing *, struct Thing *);   /* this monster is dead                     */
+int    mons_prhit      (struct Thing *, int);              /* monster hit by a projectile              */
 int    mons_take_move  (struct Thing *);                   /* give a move (AI or player)               */
 bool   mons_unwield    (struct Thing *);                   /* unwield what is currently wielded        */
 bool   mons_wield      (struct Thing *, struct Item *);    /* wield an item (any item)                 */

@@ -61,4 +61,7 @@ void thing_bmove           (struct Thing *, int, int);
 
 int getID                  ();
 
+void projectile            (char *, int, int);
+int  pr_at                 (struct DLevel *, int, int);
+
 #endif /* THING_H_INCLUDED */
