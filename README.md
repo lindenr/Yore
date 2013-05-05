@@ -4,7 +4,7 @@ Yore is an under-developement roguelike game.
 
 ##Build instructions
 
-Yore can run on any machine which is supported by SDL.
+Yore should run on any machine which is supported by SDL. It has only been tested on those mentioned below, however.
 
 ####To build for Linux:
 
@@ -18,7 +18,7 @@ Yore can run on any machine which is supported by SDL.
 1.  you must have MinGW and SDL installed, with SDL.dll in your bin/ folder;
 2.  you must have the [function](http://github.com/lindenr/function) executable in the top folder;
 3.  run
-<pre>&gt; PATH &lt;your_mingw_install_path&gt;\bin
+<pre>&gt; PATH &lt;your mingw install path&gt;\bin
 &gt; build-win</pre>
 If that doesn't work then try
 <pre>&gt; mingw32-make</pre>
@@ -28,8 +28,8 @@ The binary "Yore" (or "Yore.exe") is in the bin/ directory.
 ###Yore runs (tested) on the following platforms:
 
  *  Arch Linux
- *  Ubuntu 11.10
- *  Windows XP, 7, 8
+ *  Ubuntu (11.10 and 12.10)
+ *  Windows (XP, 7, and 8)
 
 Feel free to add to the list if you have a different operating system handy.
 
@@ -49,6 +49,7 @@ Various other commands are (in no particular order):
 ,      pick up
 :      look down
 i      check your inventory
+m      cast a magic rune
 w      wield a weapon
 d      drop an item from your inventory
 
