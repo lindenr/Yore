@@ -14,6 +14,20 @@
 Vector sp_list = NULL;
 Vector pl_runes = NULL;
 
+void sp_bolt (struct Thing *from, int yloc, int xloc)
+{
+	projectile (from, "bolt", 0, 10);
+	bres_callback (from->yloc, from->xloc, &pr_at);
+	bres_draw (yloc, xloc);
+}
+
+void sp_player_bolt ()
+{
+	int yloc, xloc;
+	pl_mvchoose (&yloc, &xloc, "Choose a target.", "Fire bolt at this tile?");
+	sp_bolt (player, yloc, xloc);
+}
+
 void sp_explosion (struct Thing *from, int yloc, int xloc)
 {
 	struct DLevel *dlevel = dlv_lvl (from->dlevel);
@@ -36,7 +50,7 @@ void sp_explosion (struct Thing *from, int yloc, int xloc)
 void sp_player_explosion ()
 {
 	int yloc, xloc;
-	pl_mvchoose (&yloc, &xloc, "Choose where where to explode.", "Cast explosion here?");
+	pl_mvchoose (&yloc, &xloc, "Choose a target.", "Cast explosion here?");
 	sp_explosion (player, yloc, xloc);
 }
 
@@ -50,7 +64,7 @@ void sp_sling (struct Thing *from, int yloc, int xloc)
 void sp_player_sling ()
 {
 	int yloc, xloc;
-	pl_mvchoose (&yloc, &xloc, "Choose where to sling.", "Sling at this tile?");
+	pl_mvchoose (&yloc, &xloc, "Choose a target.", "Sling at this tile?");
 	sp_sling (player, yloc, xloc);
 }
 
@@ -64,7 +78,7 @@ void sp_shield (struct Thing *from, int yloc, int xloc)
 void sp_player_shield ()
 {
 	int yloc, xloc;
-	pl_mvchoose (&yloc, &xloc, "Choose something to shield.", "Cast shield here?");
+	pl_mvchoose (&yloc, &xloc, "Choose a target.", "Cast shield here?");
 	sp_shield (player, yloc, xloc);
 }
 
@@ -87,7 +101,8 @@ int sp_protected (struct Thing *from, int yloc, int xloc)
 struct Spelltype all_spells[] = {
 	{"shield", NULL, &sp_player_shield},
 	{"sling", NULL, &sp_player_sling},
-	{"explosion", NULL, &sp_player_explosion}
+	{"explosion", NULL, &sp_player_explosion},
+	{"bolt", NULL, &sp_player_bolt}
 };
 
 #define SP_VEC(a) temp = (struct vector_){(a), 10, sizeof(a)/10, sizeof(a)/10};\
@@ -101,6 +116,7 @@ void sp_init ()
 	SP_VEC ("000010200\0""001000000");
 	SP_VEC ("000021000\0");
 	SP_VEC ("010000002\0""000010200\0""100000000");
+	SP_VEC ("010000002\0""000100200\0""010000002");
 }
 
 int sp_getloc (union Spell *spell, int *yloc, int *xloc)

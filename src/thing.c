@@ -376,7 +376,10 @@ void projectile (struct Thing *from, char *name, int type, int strength)
 {
 	pr_from = from;
 	pr_type = type;
-	pr_energy = type*(strength+10-type)/3;
+	if (type)
+		pr_energy = type*(strength+10-type)/3;
+	if (!type)
+		pr_energy = strength*2;
 	pr_name = name;
 }
 
@@ -401,7 +404,8 @@ int pr_at (struct DLevel *dlevel, int yloc, int xloc)
 			break;
 		}
 	}
-	-- pr_energy;
+	if (pr_type)
+		-- pr_energy;
 	return (pr_energy > 0);
 }
 

@@ -363,7 +363,7 @@ skip1:;
 
 int mons_prhit (struct Thing *from, struct Thing *to, int energy)
 {
-	to->thing.mons.HP -= 5;
+	to->thing.mons.HP -= energy/2;
 	if (to->thing.mons.HP <= 0)
 		mons_dead (from, to);
 	return 1;
