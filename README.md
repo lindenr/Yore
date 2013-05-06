@@ -58,5 +58,5 @@ Q      quit permanently</pre>
 
 ##License
 
-Yore is distributed under the GNU GPL v3.
+Yore is distributed under the GNU GPL v3, a copy of which may be found [here](http://www.gnu.org/licenses/gpl.html).
 
