@@ -205,7 +205,7 @@ int TSIZ[] = {
 	sizeof (struct Item),
 	sizeof (struct Monster),
 	sizeof (struct map_item_struct),
-	0
+	sizeof (union  Spell)
 };
 
 struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)
@@ -352,6 +352,8 @@ void draw_map ()
 				sq_unseen[at] = gr_map[at];
 				break;
 			}
+			case THING_MAGIC:
+				break;
 			default:
 			{
 				printf ("%d %d %d\n", at, i, th->type);

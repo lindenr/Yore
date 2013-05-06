@@ -66,9 +66,6 @@ void setup_U ()
 	for (i = 0; i < 6; ++i)
 		U.attr[i] = 10;
 
-//	for (i = 0; i < BELT_JEWELS; ++i)
-//		U.jewel[i] = NUM_JEWELS;
-	
 	for (NUM_ITEMS = 0; items[NUM_ITEMS].name[0]; ++ NUM_ITEMS);
 
 	for (i = 0; mons[i].name; ++i)

@@ -7,6 +7,7 @@
 #include "include/item.h"
 #include "include/monst.h"
 #include "include/map.h"
+#include "include/magic.h"
 
 #define player (*(struct Thing **) v_at (all_ids, 1))
 #define pmons  (player->thing.mons)
@@ -26,7 +27,7 @@ enum THING_TYPE
 	THING_ITEM,       /* an item */
 	THING_MONS,       /* a monster */
 	THING_DGN,        /* a dungeon feature (wall, floor, trap etc) */
-	THING_CURS        /* a (the?) cursor */
+	THING_MAGIC       /* a spell */
 };
 
 struct Thing
@@ -39,6 +40,7 @@ struct Thing
 		struct Item item;
 		struct Monster mons;
 		struct map_item_struct mis;
+		union  Spell spell;
 	}
 	thing;
 };

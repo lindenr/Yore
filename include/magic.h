@@ -21,6 +21,7 @@ struct Spelltype
 struct M_shield
 {
 	int type;
+	int dlevel;
 	int yloc, xloc;
 	int turns;
 };
@@ -36,7 +37,7 @@ enum SPELL
 
 union Spell
 {
-	enum SPELL type;
+	int type;
 	struct M_shield shield;
 };
 

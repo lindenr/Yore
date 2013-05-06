@@ -70,8 +70,9 @@ void sp_player_sling ()
 
 void sp_shield (struct Thing *from, int yloc, int xloc)
 {
-	struct M_shield shield = {SP_SHIELD, yloc, xloc, 2};
-	v_push (sp_list, &shield);
+	struct M_shield shield = {SP_SHIELD, from->dlevel, yloc, xloc, 2};
+	struct Thing *th = new_thing (THING_MAGIC, dlv_lvl (from->dlevel), yloc, xloc, &shield);
+	v_push (sp_list, &th->ID);
 	px_mvaddbox (yloc, xloc, BOX_MAGIC, 0);
 }
 
@@ -84,15 +85,14 @@ void sp_player_shield ()
 
 int sp_protected (struct Thing *from, int yloc, int xloc)
 {
-	int i;
-	if (!sp_list)
-		return 0;
-	for (i = 0; i < sp_list->len; ++ i)
+	int n = gr_buffer (yloc, xloc);
+	struct DLevel *dlevel = dlv_lvl (from->dlevel);
+	LOOP_THING(dlevel->things, n, i)
 	{
-		union Spell *spell = v_at (sp_list, i);
-		if (spell->type == SP_SHIELD &&
-		    spell->shield.yloc == yloc &&
-		    spell->shield.xloc == xloc)
+		struct Thing *th = THING(dlevel->things, n, i);
+		if (th->type != THING_MAGIC)
+			continue;
+		if (th->thing.spell.type == SP_SHIELD)
 			return 1;
 	}
 	return 0;
@@ -111,6 +111,7 @@ memcpy(all_spells[i].runes, &temp, sizeof(temp));\
 i++
 void sp_init ()
 {
+	sp_list = v_dinit (sizeof(int));
 	struct vector_ temp;
 	int i = 0;
 	SP_VEC ("000010200\0""001000000");
@@ -118,7 +119,7 @@ void sp_init ()
 	SP_VEC ("010000002\0""000010200\0""100000000");
 	SP_VEC ("010000002\0""000100200\0""010000002");
 }
-
+/*
 int sp_getloc (union Spell *spell, int *yloc, int *xloc)
 {
 	switch (spell->type)
@@ -134,19 +135,21 @@ int sp_getloc (union Spell *spell, int *yloc, int *xloc)
 			return 0;
 		}
 	}
-}
+}*/
 
 void sp_tick ()
 {
-	int i, yloc, xloc;
+	int i;
 	for (i = 0; i < sp_list->len; ++ i)
 	{
-		if (sp_getloc (v_at (sp_list, i), &yloc, &xloc))
-			px_mvrembox (yloc, xloc, BOX_MAGIC);
+		int *ID = v_at (sp_list, i);
+		struct Thing *th = THIID(*ID);
+		px_mvrembox (th->yloc, th->xloc, BOX_MAGIC);
 	}
 	for (i = 0; i < sp_list->len; ++ i)
 	{
-		union Spell *spell = v_at (sp_list, i);
+		int *ID = v_at (sp_list, i);
+		union Spell *spell = &THIID(*ID)->thing.spell;
 		switch (spell->type)
 		{
 			case SP_SHIELD:
@@ -157,20 +160,20 @@ void sp_tick ()
 					-- shield->turns;
 					break;
 				}
+				rem_id (*ID);
 				v_rem (sp_list, i);
 				-- i;
 				break;
 			}
 			default:
-			{
 				break;
-			}
 		}
 	}
 	for (i = 0; i < sp_list->len; ++ i)
 	{
-		if (sp_getloc (v_at (sp_list, i), &yloc, &xloc))
-			px_mvaddbox (yloc, xloc, BOX_MAGIC, 0);
+		int *ID = v_at (sp_list, i);
+		struct Thing *th = THIID(*ID);
+		px_mvaddbox (th->yloc, th->xloc, BOX_MAGIC, 0);
 	}
 }
 
