@@ -204,8 +204,8 @@ int TSIZ[] = {
 	0,
 	sizeof (struct Item),
 	sizeof (struct Monster),
-	sizeof (struct map_item_struct),
-	sizeof (union  Spell)
+	sizeof (struct map_item_struct)//,
+//	sizeof (union  Spell)
 };
 
 struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)

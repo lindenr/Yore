@@ -7,7 +7,6 @@
 #include "include/item.h"
 #include "include/monst.h"
 #include "include/map.h"
-#include "include/magic.h"
 
 #define player (*(struct Thing **) v_at (all_ids, 1))
 #define pmons  (player->thing.mons)
@@ -40,7 +39,7 @@ struct Thing
 		struct Item item;
 		struct Monster mons;
 		struct map_item_struct mis;
-		union  Spell spell;
+	//	union  Spell spell;
 	}
 	thing;
 };

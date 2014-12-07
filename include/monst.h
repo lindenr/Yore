@@ -3,7 +3,6 @@
 
 #include "include/graphics.h"
 #include "include/pack.h"
-#include "include/magic.h"
 #include "include/map.h"
 #include "include/vector.h"
 
@@ -69,7 +68,7 @@ struct player_status
 	player_attr attr; /* st, co, ch, etc */
 	int32_t luck;
 	uint64_t m_glflags;
-	int magic;
+	//int magic;
 //	enum JEWEL_TYPE jewel[BELT_JEWELS];
 };
 extern struct player_status U;

@@ -10,7 +10,6 @@
 #include "include/generate.h"
 #include "include/words.h"
 #include "include/all_mon.h"
-#include "include/magic.h"
 #include "include/event.h"
 #include "include/graphics.h"
 #include "include/dlevel.h"
@@ -202,8 +201,8 @@ int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 	/* melee attack! */
 	else if (can == 2)
 	{
-		if (sp_protected (th, th->yloc+y, th->xloc+x))
-			return 0;
+		//if (sp_protected (th, th->yloc+y, th->xloc+x))
+		//	return 0;
 		mons_attack (th, y, x);
 		return 1;
 	}

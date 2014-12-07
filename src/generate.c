@@ -6,7 +6,6 @@
 #include "include/thing.h"
 #include "include/monst.h"
 #include "include/map.h"
-#include "include/magic.h"
 #include "include/graphics.h"
 #include "include/vector.h"
 #include "include/dlevel.h"

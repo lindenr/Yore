@@ -3,7 +3,6 @@
 #include "include/dlevel.h"
 #include "include/thing.h"
 #include "include/graphics.h"
-#include "include/magic.h"
 
 Vector all_ids;
 Vector all_dlevels;
@@ -12,7 +11,7 @@ struct DLevel *cur_dlevel;
 
 void dlv_init ()
 {
-	sp_init ();
+	//sp_init ();
 	all_dlevels = v_dinit (sizeof(struct DLevel));
 
 	void *t = NULL;

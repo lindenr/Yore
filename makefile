@@ -9,4 +9,3 @@ bin/Yore: $(PRE_FILES)
 
 pre/%.c: src/%.c
 	./function $@ $< 
-

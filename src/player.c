@@ -6,7 +6,6 @@
 #include "include/dlevel.h"
 #include "include/save.h"
 #include "include/item.h"
-#include "include/magic.h"
 
 #include <malloc.h>
 
@@ -163,7 +162,7 @@ int Kwield ()
 	return 1;
 }
 
-int Kmagic ()
+/*int Kmagic ()
 {
 	if (!pl_runes)
 		pl_runes = v_dinit (10);
@@ -174,7 +173,7 @@ int Kmagic ()
 	v_pstr (pl_runes, rune);
 	pl_cast ();
 	return 1;
-}
+}*/
 
 int Klookdn ()
 {
@@ -242,7 +241,7 @@ struct KStruct Keys[] = {
 	{':', &Knlook},
 	{';', &Kflook},
 	{'w', &Kwield},
-	{'m', &Kmagic},
+	//{'m', &Kmagic},
 	{CONTROL_(GRK_DN), &Klookdn},
 	{CONTROL_(GRK_UP), &Klookup},
 	{'>', &Kgodown},

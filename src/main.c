@@ -10,7 +10,6 @@
 #include "include/generate.h"
 #include "include/graphics.h"
 #include "include/save.h"
-#include "include/magic.h"
 #include "include/vector.h"
 #include "include/dlevel.h"
 #include "include/timer.h"
