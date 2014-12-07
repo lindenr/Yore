@@ -4,7 +4,6 @@
 #include "include/thing.h"
 #include "include/graphics.h"
 #include "include/words.h"
-#include "include/rank.h"
 #include "include/loop.h"
 #include "include/dlevel.h"
 
@@ -20,7 +19,7 @@ Vector messages = NULL;
 
 void p_pane ()
 {
-	p_height = snumy - pnumy, p_width = snumx - 1;
+	p_height = snumy - pnumy, p_width = pnumx;
 	int i, j;
 	for (i = 0; i < snumy*snumx; ++ i)
 		txt_baddch (i, 0);
@@ -37,7 +36,7 @@ void p_pane ()
 		int curHP = (pmons.HP_max*i)/max;
 		if (curHP > pmons.HP)
 		{
-			txt_mvaddch (max - i - 1, pnumx, ' ');
+			txt_mvaddch (max - i - 1, snumx - 1, ' ');
 			continue;
 		}
 		int gpart = (16*i)/max, rpart = (16*(max-i))/max;
@@ -46,14 +45,23 @@ void p_pane ()
 		txt_mvaddch (max - i - 1, snumx - 1, COL_BG_RED(rpart) | COL_BG_GREEN(gpart) | ' ');
 	}
 
+	/*for (i = 0; i < max; ++ i)
+	{
+		int curXP = ((level_sum[pmons.level+1] - level_sum[pmons.level])*i)/max;
+		if (curXP + level_sum[pmons.level] >= pmons.exp || i == max-1)
+			txt_mvaddch (max - i - 1, snumx - 2, ' ');
+		else
+			txt_mvaddch (max - i - 1, snumx - 2, COL_BG_BLUE(10) | ' ');
+	}*/
+
 	txt_mvprint (0, 0, "%lu", Time);
 
-	txt_mvprint (ypan + 1, xpan + 1, "%s", w_short (pmons.name + 1, p_width - 3), get_rank ());
+	//txt_mvprint (ypan + 1, xpan + 1, "%s", w_short (pmons.name + 1, p_width - 3), get_rank ());
 	txt_mvprint (ypan + 2, xpan + 1, "HP %d:%d", pmons.HP, pmons.HP_max);
 	txt_mvprint (ypan + 3, xpan + 1, "LV %d:%d", pmons.level, pmons.exp);
-	char *rank = get_rank ();
+	/*char *rank = get_rank ();
 	int rlen = strlen (rank);
-	txt_mvprint (ypan + 1, xpan + p_width - 1 - rlen, rank);
+	txt_mvprint (ypan + 1, xpan + p_width - 1 - rlen, rank);*/
 
 	if (sb_width == 0)
 		goto skip1;

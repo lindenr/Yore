@@ -31,7 +31,7 @@ char *txt_change = NULL;
 
 int curs_yloc = 0, curs_xloc = 0;
 int cam_yloc = 0, cam_xloc = 0;
-int snumy = 10, snumx = 1;
+int snumy = 10, snumx = 2;
 int pnumy = 0, pnumx = 0;
 int csr_y = 0, csr_x = 0, csr_state = 1;
 

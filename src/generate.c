@@ -67,13 +67,13 @@ void add_another_room (struct DLevel *lvl)
 	int i;
 
 	do
-		i = RN(MAP_TILES);
+		i = rn(MAP_TILES);
 	while (things[i]->len == 0);
 
 	if (things[i+1]->len == 0)
 	{
 		int x = (i+1)%MAP_WIDTH, y = (i+1)/MAP_WIDTH;
-		if (attempt_room (lvl, y - 2 - RN(3), x + 1, 6 + RN(3), 6))
+		if (attempt_room (lvl, y - 2 - rn(3), x + 1, 6 + rn(3), 6))
 		{
 			ADD_MAP(DOT, i+1);
 			ADD_MAP(DOT, i+2);
@@ -82,7 +82,7 @@ void add_another_room (struct DLevel *lvl)
 	else if (things[i-1]->len == 0)
 	{
 		int x = (i-1)%MAP_WIDTH, y = (i-1)/MAP_WIDTH;
-		if (attempt_room (lvl, y - 2 - RN(3), x - 8, 6 + RN(3), 6))
+		if (attempt_room (lvl, y - 2 - rn(3), x - 8, 6 + rn(3), 6))
 		{
 			ADD_MAP(DOT, i-1);
 			ADD_MAP(DOT, i-2);
@@ -91,7 +91,7 @@ void add_another_room (struct DLevel *lvl)
 	else if (things[i-MAP_WIDTH]->len == 0)
 	{
 		int x = (i-MAP_WIDTH)%MAP_WIDTH, y = (i-MAP_WIDTH)/MAP_WIDTH;
-		if (attempt_room (lvl, y - 8, x - 3 - RN(5), 6, 8 + RN(5)))
+		if (attempt_room (lvl, y - 8, x - 3 - rn(5), 6, 8 + rn(5)))
 		{
 			ADD_MAP(DOT, i-MAP_WIDTH);
 			ADD_MAP(DOT, i-MAP_WIDTH*2);
@@ -100,7 +100,7 @@ void add_another_room (struct DLevel *lvl)
 	else if (things[i+MAP_WIDTH]->len == 0)
 	{
 		int x = (i+MAP_WIDTH)%MAP_WIDTH, y = (i+MAP_WIDTH)/MAP_WIDTH;
-		if (attempt_room (lvl, y + 1, x - 3 - RN(5), 6, 8 + RN(5)))
+		if (attempt_room (lvl, y + 1, x - 3 - rn(5), 6, 8 + rn(5)))
 		{
 			ADD_MAP(DOT, i+MAP_WIDTH);
 			ADD_MAP(DOT, i+MAP_WIDTH*2);
@@ -111,10 +111,10 @@ void add_another_room (struct DLevel *lvl)
 struct Item *gen_item ()
 {
 	ityp is;
-	memcpy (&is, &(items[RN(NUM_ITEMS)]), sizeof(is));
+	memcpy (&is, &(items[rn(NUM_ITEMS)]), sizeof(is));
 	struct Item it = {is, 0, is.wt, NULL};
 	//if (is.type == IT_JEWEL)
-	//	it.attr |= RN(NUM_JEWELS) << 16;
+	//	it.attr |= rn(NUM_JEWELS) << 16;
 	struct Item *ret = malloc(sizeof(it));
 	memcpy (ret, &it, sizeof(it));
 	return ret;
@@ -134,7 +134,7 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		int i, y, x;
 
 		total_rooms = 0;
-		attempt_room (lvl, MAP_HEIGHT/2 - 2 - RN(3), MAP_WIDTH/2 - 3 - RN(5), 15, 20);
+		attempt_room (lvl, MAP_HEIGHT/2 - 2 - rn(3), MAP_WIDTH/2 - 3 - rn(5), 15, 20);
 		do add_another_room (lvl);
 		while (total_rooms < 100);
 
@@ -145,8 +145,8 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		{
 			do
 			{
-				y = RN (MAP_HEIGHT);
-				x = RN (MAP_WIDTH);
+				y = rn (MAP_HEIGHT);
+				x = rn (MAP_WIDTH);
 			}
 			while (!is_safe_gen (lvl, y, x));
 			ADD_MAP (DOT, gr_buffer (y, x));
@@ -225,7 +225,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 
 		/* Down-stair */
 		do
-			end = (int32_t) RN(MAP_TILES);
+			end = (int32_t) rn(MAP_TILES);
 		while (end == start);
 		ADD_MAP('>', end);
 
@@ -236,17 +236,17 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 	else if (type == 2)
 	{
 		luck = param;
-		if (RN(100) >= (uint32_t) (15 - 2*luck))
+		if (rn(100) >= (uint32_t) (15 - 2*luck))
 			return 0;
 
 		struct Monster p;
 		memclr (&p, sizeof(p));
 		p.type = player_gen_type ();
 		p.HP = (mons[p.type].flags >> 28) + (mons[p.type].exp >> 1);
-		p.HP += RN(p.HP / 3);
+		p.HP += rn(p.HP / 3);
 		p.HP_max = p.HP;
 		p.name = NULL;
-		uint32_t xloc = RN(MAP_WIDTH), yloc = RN(MAP_HEIGHT);
+		uint32_t xloc = rn(MAP_WIDTH), yloc = rn(MAP_HEIGHT);
 		if (is_safe_gen (lvl, yloc, xloc))
 			new_thing (THING_MONS, lvl, yloc, xloc, &p);
 	}

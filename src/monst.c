@@ -8,7 +8,6 @@
 #include "include/save.h"
 #include "include/vision.h"
 #include "include/generate.h"
-#include "include/rank.h"
 #include "include/words.h"
 #include "include/all_mon.h"
 #include "include/magic.h"
@@ -152,7 +151,7 @@ int player_gen_type ()
 
 	for (i = 0; i < NUM_MONS; ++i)
 	{
-		if (array[i] > RN(total_weight))
+		if (array[i] > rn(total_weight))
 			break;
 		total_weight -= array[i];
 	}
@@ -235,7 +234,7 @@ void thing_move_level (struct Thing *th, int32_t where)
 	if (where == 0) /* Uncontrolled teleport within level */
 	{
 		do
-			wh = RN(MAP_TILES);
+			wh = rn(MAP_TILES);
 		while (!is_safe_gen (cur_dlevel, wh / MAP_WIDTH, wh % MAP_WIDTH));
 		th->yloc = wh / MAP_WIDTH;
 		th->xloc = wh % MAP_WIDTH;
@@ -264,7 +263,7 @@ int mons_take_move (struct Thing *th)
 {
 	char in;
 	struct Monster *self = &th->thing.mons;
-	if (self->HP < self->HP_max && RN(50) < U.attr[AB_CO])
+	if (self->HP < self->HP_max && rn(50) < U.attr[AB_CO])
 		self->HP += (self->level + 10) / 10;
 	if (mons_eating(th))
 		return true;
@@ -343,7 +342,7 @@ void mons_dead (struct Thing *from, struct Thing *to)
 		if (to->thing.mons.type == MTYP_SATAN)
 			U.playing = PLAYER_WONGAME;
 		pmons.exp += mons[to->thing.mons.type].exp;
-		update_level (from);
+		//update_level (from);
 	}
 skip1:;
 	/* add corpse */
@@ -390,7 +389,7 @@ bool mons_eating (struct Thing *th)
 		th->thing.mons.pack.items[PACK_AT(get_Itref(th->thing.mons.pack, item))] = NULL;
 		return false;
 	}
-	hunger_loss = RN(25) + 50;
+	hunger_loss = rn(25) + 50;
 	item->cur_weight -= hunger_loss << 4;
 	if (th == player)
 		U.hunger -= hunger_loss;
@@ -538,18 +537,18 @@ void do_attack (struct Thing *from, struct Thing *to)
 				struct Item **it = mons_get_weap(from);
 				if (!it || !(*it))
 				{
-					strength = RN(mons_get_st(from)) >> 1;
+					strength = rn(mons_get_st(from)) >> 1;
 					*toHP -=
-						RND(mons[type].attacks[t][0],
+						rnd(mons[type].attacks[t][0],
 							mons[type].attacks[t][1]) +
                         strength +
-					    RN(3 * from->thing.mons.level);
+					    rn(3 * from->thing.mons.level);
 				}
 				else
 				{
 					int attr = (*it)->type.attr;
-					strength = RN(mons_get_st(from)) >> 1;
-					*toHP -= RND(attr & 15, (attr >> 4) & 15) + strength;
+					strength = rn(mons_get_st(from)) >> 1;
+					*toHP -= rnd(attr & 15, (attr >> 4) & 15) + strength;
 				}
 
 				mons_passive_attack (to, from);
@@ -558,7 +557,7 @@ void do_attack (struct Thing *from, struct Thing *to)
 			case ATTK_TOUCH:
 			{
 				*toHP -=
-					RND(mons[type].attacks[t][0],
+					rnd(mons[type].attacks[t][0],
 						mons[type].attacks[t][1]);
 
 				mons_passive_attack (to, from);
@@ -571,7 +570,7 @@ void do_attack (struct Thing *from, struct Thing *to)
 			case ATTK_CLAW:
 			{
 				*toHP -=
-					RND(mons[type].attacks[t][0],
+					rnd(mons[type].attacks[t][0],
 						mons[type].attacks[t][1]);
 
 				mons_passive_attack (to, from);
@@ -580,7 +579,7 @@ void do_attack (struct Thing *from, struct Thing *to)
 			case ATTK_BITE:
 			{
 				*toHP -=
-					RND(mons[type].attacks[t][0],
+					rnd(mons[type].attacks[t][0],
 						mons[type].attacks[t][1]);
 
 				mons_passive_attack (to, from);
@@ -673,7 +672,7 @@ int AI_Attack (struct Thing *th, int toy, int tox)
 	bres_start (th->yloc, th->xloc, NULL, dlv_attr(th->dlevel));
 	if (!bres_draw (toy, tox))
 	{
-		mons_move (th, RN(3) - 1, RN(3) - 1);
+		mons_move (th, rn(3) - 1, rn(3) - 1);
 		return 1;
 	}
 
@@ -689,7 +688,7 @@ int AI_Attack (struct Thing *th, int toy, int tox)
 		if (!mons_move (th, ymove, 0))
 			if (!mons_move (th, 0, xmove))
 				if (!mons_move (th, -ymove, xmove))
-					mons_move (th, RN(3) - 1, RN(3) - 1);
+					mons_move (th, rn(3) - 1, rn(3) - 1);
 	return 1;
 }
 

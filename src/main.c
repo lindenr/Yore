@@ -70,13 +70,11 @@ bool game_intro ()
 int main (int argc, char *argv[])
 {
 	int i;
-	uint32_t rseed;
 
 	gr_init ();
 	//ru_start (3);
 	dlv_init ();
-	rseed = RNG_get_seed ();
-	RNG_main = RNG_INIT (rseed);
+	rng_init ();
 
 	setup_U ();
 

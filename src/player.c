@@ -260,9 +260,6 @@ int key_lookup (uint32_t key)
 		if (ch == (char)(Keys[i].key&0xff) && gr_equiv (key, Keys[i].key))
 			return (*Keys[i].action) ();
 	}
-	p_msg ("Unknown command '%s%c'.",
-	       (escape(ch) == ch ? "" : "^"),
-		   escape(ch));
 	return 0;
 }
 
