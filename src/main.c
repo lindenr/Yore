@@ -15,12 +15,14 @@
 #include "include/timer.h"
 #include "include/pixel.h"
 
+#include "include/test.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
 void print_intro ()
 {
-	txt_mvprint (1, 00, "Welcome to Yore v"YORE_VERSION);
+	txt_mvprint (1,  0, "Welcome to Yore v"YORE_VERSION);
 	txt_mvprint (2, 10, "* A game guide is not yet in place.");
 	txt_mvprint (3, 10, "* A wiki is not yet in place.");
 }
@@ -28,9 +30,9 @@ void print_intro ()
 bool game_intro ()
 {
 	int c, by, bx, bh = 9, bw = 50;
-	by = (snumy - bh - 10)/2;
-	bx = (snumx - bw)/2;
-	gr_clear ();
+	by = (txt_h - bh - 10)/2;
+	bx = (txt_w - bw)/2;
+	txt_clear ();
 	txt_dbox (by, bx, bh, bw);
 	txt_mvprint (by+2, bx+2, "Back in the days of Yore, in a land far removed");
 	txt_mvprint (by+3, bx+2, "from our current understanding of the universe,");
@@ -38,12 +40,12 @@ bool game_intro ()
 	txt_mvprint (by+5, bx+3,  "flowed through the sea, and the Gods lived in");
 	txt_mvprint (by+6, bx+4,   "harmony with the people; it was a time when");
 	txt_mvprint (by+7, bx+6,     "anything and everything was possible...");
-	gr_noecho ();
+	txt_echo (0);
 	csr_hide ();
 	gr_tout (666);
 	while (1)
 	{
-		txt_mvprint (by+11, (snumx - 30)/2, "[hit the spacebar to continue]");
+		txt_mvprint (by+11, (txt_w - 30)/2, "[hit the spacebar to continue]");
 		do
 			c = gr_getch();
 		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
@@ -51,7 +53,7 @@ bool game_intro ()
 			break;
 		if (c == 'q' || c == 'Q')
 			return false;
-		txt_mvprint (by+11, (snumx - 30)/2, "                              ");
+		txt_mvprint (by+11, (txt_w - 30)/2, "                              ");
 		do
 			c = gr_getch();
 		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
@@ -61,8 +63,8 @@ bool game_intro ()
 			return false;
 	}
 	gr_tout (0);
-	gr_echo ();
-	gr_clear ();
+	txt_echo (1);
+	txt_clear ();
 	return true;
 }
 
@@ -70,7 +72,13 @@ int main (int argc, char *argv[])
 {
 	int i;
 
-	gr_init ();
+	//gr_onresize = p_init;
+	//gr_onrefresh = px_showboxes;
+	//map_graph = gra_init (100, 300, 0, 0, 0, 0);
+	test_do ();
+	return 0;
+
+	px_csr ();
 	//ru_start (3);
 	dlv_init ();
 	rng_init ();
@@ -92,8 +100,8 @@ int main (int argc, char *argv[])
 	{
 		if (i)
 			txt_mvprint (10, 6, "Please type in your name.");
-		gr_move (8, 19);
-		gr_getstr (real_player_name + 1, 80);
+		txt_move (8, 19);
+		txt_getstr (real_player_name + 1, 80);
 	}
 
 	if (*(real_player_name + 1) == '\0')
@@ -101,9 +109,8 @@ int main (int argc, char *argv[])
 
 
 	/* So you really want to play? */
-	gr_noecho ();
-
-	gr_clear ();
+	txt_echo (0);
+	txt_clear ();
 	csr_hide ();
 	get_cinfo ();
 
@@ -114,9 +121,9 @@ int main (int argc, char *argv[])
 	generate_map (dlv_lvl (1), LEVEL_NORMAL);
 	generate_map (dlv_lvl (2), LEVEL_NORMAL);
 
-	gr_clear ();
+	txt_clear ();
 
-	gr_centcam (player->yloc, player->xloc);
+	gra_centcam (map_graph, player->yloc, player->xloc);
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 
@@ -141,3 +148,4 @@ int main (int argc, char *argv[])
 
 	exit(0);
 }
+

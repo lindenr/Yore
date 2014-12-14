@@ -9,6 +9,8 @@
 
 #define ACS_WALL 255
 
+#define PANE_H 10
+
 typedef uint32_t SqAttr;
 
 struct map_item_struct
@@ -19,6 +21,9 @@ struct map_item_struct
 };
 
 extern struct map_item_struct map_items[];
+extern Graph map_graph;
+int map_buffer (int, int);
 int GETMAPITEMID(char);
 
 #endif /* MAP_H_INCLUDED */
+

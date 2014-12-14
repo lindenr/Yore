@@ -13,14 +13,14 @@
 #include <stdio.h>
 #include <assert.h>
 
-#define ADD_MAP(c, i) new_thing (THING_DGN, lvl, (i) / MAP_WIDTH, (i) % MAP_WIDTH, &map_items[GETMAPITEMID(c)])
+#define ADD_MAP(c, i) new_thing (THING_DGN, lvl, (i) / map_graph->w, (i) % map_graph->w, &map_items[GETMAPITEMID(c)])
 
 bool check_area (struct DLevel *lvl, int y, int x, int ys, int xs)
 {
 	Vector *things = lvl->things;
 	int i, j, k;
-	if (y < 0 || y + ys >= MAP_HEIGHT ||
-		x < 0 || x + xs >= MAP_WIDTH)
+	if (y < 0 || y + ys >= map_graph->h ||
+		x < 0 || x + xs >= map_graph->w)
 		return false;
 
 	k = xs;
@@ -29,7 +29,7 @@ bool check_area (struct DLevel *lvl, int y, int x, int ys, int xs)
 		j = ys;
 		while (j)
 		{
-			i = gr_buffer (y+j, x+k);
+			i = map_buffer (y+j, x+k);
 			if (things[i]->len != 0) return false;
 			-- j;
 		}
@@ -50,7 +50,7 @@ bool attempt_room (struct DLevel *lvl, int y, int x, int ys, int xs)
 		j = ys;
 		while (j)
 		{
-			i = gr_buffer (y+j, x+k);
+			i = map_buffer (y+j, x+k);
 			ADD_MAP (DOT, i);
 			-- j;
 		}
@@ -66,12 +66,12 @@ void add_another_room (struct DLevel *lvl)
 	int i;
 
 	do
-		i = rn(MAP_TILES);
+		i = rn(map_graph->a);
 	while (things[i]->len == 0);
 
 	if (things[i+1]->len == 0)
 	{
-		int x = (i+1)%MAP_WIDTH, y = (i+1)/MAP_WIDTH;
+		int x = (i+1)%map_graph->w, y = (i+1)/map_graph->w;
 		if (attempt_room (lvl, y - 2 - rn(3), x + 1, 6 + rn(3), 6))
 		{
 			ADD_MAP(DOT, i+1);
@@ -80,29 +80,29 @@ void add_another_room (struct DLevel *lvl)
 	}
 	else if (things[i-1]->len == 0)
 	{
-		int x = (i-1)%MAP_WIDTH, y = (i-1)/MAP_WIDTH;
+		int x = (i-1)%map_graph->w, y = (i-1)/map_graph->w;
 		if (attempt_room (lvl, y - 2 - rn(3), x - 8, 6 + rn(3), 6))
 		{
 			ADD_MAP(DOT, i-1);
 			ADD_MAP(DOT, i-2);
 		}
 	}
-	else if (things[i-MAP_WIDTH]->len == 0)
+	else if (things[i-map_graph->w]->len == 0)
 	{
-		int x = (i-MAP_WIDTH)%MAP_WIDTH, y = (i-MAP_WIDTH)/MAP_WIDTH;
+		int x = (i-map_graph->w)%map_graph->w, y = (i-map_graph->w)/map_graph->w;
 		if (attempt_room (lvl, y - 8, x - 3 - rn(5), 6, 8 + rn(5)))
 		{
-			ADD_MAP(DOT, i-MAP_WIDTH);
-			ADD_MAP(DOT, i-MAP_WIDTH*2);
+			ADD_MAP(DOT, i-map_graph->w);
+			ADD_MAP(DOT, i-map_graph->w*2);
 		}
 	}
-	else if (things[i+MAP_WIDTH]->len == 0)
+	else if (things[i+map_graph->w]->len == 0)
 	{
-		int x = (i+MAP_WIDTH)%MAP_WIDTH, y = (i+MAP_WIDTH)/MAP_WIDTH;
+		int x = (i+map_graph->w)%map_graph->w, y = (i+map_graph->w)/map_graph->w;
 		if (attempt_room (lvl, y + 1, x - 3 - rn(5), 6, 8 + rn(5)))
 		{
-			ADD_MAP(DOT, i+MAP_WIDTH);
-			ADD_MAP(DOT, i+MAP_WIDTH*2);
+			ADD_MAP(DOT, i+map_graph->w);
+			ADD_MAP(DOT, i+map_graph->w*2);
 		}
 	}
 }
@@ -133,22 +133,22 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		int i, y, x;
 
 		total_rooms = 0;
-		attempt_room (lvl, MAP_HEIGHT/2 - 2 - rn(3), MAP_WIDTH/2 - 3 - rn(5), 15, 20);
+		attempt_room (lvl, map_graph->h/2 - 2 - rn(3), map_graph->w/2 - 3 - rn(5), 15, 20);
 		do add_another_room (lvl);
 		while (total_rooms < 100);
 
-		start = gr_buffer (MAP_HEIGHT/2, MAP_WIDTH/2);
+		start = map_buffer (map_graph->h/2, map_graph->w/2);
 		end = mons_gen (lvl, 1, start);
 		
 		for (i = 0; i < 100; ++ i)
 		{
 			do
 			{
-				y = rn (MAP_HEIGHT);
-				x = rn (MAP_WIDTH);
+				y = rn (map_graph->h);
+				x = rn (map_graph->w);
 			}
 			while (!is_safe_gen (lvl, y, x));
-			ADD_MAP (DOT, gr_buffer (y, x));
+			ADD_MAP (DOT, map_buffer (y, x));
 
 			struct Item *item = gen_item ();
 			new_thing (THING_ITEM, lvl, y, x, item);
@@ -162,7 +162,7 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		ADD_MAP (DOT, end);
 
 		/* fill the rest up with walls */
-		for (i = 0; i < MAP_TILES; ++i)
+		for (i = 0; i < map_graph->a; ++i)
 			if (things[i]->len == 0)
 				ADD_MAP (ACS_WALL, i);
 	}
@@ -178,7 +178,7 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 	Vector *things = lvl->things;
 	struct Thing *T;
 	struct map_item_struct *m;
-	int n = gr_buffer(yloc, xloc);
+	int n = map_buffer(yloc, xloc);
 	LOOP_THING(things, n, i)
 	{
 		T = THING(things, n, i);
@@ -208,8 +208,8 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 	if (type == 0)
 	{
 		start = param;
-		upsy = start / MAP_WIDTH;
-		upsx = start % MAP_WIDTH;
+		upsy = start / map_graph->w;
+		upsx = start % map_graph->w;
 		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0, 0, {{0},}, {0,}, 0, 0};
 		asdf.name = malloc (85);
 		strcpy (asdf.name, "_");
@@ -224,7 +224,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 
 		/* Down-stair */
 		do
-			end = (int32_t) rn(MAP_TILES);
+			end = (int32_t) rn(map_graph->a);
 		while (end == start);
 		ADD_MAP('>', end);
 
@@ -245,7 +245,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		p.HP += rn(p.HP / 3);
 		p.HP_max = p.HP;
 		p.name = NULL;
-		uint32_t xloc = rn(MAP_WIDTH), yloc = rn(MAP_HEIGHT);
+		uint32_t xloc = rn(map_graph->w), yloc = rn(map_graph->h);
 		if (is_safe_gen (lvl, yloc, xloc))
 			new_thing (THING_MONS, lvl, yloc, xloc, &p);
 	}

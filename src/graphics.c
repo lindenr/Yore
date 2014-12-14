@@ -1,10 +1,7 @@
 /* graphics.c */
-/* Map size: 100 glyphs down, 300 across */
 
 #include "include/graphics.h"
-#include "include/timer.h"
-#include "include/panel.h"
-#include "include/pixel.h"
+#include "include/vector.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,71 +14,73 @@
 #define TILE_FILE "t"XSTRINGIFY(GLW)"x"XSTRINGIFY(GLH)".bmp"
 
 uint32_t bg_colour;
+int forced_refresh = 0;
 
 SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
 
 /* starting size */
-int screenY = 780, screenX = 1000;
-
-glyph gr_map[MAP_HEIGHT*MAP_WIDTH] = {0,};
-char gr_change[MAP_TILES] = {0,};
+int screenY = 720, screenX = 1000;
 
 glyph *txt_map = NULL;
 char *txt_change = NULL;
 
+glyph *screen_map = NULL;
+char *screen_change = NULL;
+
+/* where written text and input appears */
 int curs_yloc = 0, curs_xloc = 0;
-int cam_yloc = 0, cam_xloc = 0;
-int snumy = 10, snumx = 2;
-int pnumy = 0, pnumx = 0;
+/* window dimensions (in glyphs) */
+int txt_h = 0, txt_w = 0;
+int txt_area = 0;
+/* location of the blinking cursor */
 int csr_y = 0, csr_x = 0, csr_state = 1;
 
-int gr_buffer (int yloc, int xloc)
+Vector graphs = NULL;
+
+/* event callback functions */
+void (*gr_onidle) () = NULL;
+void (*gr_onresize) () = NULL;
+void (*gr_onrefresh) () = NULL;
+
+int gra_buffer (Graph gra, int yloc, int xloc)
 {
-	return MAP_WIDTH*yloc + xloc;
+	if (yloc < 0 || yloc >= gra->h || xloc < 0 || xloc >= gra->w)
+		return -1;
+	return gra->w * yloc + xloc;
 }
 
 int txt_buffer (int yloc, int xloc)
 {
-	return snumx*yloc + xloc;
+	if (yloc < 0 || yloc >= txt_h || xloc < 0 || xloc >= txt_w)
+		return -1;
+	return txt_w * yloc + xloc;
 }
 
-void gr_move (int yloc, int xloc)
+void txt_move (int yloc, int xloc)
 {
 	curs_yloc = yloc;
 	curs_xloc = xloc;
 }
 
-void gr_movecam (int yloc, int xloc)
+void gra_movecam (Graph gra, int yloc, int xloc)
 {
-	cam_yloc = yloc;
-	cam_xloc = xloc;
-
-	if (cam_yloc <= 0)
-		cam_yloc = 0;
-
-	if (cam_yloc >= MAP_HEIGHT-pnumy)
-		cam_yloc = MAP_HEIGHT-pnumy;
-
-	if (cam_xloc <= 0)
-		cam_xloc = 0;
-
-	if (cam_xloc >= MAP_WIDTH-pnumx)
-		cam_xloc = MAP_WIDTH-pnumx;
+	gra->cy = yloc;
+	gra->cx = xloc;
 	
-	gr_frefresh ();
+	forced_refresh = 1;
 }
 
-void gr_centcam (int yloc, int xloc)
+void gra_centcam (Graph gra, int yloc, int xloc)
 {
-	gr_movecam (yloc - pnumy/2, xloc - pnumx/2);
+	gra_movecam (gra, gra->cy - gra->vh/2, gra->cx - gra->vw/2);
 }
 
-void gr_baddch (int buf, glyph gl)
+void gra_baddch (Graph gra, int buf, glyph gl)
 {
-	if (gr_map[buf] == gl) return;
+	if (gra->data[buf] == gl) return;
 	if (gl == (gl&255)) gl |= COL_TXT_DEF;
-	gr_map[buf] = gl;
-	gr_change[buf] = 1;
+	gra->data[buf] = gl;
+	gra->change[buf] = 1;
 }
 
 void txt_baddch (int buf, glyph gl)
@@ -92,23 +91,25 @@ void txt_baddch (int buf, glyph gl)
 	txt_change[buf] = 1;
 }
 
-void gr_mvaddch (int yloc, int xloc, glyph gl)
+void gra_mvaddch (Graph gra, int yloc, int xloc, glyph gl)
 {
-	int buf = gr_buffer (yloc, xloc);
-	gr_baddch (buf, gl);
+	int buf = gra_buffer (gra, yloc, xloc);
+	if (buf != -1)
+		gra_baddch (gra, buf, gl);
 }
 
 void txt_mvaddch (int yloc, int xloc, glyph gl)
 {
 	int buf = txt_buffer (yloc, xloc);
-	txt_baddch (buf, gl);
+	if (buf != -1)
+		txt_baddch (buf, gl);
 }
 
 void txt_mvaprint (int yloc, int xloc, const char *str)
 {
 	int i, buf = txt_buffer (yloc, xloc), len = strlen(str);
 
-	for (i = 0; i < len && i+buf < TXT_TILES; ++ i)
+	for (i = 0; i < len && i+buf < txt_area; ++ i)
 		txt_baddch (i+buf, str[i]);
 }
 
@@ -117,7 +118,7 @@ void txt_mvprint (int yloc, int xloc, const char *str, ...)
 	va_list args;
 	char out[1024];
 
-	gr_move (yloc, xloc);
+	txt_move (yloc, xloc);
 	va_start (args, str);
 	vsprintf (out, str, args);
 	va_end (args);
@@ -199,15 +200,17 @@ void csr_show ()
 	csr_state = 1;
 }
 
-void gr_mark (int yloc, int xloc)
+void gra_mark (Graph gra, int yloc, int xloc)
 {
-	txt_mark (yloc - cam_yloc, xloc - cam_xloc);
+	if (yloc >= gra->cy && yloc < gra->cy + gra->vh &&
+	    xloc >= gra->cx && xloc < gra->cx + gra->vw)
+		txt_mark (yloc - gra->cy + gra->vy, xloc - gra->cx + gra->vx);
 }
 
 void txt_mark (int yloc, int xloc)
 {
-	if (yloc >= 0 && yloc < snumy &&
-	    xloc >= 0 && xloc < snumx)
+	if (yloc >= 0 && yloc < txt_h &&
+	    xloc >= 0 && xloc < txt_w)
 		txt_change[txt_buffer(yloc, xloc)] = 1;
 }
 
@@ -232,103 +235,88 @@ inline void blit_glyph (glyph gl, int yloc, int xloc)
 	SDL_BlitSurface (glyph_col, NULL, screen, &dstrect);
 }
 
-#define CURCHANGED \
-if (changed_total < 100) \
-{\
-rects[cur_rect].x = GLW*x;\
-rects[cur_rect].y = GLH*y;\
-rects[cur_rect].w = GLW;\
-rects[cur_rect].h = GLH;\
-++ cur_rect;\
-}
-
 void gr_refresh ()
 {
-	int x, y, changed_total, cur_rect;
-	SDL_Rect rects[100];
+	int i, x, y;
 
-	changed_total = 0;
-	for (x = 0; x < snumx; ++ x)
+	for (i = 0; i < graphs->len; ++ i)
 	{
-		for (y = 0; y < snumy; ++ y)
+		Graph gra = * (Graph *) v_at (graphs, i);
+		if (!gra->vis)
+			continue;
+		for (x = 0; x < gra->vw; ++ x)
 		{
-			int gly = y + cam_yloc, glx = x + cam_xloc;
-			int txtbuf = txt_buffer (y, x), grbuf = gr_buffer (gly, glx);
-
-			if (txt_change[txtbuf] || (gr_change[grbuf] && (!txt_map[txtbuf])))
-				++ changed_total;
-		}
-	}
-
-	if (!changed_total) return; /* Nothing to do. */
-
-	cur_rect = 0;
-
-	for (x = 0; x < snumx; ++ x)
-	{
-		for (y = 0; y < snumy; ++ y)
-		{
-			int gly = y + cam_yloc, glx = x + cam_xloc;
-			int txtbuf = txt_buffer (y, x), grbuf = gr_buffer (gly, glx);
-			if (txt_change[txtbuf] && txt_map[txtbuf])
+			for (y = 0; y < gra->vh; ++ y)
 			{
-				blit_glyph (txt_map[txtbuf], y, x);
-				CURCHANGED;
-				txt_change[txtbuf] = 0;
-			}
-			if (txt_map[txtbuf])
-				continue;
-			if (gr_change[grbuf] || txt_change[txtbuf])
-			{
-				blit_glyph (gr_map[grbuf], y, x);
-				CURCHANGED;
-				gr_change[grbuf] = 0;
+				int gr_y = y + gra->cy, gr_x = x + gra->cx;
+				int txt_y = y + gra->vy, txt_x = x + gra->vx;
+				int gr_c = gra_buffer (gra, gr_y, gr_x);
+				int txt_c = txt_buffer (txt_y, txt_x);
+				if (gr_c != -1 && txt_c != -1)
+				{
+					if (gra->change[gr_c] || forced_refresh ||
+					    (txt_map[txt_c] == 0 && txt_change[txt_c]))
+					{
+						screen_map[txt_c] = gra->data[gr_c];
+						screen_change[txt_c] = 1;
+					}
+		//			else
+		//				screen_map[txt_c] = 0;
+				}
+				gra->change[gr_c] = 0;
 			}
 		}
 	}
 
-	px_showboxes ();
+	for (x = 0; x < txt_w; ++ x)
+	{
+		for (y = 0; y < txt_h; ++ y)
+		{
+			int txt_c = txt_buffer (y, x);
+			if (txt_change[txt_c] || forced_refresh)
+			{
+				if (txt_map[txt_c] || !screen_change[txt_c])
+				{
+					screen_map[txt_c] = txt_map[txt_c];
+					screen_change[txt_c] = 1;
+				}
+			}
+			txt_change[txt_c] = 0;
+		}
+	}
 
-	if (changed_total < 100)
-		SDL_UpdateRects (screen, changed_total, rects);
-	else
-		SDL_UpdateRect (screen, 0, 0, 0, 0);
+	for (x = 0; x < txt_w; ++ x)
+	{
+		for (y = 0; y < txt_h; ++ y)
+		{
+			int txt_c = txt_buffer (y, x);
+			if (screen_change[txt_c] || forced_refresh)
+				blit_glyph (screen_map[txt_c], y, x);
+			screen_map[txt_c] = 0;
+			screen_change[txt_c] = 0;
+		}
+	}
+
+	if (gr_onrefresh)
+		gr_onrefresh ();
+
+	forced_refresh = 0;
+	SDL_UpdateRect (screen, 0, 0, 0, 0);
 }
 
 void gr_frefresh ()
 {
-	int x, y;
-
-	for (x = 0; x < snumx; ++ x)
-	{
-		for (y = 0; y < snumy; ++ y)
-		{
-			int txtbuf = txt_buffer (y, x);
-			if (txt_map[txtbuf])
-			{
-				blit_glyph (txt_map[txtbuf], y, x);
-				txt_change[txtbuf] = 0;
-				continue;
-			}
-			int gly = y + cam_yloc, glx = x + cam_xloc;
-			int grbuf = gr_buffer (gly, glx);
-			blit_glyph (gr_map[grbuf], y, x);
-			gr_change[grbuf] = 0;
-		}
-	}
-	px_showboxes ();
-	SDL_UpdateRect (screen, 0, 0, 0, 0);
+	forced_refresh = 1;
+	gr_refresh ();
 }
 
-void gr_clear ()
+void txt_clear ()
 {
 	int i;
-	px_showboxes ();
-	for (i = 0; i < MAP_TILES; ++ i)
-		gr_baddch (i, ' ');
-	for (i = 0; i < TXT_TILES; ++ i)
+	//px_showboxes (); why was this here?
+	for (i = 0; i < txt_area; ++ i)
 		txt_baddch (i, 0);
-	gr_refresh ();
+	//gr_refresh ();
 }
 
 int tout_num = 0;
@@ -351,22 +339,30 @@ int gr_equiv (uint32_t key1, uint32_t key2)
 	return 1;
 }
 
+uint32_t end = 0;
 uint32_t gr_getfullch ()
 {
 	gr_refresh ();
 
 	SDL_Event event;
-	uint32_t end = 0;
-	uint32_t modifier_keys = (KMOD_SHIFT | KMOD_CAPS | KMOD_NUM) << 16;
-	if (tout_num)
-		end = tout_num + SDL_GetTicks ();
+	//uint32_t modifier_keys = (KMOD_SHIFT | KMOD_CAPS | KMOD_NUM) << 16;
+	int ticks = SDL_GetTicks ();
+	if (tout_num && end <= ticks)
+		end = tout_num + ticks;
+	if (tout_num == 0)
+		end = 0;
 
 	while (1)
 	{
-		if ((end) && (SDL_GetTicks () >= end)) break;
+		if (end && SDL_GetTicks () >= end)
+		{
+			end = 0;
+			break;
+		}
 		if (!SDL_PollEvent (&event))
 		{
-			t_idle ();
+			if (gr_onidle)
+				gr_onidle ();
 			gr_wait (20);
 			continue;
 		}
@@ -374,30 +370,27 @@ uint32_t gr_getfullch ()
 		switch (event.type)
 		{
 			case SDL_KEYDOWN:
-			{
+			 {
 				uint32_t mod = event.key.keysym.mod << 16;
-				if ((mod & (~modifier_keys)) && (event.key.keysym.unicode != 0))
+				/*if ((mod & (~modifier_keys)) && (event.key.keysym.unicode != 0))
 				{
 					//printf ("%d %d\n", event.key.keysym.sym, event.key.keysym.unicode);
 					return mod|event.key.keysym.sym;
-				}
-				if (!echoing)
-				{
-					if (event.key.keysym.sym == SDLK_UP)
-						return mod|GRK_UP;
-					if (event.key.keysym.sym == SDLK_DOWN)
-						return mod|GRK_DN;
-					if (event.key.keysym.sym == SDLK_LEFT)
-						return mod|GRK_LF;
-					if (event.key.keysym.sym == SDLK_RIGHT)
-						return mod|GRK_RT;
-				}
+				}*/
+				if (event.key.keysym.sym == SDLK_UP)
+					return mod|GRK_UP;
+				if (event.key.keysym.sym == SDLK_DOWN)
+					return mod|GRK_DN;
+				if (event.key.keysym.sym == SDLK_LEFT)
+					return mod|GRK_LF;
+				if (event.key.keysym.sym == SDLK_RIGHT)
+					return mod|GRK_RT;
 				if (event.key.keysym.unicode == 0)
 					break;
-				if (echoing)
+				/*if (echoing)
 				{
 					if (event.key.keysym.unicode >= 0x20)
-						txt_mvaddch (curs_yloc-cam_yloc, curs_xloc-cam_xloc, event.key.keysym.unicode);
+						txt_mvaddch (curs_yloc-gra->cy, curs_xloc-gra->cx, event.key.keysym.unicode);
 					if (curs_xloc == MAP_WIDTH-1)
 					{
 						curs_xloc = 0;
@@ -405,7 +398,7 @@ uint32_t gr_getfullch ()
 					}
 					else
 						++ curs_xloc;
-				}
+				}*/
 
 				return mod|event.key.keysym.unicode;
 			}
@@ -432,85 +425,77 @@ char gr_getch ()
 	return (char)(gr_getfullch () & 0xFF);
 }
 
-void gr_getstr (char *out, int len)
+void txt_getstr (char *out, int len)
 {
 	int i = 0;
 	do
 	{
+		int tcx = curs_xloc, tcy = curs_yloc;
 		csr_move (curs_yloc, curs_xloc);
 		char in = gr_getch ();
+		curs_yloc = tcy;
+		curs_xloc = tcx;
 		if (in == CH_LF || in == CH_CR) break;
 		if (in == CH_BS)
 		{
-			if (curs_xloc == 0)
-			{
-				curs_xloc = MAP_WIDTH-1;
-				-- curs_yloc;
-			}
-			else
-				-- curs_xloc;
 			if (i)
 			{
 				if (curs_xloc == 0)
 				{
-					curs_xloc = MAP_WIDTH-1;
+					curs_xloc = txt_w-1;
 					-- curs_yloc;
 				}
 				else
 					-- curs_xloc;
-			}
-			if (i)
 				-- i;
+			}
 			out[i] = 0;
 			txt_mvaddch (curs_yloc, curs_xloc, ' ');
 			continue;
 		}
-		if (in == 0 || i >= len) /* Modifier (eg shift) or too long */
-		{
-			if (curs_xloc == 0)
-			{
-				curs_xloc = MAP_WIDTH-1;
-				-- curs_yloc;
-			}
-			else
-				-- curs_xloc;
-			txt_mvaddch (curs_yloc, curs_xloc, ' ');
-			continue;
-		}
+		txt_mvaddch (curs_yloc, curs_xloc, in);
 		out[i] = in;
-		++ i;
+		if (i < len-1)
+		{
+			++ curs_xloc;
+			++ i;
+		}
 	}
 	while (1);
 	out[i] = 0;
 }
 
-void gr_echo ()
+int txt_echo (int echo)
 {
-	echoing = 1;
-}
-
-void gr_noecho ()
-{
-	echoing = 0;
+	if (echo != -1)
+		echoing = (echo == 1);
+	return echoing;
 }
 
 void gr_resize (int ysiz, int xsiz)
 {
+	int i;
 	SDL_FreeSurface (screen);
 	screen = SDL_SetVideoMode (xsiz, ysiz, 32, SDL_SWSURFACE | SDL_RESIZABLE);
 
-	int chy = ysiz/GLH - snumy, chx = xsiz/GLW - snumx;
-	snumy += chy;
-	snumx += chx;
-	pnumy += chy;
-	pnumx += chx;
+	txt_h = ysiz/GLH;
+	txt_w = xsiz/GLW;
+	txt_area = txt_h * txt_w;
 	
-	txt_map = realloc (txt_map, sizeof(glyph) * snumy * snumx);
-	memset (txt_map, 0, sizeof(glyph) * snumy * snumx);
-	txt_change = realloc (txt_change, snumy * snumx);
-	memset (txt_change, 0, snumy * snumx);
+	txt_map = realloc (txt_map, sizeof(glyph) * txt_area);
+	memset (txt_map, 0, sizeof(glyph) * txt_area);
+	txt_change = realloc (txt_change, sizeof(char) * txt_area);
+	memset (txt_change, 0, sizeof(char) * txt_area);
+	screen_map = realloc (screen_map, sizeof(glyph) * txt_area);
+	for (i = 0; i < txt_area; ++ i)
+		screen_map[i] = ' ';
+	screen_change = realloc (screen_change, sizeof(char) * txt_area);
+	memset (screen_change, 0, sizeof(char) * txt_area);
 
-	p_init ();
+	forced_refresh = 1;
+
+	if (gr_onresize)
+		gr_onresize ();
 }
 
 Uint32
@@ -583,12 +568,34 @@ void gr_init ()
 
 	gr_resize (screenY, screenX);
 	
-	/* Finish housekeeping */
 	SDL_EnableUNICODE (1);
 	SDL_EnableKeyRepeat (200, 30);
 	SDL_WM_SetCaption ("Yore", "Yore");
 	csr_hide ();
-	px_csr ();
+
+	if (!graphs)
+		graphs = v_dinit (sizeof(Graph));
+}
+
+Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
+{
+	Graph gra;
+
+	glyph *data = malloc (sizeof(glyph) * h * w);
+	char *change = malloc (sizeof(char) * h * w);
+
+	memset (data, 0, sizeof(glyph) * h * w);
+	memset (change, 0, sizeof(char) * h * w);
+	
+	gra = malloc (sizeof(struct Graph));
+	struct Graph from = {h, w, h * w, data, change, 0, 0, vy, vx, vh, vw, 1};
+	memcpy (gra, &from, sizeof(struct Graph));
+
+	if (!graphs)
+		graphs = v_dinit (sizeof(Graph));
+	v_push (graphs, &gra);
+	
+	return gra;
 }
 
 void gr_wait (uint32_t ms)
@@ -596,11 +603,16 @@ void gr_wait (uint32_t ms)
 	SDL_Delay (ms);
 }
 
-#define GR_NEAR 5
-int gr_nearedge (int yloc, int xloc)
+uint32_t gr_getms ()
 {
-	yloc -= cam_yloc; xloc -= cam_xloc;
-	return (yloc <= GR_NEAR || yloc >= (pnumy-GR_NEAR) ||
-	        xloc <= GR_NEAR || xloc >= (pnumx-GR_NEAR));
+	return SDL_GetTicks ();
+}
+
+#define GR_NEAR 5
+int gra_nearedge (Graph gra, int yloc, int xloc)
+{
+	yloc -= gra->cy; xloc -= gra->cx;
+	return (yloc <= GR_NEAR || yloc >= (gra->vh-GR_NEAR) ||
+	        xloc <= GR_NEAR || xloc >= (gra->vw-GR_NEAR));
 }
 

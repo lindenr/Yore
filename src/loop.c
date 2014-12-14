@@ -50,7 +50,7 @@ void main_loop ()
 			mon = &th->thing.mons;
 		}
 
-		gr_move (player->yloc, player->xloc);
+		//txt_move (player->yloc, player->xloc); what
 		if (pmons.HP <= 0)
 		{
 			U.playing = PLAYER_LOSTGAME;
@@ -85,3 +85,4 @@ void main_loop ()
 loop_done:
 	;
 }
+

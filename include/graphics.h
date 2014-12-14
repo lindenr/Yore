@@ -26,73 +26,88 @@ typedef uint32_t glyph;
 #define GLW 8
 #define GLH 12
 
-#define MAP_HEIGHT 100
-#define MAP_WIDTH  300
-#define MAP_TILES (MAP_HEIGHT*MAP_WIDTH)
-#define TXT_TILES (snumy*snumx)
+/* note: visible graphs shouldn't overlap, as the drawing order is undefined */
+typedef struct Graph
+{
+	int h, w, a;        /* graph dimensions */
+	glyph *data;        /* an h*w grid of glyphs */
+	char *change;       /* whether a point has changed since last refresh */
+	int cy, cx;         /* camera location */
+	int vy, vx, vh, vw; /* view location and dimensions on the window */
+	int vis;            /* whether the graph is currently being shown */
+} *Graph;
 
-extern int snumy, snumx;
-extern int pnumy, pnumx;
-extern int cam_yloc, cam_xloc;
-extern glyph gr_map[MAP_TILES],    *txt_map;
-extern char  gr_change[MAP_TILES], *txt_change;
+/* Prefixes:
+ * gr_ is the graphics prefix for generic things to do with the screen
+ * txt_ is the text prefix for managing the text overlay
+ * gra_ is the graph prefix for messing with a Graph */
+
+extern int txt_h, txt_w, txt_area;
+extern glyph *txt_map;
+extern char  *txt_change;
 extern int csr_y, csr_x, csr_state;
+extern int forced_refresh;
+
+extern void (*gr_onidle)    ();
+extern void (*gr_onresize)  ();
+extern void (*gr_onrefresh) ();
 
 extern SDL_Surface *screen;
 
 /* Initialisation */
-void gr_init    (void);
+void gr_init   (void);
+Graph gra_init (int, int, int, int, int, int);
 
 /* Output */
-void gr_move    (int, int);
-void gr_movecam (int, int);
-void gr_centcam (int, int);
+void txt_move    (int, int);
+void gra_movecam (Graph, int, int);
+void gra_centcam (Graph, int, int);
 
-void gr_addch   (glyph);
-void gr_mvaddch (int, int, glyph);
-void gr_baddch  (int, glyph);
+void gra_addch   (Graph, glyph);
+void gra_mvaddch (Graph, int, int, glyph);
+void gra_baddch  (Graph, int, glyph);
 
 void gr_refresh ();
 void gr_frefresh();
 
-void gr_clear   ();
+void txt_clear ();
 
-void txt_mvaddch(int, int, glyph);
-void txt_baddch (int, glyph);
+void txt_mvaddch (int, int, glyph);
+void txt_baddch  (int, glyph);
 
-void txt_mvprint(int, int, const char *, ...);
+void txt_mvprint (int, int, const char *, ...);
 
-void txt_box    (int, int, int, int);
-void txt_dbox   (int, int, int, int);
-void txt_fbox   (int, int, int, int, glyph);
+void txt_box  (int, int, int, int);
+void txt_dbox (int, int, int, int);
+void txt_fbox (int, int, int, int, glyph);
 
-void csr_noblink();
-void csr_blink  ();
-void csr_move   (int, int);
-void csr_show   ();
-void csr_hide   ();
+void csr_noblink ();
+void csr_blink   ();
+void csr_move    (int, int);
+void csr_show    ();
+void csr_hide    ();
 
-void txt_mark   (int, int);
-void gr_mark    (int, int);
+void txt_mark (int, int);
+void gra_mark (Graph, int, int);
 
 /* Input */
-char gr_getch   ();
+char     gr_getch     ();
 uint32_t gr_getfullch ();
-void gr_getstr  (char *, int);
-int  gr_equiv   (uint32_t, uint32_t);
+void     txt_getstr   (char *, int);
+int      gr_equiv     (uint32_t, uint32_t);
 
-void gr_echo    ();
-void gr_noecho  ();
+int txt_echo   (int);
 
-void gr_tout    (int);
+void gr_tout (int);
 
 /* Misc */
-int  gr_buffer  (int, int);
+int  gra_buffer (Graph, int, int);
 int  txt_buffer (int, int);
 
-int  gr_nearedge(int, int);
-void gr_wait    (uint32_t);
-void gr_resize  (int, int);
+int  gra_nearedge (Graph, int, int);
+void gr_wait      (uint32_t);
+uint32_t gr_getms ();
+void gr_resize    (int, int);
 
 /* Unusual characters */
 #define CH_BS        0x08
@@ -147,3 +162,4 @@ void gr_resize  (int, int);
 #define COL_TXT_BRIGHT 0xFFF00000
 
 #endif /* GRAPHICS_H_INCLUDED */
+

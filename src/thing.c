@@ -100,7 +100,7 @@ void walls_test ()
 
 void thing_bmove (struct Thing *thing, int level, int num)
 {
-	thing_move (thing, level, num/MAP_WIDTH, num%MAP_WIDTH);
+	thing_move (thing, level, num/map_graph->w, num%map_graph->w);
 }
 
 void thing_watchvec (Vector vec)
@@ -132,7 +132,7 @@ void rem_id (int id)
 	struct DLevel *lvl = dlv_lvl (th->dlevel);
 	if (th->type == THING_MONS)
 		rem_mons (lvl, th->ID);
-	int n = gr_buffer (th->yloc, th->xloc);
+	int n = map_buffer (th->yloc, th->xloc);
 	v_rptr (lvl->things[n], th);
 	thing_watchvec (lvl->things[n]);
 }
@@ -145,8 +145,8 @@ void thing_move (struct Thing *thing, int new_level, int new_y, int new_x)
 	struct DLevel *olv = dlv_lvl (thing->dlevel),
 	              *nlv = dlv_lvl (new_level);
 
-	int old = gr_buffer (thing->yloc, thing->xloc),
-	    new = gr_buffer (new_y, new_x);
+	int old = map_buffer (thing->yloc, thing->xloc),
+	    new = map_buffer (new_y, new_x);
 
 	if (thing->type == THING_MONS && new_level != thing->dlevel)
 	{
@@ -212,7 +212,7 @@ struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t
 {
 	//if (type == THING_ITEM)
 	//	printf ("New: %u %d %dx%d  %p\n", type, dlevel, y, x, actual_thing);
-	int n = gr_buffer (y, x), ID = getID (), dlevel = lvl->level;
+	int n = map_buffer (y, x), ID = getID (), dlevel = lvl->level;
 	struct Thing t = {type, dlevel, ID, y, x, {}};
 
 	if (t.ID != all_ids->len)
@@ -241,24 +241,24 @@ void set_can_see (uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
 	bres_start (Yloc, Xloc, sq_seen, sq_attr);
 
 	/* Anything you could see before you can't necessarily now */
-	for (w = 0; w < MAP_TILES; ++ w)
+	for (w = 0; w < map_graph->a; ++ w)
 		if (sq_seen[w] == 2)
 			sq_seen[w] = 1;
 
 	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
-	for (w = 0; w < TXT_TILES; ++ w)
-		bres_draw (cam_yloc + w / snumx, cam_xloc + w % snumx);
+	for (w = 0; w < txt_area; ++ w)
+		bres_draw (map_graph->cy + w / txt_w, map_graph->cx + w % txt_w);
 		//sq_seen[w] = 2;
 
 	/* Make everything we can't see dark */
-	for (w = 0; w < MAP_TILES; ++ w)
+	for (w = 0; w < map_graph->a; ++ w)
 		if (!sq_seen[w])
-			gr_baddch (w, ' ');
+			gra_baddch (map_graph, w, ' ');
 
 	/* Do the drawing */
-	for (Y = 0, w = 0; Y < MAP_HEIGHT; ++Y)
+	for (Y = 0, w = 0; Y < map_graph->h; ++Y)
 	{
-		for (X = 0; X < MAP_WIDTH; ++X, ++w)
+		for (X = 0; X < map_graph->w; ++X, ++w)
 		{
 			uint32_t y = DOT, u = DOT,
             h = DOT, j = DOT, k = DOT, l = DOT,
@@ -269,40 +269,45 @@ void set_can_see (uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
 
 			/* Replace something unseeable with what's behind it. */
 			if (sq_seen[w] == 1 && sq_attr[w] == 2)
-				gr_baddch (w, sq_unseen[w]);
+				gra_baddch (map_graph, w, sq_unseen[w]);
 
-			if (sq_attr[w] != 0 || (gr_map[w] & 0xFF) == ' ')
+			if (sq_attr[w] != 0 || (map_graph->data[w] & 0xFF) == ' ')
 				continue; /* Only keep going if it is a wall. */
 
 			if (X)
 				h = US(w - 1);
 			if (Y)
-				k = US(w - MAP_WIDTH);
-			if (X < MAP_WIDTH - 1)
+				k = US(w - map_graph->w);
+			if (X < map_graph->w - 1)
 				l = US(w + 1);
-			if (Y < MAP_HEIGHT - 1)
-				j = US(w + MAP_WIDTH);
+			if (Y < map_graph->h - 1)
+				j = US(w + map_graph->w);
 			if (X && Y)
-				y = US(w - MAP_WIDTH - 1);
-			if (X < MAP_WIDTH - 1 && Y)
-				u = US(w - MAP_WIDTH + 1);
-			if (X && Y < MAP_HEIGHT - 1)
-				b = US(w + MAP_WIDTH - 1);
-			if (X < MAP_WIDTH - 1 && Y < MAP_HEIGHT - 1)
-				n = US(w + MAP_WIDTH + 1);
+				y = US(w - map_graph->w - 1);
+			if (X < map_graph->w - 1 && Y)
+				u = US(w - map_graph->w + 1);
+			if (X && Y < map_graph->h - 1)
+				b = US(w + map_graph->w - 1);
+			if (X < map_graph->w - 1 && Y < map_graph->h - 1)
+				n = US(w + map_graph->w + 1);
 
 			/* Finally, do the actual drawing of the wall. */
-			if (gr_map[w] & COL_TXT_BRIGHT)
-				gr_baddch (w, (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n) | COL_TXT_BRIGHT);
+			if (map_graph->data[w] & COL_TXT_BRIGHT)
+				gra_baddch (map_graph, w,
+				            (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n) |
+				            COL_TXT_BRIGHT);
 			else
-				gr_baddch (w, (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n));
+				gra_baddch (map_graph, w,
+				            (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n));
 		}
 	}
 }
 
+uint32_t *type = NULL;
 void draw_map ()
 {
-	uint32_t type[MAP_TILES] = {0,};
+	type = realloc (type, sizeof(*type) * map_graph->a);
+	memset (type, 0, sizeof(*type) * map_graph->a);
 
 	struct DLevel *lvl = cur_dlevel;
 	Vector *things = lvl->things;
@@ -319,11 +324,11 @@ void draw_map ()
 			{
 				struct Monster *m = &th->thing.mons;
 				changed = true;
-				gr_baddch (at, mons[m->type].col | mons[m->type].ch);
+				gra_baddch (map_graph, at, mons[m->type].col | mons[m->type].ch);
 				if (m->name)
 					if (th == player)
 					{
-						//gr_map[ati] |= COL_TXT_BRIGHT;
+						//map_graph->data[ati] |= COL_TXT_BRIGHT;
 					}
 				sq_attr[at] = 2;
 				break;
@@ -333,10 +338,10 @@ void draw_map ()
 				if (type[at] != THING_MONS)
 				{
 					struct Item *t = &th->thing.item;
-					gr_baddch (at, t->type.col | t->type.ch);
+					gra_baddch (map_graph, at, t->type.col | t->type.ch);
 					changed =  true;
 				}
-				sq_unseen[at] = gr_map[at];
+				sq_unseen[at] = map_graph->data[at];
 				sq_attr[at] = 1;
 				break;
 			}
@@ -345,11 +350,11 @@ void draw_map ()
 				if (type[at] == THING_NONE)
 				{
 					struct map_item_struct *m = &th->thing.mis;
-					gr_baddch (at, (glyph) ((unsigned char)(m->ch)));
+					gra_baddch (map_graph, at, (glyph) ((unsigned char)(m->ch)));
 					sq_attr[at] = m->attr & 1;
 					changed = true;
 				}
-				sq_unseen[at] = gr_map[at];
+				sq_unseen[at] = map_graph->data[at];
 				break;
 			}
 			case THING_MAGIC:
@@ -387,7 +392,7 @@ void projectile (struct Thing *from, char *name, int type, int strength)
 
 int pr_at (struct DLevel *dlevel, int yloc, int xloc)
 {
-	int n = gr_buffer (yloc, xloc);
+	int n = map_buffer (yloc, xloc);
 	LOOP_THING(dlevel->things, n, i)
 	{
 		struct Thing *th = THING(dlevel->things, n, i);

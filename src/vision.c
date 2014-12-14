@@ -26,7 +26,7 @@ void bres_callback (int yloc, int xloc, int (*x) (struct DLevel *, int, int))
 /* adapted from wikipedia */
 bool bres_draw (int ty, int tx)
 {
-	if ((!callback) && grid && grid[gr_buffer(ty, tx)] == 2)
+	if ((!callback) && grid && grid[map_buffer(ty, tx)] == 2)
 		return true;
 	int dy, dx, sy, sx, err, e2, fy, fx;
 	fy = fromy;
@@ -67,13 +67,14 @@ bool bres_draw (int ty, int tx)
 		}
 		if (fy == ty && fx == tx)
 			break;
-		if (grid_t[gr_buffer(fy, fx)] == 0)
+		if (grid_t[map_buffer(fy, fx)] == 0)
 			return false;
 		if (grid)
-			grid[gr_buffer(fy, fx)] = 2;
+			grid[map_buffer(fy, fx)] = 2;
 	}
 	if (grid)
-		grid[gr_buffer(fy, fx)] = 2;
+		grid[map_buffer(fy, fx)] = 2;
 	callback = NULL;
 	return true;
 }
+

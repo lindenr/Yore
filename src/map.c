@@ -10,10 +10,17 @@
 
 #define MAP_MOVEABLE 3
 
+Graph map_graph = NULL;
+
+int map_buffer (int yloc, int xloc)
+{
+	return map_graph->w*yloc + xloc;
+}
+
 /* remember -- ONLY ONE MONSTER PER SQUARE */
 void *get_sqmons (Vector *things, int yloc, int xloc)
 {
-	int n = gr_buffer(yloc, xloc);
+	int n = map_buffer (yloc, xloc);
 	LOOP_THING(things, n, i)
 	{
 		struct Thing *th = THING(things, n, i);
@@ -28,10 +35,10 @@ uint32_t get_sqattr (Vector *things, int yloc, int xloc)
 {
 	uint32_t mvbl = 1;
 
-	if (yloc >= MAP_HEIGHT || xloc >= MAP_WIDTH)
+	if (yloc >= map_graph->h || xloc >= map_graph->w)
 		return -1;
 
-	int n = gr_buffer (yloc, xloc);
+	int n = map_buffer (yloc, xloc);
 	LOOP_THING(things, n, i)
 	{
 		struct Thing *th = THING(things, n, i);

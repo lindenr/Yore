@@ -11,25 +11,25 @@
 
 int Kcamup ()
 {
-	gr_movecam (cam_yloc - 10, cam_xloc);
+	gra_movecam (map_graph, map_graph->cy - 10, map_graph->cx);
 	return 0;
 }
 
 int Kcamdn ()
 {
-	gr_movecam (cam_yloc + 10, cam_xloc);
+	gra_movecam (map_graph, map_graph->cy + 10, map_graph->cx);
 	return 0;
 }
 
 int Kcamlf ()
 {
-	gr_movecam (cam_yloc, cam_xloc - 10);
+	gra_movecam (map_graph, map_graph->cy, map_graph->cx - 10);
 	return 0;
 }
 
 int Kcamrt ()
 {
-	gr_movecam (cam_yloc, cam_xloc + 10);
+	gra_movecam (map_graph, map_graph->cy, map_graph->cx + 10);
 	return 0;
 }
 
@@ -41,7 +41,7 @@ int Kwait ()
 int Kpickup ()
 {
 	Vector ground = v_init (sizeof (int), 20);
-	int n = gr_buffer (player->yloc, player->xloc);
+	int n = map_buffer (player->yloc, player->xloc);
 	Vector *things = dlv_things (player->dlevel);
 	struct Thing *th;
 	
@@ -122,7 +122,7 @@ int Kinv ()
 int Knlook ()
 {
 	int k = 0;
-	int n = gr_buffer (player->yloc, player->xloc);
+	int n = map_buffer (player->yloc, player->xloc);
 	Vector *things = cur_dlevel->things;
 
 	LOOP_THING(things, n, i)
@@ -317,17 +317,17 @@ void pl_mvchoose (int *yloc, int *xloc, char *instruct, char *confirm)
 	{
 		if (ymove == -1 && csr_y > 0)
 			csr_move (csr_y-1, csr_x);
-		else if (ymove == 1 && csr_y < pnumy-1)
+		else if (ymove == 1 && csr_y < map_graph->vh-1)
 			csr_move (csr_y+1, csr_x);
 		if (xmove == -1 && csr_x > 0)
 			csr_move (csr_y, csr_x-1);
-		else if (xmove == 1 && csr_x < pnumx-1)
+		else if (xmove == 1 && csr_x < map_graph->vw-1)
 			csr_move (csr_y, csr_x+1);
-		if (gr_nearedge (cam_yloc + csr_y, cam_xloc + csr_x))
-			gr_centcam (cam_yloc + csr_y, cam_xloc + csr_x);
+		if (gra_nearedge (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x))
+			gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);
 		key = pl_move (&ymove, &xmove, gr_getfullch ());
 	}
-	*yloc = cam_yloc + csr_y;
-	*xloc = cam_xloc + csr_x;
+	*yloc = map_graph->cy + csr_y;
+	*xloc = map_graph->cx + csr_x;
 }
 

@@ -4,6 +4,7 @@
 #include "include/graphics.h"
 #include "include/vector.h"
 #include "include/timer.h"
+#include "include/map.h"
 
 #include <stdint.h>
 #include <string.h>
@@ -50,7 +51,7 @@ void px_mvaddbox (int yloc, int xloc, int type, int len)
 			return;
 	}
 	v_push (boxes, &box);
-	gr_mark (yloc, xloc);
+	gra_mark (map_graph, yloc, xloc);
 	gr_refresh ();
 	if (len)
 		t_interval (len, $$, $.(px_mvrembox, (int) yloc, (int) xloc, (int) type), TMR_STOP);
@@ -68,7 +69,7 @@ void px_mvrembox (int yloc, int xloc, int type)
 			continue;
 
 		v_rem (boxes, i);
-		gr_mark (yloc, xloc);
+		gra_mark (map_graph, yloc, xloc);
 	}
 	gr_refresh ();
 }
@@ -76,9 +77,9 @@ void px_mvrembox (int yloc, int xloc, int type)
 void px_drawbox (struct Box *box)
 {
 	int yloc = box->yloc, xloc = box->xloc, type = box->type;
-	int sy = yloc - cam_yloc, sx = xloc - cam_xloc;
-	if (sy < 0 || sy >= pnumy ||
-	    sx < 0 || sx >= pnumx)
+	int sy = yloc - map_graph->cy, sx = xloc - map_graph->cx;
+	if (sy < 0 || sy >= map_graph->vh ||
+	    sx < 0 || sx >= map_graph->vw)
 		return;
 	int py = sy * GLH + BOXPOS[type][0], px = sx * GLW + BOXPOS[type][1];
 	int r = BOXCOL[type][0], g = BOXCOL[type][1], b = BOXCOL[type][2];

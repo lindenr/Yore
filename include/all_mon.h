@@ -48,7 +48,7 @@ const struct monster_struct mons[] = {
 		  ATTK(A(1, 2, ATTK_CLAW), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_FLSH | FL_ARMS | FL_LEGS,
 		  COL_TXT_RED(11) | COL_TXT_GREEN(11),
-		  4),
+		  0),
 	MONST("gnome", 'G', 10,
 		  ATTK(A(1, 3, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HMND | FL_SIZ3,

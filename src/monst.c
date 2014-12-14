@@ -88,21 +88,21 @@ void get_cinfo ()
 	char in;
 
 	txt_mvprint (0, 0, "What role would you like to take up?");
-	txt_mvprint (0, snumx - 11, "(q to quit)");
+	txt_mvprint (0, txt_w - 13, "(Esc to quit)");
 	txt_mvprint (2, 3, "a     Assassin");
 	txt_mvprint (3, 3, "d     Doctor");
 	txt_mvprint (4, 3, "s     Soldier");
-	gr_move (0, 37);
+	txt_move (0, 37);
 
 	do
 	{
 		in = gr_getch ();
-		if (in == 'q' || in == 0x1B)
+		if (in == CH_ESC)
 			return;
 	}
 	while (in != 'd' && in != 's' && in != 'a');
 
-	txt_mvprint (0, snumx - 11, "           ");
+	txt_mvprint (0, txt_w - 11, "           ");
 
 	if (in == 's')
 		U.role = 1;
@@ -233,10 +233,10 @@ void thing_move_level (struct Thing *th, int32_t where)
 	if (where == 0) /* Uncontrolled teleport within level */
 	{
 		do
-			wh = rn(MAP_TILES);
-		while (!is_safe_gen (cur_dlevel, wh / MAP_WIDTH, wh % MAP_WIDTH));
-		th->yloc = wh / MAP_WIDTH;
-		th->xloc = wh % MAP_WIDTH;
+			wh = rn(map_graph->a);
+		while (!is_safe_gen (cur_dlevel, wh / map_graph->w, wh % map_graph->w));
+		th->yloc = wh / map_graph->w;
+		th->xloc = wh % map_graph->w;
 	}
 	else if (where == 1) /* go up stairs */
 	{
@@ -275,8 +275,8 @@ int mons_take_move (struct Thing *th)
 	{
 		draw_map ();
 		p_pane ();
-		gr_move (th->yloc + 1, th->xloc);
-		csr_move (th->yloc - cam_yloc, th->xloc - cam_xloc);
+		//txt_move (th->yloc + 1, th->xloc); what
+		csr_move (th->yloc - map_graph->cy, th->xloc - map_graph->cx);
 
 		uint32_t key = gr_getfullch();
 		t_flush ();
@@ -285,8 +285,8 @@ int mons_take_move (struct Thing *th)
 		int mv = player_take_input (in);
 		if (mv != -1)
 		{
-			if (gr_nearedge (player->yloc, player->xloc))
-				gr_centcam (player->yloc, player->xloc);
+			if (gra_nearedge (map_graph, player->yloc, player->xloc))
+				gra_centcam (map_graph, player->yloc, player->xloc);
 			if (U.playing == PLAYER_WONGAME)
 				return false;
 			if (mv)
