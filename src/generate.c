@@ -242,7 +242,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		memclr (&p, sizeof(p));
 		p.type = player_gen_type ();
 		p.HP = (mons[p.type].flags >> 28) + (mons[p.type].exp >> 1);
-		p.HP += rn(p.HP / 3);
+		p.HP += rn(1+ p.HP / 3);
 		p.HP_max = p.HP;
 		p.name = NULL;
 		uint32_t xloc = rn(map_graph->w), yloc = rn(map_graph->h);

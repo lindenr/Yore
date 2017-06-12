@@ -102,6 +102,7 @@ int Ksdrop ()
 	struct Item *drop = player_use_pack ("Drop what?", ITCAT_ALL);
 	if (drop == NULL)
 		return 0;
+	mons_unwield (player);
 	unsigned u = PACK_AT (get_Itref (pmons.pack, drop));
 	pmons.pack.items[u] = NULL;
 	new_thing (THING_ITEM, cur_dlevel, player->yloc, player->xloc, drop);
@@ -132,7 +133,8 @@ int Knlook ()
 			continue;
 
 		char *line = get_inv_line (&THING(things, n, i)->thing.item);
-		p_msg ("You%s see here %s. ", ((k++) ? " also" : ""), line);
+		p_msg ("You%s see here %s. ", (k ? " also" : ""), line);
+		++ k;
 		free (line);
 	}
 	if (k == 0)
@@ -152,9 +154,9 @@ int Kwield ()
 	if (wield == NULL)
 		return 0;
 
-	unsigned u = PACK_AT (get_Itref (pmons.pack, wield));
-	pmons.pack.items[u] = NULL;
-	new_thing (THING_ITEM, cur_dlevel, player->yloc, player->xloc, wield);
+	//unsigned u = PACK_AT (get_Itref (pmons.pack, wield));
+	//pmons.pack.items[u] = NULL;
+	//new_thing (THING_ITEM, cur_dlevel, player->yloc, player->xloc, wield);
 
 	if (mons_unwield (player))
 		mons_wield (player, wield);

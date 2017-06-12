@@ -72,7 +72,7 @@ void gra_movecam (Graph gra, int yloc, int xloc)
 
 void gra_centcam (Graph gra, int yloc, int xloc)
 {
-	gra_movecam (gra, gra->cy - gra->vh/2, gra->cx - gra->vw/2);
+	gra_movecam (gra, yloc - gra->vh/2, xloc - gra->vw/2);
 }
 
 void gra_baddch (Graph gra, int buf, glyph gl)
@@ -220,7 +220,7 @@ void txt_mark (int yloc, int xloc)
 #define GL_BRD ((gl&0x000F0000)>>12)
 #define GL_BGN ((gl&0x0000F000)>>8)
 #define GL_BBL ((gl&0x00000F00)>>4)
-inline void blit_glyph (glyph gl, int yloc, int xloc)
+void blit_glyph (glyph gl, int yloc, int xloc)
 {
 	if (yloc == csr_y && xloc == csr_x && (csr_state&1))
 		gl = ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
@@ -608,11 +608,12 @@ uint32_t gr_getms ()
 	return SDL_GetTicks ();
 }
 
-#define GR_NEAR 5
+#define GR_NEARX 15
+#define GR_NEARY 10
 int gra_nearedge (Graph gra, int yloc, int xloc)
 {
 	yloc -= gra->cy; xloc -= gra->cx;
-	return (yloc <= GR_NEAR || yloc >= (gra->vh-GR_NEAR) ||
-	        xloc <= GR_NEAR || xloc >= (gra->vw-GR_NEAR));
+	return (yloc <= GR_NEARY || yloc >= (gra->vh-GR_NEARY) ||
+	        xloc <= GR_NEARX || xloc >= (gra->vw-GR_NEARX));
 }
 

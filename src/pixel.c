@@ -4,12 +4,13 @@
 #include "include/graphics.h"
 #include "include/vector.h"
 #include "include/timer.h"
+#include "include/loop.h"
 #include "include/map.h"
 
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
-$#
+//$#
 
 #define CSR_DELAY 600
 
@@ -36,13 +37,13 @@ void px_csr ()
 	gr_refresh ();
 	if (csr_state < 2)
 		csr_state = !csr_state;
-	t_interval (CSR_DELAY, $$, $.(px_csr), TMR_NONE);
+	//t_interval (CSR_DELAY, $$, $.(px_csr), TMR_NONE);
 }
 
 void px_mvaddbox (int yloc, int xloc, int type, int len)
 {
 	int i;
-	struct Box box = {yloc, xloc, type};
+	struct Box box = {yloc, xloc, type, Time+1};
 	if (boxes == NULL)
 		boxes = v_dinit (sizeof(box));
 	for (i = 0; i < boxes->len; ++ i)
@@ -53,8 +54,8 @@ void px_mvaddbox (int yloc, int xloc, int type, int len)
 	v_push (boxes, &box);
 	gra_mark (map_graph, yloc, xloc);
 	gr_refresh ();
-	if (len)
-		t_interval (len, $$, $.(px_mvrembox, (int) yloc, (int) xloc, (int) type), TMR_STOP);
+	//if (len)
+	//	t_interval (len, $$, $.(px_mvrembox, (int) yloc, (int) xloc, (int) type), TMR_STOP);
 }
 
 void px_mvrembox (int yloc, int xloc, int type)
@@ -102,7 +103,13 @@ void px_showboxes ()
 	for (i = 0; i < boxes->len; ++ i)
 	{
 		box = v_at (boxes, i);
-		px_drawbox (box);
+		if (box->expiry < Time)
+		{
+			v_rem (boxes, i);
+			gra_mark (map_graph, box->yloc, box->xloc);
+			-- i;
+		}
+		else px_drawbox (box);
 	}
 	if (SDL_MUSTLOCK (screen))
 		SDL_UnlockSurface (screen);

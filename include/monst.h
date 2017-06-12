@@ -6,6 +6,32 @@
 #include "include/map.h"
 #include "include/vector.h"
 
+#define FL_NONE 0x00000000      /* placeholder    */
+#define FL_UNIQ 0x00000001      /* unique         */
+#define FL_FLSH 0x00000002      /* fleshy         */
+#define FL_ACID 0x00000004      /* acidic         */
+#define FL_ARMS 0x00000010      /* has arms       */
+#define FL_LEGS 0x00000020      /* has legs       */
+#define FL_TRSO 0x00000040      /* has torso      */
+#define FL_MIND 0x00000080      /* mindful        */
+#define FL_WING 0x00000100      /* has wings      */
+
+/* Size flags with _rough_ approximations         */
+#define FL_SIZ1 0x20000000      /* tiny (bee)     */
+#define FL_SIZ2 0x40000000      /* small (cat)    */
+#define FL_SIZ3 0x60000000      /* m-small (dog)  */
+#define FL_SIZ4 0x80000000      /* medium (human) */
+#define FL_SIZ5 0xA0000000      /* large (horse)  */
+#define FL_SIZ6 0xC0000000      /* huge (giant)   */
+extern const int CORPSE_WEIGHTS[];
+
+#define FL_BLOB (FL_FLSH | FL_ACID)
+#define FL_HMND (FL_FLSH | FL_ARMS | FL_LEGS | FL_TRSO | FL_MIND)
+#define FL_SKEL (FL_HMND & (~FL_FLSH))	/* skeletal */
+
+/* Flags for U.m_glflags */
+#define MGL_GSAT 0x00000001     /* Satan has been generated */
+
 #define A_PARAM 3				/* AdB damage, of type C */
 #define A_NUM   6				/* number of normal attacks per monster (like NH) */
 // extern const int CORPSE_WEIGHTS[7];
@@ -14,7 +40,19 @@
 
 #define WOW_INIT 0
 
-int MTYP_HUMAN, MTYP_SATAN;
+enum MTYPES
+{
+	MTYP_CHICKEN = 0,
+	MTYP_CRAB,
+	MTYP_GNOME,
+	MTYP_HUMAN,
+	MTYP_DWARF,
+	MTYP_HOBBIT,
+	MTYP_LICH,
+	MTYP_ACID_BLOB,
+	MTYP_SATAN,
+	NUM_MONS
+};
 
 struct WoW						/* Wielded or Worn */
 {

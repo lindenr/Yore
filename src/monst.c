@@ -9,7 +9,6 @@
 #include "include/vision.h"
 #include "include/generate.h"
 #include "include/words.h"
-#include "include/all_mon.h"
 #include "include/event.h"
 #include "include/graphics.h"
 #include "include/dlevel.h"
@@ -65,7 +64,7 @@ void setup_U ()
 		U.attr[i] = 10;
 
 	for (NUM_ITEMS = 0; items[NUM_ITEMS].name[0]; ++ NUM_ITEMS);
-
+/*
 	for (i = 0; mons[i].name; ++i)
 		if (!strcmp(mons[i].name, "human"))
 			break;
@@ -79,7 +78,7 @@ void setup_U ()
 	if (!mons[i].name)
 		return;
 	MTYP_SATAN = i;
-
+*/
 	U.playing = PLAYER_STARTING;
 }
 
@@ -160,7 +159,7 @@ int player_gen_type ()
 	return 0;
 }
 
-inline int mons_get_wt (int type)
+int mons_get_wt (int type)
 {
 	return CORPSE_WEIGHTS[mons[type].flags >> 29];
 }
@@ -217,7 +216,7 @@ int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 	return 0;
 }
 
-inline int player_take_input (char in)
+int player_take_input (char in)
 {
 	int xmove, ymove;
 	pl_move (&ymove, &xmove, (uint32_t) in);

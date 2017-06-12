@@ -3,6 +3,6 @@ bin/Yore
 # Save files (testing)
 *.sav
 # function preprocessor
-function
-function.exe
+#function
+#function.exe
 

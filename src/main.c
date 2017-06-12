@@ -15,8 +15,6 @@
 #include "include/timer.h"
 #include "include/pixel.h"
 
-#include "include/test.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -72,11 +70,12 @@ int main (int argc, char *argv[])
 {
 	int i;
 
-	//gr_onresize = p_init;
-	//gr_onrefresh = px_showboxes;
-	//map_graph = gra_init (100, 300, 0, 0, 0, 0);
-	test_do ();
-	return 0;
+	//test_do ();
+	//return 0;
+	gr_onresize = p_init;
+	gr_onrefresh = px_showboxes;
+	map_graph = gra_init (100, 300, 0, 0, 0, 0);
+	gr_init();
 
 	px_csr ();
 	//ru_start (3);

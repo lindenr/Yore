@@ -260,6 +260,8 @@ void set_can_see (uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
 	{
 		for (X = 0; X < map_graph->w; ++X, ++w)
 		{
+			//gra_baddch(map_graph, w, 'x');
+			//continue;
 			uint32_t y = DOT, u = DOT,
             h = DOT, j = DOT, k = DOT, l = DOT,
                      b = DOT, n = DOT;

@@ -13,6 +13,7 @@ struct Box
 {
 	int yloc, xloc;
 	int type;
+	int expiry;
 };
 
 extern int BOXPOS[BOX_NUM][2];

@@ -8,7 +8,7 @@
 
 #include <malloc.h>
 
-inline unsigned PACK_AT(char a)
+unsigned PACK_AT(char a)
 {
 	if (a < 65 || a > 122 || (a > 90 && a < 97))
 		return -1;
@@ -18,7 +18,7 @@ inline unsigned PACK_AT(char a)
 	return (unsigned)(a);
 }
 
-inline char LETTER_AT(unsigned i)
+char LETTER_AT(unsigned i)
 {
 	if (i >= 26)
 		return i + 65;

@@ -1,10 +1,17 @@
+/* all_mon.c */
+
+#include "include/all.h"
+#include "include/thing.h"
+#include "include/panel.h"
+#include "include/rand.h"
+#include "include/loop.h"
+#include "include/monst.h"
+
 #if defined(USING_COL)
 #  define COL(cl) cl
 #else
 #  define COL(cl) 0
 #endif
-
-#define NUM_MONS ((sizeof(mons)/sizeof(*mons))-1)
 
 #define MONST(nm,ch,sp,at,fl,cl,ex) {nm,ch,sp,at,fl,COL(cl),ex}
 #define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}
@@ -12,31 +19,7 @@
 #define A(a,b,c) {a,b,c}
 #define AT_NONE {0,0,0}
 
-#define FL_NONE 0x00000000      /* placeholder    */
-#define FL_UNIQ 0x00000001      /* unique         */
-#define FL_FLSH 0x00000002      /* fleshy         */
-#define FL_ACID 0x00000004      /* acidic         */
-#define FL_ARMS 0x00000010      /* has arms       */
-#define FL_LEGS 0x00000020      /* has legs       */
-#define FL_TRSO 0x00000040      /* has torso      */
-#define FL_MIND 0x00000080      /* mindful        */
-#define FL_WING 0x00000100      /* has wings      */
-
-/* Size flags with _rough_ approximations         */
-#define FL_SIZ1 0x20000000      /* tiny (bee)     */
-#define FL_SIZ2 0x40000000      /* small (cat)    */
-#define FL_SIZ3 0x60000000      /* m-small (dog)  */
-#define FL_SIZ4 0x80000000      /* medium (human) */
-#define FL_SIZ5 0xA0000000      /* large (horse)  */
-#define FL_SIZ6 0xC0000000      /* huge (giant)   */
 const int CORPSE_WEIGHTS[7] = {0, 100, 1000, 3000, 20000, 50000, 300000};
-
-#define FL_BLOB (FL_FLSH | FL_ACID)
-#define FL_HMND (FL_FLSH | FL_ARMS | FL_LEGS | FL_TRSO | FL_MIND)
-#define FL_SKEL (FL_HMND & (~FL_FLSH))	/* skeletal */
-
-/* Flags for U.m_glflags */
-#define MGL_GSAT 0x00000001     /* Satan has been generated */
 
 const struct monster_struct mons[] = {
 	MONST("chicken", 'c', 12,
