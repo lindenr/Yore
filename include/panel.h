@@ -12,6 +12,14 @@
 #define PANEL_MSG     2
 #define PANEL_OPTIONS 3
 
+#define P_MSG_LEN 40
+
+struct P_msg
+{
+	uint64_t expiry;
+	char msg[P_MSG_LEN];
+};
+
 int  sb_buffer (int, int);
 void sb_baddch (int, glyph);
 void sb_mvaddch(int, int, glyph);

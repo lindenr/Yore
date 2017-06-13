@@ -43,7 +43,7 @@ void px_csr ()
 void px_mvaddbox (int yloc, int xloc, int type, int len)
 {
 	int i;
-	struct Box box = {yloc, xloc, type, Time+1};
+	struct Box box = {yloc, xloc, type, Time+len};
 	if (boxes == NULL)
 		boxes = v_dinit (sizeof(box));
 	for (i = 0; i < boxes->len; ++ i)

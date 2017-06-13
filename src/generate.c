@@ -210,7 +210,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		start = param;
 		upsy = start / map_graph->w;
 		upsx = start % map_graph->w;
-		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0, 0, {{0},}, {0,}, 0, 0};
+		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0.0, 0, 0, {{0},}, {0,}, 0, 0};
 		asdf.name = malloc (85);
 		strcpy (asdf.name, "_");
 		real_player_name = asdf.name;
@@ -245,6 +245,8 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		p.HP += rn(1+ p.HP / 3);
 		p.HP_max = p.HP;
 		p.name = NULL;
+		p.level = 1; //mons[p.type].exp? TODO
+		p.exp = mons[p.type].exp;
 		uint32_t xloc = rn(map_graph->w), yloc = rn(map_graph->h);
 		if (is_safe_gen (lvl, yloc, xloc))
 			new_thing (THING_MONS, lvl, yloc, xloc, &p);

@@ -248,7 +248,7 @@ struct KStruct Keys[] = {
 	{CONTROL_(GRK_UP), &Klookup},
 	{'>', &Kgodown},
 	{'<', &Kgoup},
-	{CONTROL_('s'), &Ksave},
+	{'S', &Ksave},
 	{CONTROL_('q'), &Kquit}
 };
 

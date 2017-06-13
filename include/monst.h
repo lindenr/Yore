@@ -166,6 +166,7 @@ struct Monster
 	int32_t exp;				/* EXP points */
 	int32_t HP;					/* current HP */
 	int32_t HP_max;				/* maximum HP */
+	float HP_rec;				/* HP recovered per turn, on average */
 	uint32_t cur_speed;			/* current speed-state */
 	char *name;					/* label */
 	struct Pack pack;			/* inventory */

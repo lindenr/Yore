@@ -23,15 +23,15 @@ const int CORPSE_WEIGHTS[7] = {0, 100, 1000, 3000, 20000, 50000, 300000};
 
 const struct monster_struct mons[] = {
 	MONST("chicken", 'c', 12,
-		  ATTK(A(1, 1, ATTK_BITE), A(1, 1, ATTK_CLAW), AT_NONE,
+		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_FLSH | FL_WING | FL_SIZ2,
 		  COL_TXT_RED(11) | COL_TXT_GREEN(11) | COL_TXT_BRIGHT,
 		  6),
 	MONST("crab", 'c', 12,
-		  ATTK(A(1, 2, ATTK_CLAW), AT_NONE, AT_NONE,
+		  ATTK(A(2, 5, ATTK_CLAW), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_FLSH | FL_ARMS | FL_LEGS,
 		  COL_TXT_RED(11) | COL_TXT_GREEN(11),
-		  0),
+		  1),
 	MONST("gnome", 'G', 10,
 		  ATTK(A(1, 3, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HMND | FL_SIZ3,

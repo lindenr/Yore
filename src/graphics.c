@@ -2,6 +2,7 @@
 
 #include "include/graphics.h"
 #include "include/vector.h"
+#include "include/map.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +20,7 @@ int forced_refresh = 0;
 SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
 
 /* starting size */
-int screenY = 720, screenX = 1000;
+const int screenY = 720, screenX = 1000;
 
 glyph *txt_map = NULL;
 char *txt_change = NULL;
@@ -30,7 +31,7 @@ char *screen_change = NULL;
 /* where written text and input appears */
 int curs_yloc = 0, curs_xloc = 0;
 /* window dimensions (in glyphs) */
-int txt_h = 0, txt_w = 0;
+int txt_h = 720/GLH, txt_w = 1000/GLW;
 int txt_area = 0;
 /* location of the blinking cursor */
 int csr_y = 0, csr_x = 0, csr_state = 1;
@@ -105,12 +106,33 @@ void txt_mvaddch (int yloc, int xloc, glyph gl)
 		txt_baddch (buf, gl);
 }
 
+void gra_mvaprint (Graph gra, int yloc, int xloc, const char *str)
+{
+	int i, buf = gra_buffer (gra, yloc, xloc), len = strlen(str);
+
+	for (i = 0; i < len && i+buf < gra->a; ++ i)
+		gra_baddch (gra, i+buf, str[i]);
+}
+
 void txt_mvaprint (int yloc, int xloc, const char *str)
 {
 	int i, buf = txt_buffer (yloc, xloc), len = strlen(str);
 
 	for (i = 0; i < len && i+buf < txt_area; ++ i)
 		txt_baddch (i+buf, str[i]);
+}
+
+void gra_mvprint (Graph gra, int yloc, int xloc, const char *str, ...)
+{
+	va_list args;
+	char out[1024];
+
+	//txt_move (yloc, xloc);
+	va_start (args, str);
+	vsprintf (out, str, args);
+	va_end (args);
+
+	gra_mvaprint (gra, yloc, xloc, out);
 }
 
 void txt_mvprint (int yloc, int xloc, const char *str, ...)
@@ -126,48 +148,50 @@ void txt_mvprint (int yloc, int xloc, const char *str, ...)
 	txt_mvaprint (yloc, xloc, out);
 }
 
-void glyph_box (int yloc, int xloc, int height, int width,
+
+
+void glyph_box (Graph gra, int yloc, int xloc, int height, int width,
                 glyph ULCORNER, glyph URCORNER, glyph LLCORNER, glyph LRCORNER,
 				glyph HLINE, glyph VLINE)
 {
 	int xt = width - 1, yt = height - 1;
-	txt_mvaddch (yloc, xloc, ULCORNER);
-	txt_mvaddch (yloc + height, xloc, LLCORNER);
-	txt_mvaddch (yloc, xloc + width, URCORNER);
-	txt_mvaddch (yloc + height, xloc + width, LRCORNER);
+	gra_mvaddch (gra, yloc, xloc, ULCORNER);
+	gra_mvaddch (gra, yloc + height, xloc, LLCORNER);
+	gra_mvaddch (gra, yloc, xloc + width, URCORNER);
+	gra_mvaddch (gra, yloc + height, xloc + width, LRCORNER);
 	while (xt--)
 	{
-		txt_mvaddch (yloc, xloc + xt + 1, HLINE);
-		txt_mvaddch (yloc + height, xloc + xt + 1, HLINE);
+		gra_mvaddch (gra, yloc, xloc + xt + 1, HLINE);
+		gra_mvaddch (gra, yloc + height, xloc + xt + 1, HLINE);
 	}
 	while (yt--)
 	{
-		txt_mvaddch (yloc + yt + 1, xloc, VLINE);
-		txt_mvaddch (yloc + yt + 1, xloc + width, VLINE);
+		gra_mvaddch (gra, yloc + yt + 1, xloc, VLINE);
+		gra_mvaddch (gra, yloc + yt + 1, xloc + width, VLINE);
 	}
 }
 
-void txt_box (int yloc, int xloc, int height, int width)
+void gra_box (Graph gra, int yloc, int xloc, int height, int width)
 {
-	glyph_box (yloc, xloc, height, width,
+	glyph_box (gra, yloc, xloc, height, width,
 	           ACS_ULCORNER, ACS_URCORNER, ACS_LLCORNER, ACS_LRCORNER,
 			   ACS_HLINE, ACS_VLINE);
 }
 
-void txt_dbox (int yloc, int xloc, int height, int width)
+void gra_dbox (Graph gra, int yloc, int xloc, int height, int width)
 {
-	glyph_box (yloc, xloc, height, width,
+	glyph_box (gra, yloc, xloc, height, width,
 	           DCS_ULCORNER, DCS_URCORNER, DCS_LLCORNER, DCS_LRCORNER,
 			   DCS_HLINE, DCS_VLINE);
 }
 
-void txt_fbox (int yloc, int xloc, int height, int width, glyph fill)
+void gra_fbox (Graph gra, int yloc, int xloc, int height, int width, glyph fill)
 {
 	int x, y;
 	for (x = 1; x < width; ++x)
 		for (y = 1; y < height; ++y)
-			txt_mvaddch (yloc + y, xloc + x, fill);
-	txt_box (yloc, xloc, height, width);
+			gra_mvaddch (gra, yloc + y, xloc + x, fill);
+	gra_box (gra, yloc, xloc, height, width);
 }
 
 void csr_noblink ()
@@ -188,6 +212,12 @@ void csr_move (int yloc, int xloc)
 	txt_mark (yloc, xloc);
 	csr_y = yloc;
 	csr_x = xloc;
+
+	if ((csr_y >= map_graph->vy) && (csr_y < map_graph->vy + map_graph->vh) &&
+	    (csr_x >= map_graph->vx) && (csr_x < map_graph->vx + map_graph->vw))
+		csr_show ();
+	else
+		csr_hide ();	
 }
 
 void csr_hide ()
@@ -308,6 +338,16 @@ void gr_frefresh ()
 {
 	forced_refresh = 1;
 	gr_refresh ();
+}
+
+void gra_clear (Graph gra)
+{
+	int i;
+	if (!gra)
+		return;
+	
+	for (i = 0; i < gra->a; ++ i)
+		gra_baddch (gra, i, 0);
 }
 
 void txt_clear ()
@@ -572,9 +612,6 @@ void gr_init ()
 	SDL_EnableKeyRepeat (200, 30);
 	SDL_WM_SetCaption ("Yore", "Yore");
 	csr_hide ();
-
-	if (!graphs)
-		graphs = v_dinit (sizeof(Graph));
 }
 
 Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
@@ -596,6 +633,27 @@ Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
 	v_push (graphs, &gra);
 	
 	return gra;
+}
+
+void gra_free (Graph gra)
+{
+	if (!graphs)
+		return;
+	
+	int i;
+	for (i = 0; i < graphs->len; ++ i)
+	{
+		if (gra == *(Graph*)v_at(graphs, i))
+		{
+			//gra_clear (gra);
+			free (gra->data);
+			free (gra->change);
+			free (gra);
+			v_rem (graphs, i);
+			gr_frefresh();
+			break;
+		}
+	}
 }
 
 void gr_wait (uint32_t ms)

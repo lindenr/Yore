@@ -20,50 +20,55 @@
 
 void print_intro ()
 {
-	txt_mvprint (1,  0, "Welcome to Yore v"YORE_VERSION);
-	txt_mvprint (2, 10, "* A game guide is not yet in place.");
-	txt_mvprint (3, 10, "* A wiki is not yet in place.");
+//	gra_mvprint (gra, 1,  0, "Welcome to Yore v"YORE_VERSION);
+//	gra_mvprint (gra, 2, 10, "* A game guide is not yet in place.");
+//	gra_mvprint (gra, 3, 10, "* A wiki is not yet in place.");
 }
 
 bool game_intro ()
 {
+	bool ret = false;
 	int c, by, bx, bh = 9, bw = 50;
 	by = (txt_h - bh - 10)/2;
 	bx = (txt_w - bw)/2;
-	txt_clear ();
-	txt_dbox (by, bx, bh, bw);
-	txt_mvprint (by+2, bx+2, "Back in the days of Yore, in a land far removed");
-	txt_mvprint (by+3, bx+2, "from our current understanding of the universe,");
-	txt_mvprint (by+4, bx+3,  "when magic flowed throughout the air as water");
-	txt_mvprint (by+5, bx+3,  "flowed through the sea, and the Gods lived in");
-	txt_mvprint (by+6, bx+4,   "harmony with the people; it was a time when");
-	txt_mvprint (by+7, bx+6,     "anything and everything was possible...");
-	txt_echo (0);
+	Graph ibox = gra_init (bh+12, bw+1, by, bx, bh+12, bw+1);
+	//txt_clear ();
+	gra_dbox (ibox, 0, 0, bh, bw);
+	gra_mvprint (ibox, 2, 2, "Back in the days of Yore, in a land far removed");
+	gra_mvprint (ibox, 3, 2, "from our current understanding of the universe,");
+	gra_mvprint (ibox, 4, 3,  "when magic flowed throughout the air as water");
+	gra_mvprint (ibox, 5, 3,  "flowed through the sea, and the Gods lived in");
+	gra_mvprint (ibox, 6, 4,   "harmony with the people; it was a time when");
+	gra_mvprint (ibox, 7, 6,     "anything and everything was possible...");
+	//txt_echo (0);
 	csr_hide ();
 	gr_tout (666);
 	while (1)
 	{
-		txt_mvprint (by+11, (txt_w - 30)/2, "[hit the spacebar to continue]");
+		gra_mvprint (ibox, 11, (bw - 30)/2, "[hit the spacebar to continue]");
 		do
 			c = gr_getch();
 		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
 		if (c == ' ')
 			break;
 		if (c == 'q' || c == 'Q')
-			return false;
-		txt_mvprint (by+11, (txt_w - 30)/2, "                              ");
+			goto fin;
+		gra_mvprint (ibox, 11, (bw - 30)/2, "                              ");
 		do
 			c = gr_getch();
 		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
 		if (c == ' ')
 			break;
 		if (c == 'q' || c == 'Q')
-			return false;
+			goto fin;
 	}
 	gr_tout (0);
-	txt_echo (1);
-	txt_clear ();
-	return true;
+	//txt_echo (1);
+	//txt_clear ();
+	ret = true;
+  fin:
+	gra_free (ibox);
+	return ret;
 }
 
 int main (int argc, char *argv[])
@@ -74,7 +79,7 @@ int main (int argc, char *argv[])
 	//return 0;
 	gr_onresize = p_init;
 	gr_onrefresh = px_showboxes;
-	map_graph = gra_init (100, 300, 0, 0, 0, 0);
+	map_graph = gra_init (100, 300, 0, 0, txt_h - PANE_H, txt_w - 1);
 	gr_init();
 
 	px_csr ();

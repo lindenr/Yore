@@ -17,18 +17,23 @@ glyph *sidebar = NULL;
 
 Vector messages = NULL;
 
+Graph gpan = NULL;
+
 void p_pane ()
 {
-	int i, j;
+	int i;
 	int xpan = 0, ypan = txt_h - PANE_H;
-	txt_clear ();
+	if (!gpan)
+		gpan = gra_init (p_height, p_width, ypan, xpan, p_height, p_width);
+	//txt_clear ();
 	/*for (i = 0; i < p_height; ++ i)
 		for (j = 0; j < p_width; ++ j)
 			txt_mvaddch (ypan + i, xpan + j, ' ');*/
-	txt_box (ypan, xpan, p_height-1, p_width-1);
+	gra_fbox (gpan, 0, 0, p_height-1, p_width-1, ' ');
 
-	int max = txt_h;
-
+	//int max = txt_h;
+	
+	/* TODO health bar in its own graph
 	for (i = 0; i < max; ++ i)
 	{
 		int curHP = (pmons.HP_max*i)/max;
@@ -41,7 +46,7 @@ void p_pane ()
 		gpart = (gpart == 0) ? 0 : gpart - 1;
 		rpart = (rpart == 0) ? 0 : rpart - 1;
 		txt_mvaddch (max - i - 1, txt_w - 1, COL_BG_RED(rpart) | COL_BG_GREEN(gpart) | ' ');
-	}
+	} */
 
 	/*for (i = 0; i < max; ++ i)
 	{
@@ -52,38 +57,38 @@ void p_pane ()
 			txt_mvaddch (max - i - 1, txt_w - 2, COL_BG_BLUE(10) | ' ');
 	}*/
 
-	txt_mvprint (0, 0, "%lu", Time);
+	gra_mvprint (gpan, 1, 1, "T %lu", Time);
 
-	//txt_mvprint (ypan + 1, xpan + 1, "%s", w_short (pmons.name + 1, p_width - 3), get_rank ());
-	txt_mvprint (ypan + 2, xpan + 1, "HP %d:%d", pmons.HP, pmons.HP_max);
-	txt_mvprint (ypan + 3, xpan + 1, "LV %d:%d", pmons.level, pmons.exp);
+	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (pmons.name + 1, p_width - 3));
+	gra_mvprint (gpan, 3, 1, "HP %d/%d (+%.1f)", pmons.HP, pmons.HP_max, pmons.HP_rec);
+	gra_mvprint (gpan, 4, 1, "LV %d:%d/infinity", pmons.level, pmons.exp); // TODO?
 	/*char *rank = get_rank ();
 	int rlen = strlen (rank);
 	txt_mvprint (ypan + 1, xpan + p_width - 1 - rlen, rank);*/
 
 	if (sb_width == 0)
 		goto skip1;
-	for (i = 0; i < map_graph->vh; ++ i)
+	/*for (i = 0; i < map_graph->vh; ++ i)
 	{
 		txt_mvaddch (i, map_graph->vw, ACS_VLINE);
 		for (j = map_graph->vw + 1; j < txt_w - 1; ++ j)
 		{
 			txt_mvaddch (i, j, sidebar[sb_buffer(i, j-map_graph->vw)]);
 		}
-	}
+	}*/
 skip1:
 	if (messages == NULL)
 		goto skip2;
-	for (i = 0; i < 10 && i < messages->len; ++ i)
+	for (i = 0; i < 5 && i < messages->len; ++ i)
 	{
-		char *msg = v_at (messages, messages->len - i - 1);
-		int len = strlen (msg);
-		txt_mvprint (2*txt_h/3 + i, (txt_w - len)/2, msg);
+		struct P_msg *msg = v_at (messages, messages->len - i - 1);
+		int len = strlen (msg->msg);
+		gra_mvprint (gpan, 1 + i, (txt_w - len)/2, msg->msg);
 	}
 skip2:
 	;
 }
-
+/*
 void p_sidebar (int width)
 {
 	int i, j;
@@ -106,7 +111,7 @@ void p_sidebar (int width)
 	sidebar = realloc (sidebar, sizeof(glyph) * sb_width * map_graph->vh);
 	for (i = 0; i < sb_width * map_graph->vh; ++ i)
 		sidebar[i] = ' ';
-}
+}*/
 
 void sb_baddch (int buf, glyph gl)
 {
@@ -130,13 +135,13 @@ int sb_buffer (int yloc, int xloc)
 void p_init ()
 {
 	if (!messages)
-		messages = v_dinit (1024);
+		messages = v_dinit (sizeof(struct P_msg));
 
-	map_graph->vh = txt_h - PANE_H;
-	map_graph->vw = txt_w - 2;
+	//map_graph->vh = txt_h - PANE_H;
+	//map_graph->vw = txt_w - 1;
 
 	p_height = PANE_H;
-	p_width = map_graph->w;
+	p_width = map_graph->vw;
 /*
 	int i;
 	if (!messages)
@@ -198,13 +203,16 @@ void p_messages_display ()
 void p_msg (char *str, ...)
 {
 	va_list args;
-	char out[1024];
+	struct P_msg msg;
+	msg.expiry = Time+1;
+
+	sprintf(msg.msg, "(%lu) ", Time);
 
 	va_start (args, str);
-	vsprintf (out, str, args);
+	vsprintf (msg.msg + strlen(msg.msg), str, args);
 	va_end (args);
 
-	v_pstr (messages, out);
+	v_push (messages, &msg);
 }
 
 char p_ask (char *results, char *question)
@@ -214,5 +222,30 @@ char p_ask (char *results, char *question)
 
 void p_lines (Vector lines)
 {
+	if (lines->len > 10)
+		return;
+	
+	int h = lines->len + 3, w = 42;
+	int yloc = (txt_h - lines->len)/2 - 1, xloc = (txt_w - 40)/2 - 1;
+
+	int csr_cov = (csr_y >= yloc) && (csr_y < yloc + h) &&
+				  (csr_x >= xloc) && (csr_x < xloc + w);
+	if (csr_cov)
+		csr_hide ();
+
+	Graph box = gra_init (h, w, yloc, xloc, h, w);
+	gra_fbox (box, 0, 0, h-1, w-1, ' ');
+	
+	int i;
+	for (i = 0; i < lines->len; ++ i)
+	{
+		gra_mvaprint (box, i+1, 2, v_at(lines, i));
+	}
+	gra_box (box, 0, 0, h-1, w-1);
+	gr_getch();
+
+	gra_free (box);
+	if (csr_cov)
+		csr_show ();
 }
 

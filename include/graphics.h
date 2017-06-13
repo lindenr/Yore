@@ -57,15 +57,25 @@ extern SDL_Surface *screen;
 /* Initialisation */
 void gr_init   (void);
 Graph gra_init (int, int, int, int, int, int);
+void gra_free  (Graph);
 
 /* Output */
 void txt_move    (int, int);
 void gra_movecam (Graph, int, int);
 void gra_centcam (Graph, int, int);
 
+void gra_clear (Graph);
+
 void gra_addch   (Graph, glyph);
 void gra_mvaddch (Graph, int, int, glyph);
 void gra_baddch  (Graph, int, glyph);
+
+void gra_box  (Graph, int, int, int, int);
+void gra_dbox (Graph, int, int, int, int);
+void gra_fbox (Graph, int, int, int, int, glyph);
+
+void gra_mvaprint (Graph, int, int, const char *);
+void gra_mvprint  (Graph, int, int, const char *, ...);
 
 void gr_refresh ();
 void gr_frefresh();
@@ -77,9 +87,9 @@ void txt_baddch  (int, glyph);
 
 void txt_mvprint (int, int, const char *, ...);
 
-void txt_box  (int, int, int, int);
-void txt_dbox (int, int, int, int);
-void txt_fbox (int, int, int, int, glyph);
+//void txt_box  (int, int, int, int);
+//void txt_dbox (int, int, int, int);
+//void txt_fbox (int, int, int, int, glyph);
 
 void csr_noblink ();
 void csr_blink   ();

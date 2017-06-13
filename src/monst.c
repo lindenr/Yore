@@ -84,7 +84,7 @@ void setup_U ()
 
 void get_cinfo ()
 {
-	char in;
+	/*char in;
 
 	txt_mvprint (0, 0, "What role would you like to take up?");
 	txt_mvprint (0, txt_w - 13, "(Esc to quit)");
@@ -110,8 +110,9 @@ void get_cinfo ()
 	else if (in == 'a')
 		U.role = 3;
 	else
-		panic ("get_cinfo failed");
-
+		panic ("get_cinfo failed");*/
+	
+	U.role = 1;
 	U.playing = PLAYER_PLAYING;
 }
 
@@ -119,7 +120,7 @@ int expcmp (int p_exp, int m_exp)
 {
 	if (p_exp >= m_exp * 2)
 		return 5;
-	if ((p_exp * 20) + 10 >= m_exp * 19)
+	if ((p_exp * 20) + 20 >= m_exp * 19)
 		return 50;
 	if ((p_exp * 2) >= m_exp)
 		return 1;
@@ -263,6 +264,7 @@ int mons_take_move (struct Thing *th)
 	struct Monster *self = &th->thing.mons;
 	if (self->HP < self->HP_max && rn(50) < U.attr[AB_CO])
 		self->HP += (self->level + 10) / 10;
+	self->HP_rec = ((10.0 + self->level)/10) * ((float)U.attr[AB_CO] / 50.0);
 	if (mons_eating(th))
 		return true;
 	if (th != player)
@@ -278,7 +280,7 @@ int mons_take_move (struct Thing *th)
 		csr_move (th->yloc - map_graph->cy, th->xloc - map_graph->cx);
 
 		uint32_t key = gr_getfullch();
-		t_flush ();
+		//t_flush ();
 		in = (char) key;
 
 		int mv = player_take_input (in);
@@ -333,10 +335,11 @@ void mons_dead (struct Thing *from, struct Thing *to)
 	if (!from)
 		goto skip1;
 	if (player_sense (from->yloc, from->xloc, SENSE_VISION))
-		px_mvaddbox (from->yloc, from->xloc, BOX_KILL, 500);
+		px_mvaddbox (from->yloc, from->xloc, BOX_KILL, 1);
 	//event_mkill (from, to);
 	if (from == player)
 	{
+		p_msg("You kill the %s!", mons[to->thing.mons.type].name);
 		if (to->thing.mons.type == MTYP_SATAN)
 			U.playing = PLAYER_WONGAME;
 		pmons.exp += mons[to->thing.mons.type].exp;
@@ -521,7 +524,7 @@ void do_attack (struct Thing *from, struct Thing *to)
 	int *toHP = &to->thing.mons.HP;
 	int know = player_sense (to->yloc, to->xloc, SENSE_VISION);
 	if (know)
-		px_mvaddbox (to->yloc, to->xloc, BOX_HIT, 500);
+		px_mvaddbox (to->yloc, to->xloc, BOX_HIT, 1);
 
 	for (t = 0; t < A_NUM; ++t)
 	{
@@ -540,7 +543,7 @@ void do_attack (struct Thing *from, struct Thing *to)
 						rnd(mons[type].attacks[t][0],
 							mons[type].attacks[t][1]) +
                         strength +
-					    rn(3 * from->thing.mons.level);
+					    rn(1 + 3*from->thing.mons.level);
 				}
 				else
 				{
