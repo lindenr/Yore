@@ -600,9 +600,10 @@ void do_attack (struct Thing *from, struct Thing *to)
 struct Item *player_use_pack (char *msg, uint32_t accepted)
 {
 	struct Item *It = NULL;
-	char in, cs[100];
-	bool tried = false;
-
+	char in = show_contents (pmons.pack, accepted, msg);
+	//char in, cs[100];
+	//bool tried = false;
+/*
 	do
 	{
 		if (tried)
@@ -613,7 +614,6 @@ struct Item *player_use_pack (char *msg, uint32_t accepted)
 		in = p_ask (cs, msg);
 		if (in == '?')
 		{
-			show_contents (pmons.pack, accepted);
 			gr_getch ();
 			continue;
 		}
@@ -621,7 +621,7 @@ struct Item *player_use_pack (char *msg, uint32_t accepted)
 			break;
 		if (in == '*')
 		{
-			show_contents (pmons.pack, ITCAT_ALL);
+			show_contents (pmons.pack, ITCAT_ALL, "Inventory");
 			gr_getch ();
 			continue;
 		}
@@ -629,7 +629,8 @@ struct Item *player_use_pack (char *msg, uint32_t accepted)
 		It = get_Itemc (pmons.pack, in);
 		tried = true;
 	}
-	while (It == NULL);
+	while (It == NULL);*/
+	It = get_Itemc (pmons.pack, in);
 
 	return It;
 }

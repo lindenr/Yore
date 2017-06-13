@@ -33,7 +33,7 @@ void p_update  ();
 void p_tab     (int);
 void p_msg     (char *, ...);
 char p_ask     (char *, char *);
-void p_lines   (Vector);
+char p_lines   (Vector);
 
 extern int p_width, p_height
 //, p_open

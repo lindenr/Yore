@@ -116,7 +116,7 @@ int Kmdrop ()
 
 int Kinv ()
 {
-	show_contents (pmons.pack, ITCAT_ALL);
+	show_contents (pmons.pack, ITCAT_ALL, "Inventory");
 	return 0;
 }
 
@@ -125,6 +125,7 @@ int Knlook ()
 	int k = 0;
 	int n = map_buffer (player->yloc, player->xloc);
 	Vector *things = cur_dlevel->things;
+	Vector list = v_dinit (256);
 
 	LOOP_THING(things, n, i)
 	{
@@ -133,12 +134,18 @@ int Knlook ()
 			continue;
 
 		char *line = get_inv_line (&THING(things, n, i)->thing.item);
-		p_msg ("You%s see here %s. ", (k ? " also" : ""), line);
+		char out[256];
+		sprintf (out, "You%s see here %s.", (k ? " also" : ""), line);
+		v_pstr (list, out);
 		++ k;
 		free (line);
 	}
 	if (k == 0)
-		p_msg("You see nothing here. ");
+		p_msg ("You see nothing here. ");
+	else
+		p_lines (list);
+	
+	v_free (list);
 
 	return 0;
 }

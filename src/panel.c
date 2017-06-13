@@ -200,32 +200,42 @@ void p_messages_display ()
 	}*/
 }
 
+void p_amsg (char *str)
+{
+	struct P_msg msg;
+	msg.expiry = Time+1;
+	strcpy (msg.msg, str);
+	v_push (messages, &msg);
+}
+
 void p_msg (char *str, ...)
 {
 	va_list args;
-	struct P_msg msg;
-	msg.expiry = Time+1;
+	char out[100];
 
-	sprintf(msg.msg, "(%lu) ", Time);
+	sprintf(out, "(%lu) ", Time);
 
 	va_start (args, str);
-	vsprintf (msg.msg + strlen(msg.msg), str, args);
+	vsprintf (out + strlen(out), str, args);
 	va_end (args);
 
-	v_push (messages, &msg);
+	p_amsg (out);
 }
 
 char p_ask (char *results, char *question)
 {
-	return results[0];
+	p_amsg (question);
+	p_pane ();
+	char in;
+	do
+		in = (char)gr_getch();
+	while (!strchr(results, in));
+	return in;
 }
 
-void p_lines (Vector lines)
+char p_lines (Vector lines)
 {
-	if (lines->len > 10)
-		return;
-	
-	int h = lines->len + 3, w = 42;
+	int h = lines->len + 2, w = 42;
 	int yloc = (txt_h - lines->len)/2 - 1, xloc = (txt_w - 40)/2 - 1;
 
 	int csr_cov = (csr_y >= yloc) && (csr_y < yloc + h) &&
@@ -242,10 +252,12 @@ void p_lines (Vector lines)
 		gra_mvaprint (box, i+1, 2, v_at(lines, i));
 	}
 	gra_box (box, 0, 0, h-1, w-1);
-	gr_getch();
+	char ret = gr_getch();
 
 	gra_free (box);
 	if (csr_cov)
 		csr_show ();
+	
+	return ret;
 }
 

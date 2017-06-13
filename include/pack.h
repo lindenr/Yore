@@ -26,7 +26,7 @@ void pack_get_letters   (struct Pack, char *);
 struct Item *pack_rem   (struct Pack *, char);
 bool pack_add           (struct Pack *, struct Item *);
 unsigned PACK_AT        (char);
-void show_contents      (struct Pack, uint32_t);
+char show_contents      (struct Pack, uint32_t, char *);
 struct Item *get_Item   (struct Pack, unsigned);
 struct Item *get_Itemc  (struct Pack, char);
 char get_Itref          (struct Pack, struct Item *);

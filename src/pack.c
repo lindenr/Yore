@@ -51,13 +51,16 @@ int item_type_flags (struct Item *item, uint32_t accepted)
 	return -1;
 }
 
-void show_contents (struct Pack pack, uint32_t accepted)
+char show_contents (struct Pack pack, uint32_t accepted, char *msg)
 {
 	int i, num_items = 0;
 	Vector inv;
 
 	inv = v_init (256, MAX_ITEMS_IN_PACK);
-	v_pstr (inv, "               Inventory");
+	int len = strlen(msg);
+	char first[256];
+	sprintf(first, "%*s", (40+len)/2, msg);
+	v_pstr (inv, first);
 	v_pstr (inv, "");
 	for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
 	{
@@ -70,9 +73,14 @@ void show_contents (struct Pack pack, uint32_t accepted)
 		}
 	}
 	if (!num_items)
-		v_pstr (inv, "                (empty)");
-	p_lines (inv);
+	{
+		sprintf(first, "%23s", "(empty)");
+		v_pstr (inv, first);
+	}
+	v_pstr (inv, "");
+	char out = p_lines (inv);
 	v_free (inv);
+	return out;
 }
 
 void pack_get_letters (struct Pack pack, char *ret)
