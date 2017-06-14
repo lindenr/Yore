@@ -35,6 +35,7 @@ int Kcamrt ()
 
 int Kwait ()
 {
+	mons_usedturn (player);
 	return 1;
 }
 
@@ -57,6 +58,7 @@ int Kpickup ()
 
 	if (ground->len == 1)
 	{
+		mons_usedturn (player);
 		/* One item on ground -- pick up immediately. */
 		if (pack_add (&pmons.pack, &THIID(*(int*)v_at (ground, 0))->thing.item))
 			rem_id (*(int*)v_at (ground, 0));
@@ -65,6 +67,7 @@ int Kpickup ()
 	}
 	else if (ground->len > 1)
 	{
+		mons_usedturn (player); // TODO
 		/* Multiple items - ask which to pick up. */
 		Vector pickup = v_init (sizeof(int), 20);
 	
@@ -93,6 +96,7 @@ int Keat ()
 	struct Item *food = player_use_pack ("Eat what?", ITCAT_FOOD);
 	if (food == NULL)
 		return 0;
+	mons_usedturn (player);
 	mons_eat (player, food);
 	return 1;
 }
@@ -102,6 +106,7 @@ int Ksdrop ()
 	struct Item *drop = player_use_pack ("Drop what?", ITCAT_ALL);
 	if (drop == NULL)
 		return 0;
+	mons_usedturn (player);
 	if (drop == player->thing.mons.wearing.arms)
 		mons_unwield (player);
 	unsigned u = PACK_AT (get_Itref (pmons.pack, drop));
@@ -162,28 +167,12 @@ int Kwield ()
 	if (wield == NULL)
 		return 0;
 
-	//unsigned u = PACK_AT (get_Itref (pmons.pack, wield));
-	//pmons.pack.items[u] = NULL;
-	//new_thing (THING_ITEM, cur_dlevel, player->yloc, player->xloc, wield);
-
+	mons_usedturn (player);
 	if (mons_unwield (player))
 		mons_wield (player, wield);
 
 	return 1;
 }
-
-/*int Kmagic ()
-{
-	if (!pl_runes)
-		pl_runes = v_dinit (10);
-	Rune rune = sp_rune (3);
-	//printf ("RUNE: '%s'\n", rune);
-	if (!rune)
-		return 0;
-	v_pstr (pl_runes, rune);
-	pl_cast ();
-	return 1;
-}*/
 
 int Klookdn ()
 {
@@ -205,6 +194,7 @@ int Kgodown ()
 	if (level == 0)
 		return 0;
 
+	mons_usedturn (player);
 	dlv_set (level);
 	thing_move (player, level, player->yloc, player->xloc);
 	return 1;
@@ -216,6 +206,7 @@ int Kgoup ()
 	if (level == 0)
 		return 0;
 
+	mons_usedturn (player);
 	dlv_set (level);
 	thing_move (player, level, player->yloc, player->xloc);
 	return 1;
@@ -251,7 +242,6 @@ struct KStruct Keys[] = {
 	{':', &Knlook},
 	{';', &Kflook},
 	{'w', &Kwield},
-	//{'m', &Kmagic},
 	{CONTROL_(GRK_DN), &Klookdn},
 	{CONTROL_(GRK_UP), &Klookup},
 	{'>', &Kgodown},

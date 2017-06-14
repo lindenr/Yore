@@ -26,12 +26,11 @@ typedef uint32_t glyph;
 #define GLW 8
 #define GLH 12
 
-/* note: visible graphs shouldn't overlap, as the drawing order is undefined */
 typedef struct Graph
 {
 	int h, w, a;        /* graph dimensions */
 	glyph *data;        /* an h*w grid of glyphs */
-	char *change;       /* whether a point has changed since last refresh */
+	uint8_t *flags;     /* tracks changes and boxes */
 	int cy, cx;         /* camera location */
 	int vy, vx, vh, vw; /* view location and dimensions on the window */
 	int vis;            /* whether the graph is currently being shown */
@@ -39,17 +38,31 @@ typedef struct Graph
 	int csr_state;      /* off, blinking, or steady */
 } *Graph;
 
+/* Boxes */
+typedef enum
+{
+	BOX_NONE = 0,
+	BOX_HIT,
+	BOX_KILL,
+	BOX_MAGIC,
+	BOX_NUM
+} BoxType;
+
+extern int BOXPOS[BOX_NUM][2];
+extern int BOXCOL[BOX_NUM][3];
+
+void gra_bsetbox (Graph, int, uint8_t);
+
 /* Prefixes:
  * gr_ is the graphics prefix for generic things to do with the screen
- * txt_ is the text prefix for managing the text overlay
  * gra_ is the graph prefix for messing with a Graph */
 
-extern int txt_h, txt_w, txt_area;
+extern int gr_h, gr_w, gr_area;
 extern int forced_refresh;
 
-extern void (*gr_onidle)    ();
+//extern void (*gr_onidle)    ();
 extern void (*gr_onresize)  ();
-extern void (*gr_onrefresh) ();
+//extern void (*gr_onrefresh) ();
 
 extern SDL_Surface *screen;
 
@@ -96,7 +109,7 @@ void gr_tout (int);
 
 /* Misc */
 int  gra_buffer (Graph, int, int);
-int  txt_buffer (int, int);
+int  gr_buffer  (int, int);
 
 int  gra_nearedge (Graph, int, int);
 void gr_wait      (uint32_t);

@@ -204,8 +204,7 @@ int TSIZ[] = {
 	0,
 	sizeof (struct Item),
 	sizeof (struct Monster),
-	sizeof (struct map_item_struct)//,
-//	sizeof (union  Spell)
+	sizeof (struct map_item_struct)
 };
 
 struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)
@@ -246,22 +245,24 @@ void set_can_see (uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
 			sq_seen[w] = 1;
 
 	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
-	for (w = 0; w < txt_area; ++ w)
-		bres_draw (map_graph->cy + w / txt_w, map_graph->cx + w % txt_w);
+	for (w = 0; w < gr_area; ++ w)
+		bres_draw (map_graph->cy + w / gr_w, map_graph->cx + w % gr_w);
 		//sq_seen[w] = 2;
 
 	/* Make everything we can't see dark */
 	for (w = 0; w < map_graph->a; ++ w)
+	{
 		if (!sq_seen[w])
 			gra_baddch (map_graph, w, ' ');
+		if (sq_seen[w] <= 1)
+			gra_bsetbox (map_graph, w, 0);
+	}
 
 	/* Do the drawing */
 	for (Y = 0, w = 0; Y < map_graph->h; ++Y)
 	{
 		for (X = 0; X < map_graph->w; ++X, ++w)
 		{
-			//gra_baddch(map_graph, w, 'x');
-			//continue;
 			uint32_t y = DOT, u = DOT,
             h = DOT, j = DOT, k = DOT, l = DOT,
                      b = DOT, n = DOT;
@@ -325,6 +326,7 @@ void draw_map ()
 			case THING_MONS:
 			{
 				struct Monster *m = &th->thing.mons;
+				gra_bsetbox (map_graph, at, m->boxflags);
 				changed = true;
 				gra_baddch (map_graph, at, mons[m->type].col | mons[m->type].ch);
 				if (m->name)
@@ -337,6 +339,7 @@ void draw_map ()
 			}
 			case THING_ITEM:
 			{
+				gra_bsetbox (map_graph, at, 0);
 				if (type[at] != THING_MONS)
 				{
 					struct Item *t = &th->thing.item;
@@ -349,6 +352,7 @@ void draw_map ()
 			}
 			case THING_DGN:
 			{
+				gra_bsetbox (map_graph, at, 0);
 				if (type[at] == THING_NONE)
 				{
 					struct map_item_struct *m = &th->thing.mis;
@@ -359,8 +363,6 @@ void draw_map ()
 				sq_unseen[at] = map_graph->data[at];
 				break;
 			}
-			case THING_MAGIC:
-				break;
 			default:
 			{
 				printf ("%d %d %d\n", at, i, th->type);

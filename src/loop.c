@@ -18,7 +18,6 @@ void next_time ()
 	U.oldhunger = U.hunger;
 	if (digesting ())
 		++ U.hunger;
-	//sp_tick ();
 }
 
 void main_loop ()
@@ -50,7 +49,6 @@ void main_loop ()
 			mon = &th->thing.mons;
 		}
 
-		//txt_move (player->yloc, player->xloc); what
 		if (pmons.HP <= 0)
 		{
 			U.playing = PLAYER_LOSTGAME;

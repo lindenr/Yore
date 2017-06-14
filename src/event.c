@@ -3,14 +3,18 @@
 #include "include/event.h"
 #include "include/panel.h"
 #include "include/timer.h"
-#include "include/pixel.h"
 #include "include/dlevel.h"
 
 #include <stdarg.h>
 #include <stdio.h>
-/*
+
 void event_mhit (struct Thing *from, struct Thing *to, uint32_t atyp)
 {
+	mons_box (to, BOX_HIT);
+	int know = player_sense (to->yloc, to->xloc, SENSE_VISION);
+	if (!know)
+		return;
+
 	int ftyp = from->thing.mons.type, ttyp = to->thing.mons.type;
 	const char *fname = mons[ftyp].name, *tname = mons[ttyp].name;
 	switch (atyp)
@@ -72,10 +76,14 @@ void event_mhit (struct Thing *from, struct Thing *to, uint32_t atyp)
 			break;
 		}
 	}
-}*/
+}
 
 void event_mkill (struct Thing *from, struct Thing *to)
 {
+	mons_box (from, BOX_KILL);
+	if (!player_sense (from->yloc, from->xloc, SENSE_VISION))
+		return;
+
 	int ftyp = from->thing.mons.type, ttyp = to->thing.mons.type;
 	const char *fname = mons[ftyp].name, *tname = mons[ttyp].name;
 	if (from == player)

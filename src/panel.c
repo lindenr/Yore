@@ -22,16 +22,15 @@ Graph gpan = NULL;
 void p_pane ()
 {
 	int i;
-	int xpan = 0, ypan = txt_h - PANE_H;
+	int xpan = 0, ypan = gr_h - PANE_H;
 	if (!gpan)
 		gpan = gra_init (p_height, p_width, ypan, xpan, p_height, p_width);
-	//txt_clear ();
 	/*for (i = 0; i < p_height; ++ i)
 		for (j = 0; j < p_width; ++ j)
 			txt_mvaddch (ypan + i, xpan + j, ' ');*/
 	gra_fbox (gpan, 0, 0, p_height-1, p_width-1, ' ');
 
-	//int max = txt_h;
+	//int max = gr_h;
 	
 	/* TODO health bar in its own graph
 	for (i = 0; i < max; ++ i)
@@ -83,7 +82,7 @@ skip1:
 	{
 		struct P_msg *msg = v_at (messages, messages->len - i - 1);
 		int len = strlen (msg->msg);
-		gra_mvprint (gpan, 1 + i, (txt_w - len)/2, msg->msg);
+		gra_mvprint (gpan, 1 + i, (gr_w - len)/2, msg->msg);
 	}
 skip2:
 	;
@@ -241,12 +240,7 @@ char p_ask (char *results, char *question)
 char p_lines (Vector lines)
 {
 	int h = lines->len + 2, w = 42;
-	int yloc = (txt_h - lines->len)/2 - 1, xloc = (txt_w - 40)/2 - 1;
-
-	//int csr_cov = (csr_y >= yloc) && (csr_y < yloc + h) &&
-	//			  (csr_x >= xloc) && (csr_x < xloc + w);
-	//if (csr_cov)
-	//	csr_hide ();
+	int yloc = (gr_h - lines->len)/2 - 1, xloc = (gr_w - 40)/2 - 1;
 
 	Graph box = gra_init (h, w, yloc, xloc, h, w);
 	gra_fbox (box, 0, 0, h-1, w-1, ' ');
@@ -260,8 +254,6 @@ char p_lines (Vector lines)
 	char ret = gr_getch();
 
 	gra_free (box);
-	//if (csr_cov)
-	//	csr_show ();
 	
 	return ret;
 }

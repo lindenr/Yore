@@ -159,7 +159,6 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 				x = rn (map_graph->w);
 			}
 			while (!is_safe_gen (lvl, y, x));
-			//ADD_MAP (DOT, map_buffer (y, x));
 
 			struct Item *item = gen_item ();
 			new_thing (THING_ITEM, lvl, y, x, item);
@@ -210,7 +209,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		start = param;
 		upsy = start / map_graph->w;
 		upsx = start % map_graph->w;
-		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0.0, 0, 0, {{0},}, {0,}, 0, 0};
+		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0.0, 0, 0, {{0},}, {0,}, 0, 0, 0};
 		asdf.name = malloc (85);
 		strcpy (asdf.name, "_"); // safe
 		real_player_name = asdf.name;

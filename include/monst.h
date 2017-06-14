@@ -84,8 +84,6 @@ enum S_HUN
 #define HN_LIMIT_5 2000
 extern char *s_hun[];
 
-//#define BELT_JEWELS 5
-
 /* For U.playing: */
 #define PLAYER_STARTING (-1)
 #define PLAYER_PLAYING  0
@@ -106,8 +104,6 @@ struct player_status
 	player_attr attr; /* st, co, ch, etc */
 	int32_t luck;
 	uint64_t m_glflags;
-	//int magic;
-//	enum JEWEL_TYPE jewel[BELT_JEWELS];
 };
 extern struct player_status U;
 
@@ -173,6 +169,7 @@ struct Monster
 	struct WoW wearing;			/* stuff wielding/wearing/using */
 	uint32_t status;			/* is it eating polymorphed etc */
 	struct Item *eating;		/* eating something (0 if not) */
+	uint8_t boxflags;           /* boxes appearing */
 };
 
 struct Thing;
@@ -189,6 +186,8 @@ bool   mons_eating     (struct Thing *);                   /* continue eating so
 bool   mons_can_hear   (struct Thing *);                   /* has ears? no?                            */
 void  *mons_get_weap   (struct Thing *);                   /* what weapon is wielded?                  */
 void   mons_blast      (struct Thing *, struct Thing *, int); /* monster in an explosion               */
+void   mons_box        (struct Thing *, BoxType);          /* boxy flags for this turn                 */
+void   mons_usedturn   (struct Thing *);                   /* turn is irretrievably used               */
 
 /* player functions */
 struct Item *player_use_pack (char *, uint32_t);           /* asks player for an item of some type     */

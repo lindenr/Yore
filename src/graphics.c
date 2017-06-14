@@ -14,7 +14,21 @@
 #define STRINGIFY(x) #x
 #define TILE_FILE "t"XSTRINGIFY(GLW)"x"XSTRINGIFY(GLH)".bmp"
 
-uint32_t bg_colour;
+int BOXPOS[BOX_NUM][2] = {
+	{0, 0},
+	{0, 0},
+	{2, 0},
+	{0, 2}
+};
+
+int BOXCOL[BOX_NUM][3] = {
+	{0, 0, 0},
+	{150, 0, 0},
+	{0, 100, 200},
+	{255, 90, 50}
+};
+
+//uint32_t bg_colour;
 int forced_refresh = 0;
 
 SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
@@ -22,12 +36,12 @@ SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
 /* starting size */
 const int screenY = 720, screenX = 1000;
 
-glyph *screen_map = NULL;
-char *screen_change = NULL;
+glyph *gr_map = NULL;
+uint8_t *gr_flags = NULL;
 
 /* window dimensions (in glyphs) */
-int txt_h = 720/GLH, txt_w = 1000/GLW;
-int txt_area = 0;
+int gr_h = 720/GLH, gr_w = 1000/GLW;
+int gr_area = 0;
 
 Vector graphs = NULL;
 
@@ -43,11 +57,11 @@ int gra_buffer (Graph gra, int yloc, int xloc)
 	return gra->w * yloc + xloc;
 }
 
-int txt_buffer (int yloc, int xloc)
+int gr_buffer (int yloc, int xloc)
 {
-	if (yloc < 0 || yloc >= txt_h || xloc < 0 || xloc >= txt_w)
+	if (yloc < 0 || yloc >= gr_h || xloc < 0 || xloc >= gr_w)
 		return -1;
-	return txt_w * yloc + xloc;
+	return gr_w * yloc + xloc;
 }
 
 void gra_movecam (Graph gra, int yloc, int xloc)
@@ -68,7 +82,7 @@ void gra_baddch (Graph gra, int buf, glyph gl)
 	if (gra->data[buf] == gl) return;
 	if (gl == (gl&255)) gl |= COL_TXT_DEF;
 	gra->data[buf] = gl;
-	gra->change[buf] = 1;
+	gra->flags[buf] |= 1;
 }
 
 void gra_mvaddch (Graph gra, int yloc, int xloc, glyph gl)
@@ -91,7 +105,6 @@ void gra_mvprint (Graph gra, int yloc, int xloc, const char *str, ...)
 	va_list args;
 	char out[1024];
 
-	//txt_move (yloc, xloc);
 	va_start (args, str);
 	vsprintf (out, str, args);
 	va_end (args);
@@ -175,7 +188,33 @@ void gra_cshow (Graph gra)
 
 void gra_mark (Graph gra, int yloc, int xloc)
 {
-	gra->change[gra_buffer(gra, yloc, xloc)] = 1;
+	gra->flags[gra_buffer(gra, yloc, xloc)] |= 1;
+}
+
+void gra_bsetbox (Graph gra, int b, uint8_t flags)
+{
+	gra->flags[b] = 1|flags;
+}
+
+void gr_drawboxes (int y, int x, uint8_t f)
+{
+	if (SDL_MUSTLOCK (screen)) // TODO draw all boxes under one lock
+		SDL_LockSurface (screen);
+	int type;
+	for (type = 1; type < 8; ++ type)
+	{
+		if (!(f&(1<<type))) continue;
+		int py = y * GLH + BOXPOS[type][0], px = x * GLW + BOXPOS[type][1];
+		int r = BOXCOL[type][0], g = BOXCOL[type][1], b = BOXCOL[type][2];
+		uint32_t *pixels = (uint32_t *) ((uintptr_t) screen->pixels + py*screen->pitch + px*4);
+		uint32_t col = SDL_MapRGB (screen->format, r, g, b);
+		*(uint32_t*) ((uint8_t*) pixels) = col;
+		*(uint32_t*) ((uint8_t*) pixels + 4) = col;
+		*(uint32_t*) ((uint8_t*) pixels + screen->pitch) = col;
+		*(uint32_t*) ((uint8_t*) pixels + screen->pitch + 4) = col;
+	}
+	if (SDL_MUSTLOCK (screen))
+		SDL_UnlockSurface (screen);
 }
 
 #define GL_TRD ((gl&0xF0000000)>>24)
@@ -206,40 +245,46 @@ void gr_refresh ()
 		Graph gra = * (Graph *) v_at (graphs, i);
 		if (!gra->vis)
 			continue;
+
 		for (x = 0; x < gra->vw; ++ x)
 		{
 			for (y = 0; y < gra->vh; ++ y)
 			{
-				int gr_y = y + gra->cy, gr_x = x + gra->cx;
-				int txt_y = y + gra->vy, txt_x = x + gra->vx;
-				int gr_c = gra_buffer (gra, gr_y, gr_x);
-				int txt_c = txt_buffer (txt_y, txt_x);
-				if (gr_c != -1 && txt_c != -1)
+				int gra_y = y + gra->cy, gra_x = x + gra->cx;
+				int gr_y = y + gra->vy, gr_x = x + gra->vx;
+				int gra_c = gra_buffer (gra, gra_y, gra_x);
+				int gr_c = gr_buffer (gr_y, gr_x);
+				if (gra_c != -1 && gr_c != -1)
 				{
-					if (gra->change[gr_c] || forced_refresh)
+					if ((gra->flags[gra_c]&1) || forced_refresh)
 					{
-						glyph gl = gra->data[gr_c];
-						if (gra->csr_state && gra->csr_y == gr_y && gra->csr_x == gr_x)
-							screen_map[txt_c] = ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
+						glyph gl = gra->data[gra_c];
+						if (gra->csr_state && gra->csr_y == gra_y && gra->csr_x == gra_x)
+							gr_map[gr_c] = ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
 						else
-							screen_map[txt_c] = gl;
-						screen_change[txt_c] = 1;
+							gr_map[gr_c] = gl;
+						gr_flags[gr_c] = gra->flags[gra_c];
 					}
 				}
-				gra->change[gr_c] = 0;
+				gra->flags[gra_c] &= 254;
 			}
 		}
 	}
 
-	for (x = 0; x < txt_w; ++ x)
+	for (x = 0; x < gr_w; ++ x)
 	{
-		for (y = 0; y < txt_h; ++ y)
+		for (y = 0; y < gr_h; ++ y)
 		{
-			int txt_c = txt_buffer (y, x);
-			if (screen_change[txt_c] || forced_refresh)
-				blit_glyph (screen_map[txt_c], y, x);
-			screen_map[txt_c] = 0;
-			screen_change[txt_c] = 0;
+			int gr_c = gr_buffer (y, x);
+			if ((gr_flags[gr_c]&1) || forced_refresh)
+			{
+				gr_flags[gr_c] &= 254;
+				blit_glyph (gr_map[gr_c], y, x);
+				uint8_t f = gr_flags[gr_c];
+				if (f)
+					gr_drawboxes (y, x, f);
+			}
+			gr_map[gr_c] = 0;
 		}
 	}
 
@@ -403,15 +448,15 @@ void gr_resize (int ysiz, int xsiz)
 	SDL_FreeSurface (screen);
 	screen = SDL_SetVideoMode (xsiz, ysiz, 32, SDL_SWSURFACE | SDL_RESIZABLE);
 
-	txt_h = ysiz/GLH;
-	txt_w = xsiz/GLW;
-	txt_area = txt_h * txt_w;
+	gr_h = ysiz/GLH;
+	gr_w = xsiz/GLW;
+	gr_area = gr_h * gr_w;
 	
-	screen_map = realloc (screen_map, sizeof(glyph) * txt_area);
-	for (i = 0; i < txt_area; ++ i)
-		screen_map[i] = ' ';
-	screen_change = realloc (screen_change, sizeof(char) * txt_area);
-	memset (screen_change, 0, sizeof(char) * txt_area);
+	gr_map = realloc (gr_map, sizeof(glyph) * gr_area);
+	for (i = 0; i < gr_area; ++ i)
+		gr_map[i] = ' ';
+	gr_flags = realloc (gr_flags, sizeof(uint8_t) * gr_area);
+	memset (gr_flags, 0, sizeof(char) * gr_area);
 
 	forced_refresh = 1;
 
@@ -500,15 +545,15 @@ Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
 	int a = h*w;
 
 	glyph *data = malloc (sizeof(glyph) * a);
-	char *change = malloc (sizeof(char) * a);
+	uint8_t *flags = malloc (sizeof(uint8_t) * a);
 
 	int i;
 	for (i = 0; i < a; ++ i)
 		data[i] = COL_TXT_DEF;
-	memset (change, 0, sizeof(char) * a);
+	memset (flags, 0, sizeof(uint8_t) * a);
 	
 	gra = malloc (sizeof(struct Graph));
-	struct Graph from = {h, w, a, data, change, 0, 0, vy, vx, vh, vw, 1, 0, 0, 0};
+	struct Graph from = {h, w, a, data, flags, 0, 0, vy, vx, vh, vw, 1, 0, 0, 0};
 	memcpy (gra, &from, sizeof(struct Graph));
 
 	if (!graphs)
@@ -528,13 +573,11 @@ void gra_free (Graph gra)
 	{
 		if (gra == *(Graph*)v_at(graphs, i))
 		{
-			//gra_clear (gra);
 			free (gra->data);
-			free (gra->change);
+			free (gra->flags);
 			free (gra);
 			v_rem (graphs, i);
 			forced_refresh = 1;
-			//gr_frefresh();
 			break;
 		}
 	}

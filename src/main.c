@@ -13,7 +13,6 @@
 #include "include/vector.h"
 #include "include/dlevel.h"
 #include "include/timer.h"
-#include "include/pixel.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -22,8 +21,8 @@ bool game_intro ()
 {
 	bool ret = false;
 	int c, by, bx, bh = 9, bw = 50;
-	by = (txt_h - bh - 10)/2;
-	bx = (txt_w - bw)/2;
+	by = (gr_h - bh - 10)/2;
+	bx = (gr_w - bw)/2;
 
 	Graph ibox = gra_init (bh+12, bw+1, by, bx, bh+12, bw+1);
 	gra_dbox (ibox, 0, 0, bh, bw);
@@ -67,8 +66,8 @@ int main (int argc, char *argv[])
 	int i;
 
 	gr_onresize = p_init;
-	gr_onrefresh = px_showboxes;
-	map_graph = gra_init (100, 300, 0, 0, txt_h - PANE_H, txt_w - 1);
+	map_graph = gra_init (100, 300, 0, 0, gr_h - PANE_H, gr_w - 1);
+	map_graph->vis = 0;
 	gr_init();
 
 	dlv_init ();
@@ -116,6 +115,7 @@ int main (int argc, char *argv[])
 	generate_map (dlv_lvl (2), LEVEL_NORMAL);
 
 	gra_centcam (map_graph, player->yloc, player->xloc);
+	map_graph->vis = 1;
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 

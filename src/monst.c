@@ -15,7 +15,6 @@
 #include "include/monst.h"
 #include "include/player.h"
 #include "include/timer.h"
-#include "include/pixel.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -64,54 +63,12 @@ void setup_U ()
 		U.attr[i] = 10;
 
 	for (NUM_ITEMS = 0; items[NUM_ITEMS].name[0]; ++ NUM_ITEMS);
-/*
-	for (i = 0; mons[i].name; ++i)
-		if (!strcmp(mons[i].name, "human"))
-			break;
-	if (!mons[i].name)
-		return;
-	MTYP_HUMAN = i;
 
-	for (i = 0; mons[i].name; ++i)
-		if (!strcmp(mons[i].name, "Satan"))
-			break;
-	if (!mons[i].name)
-		return;
-	MTYP_SATAN = i;
-*/
 	U.playing = PLAYER_STARTING;
 }
 
 void get_cinfo ()
 {
-	/*char in;
-
-	txt_mvprint (0, 0, "What role would you like to take up?");
-	txt_mvprint (0, txt_w - 13, "(Esc to quit)");
-	txt_mvprint (2, 3, "a     Assassin");
-	txt_mvprint (3, 3, "d     Doctor");
-	txt_mvprint (4, 3, "s     Soldier");
-	txt_move (0, 37);
-
-	do
-	{
-		in = gr_getch ();
-		if (in == CH_ESC)
-			return;
-	}
-	while (in != 'd' && in != 's' && in != 'a');
-
-	txt_mvprint (0, txt_w - 11, "           ");
-
-	if (in == 's')
-		U.role = 1;
-	else if (in == 'd')
-		U.role = 2;
-	else if (in == 'a')
-		U.role = 3;
-	else
-		panic ("get_cinfo failed");*/
-	
 	U.role = 1;
 	U.playing = PLAYER_PLAYING;
 }
@@ -195,14 +152,14 @@ int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 	/* you can and everything's fine, nothing doing */
 	else if (can == 1)
 	{
+		mons_usedturn (th);
 		thing_move (th, th->dlevel, th->yloc+y, th->xloc+x);
 		return 1;
 	}
 	/* melee attack! */
 	else if (can == 2)
 	{
-		//if (sp_protected (th, th->yloc+y, th->xloc+x))
-		//	return 0;
+		mons_usedturn (th);
 		mons_attack (th, y, x);
 		return 1;
 	}
@@ -215,6 +172,18 @@ int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 	/* shouldn't get to here -- been a mistake */
 	panic ("mons_move() end reached");
 	return 0;
+}
+
+void mons_usedturn (struct Thing *th)
+{
+	if (th != player)
+		return;
+	int i;
+	for (i = 0; i < cur_dlevel->mons->len; ++ i)
+	{
+		int *id = v_at (cur_dlevel->mons, i);
+		(*(struct Thing **) v_at(all_ids, *id))->thing.mons.boxflags = 0;
+	}
 }
 
 int player_take_input (char in)
@@ -276,11 +245,11 @@ int mons_take_move (struct Thing *th)
 	{
 		draw_map ();
 		p_pane ();
-		//txt_move (th->yloc + 1, th->xloc); what
+
 		gra_cmove (map_graph, th->yloc, th->xloc);
 
 		uint32_t key = gr_getfullch();
-		//t_flush ();
+
 		in = (char) key;
 
 		int mv = player_take_input (in);
@@ -293,23 +262,6 @@ int mons_take_move (struct Thing *th)
 			if (mv)
 				break;
 		}
-		//else if (in == '#')
-		//	sp_player_shield ();
-/*		else if (in == CONTROL_('Q') && U.magic == true)
-		{
-			p_msg("Press <m> to re-enter magic mode.");
-			U.magic = false;
-		}
-		else if (U.magic)
-		{
-			if (player_magic(in))
-				break;
-		}
-		else if (in == 'm')
-		{
-			p_msg ("Press Ctrl+Q to leave magic mode.");
-			U.magic = true;
-		}*/
 		else
 		{
 			int res = key_lookup (key);
@@ -334,12 +286,9 @@ void mons_dead (struct Thing *from, struct Thing *to)
 
 	if (!from)
 		goto skip1;
-	if (player_sense (from->yloc, from->xloc, SENSE_VISION))
-		px_mvaddbox (from->yloc, from->xloc, BOX_KILL, 1);
-	//event_mkill (from, to);
+	event_mkill (from, to);
 	if (from == player)
 	{
-		p_msg("You kill the %s!", mons[to->thing.mons.type].name);
 		if (to->thing.mons.type == MTYP_SATAN)
 			U.playing = PLAYER_WONGAME;
 		pmons.exp += mons[to->thing.mons.type].exp;
@@ -518,13 +467,15 @@ void mons_blast (struct Thing *from, struct Thing *to, int siz)
 		mons_dead (from, to);
 }
 
+void mons_box (struct Thing *mons, BoxType type)
+{
+	mons->thing.mons.boxflags |= 1<<type;
+}
+
 void do_attack (struct Thing *from, struct Thing *to)
 {
 	int t, strength, type = from->thing.mons.type;
 	int *toHP = &to->thing.mons.HP;
-	int know = player_sense (to->yloc, to->xloc, SENSE_VISION);
-	if (know)
-		px_mvaddbox (to->yloc, to->xloc, BOX_HIT, 1);
 
 	for (t = 0; t < A_NUM; ++t)
 	{
@@ -589,12 +540,12 @@ void do_attack (struct Thing *from, struct Thing *to)
 				break;
 			}
 		}
-		//event_mhit (from, to, mons[type].attacks[t][2] & 0xFFFF);
+		event_mhit (from, to, mons[type].attacks[t][2] & 0xFFFF);
 
 		if ((*toHP) <= 0)
 		{
 			mons_dead (from, to);
-			break;
+			return;
 		}
 	}
 }
@@ -692,7 +643,7 @@ int AI_Attack (struct Thing *th, int toy, int tox)
 		if (!mons_move (th, ymove, 0))
 			if (!mons_move (th, 0, xmove))
 				if (!mons_move (th, -ymove, xmove))
-					mons_move (th, rn(3) - 1, rn(3) - 1);
+					return mons_move (th, rn(3) - 1, rn(3) - 1);
 	return 1;
 }
 
