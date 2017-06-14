@@ -22,19 +22,12 @@ SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
 /* starting size */
 const int screenY = 720, screenX = 1000;
 
-glyph *txt_map = NULL;
-char *txt_change = NULL;
-
 glyph *screen_map = NULL;
 char *screen_change = NULL;
 
-/* where written text and input appears */
-int curs_yloc = 0, curs_xloc = 0;
 /* window dimensions (in glyphs) */
 int txt_h = 720/GLH, txt_w = 1000/GLW;
 int txt_area = 0;
-/* location of the blinking cursor */
-int csr_y = 0, csr_x = 0, csr_state = 1;
 
 Vector graphs = NULL;
 
@@ -55,12 +48,6 @@ int txt_buffer (int yloc, int xloc)
 	if (yloc < 0 || yloc >= txt_h || xloc < 0 || xloc >= txt_w)
 		return -1;
 	return txt_w * yloc + xloc;
-}
-
-void txt_move (int yloc, int xloc)
-{
-	curs_yloc = yloc;
-	curs_xloc = xloc;
 }
 
 void gra_movecam (Graph gra, int yloc, int xloc)
@@ -84,26 +71,11 @@ void gra_baddch (Graph gra, int buf, glyph gl)
 	gra->change[buf] = 1;
 }
 
-void txt_baddch (int buf, glyph gl)
-{
-	if (gl != 0 && gl == (gl&255)) gl |= COL_TXT_DEF;
-	if (txt_map[buf] == gl) return;
-	txt_map[buf] = gl;
-	txt_change[buf] = 1;
-}
-
 void gra_mvaddch (Graph gra, int yloc, int xloc, glyph gl)
 {
 	int buf = gra_buffer (gra, yloc, xloc);
 	if (buf != -1)
 		gra_baddch (gra, buf, gl);
-}
-
-void txt_mvaddch (int yloc, int xloc, glyph gl)
-{
-	int buf = txt_buffer (yloc, xloc);
-	if (buf != -1)
-		txt_baddch (buf, gl);
 }
 
 void gra_mvaprint (Graph gra, int yloc, int xloc, const char *str)
@@ -112,14 +84,6 @@ void gra_mvaprint (Graph gra, int yloc, int xloc, const char *str)
 
 	for (i = 0; i < len && i+buf < gra->a; ++ i)
 		gra_baddch (gra, i+buf, str[i]);
-}
-
-void txt_mvaprint (int yloc, int xloc, const char *str)
-{
-	int i, buf = txt_buffer (yloc, xloc), len = strlen(str);
-
-	for (i = 0; i < len && i+buf < txt_area; ++ i)
-		txt_baddch (i+buf, str[i]);
 }
 
 void gra_mvprint (Graph gra, int yloc, int xloc, const char *str, ...)
@@ -134,21 +98,6 @@ void gra_mvprint (Graph gra, int yloc, int xloc, const char *str, ...)
 
 	gra_mvaprint (gra, yloc, xloc, out);
 }
-
-void txt_mvprint (int yloc, int xloc, const char *str, ...)
-{
-	va_list args;
-	char out[1024];
-
-	txt_move (yloc, xloc);
-	va_start (args, str);
-	vsprintf (out, str, args);
-	va_end (args);
-
-	txt_mvaprint (yloc, xloc, out);
-}
-
-
 
 void glyph_box (Graph gra, int yloc, int xloc, int height, int width,
                 glyph ULCORNER, glyph URCORNER, glyph LLCORNER, glyph LRCORNER,
@@ -194,54 +143,39 @@ void gra_fbox (Graph gra, int yloc, int xloc, int height, int width, glyph fill)
 	gra_box (gra, yloc, xloc, height, width);
 }
 
-void csr_noblink ()
+void gra_csolid (Graph gra)
 {
-	csr_state = 3;
+	gra->csr_state = 3;
 }
 
-void csr_blink ()
+void gra_cblink (Graph gra)
 {
-	csr_state = 1;
+	gra->csr_state = 1;
 }
 
-void csr_move (int yloc, int xloc)
+void gra_cmove (Graph gra, int yloc, int xloc)
 {
-	if (yloc == csr_y && xloc == csr_x)
+	if (yloc == gra->csr_y && xloc == gra->csr_x)
 		return;
-	txt_mark (csr_y, csr_x);
-	txt_mark (yloc, xloc);
-	csr_y = yloc;
-	csr_x = xloc;
-
-	if ((csr_y >= map_graph->vy) && (csr_y < map_graph->vy + map_graph->vh) &&
-	    (csr_x >= map_graph->vx) && (csr_x < map_graph->vx + map_graph->vw))
-		csr_show ();
-	else
-		csr_hide ();	
+	gra_mark (gra, gra->csr_y, gra->csr_x);
+	gra_mark (gra, yloc, xloc);
+	gra->csr_y = yloc;
+	gra->csr_x = xloc;
 }
 
-void csr_hide ()
+void gra_chide (Graph gra)
 {
-	csr_state = 2;
+	gra->csr_state = 2;
 }
 
-void csr_show ()
+void gra_cshow (Graph gra)
 {
-	csr_state = 1;
+	gra->csr_state = 1;
 }
 
 void gra_mark (Graph gra, int yloc, int xloc)
 {
-	if (yloc >= gra->cy && yloc < gra->cy + gra->vh &&
-	    xloc >= gra->cx && xloc < gra->cx + gra->vw)
-		txt_mark (yloc - gra->cy + gra->vy, xloc - gra->cx + gra->vx);
-}
-
-void txt_mark (int yloc, int xloc)
-{
-	if (yloc >= 0 && yloc < txt_h &&
-	    xloc >= 0 && xloc < txt_w)
-		txt_change[txt_buffer(yloc, xloc)] = 1;
+	gra->change[gra_buffer(gra, yloc, xloc)] = 1;
 }
 
 #define GL_TRD ((gl&0xF0000000)>>24)
@@ -252,8 +186,6 @@ void txt_mark (int yloc, int xloc)
 #define GL_BBL ((gl&0x00000F00)>>4)
 void blit_glyph (glyph gl, int yloc, int xloc)
 {
-	if (yloc == csr_y && xloc == csr_x && (csr_state&1))
-		gl = ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
 	char ch = (char) gl;
 	SDL_Rect srcrect = {GLW*(ch&15), GLH*((ch>>4)&15), GLW, GLH};
 	SDL_Rect dstrect = {GLW*xloc, GLH*yloc, GLW, GLH};
@@ -284,34 +216,18 @@ void gr_refresh ()
 				int txt_c = txt_buffer (txt_y, txt_x);
 				if (gr_c != -1 && txt_c != -1)
 				{
-					if (gra->change[gr_c] || forced_refresh ||
-					    (txt_map[txt_c] == 0 && txt_change[txt_c]))
+					if (gra->change[gr_c] || forced_refresh)
 					{
-						screen_map[txt_c] = gra->data[gr_c];
+						glyph gl = gra->data[gr_c];
+						if (gra->csr_state && gra->csr_y == gr_y && gra->csr_x == gr_x)
+							screen_map[txt_c] = ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
+						else
+							screen_map[txt_c] = gl;
 						screen_change[txt_c] = 1;
 					}
-		//			else
-		//				screen_map[txt_c] = 0;
 				}
 				gra->change[gr_c] = 0;
 			}
-		}
-	}
-
-	for (x = 0; x < txt_w; ++ x)
-	{
-		for (y = 0; y < txt_h; ++ y)
-		{
-			int txt_c = txt_buffer (y, x);
-			if (txt_change[txt_c] || forced_refresh)
-			{
-				if (txt_map[txt_c] || !screen_change[txt_c])
-				{
-					screen_map[txt_c] = txt_map[txt_c];
-					screen_change[txt_c] = 1;
-				}
-			}
-			txt_change[txt_c] = 0;
 		}
 	}
 
@@ -350,15 +266,6 @@ void gra_clear (Graph gra)
 		gra_baddch (gra, i, 0);
 }
 
-void txt_clear ()
-{
-	int i;
-	//px_showboxes (); why was this here?
-	for (i = 0; i < txt_area; ++ i)
-		txt_baddch (i, 0);
-	//gr_refresh ();
-}
-
 int tout_num = 0;
 void gr_tout (int t)
 {
@@ -370,7 +277,6 @@ int echoing = 1;
 int gr_equiv (uint32_t key1, uint32_t key2)
 {
 	uint32_t mod1 = key1 >> 16, mod2 = key2 >> 16;
-	//printf ("%x %x\n", mod1, mod2);
 
 	/* control */
 	if (((mod1 & KMOD_CTRL) != 0) != ((mod2 & KMOD_CTRL) != 0))
@@ -427,18 +333,6 @@ uint32_t gr_getfullch ()
 					return mod|GRK_RT;
 				if (event.key.keysym.unicode == 0)
 					break;
-				/*if (echoing)
-				{
-					if (event.key.keysym.unicode >= 0x20)
-						txt_mvaddch (curs_yloc-gra->cy, curs_xloc-gra->cx, event.key.keysym.unicode);
-					if (curs_xloc == MAP_WIDTH-1)
-					{
-						curs_xloc = 0;
-						++ curs_yloc;
-					}
-					else
-						++ curs_xloc;
-				}*/
 				if (mod & ((KMOD_LCTRL|KMOD_RCTRL)<<16))
 				{
 					if ((!!(mod & ((KMOD_LSHIFT|KMOD_RSHIFT)<<16))) ^ (!!(mod & (KMOD_CAPS<<16))))
@@ -471,51 +365,36 @@ char gr_getch ()
 	return (char)(gr_getfullch () & 0xFF);
 }
 
-void txt_getstr (char *out, int len)
+void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
 {
 	int i = 0;
-	do
+	gra->csr_state = 2;
+	while (1)
 	{
-		int tcx = curs_xloc, tcy = curs_yloc;
-		csr_move (curs_yloc, curs_xloc);
+		gra_cmove (gra, yloc, xloc);
 		char in = gr_getch ();
-		curs_yloc = tcy;
-		curs_xloc = tcx;
 		if (in == CH_LF || in == CH_CR) break;
 		if (in == CH_BS)
 		{
 			if (i)
 			{
-				if (curs_xloc == 0)
-				{
-					curs_xloc = txt_w-1;
-					-- curs_yloc;
-				}
-				else
-					-- curs_xloc;
+				-- xloc;
 				-- i;
 			}
 			out[i] = 0;
-			txt_mvaddch (curs_yloc, curs_xloc, ' ');
+			gra_mvaddch (gra, yloc, xloc, 0);
 			continue;
 		}
-		txt_mvaddch (curs_yloc, curs_xloc, in);
-		out[i] = in;
 		if (i < len-1)
 		{
-			++ curs_xloc;
+			gra_mvaddch (gra, yloc, xloc, in);
+			out[i] = in;
+			++ xloc;
 			++ i;
 		}
 	}
-	while (1);
+	gra->csr_state = 0;
 	out[i] = 0;
-}
-
-int txt_echo (int echo)
-{
-	if (echo != -1)
-		echoing = (echo == 1);
-	return echoing;
 }
 
 void gr_resize (int ysiz, int xsiz)
@@ -528,10 +407,6 @@ void gr_resize (int ysiz, int xsiz)
 	txt_w = xsiz/GLW;
 	txt_area = txt_h * txt_w;
 	
-	txt_map = realloc (txt_map, sizeof(glyph) * txt_area);
-	memset (txt_map, 0, sizeof(glyph) * txt_area);
-	txt_change = realloc (txt_change, sizeof(char) * txt_area);
-	memset (txt_change, 0, sizeof(char) * txt_area);
 	screen_map = realloc (screen_map, sizeof(glyph) * txt_area);
 	for (i = 0; i < txt_area; ++ i)
 		screen_map[i] = ' ';
@@ -617,21 +492,23 @@ void gr_init ()
 	SDL_EnableUNICODE (1);
 	SDL_EnableKeyRepeat (200, 30);
 	SDL_WM_SetCaption ("Yore", "Yore");
-	csr_hide ();
 }
 
 Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
 {
 	Graph gra;
+	int a = h*w;
 
-	glyph *data = malloc (sizeof(glyph) * h * w);
-	char *change = malloc (sizeof(char) * h * w);
+	glyph *data = malloc (sizeof(glyph) * a);
+	char *change = malloc (sizeof(char) * a);
 
-	memset (data, 0, sizeof(glyph) * h * w);
-	memset (change, 0, sizeof(char) * h * w);
+	int i;
+	for (i = 0; i < a; ++ i)
+		data[i] = COL_TXT_DEF;
+	memset (change, 0, sizeof(char) * a);
 	
 	gra = malloc (sizeof(struct Graph));
-	struct Graph from = {h, w, h * w, data, change, 0, 0, vy, vx, vh, vw, 1};
+	struct Graph from = {h, w, a, data, change, 0, 0, vy, vx, vh, vw, 1, 0, 0, 0};
 	memcpy (gra, &from, sizeof(struct Graph));
 
 	if (!graphs)
@@ -656,7 +533,8 @@ void gra_free (Graph gra)
 			free (gra->change);
 			free (gra);
 			v_rem (graphs, i);
-			gr_frefresh();
+			forced_refresh = 1;
+			//gr_frefresh();
 			break;
 		}
 	}

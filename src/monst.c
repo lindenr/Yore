@@ -277,7 +277,7 @@ int mons_take_move (struct Thing *th)
 		draw_map ();
 		p_pane ();
 		//txt_move (th->yloc + 1, th->xloc); what
-		csr_move (th->yloc - map_graph->cy, th->xloc - map_graph->cx);
+		gra_cmove (map_graph, th->yloc, th->xloc);
 
 		uint32_t key = gr_getfullch();
 		//t_flush ();
@@ -550,7 +550,7 @@ void do_attack (struct Thing *from, struct Thing *to)
 					int attr = (*it)->type.attr;
 					strength = rn(mons_get_st(from)) >> 1;
 					int damage = rnd(attr & 15, (attr >> 4) & 15) + strength;
-					printf("%d %d\n", *toHP, *toHP - damage);
+					//printf("%d %d\n", *toHP, *toHP - damage);
 					*toHP -= damage;
 				}
 

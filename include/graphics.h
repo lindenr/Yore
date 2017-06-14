@@ -35,6 +35,8 @@ typedef struct Graph
 	int cy, cx;         /* camera location */
 	int vy, vx, vh, vw; /* view location and dimensions on the window */
 	int vis;            /* whether the graph is currently being shown */
+	int csr_y, csr_x;   /* location of the (visible) cursor */
+	int csr_state;      /* off, blinking, or steady */
 } *Graph;
 
 /* Prefixes:
@@ -43,9 +45,6 @@ typedef struct Graph
  * gra_ is the graph prefix for messing with a Graph */
 
 extern int txt_h, txt_w, txt_area;
-extern glyph *txt_map;
-extern char  *txt_change;
-extern int csr_y, csr_x, csr_state;
 extern int forced_refresh;
 
 extern void (*gr_onidle)    ();
@@ -60,7 +59,6 @@ Graph gra_init (int, int, int, int, int, int);
 void gra_free  (Graph);
 
 /* Output */
-void txt_move    (int, int);
 void gra_movecam (Graph, int, int);
 void gra_centcam (Graph, int, int);
 
@@ -80,33 +78,19 @@ void gra_mvprint  (Graph, int, int, const char *, ...);
 void gr_refresh ();
 void gr_frefresh();
 
-void txt_clear ();
+void gra_csolid (Graph);
+void gra_cblink (Graph);
+void gra_cmove  (Graph, int, int);
+void gra_cshow  (Graph);
+void gra_chide  (Graph);
 
-void txt_mvaddch (int, int, glyph);
-void txt_baddch  (int, glyph);
-
-void txt_mvprint (int, int, const char *, ...);
-
-//void txt_box  (int, int, int, int);
-//void txt_dbox (int, int, int, int);
-//void txt_fbox (int, int, int, int, glyph);
-
-void csr_noblink ();
-void csr_blink   ();
-void csr_move    (int, int);
-void csr_show    ();
-void csr_hide    ();
-
-void txt_mark (int, int);
 void gra_mark (Graph, int, int);
 
 /* Input */
 char     gr_getch     ();
 uint32_t gr_getfullch ();
-void     txt_getstr   (char *, int);
+void     gra_getstr   (Graph, int, int, char *, int);
 int      gr_equiv     (uint32_t, uint32_t);
-
-int txt_echo   (int);
 
 void gr_tout (int);
 

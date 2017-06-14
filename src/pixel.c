@@ -30,15 +30,15 @@ int BOXCOL[BOX_NUM][3] = {
 
 Vector boxes = NULL;
 
-void px_csr ()
+/*void px_csr ()
 {
 	//printf ("CSR %d\n", csr_state);
-	txt_mark (csr_y, csr_x);
+	//txt_mark (csr_y, csr_x);
 	gr_refresh ();
 	if (csr_state < 2)
 		csr_state = !csr_state;
 	//t_interval (CSR_DELAY, $$, $.(px_csr), TMR_NONE);
-}
+}*/
 
 void px_mvaddbox (int yloc, int xloc, int type, int len)
 {

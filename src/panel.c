@@ -243,10 +243,10 @@ char p_lines (Vector lines)
 	int h = lines->len + 2, w = 42;
 	int yloc = (txt_h - lines->len)/2 - 1, xloc = (txt_w - 40)/2 - 1;
 
-	int csr_cov = (csr_y >= yloc) && (csr_y < yloc + h) &&
-				  (csr_x >= xloc) && (csr_x < xloc + w);
-	if (csr_cov)
-		csr_hide ();
+	//int csr_cov = (csr_y >= yloc) && (csr_y < yloc + h) &&
+	//			  (csr_x >= xloc) && (csr_x < xloc + w);
+	//if (csr_cov)
+	//	csr_hide ();
 
 	Graph box = gra_init (h, w, yloc, xloc, h, w);
 	gra_fbox (box, 0, 0, h-1, w-1, ' ');
@@ -260,8 +260,8 @@ char p_lines (Vector lines)
 	char ret = gr_getch();
 
 	gra_free (box);
-	if (csr_cov)
-		csr_show ();
+	//if (csr_cov)
+	//	csr_show ();
 	
 	return ret;
 }

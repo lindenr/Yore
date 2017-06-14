@@ -317,7 +317,7 @@ uint32_t pl_move (int *ymove, int *xmove, uint32_t key)
 
 void pl_mvchoose (int *yloc, int *xloc, char *instruct, char *confirm)
 {
-	if (instruct)
+	/*if (instruct)
 		p_msg (instruct);
 	p_pane ();
 	gr_refresh ();
@@ -338,6 +338,6 @@ void pl_mvchoose (int *yloc, int *xloc, char *instruct, char *confirm)
 		key = pl_move (&ymove, &xmove, gr_getfullch ());
 	}
 	*yloc = map_graph->cy + csr_y;
-	*xloc = map_graph->cx + csr_x;
+	*xloc = map_graph->cx + csr_x;*/
 }
 

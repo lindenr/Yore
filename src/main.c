@@ -18,21 +18,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void print_intro ()
-{
-//	gra_mvprint (gra, 1,  0, "Welcome to Yore v"YORE_VERSION);
-//	gra_mvprint (gra, 2, 10, "* A game guide is not yet in place.");
-//	gra_mvprint (gra, 3, 10, "* A wiki is not yet in place.");
-}
-
 bool game_intro ()
 {
 	bool ret = false;
 	int c, by, bx, bh = 9, bw = 50;
 	by = (txt_h - bh - 10)/2;
 	bx = (txt_w - bw)/2;
+
 	Graph ibox = gra_init (bh+12, bw+1, by, bx, bh+12, bw+1);
-	//txt_clear ();
 	gra_dbox (ibox, 0, 0, bh, bw);
 	gra_mvprint (ibox, 2, 2, "Back in the days of Yore, in a land far removed");
 	gra_mvprint (ibox, 3, 2, "from our current understanding of the universe,");
@@ -40,9 +33,8 @@ bool game_intro ()
 	gra_mvprint (ibox, 5, 3,  "flowed through the sea, and the Gods lived in");
 	gra_mvprint (ibox, 6, 4,   "harmony with the people; it was a time when");
 	gra_mvprint (ibox, 7, 6,     "anything and everything was possible...");
-	//txt_echo (0);
-	csr_hide ();
 	gr_tout (666);
+
 	while (1)
 	{
 		gra_mvprint (ibox, 11, (bw - 30)/2, "[hit the spacebar to continue]");
@@ -63,9 +55,8 @@ bool game_intro ()
 			goto fin;
 	}
 	gr_tout (0);
-	//txt_echo (1);
-	//txt_clear ();
 	ret = true;
+
   fin:
 	gra_free (ibox);
 	return ret;
@@ -75,15 +66,11 @@ int main (int argc, char *argv[])
 {
 	int i;
 
-	//test_do ();
-	//return 0;
 	gr_onresize = p_init;
 	gr_onrefresh = px_showboxes;
 	map_graph = gra_init (100, 300, 0, 0, txt_h - PANE_H, txt_w - 1);
 	gr_init();
 
-	px_csr ();
-	//ru_start (3);
 	dlv_init ();
 	rng_init ();
 
@@ -92,30 +79,33 @@ int main (int argc, char *argv[])
 	if (!game_intro())
 		goto quit_game;
 
-	csr_show ();
-	print_intro ();
+	int iw = 100, ih = 20;
+	int ix = 5, iy = 5;
+	Graph introbox = gra_init (ih, iw, ix, iy, ih, iw);
+	gra_dbox (introbox, 0, 0, ih-1, iw-1);
+	gra_mvprint (introbox, 2,  2, "Welcome to Yore v"YORE_VERSION);
+	gra_mvprint (introbox, 3, 10, "* A game guide is not yet in place.");
+	gra_mvprint (introbox, 4, 10, "* A wiki is not yet in place.");
 	mons_gen (cur_dlevel, 0, 15150);
 
-	txt_mvprint (8, 6, "Who are you? ");
+	gra_mvprint (introbox, 8, 6, "Who are you? ");
 
 	for (i = 0, *(real_player_name + 1) = '\0';
 		 i < 10 && *(real_player_name + 1) == '\0';
 		 ++i)
 	{
 		if (i)
-			txt_mvprint (10, 6, "Please type in your name.");
-		txt_move (8, 19);
-		txt_getstr (real_player_name + 1, 80);
+			gra_mvprint (introbox, 10, 6, "Please type in your name.");
+		gra_getstr (introbox, 8, 19, real_player_name + 1, 40);
 	}
+	gra_free(introbox);
 
 	if (*(real_player_name + 1) == '\0')
 		goto quit_game;
 
 
 	/* So you really want to play? */
-	txt_echo (0);
-	txt_clear ();
-	csr_hide ();
+	gra_cshow (map_graph);
 	get_cinfo ();
 
 	/* If the player entered info correctly, then they should be PLAYER_PLAYING: */
@@ -125,17 +115,13 @@ int main (int argc, char *argv[])
 	generate_map (dlv_lvl (1), LEVEL_NORMAL);
 	generate_map (dlv_lvl (2), LEVEL_NORMAL);
 
-	//txt_clear ();
-
 	gra_centcam (map_graph, player->yloc, player->xloc);
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 
 	p_pane ();
 	draw_map ();
-	csr_show ();
 
-	//sp_player_shield ();
 	do
 		main_loop();
 	while (U.playing == PLAYER_PLAYING);
