@@ -125,7 +125,7 @@ int main (int argc, char *argv[])
 	generate_map (dlv_lvl (1), LEVEL_NORMAL);
 	generate_map (dlv_lvl (2), LEVEL_NORMAL);
 
-	txt_clear ();
+	//txt_clear ();
 
 	gra_centcam (map_graph, player->yloc, player->xloc);
 

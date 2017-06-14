@@ -70,7 +70,7 @@ glyph WALL_TYPE (glyph y, glyph u,
         Y = !(y == DOT), U = !(u == DOT), B = !(b == DOT), N = !(n == DOT);
 	return ACS_ARRAY[wall_output[(((((((((((((Y<<1)+H)<<1)+B)<<1)+J)<<1)+N)<<1)+L)<<1)+U)<<1)+K]];
 }
-
+/*
 void walls_test ()
 {
 	int i;
@@ -96,7 +96,7 @@ void walls_test ()
 		txt_mvprint (3, 0, "Number %d", i);
 		gr_getch ();
 	}
-}
+}*/
 
 void thing_bmove (struct Thing *thing, int level, int num)
 {

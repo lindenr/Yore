@@ -439,6 +439,12 @@ uint32_t gr_getfullch ()
 					else
 						++ curs_xloc;
 				}*/
+				if (mod & ((KMOD_LCTRL|KMOD_RCTRL)<<16))
+				{
+					if ((!!(mod & ((KMOD_LSHIFT|KMOD_RSHIFT)<<16))) ^ (!!(mod & (KMOD_CAPS<<16))))
+						return mod|(event.key.keysym.unicode+64);
+					return mod|(event.key.keysym.unicode+96);
+				}
 
 				return mod|event.key.keysym.unicode;
 			}
