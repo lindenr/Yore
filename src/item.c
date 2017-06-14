@@ -52,7 +52,7 @@ void ask_items (Vector it_out, Vector it_in)
 
 char *get_item_desc (struct Item item)
 {
-	char *ret = malloc(80);
+	char *ret = malloc(128);
 	if (item.name != NULL && item.name[0] != '\0')
 	{
 		p_msg ("NULULULULUL");
@@ -74,7 +74,12 @@ char *get_item_desc (struct Item item)
 		         item.type.name,
 		         /* wielded */
 		         item.attr & ITEM_WIELDED ? " (being used)" : "");
-		w_a (ret, ret);
+		if (strlen(ret) > 120)
+		{
+			panic("ret too long in get_item_desc");
+			return NULL;
+		}
+		w_a (ret, ret); // safe
 	}
 	return ret;
 }

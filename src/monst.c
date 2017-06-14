@@ -495,7 +495,7 @@ void mons_passive_attack (struct Thing *from, struct Thing *to)
 		case ATYP_ACID:
 		{
 			posv = malloc(strlen(mons[type].name) + 5);
-			w_pos (posv, (char *)mons[type].name);
+			w_pos (posv, (char *)mons[type].name); // safe
 			if (from == player)
 				p_msg ("You splash the %s with acid!", mons[type].name);
 			else if (to == player)

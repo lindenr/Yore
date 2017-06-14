@@ -15,18 +15,18 @@ void w_a (char *c, char *ret)
 		sprintf (intermediate, "an %s", c);
 	else
 		sprintf (intermediate, "a %s", c);
-	strcpy (ret, intermediate);
+	strcpy (ret, intermediate); // safe if w_a safe
 }
 
 void w_the (char *end, char *c)
 {
-	strcpy (end, "the ");
+	strcpy (end, "the "); // safe if w_the safe
 	strcat (end, c);
 }
 
 void w_pos (char *end, char *in)
 {
-	strcpy (end, in);
+	strcpy (end, in); // safe if w_pos safe
 	strcat (end, "'s");
 }
 

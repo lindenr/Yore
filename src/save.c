@@ -205,7 +205,7 @@ void load_item (struct Item *item)
 	else
 	{
 		item->name = malloc(len+1);
-		strcpy(item->name, temp);
+		strcpy(item->name, temp); safe (commented)
 	}
 }
 

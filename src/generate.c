@@ -212,7 +212,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		upsx = start % map_graph->w;
 		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0.0, 0, 0, {{0},}, {0,}, 0, 0};
 		asdf.name = malloc (85);
-		strcpy (asdf.name, "_");
+		strcpy (asdf.name, "_"); // safe
 		real_player_name = asdf.name;
 		new_thing (THING_MONS, lvl, upsy, upsx, &asdf);
 	}

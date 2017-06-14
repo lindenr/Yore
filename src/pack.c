@@ -94,7 +94,7 @@ void pack_get_letters (struct Pack pack, char *ret)
 			++k;
 		}
 	}
-	strcpy (ret + k, " ?*");
+	strcpy (ret + k, " ?*"); // safe if pack_get_letters safe
 }
 
 struct Item *pack_rem (struct Pack *pack, char it)

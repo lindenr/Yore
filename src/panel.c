@@ -209,7 +209,7 @@ void p_amsg (char *str)
 		fprintf(stderr, "Message too long! p_amsg");
 		return;
 	}
-	strcpy (msg.msg, str);
+	strcpy (msg.msg, str); // safe (checked above)
 	v_push (messages, &msg);
 }
 
