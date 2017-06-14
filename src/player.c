@@ -72,7 +72,7 @@ int Kpickup ()
 		Vector pickup = v_init (sizeof(int), 20);
 	
 		/* Do the asking */
-		ask_items (pickup, ground);
+		ask_items (pickup, ground, "Pick up what?");
 		v_free (ground);
 	
 		/* Put items in ret_list into inventory. The loop

@@ -81,10 +81,11 @@ extern ityp items[];
 extern int NUM_ITEMS;
 
 void item_piles     (int, Vector, Vector);
-void ask_items      (Vector, Vector);
+void ask_items      (Vector, Vector, const char *);
 
 char *get_item_desc (struct Item);
 void item_look      (struct Item *);
 char *get_inv_line  (struct Item *);
 
 #endif /* ITEM_H_INCLUDED */
+

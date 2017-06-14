@@ -42,12 +42,25 @@ ityp items[] = {
 	/* item name             display         type     weight  attributes           colour */
 };
 
-void ask_items (Vector it_out, Vector it_in)
+void ask_items (Vector it_out, Vector it_in, const char *msg)
 {
 	int i;
 	// TODO fix
+	Vector list = v_init (128, it_in->len);
+	char first[256];
+	sprintf(first, "%*s", (40+(int)strlen(msg))/2, msg);
+	v_pstr (list, first);
+	v_pstr (list, "");
 	for (i = 0; i < it_in->len; ++ i)
+	{
 		v_push (it_out, v_at (it_in, i));
+		char *asdf = get_item_desc ((*(struct Thing **)v_at(all_ids, *(int*)v_at(it_in, i)))->thing.item);
+		v_pstrf (list, "  (*)   %s", asdf);
+		free (asdf);
+	}
+	v_pstr (list, "");
+	p_lines (list);
+	v_free (list);
 }
 
 char *get_item_desc (struct Item item)
@@ -73,7 +86,7 @@ char *get_item_desc (struct Item item)
 		         /* name */
 		         item.type.name,
 		         /* wielded */
-		         item.attr & ITEM_WIELDED ? " (being used)" : "");
+		         item.attr & ITEM_WIELDED ? " (wielded)" : "");
 		if (strlen(ret) > 120)
 		{
 			panic("ret too long in get_item_desc");
@@ -129,10 +142,6 @@ void item_piles (int n, Vector piles, Vector items)
 		v_push (*(Vector*)v_at (piles, j), v_at (items, i));
 	}
 }
-
-/*void spell_simulator ()
-{
-}*/
 
 void what_am_I_wearing (struct Monster *self)
 {

@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #define V_DEFAULT_LENGTH 2
 Vector v_dinit (int siz)
@@ -49,6 +50,27 @@ void *v_pstr (Vector vec, char *data)
 		vec->data = realloc (vec->data, vec->mlen * vec->siz);
 	}
 	memcpy (DATA(vec->len), data, strlen (data) + 1);
+	++ vec->len;
+	return v_at (vec, vec->len - 1);
+}
+
+void *v_pstrf (Vector vec, char *data, ...)
+{
+	if (vec->data == NULL)
+		panic("NULL str vector");
+	if (vec->len >= vec->mlen)
+	{
+		vec->mlen = V_NEXT_LENGTH(vec->mlen);
+		vec->data = realloc (vec->data, vec->mlen * vec->siz);
+	}
+
+
+	va_list args;
+
+	va_start (args, data);
+	vsprintf (DATA(vec->len), data, args);
+	va_end (args);
+
 	++ vec->len;
 	return v_at (vec, vec->len - 1);
 }
