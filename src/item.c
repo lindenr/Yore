@@ -26,7 +26,7 @@ ityp items[] = {
 	ITEM("long sword",     ITEM_WEAPON, IT_LONGSWORD,  2000,  DMG(1, 5),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)),
 	ITEM("fencing sword",  ITEM_WEAPON, IT_LONGSWORD,  1500,  DMG(1, 5),  COL_TXT_RED(11)   | COL_TXT_BLUE(11) ),
 	ITEM("axe",            ITEM_WEAPON, IT_AXE,        3000,  DMG(1, 4),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)),
-	ITEM("battle-axe",     ITEM_WEAPON, IT_AXE,        5000,  DMG(1, 7),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)),
+	ITEM("battle-axe",     ITEM_WEAPON, IT_AXE,        5000,  DMG(5, 7),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)),
 	ITEM("dagger",         ITEM_WEAPON, IT_DAGGER,     100,   DMG(1, 3),  COL_TXT_GREEN(11)                    ),
 	ITEM("short sword",    ITEM_WEAPON, IT_SHORTSWORD, 2000,  DMG(1, 4),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)),
 	ITEM("gloves",         ITEM_ARMOUR, IT_GLOVES,     70,    0,          COL_TXT_GREEN(11)                    ),
@@ -125,9 +125,9 @@ void item_piles (int n, Vector piles, Vector items)
 	}
 }
 
-void spell_simulator ()
+/*void spell_simulator ()
 {
-}
+}*/
 
 void what_am_I_wearing (struct Monster *self)
 {

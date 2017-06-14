@@ -140,21 +140,6 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		start = map_buffer (map_graph->h/2, map_graph->w/2);
 		end = mons_gen (lvl, 1, start);
 		
-		for (i = 0; i < 100; ++ i)
-		{
-			do
-			{
-				y = rn (map_graph->h);
-				x = rn (map_graph->w);
-			}
-			while (!is_safe_gen (lvl, y, x));
-			ADD_MAP (DOT, map_buffer (y, x));
-
-			struct Item *item = gen_item ();
-			new_thing (THING_ITEM, lvl, y, x, item);
-			free (item);
-		}
-
 		/* clear space at the beginning (for the up-stair) */
 		ADD_MAP (DOT, start);
 
@@ -165,6 +150,21 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		for (i = 0; i < map_graph->a; ++i)
 			if (things[i]->len == 0)
 				ADD_MAP (ACS_WALL, i);
+
+		for (i = 0; i < 100; ++ i)
+		{
+			do
+			{
+				y = rn (map_graph->h);
+				x = rn (map_graph->w);
+			}
+			while (!is_safe_gen (lvl, y, x));
+			//ADD_MAP (DOT, map_buffer (y, x));
+
+			struct Item *item = gen_item ();
+			new_thing (THING_ITEM, lvl, y, x, item);
+			free (item);
+		}
 	}
 	else if (type == LEVEL_MAZE)
 	{
@@ -187,7 +187,7 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 		if (T->type == THING_DGN)
 		{
 			m = &(T->thing.mis);
-			if (!m->attr & 1)
+			if (!(m->attr & 1))
 				return false;
 		}
 	}
@@ -242,7 +242,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		memclr (&p, sizeof(p));
 		p.type = player_gen_type ();
 		p.HP = (mons[p.type].flags >> 28) + (mons[p.type].exp >> 1);
-		p.HP += rn(1+ p.HP / 3);
+		p.HP += 1+rn(1+ p.HP / 3);
 		p.HP_max = p.HP;
 		p.name = NULL;
 		p.level = 1; //mons[p.type].exp? TODO

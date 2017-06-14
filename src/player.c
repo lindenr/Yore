@@ -102,7 +102,8 @@ int Ksdrop ()
 	struct Item *drop = player_use_pack ("Drop what?", ITCAT_ALL);
 	if (drop == NULL)
 		return 0;
-	mons_unwield (player);
+	if (drop == player->thing.mons.wearing.arms)
+		mons_unwield (player);
 	unsigned u = PACK_AT (get_Itref (pmons.pack, drop));
 	pmons.pack.items[u] = NULL;
 	new_thing (THING_ITEM, cur_dlevel, player->yloc, player->xloc, drop);

@@ -12,7 +12,7 @@
 #define PANEL_MSG     2
 #define PANEL_OPTIONS 3
 
-#define P_MSG_LEN 40
+#define P_MSG_LEN 60
 
 struct P_msg
 {

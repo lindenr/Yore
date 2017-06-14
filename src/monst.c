@@ -549,7 +549,9 @@ void do_attack (struct Thing *from, struct Thing *to)
 				{
 					int attr = (*it)->type.attr;
 					strength = rn(mons_get_st(from)) >> 1;
-					*toHP -= rnd(attr & 15, (attr >> 4) & 15) + strength;
+					int damage = rnd(attr & 15, (attr >> 4) & 15) + strength;
+					printf("%d %d\n", *toHP, *toHP - damage);
+					*toHP -= damage;
 				}
 
 				mons_passive_attack (to, from);

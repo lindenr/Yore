@@ -204,6 +204,11 @@ void p_amsg (char *str)
 {
 	struct P_msg msg;
 	msg.expiry = Time+1;
+	if (strlen(str) >= P_MSG_LEN)
+	{
+		fprintf(stderr, "Message too long! p_amsg");
+		return;
+	}
 	strcpy (msg.msg, str);
 	v_push (messages, &msg);
 }
