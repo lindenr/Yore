@@ -59,7 +59,7 @@ char show_contents (struct Pack pack, uint32_t accepted, char *msg)
 	inv = v_init (256, MAX_ITEMS_IN_PACK);
 	int len = strlen(msg);
 	char first[256];
-	sprintf(first, "%*s", (40+len)/2, msg);
+	snprintf(first, 256, "%*s", (40+len)/2, msg);
 	v_pstr (inv, first);
 	v_pstr (inv, "");
 	for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
@@ -74,7 +74,7 @@ char show_contents (struct Pack pack, uint32_t accepted, char *msg)
 	}
 	if (!num_items)
 	{
-		sprintf(first, "%23s", "(empty)");
+		snprintf(first, 256, "%23s", "(empty)");
 		v_pstr (inv, first);
 	}
 	v_pstr (inv, "");
@@ -94,7 +94,7 @@ void pack_get_letters (struct Pack pack, char *ret)
 			++k;
 		}
 	}
-	strcpy (ret + k, " ?*"); // safe if pack_get_letters safe
+	strncpy (ret + k, " ?*", k+4);
 }
 
 struct Item *pack_rem (struct Pack *pack, char it)
@@ -141,7 +141,7 @@ struct Item *get_Itemc (struct Pack pack, char itch)
 	return pack.items[where];
 }
 
-char get_Itref (struct Pack pack, struct Item *item)
+char get_Itref (struct Pack pack, const struct Item *item)
 {
 	unsigned i;
 

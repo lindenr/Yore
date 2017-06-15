@@ -55,11 +55,12 @@ enum ITEM_TYPE
 #define ITCAT_ALL     (-1)
 
 #define ITEM_INIT = {0,0,""}
+#define ITEM_NAME_LENGTH 20
 
 /* type of item */
 typedef struct
 {
-	char name[20];				/* name of that type of item */
+	char name[ITEM_NAME_LENGTH];/* name of that type of item */
 	char ch;					/* for the display */
 	enum ITEM_TYPE type;
 	uint32_t wt;				/* weight */
@@ -83,9 +84,9 @@ extern int NUM_ITEMS;
 void item_piles     (int, Vector, Vector);
 void ask_items      (Vector, Vector, const char *);
 
-char *get_item_desc (struct Item);
-void item_look      (struct Item *);
-char *get_inv_line  (struct Item *);
+char *get_item_desc (const struct Item);
+void item_look      (const struct Item *);
+char *get_inv_line  (const struct Item *);
 
 #endif /* ITEM_H_INCLUDED */
 

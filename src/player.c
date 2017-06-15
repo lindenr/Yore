@@ -107,7 +107,7 @@ int Ksdrop ()
 	if (drop == NULL)
 		return 0;
 	mons_usedturn (player);
-	if (drop == player->thing.mons.wearing.arms)
+	if (drop == player->thing.mons.wearing.rweap)
 		mons_unwield (player);
 	unsigned u = PACK_AT (get_Itref (pmons.pack, drop));
 	pmons.pack.items[u] = NULL;
@@ -141,7 +141,7 @@ int Knlook ()
 
 		char *line = get_inv_line (&THING(things, n, i)->thing.item);
 		char out[256];
-		sprintf (out, "You%s see here %s.", (k ? " also" : ""), line);
+		snprintf (out, 256, "You%s see here %s.", (k ? " also" : ""), line);
 		v_pstr (list, out);
 		++ k;
 		free (line);

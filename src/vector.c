@@ -68,7 +68,7 @@ void *v_pstrf (Vector vec, char *data, ...)
 	va_list args;
 
 	va_start (args, data);
-	vsprintf (DATA(vec->len), data, args);
+	vsnprintf (DATA(vec->len), vec->siz ,data, args);
 	va_end (args);
 
 	++ vec->len;

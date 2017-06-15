@@ -29,6 +29,6 @@ unsigned PACK_AT        (char);
 char show_contents      (struct Pack, uint32_t, char *);
 struct Item *get_Item   (struct Pack, unsigned);
 struct Item *get_Itemc  (struct Pack, char);
-char get_Itref          (struct Pack, struct Item *);
+char get_Itref          (struct Pack, const struct Item *);
 
 #endif /* PACK_H_INCLUDED */

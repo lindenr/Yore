@@ -127,7 +127,7 @@ void make_corpse (ityp *typ, struct Thing *th)
 	int type = th->thing.mons.type;
 
 	/* fill in the data */
-	sprintf (typ->name, "%s corpse", mons[type].name);
+	snprintf (typ->name, ITEM_NAME_LENGTH, "%s corpse", mons[type].name);
 	typ->ch   = ITEM_FOOD;
 	typ->type = IT_CORPSE;
 	typ->wt   = mons_get_wt(type);
@@ -432,7 +432,7 @@ void mons_passive_attack (struct Thing *from, struct Thing *to)
 {
 	uint32_t t;
 	int type = from->thing.mons.type;
-	char *posv;
+	char posv[30];
 	for (t = 0; t < A_NUM; ++t)
 		if ((mons[type].attacks[t][2] & 0xFFFF) == ATTK_PASS)
 			break;
@@ -443,8 +443,7 @@ void mons_passive_attack (struct Thing *from, struct Thing *to)
 	{
 		case ATYP_ACID:
 		{
-			posv = malloc(strlen(mons[type].name) + 5);
-			w_pos (posv, (char *)mons[type].name); // safe
+			w_pos (posv, (char *)mons[type].name, 30);
 			if (from == player)
 				p_msg ("You splash the %s with acid!", mons[type].name);
 			else if (to == player)
@@ -606,12 +605,12 @@ int player_sense (int yloc, int xloc, int senses)
 void player_dead (const char *msg, ...)
 {
 	va_list args;
-	char *actual = malloc(sizeof(char) * 80);
+	char *actual = malloc(80);
 
 	va_start (args, msg);
 	if (msg[0] == '\0')
 		msg = "You die...";
-	vsprintf (actual, msg, args);
+	vsnprintf (actual, 80, msg, args);
 	p_msg (actual);
 	free (actual);
 	gr_getch ();

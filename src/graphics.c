@@ -106,7 +106,7 @@ void gra_mvprint (Graph gra, int yloc, int xloc, const char *str, ...)
 	char out[1024];
 
 	va_start (args, str);
-	vsprintf (out, str, args);
+	vsnprintf (out, 1024, str, args);
 	va_end (args);
 
 	gra_mvaprint (gra, yloc, xloc, out);
@@ -478,7 +478,7 @@ Uint32
 #endif
 
 #define GR_TRY_TILES(a,b)\
-sprintf (filepath, a, b);\
+snprintf (filepath, 100, a, b);\
 temp = SDL_LoadBMP (filepath);\
 if (temp)\
 	goto success;\

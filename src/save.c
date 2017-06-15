@@ -346,6 +346,6 @@ void destroy_save_file (char *filename)
     fwrite ("", 1, 1, file);
     fclose (file);
 
-	sprintf (str, "%s %s", SH_RM, filename);
+	snprintf (str, 1000, "%s %s", SH_RM, filename);
 	system (str);
 }

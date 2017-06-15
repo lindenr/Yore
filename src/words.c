@@ -8,26 +8,25 @@
 #include <stdio.h>
 #include <string.h>
 
-void w_a (char *c, char *ret)
+int w_a (char *ret, char *c, size_t num)
 {
-	char intermediate[128] = { 0, };
 	if (strchr("AEIOUaeiou", c[0]))
-		sprintf (intermediate, "an %s", c);
+		return snprintf (ret, num, "an %s", c);
 	else
-		sprintf (intermediate, "a %s", c);
-	strcpy (ret, intermediate); // safe if w_a safe
+		return snprintf (ret, num, "a %s", c);
 }
 
-void w_the (char *end, char *c)
+void w_the (char *end, char *c, size_t num)
 {
-	strcpy (end, "the "); // safe if w_the safe
-	strcat (end, c);
+	strncpy (end, "the ", num);
+	strncat (end, c, num-4);
 }
 
-void w_pos (char *end, char *in)
+void w_pos (char *end, char *in, size_t num)
 {
-	strcpy (end, in); // safe if w_pos safe
-	strcat (end, "'s");
+	strncpy (end, in, num-1);
+	end[num-1] = 0;
+	strncat (end, "'s", num-strlen(end));
 }
 
 char *w_short (char *str, int len)
@@ -39,10 +38,10 @@ char *w_short (char *str, int len)
 	char *ret = malloc (len);
 	memcpy (ret, str, len - 4);
 	ret[len - 4] = '\0';
-	strcat (ret, "...");
+	strncat (ret, "...", 4);
 	return ret;
 }
-
+/*
 Vector w_lines (char *msg, int line)
 {
 	if (line <= 0)
@@ -57,5 +56,5 @@ Vector w_lines (char *msg, int line)
 	}
 	while (i*line <= len);
 	return lines;
-}
+}*/
 

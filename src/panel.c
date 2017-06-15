@@ -58,7 +58,7 @@ void p_pane ()
 
 	gra_mvprint (gpan, 1, 1, "T %lu", Time);
 
-	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (pmons.name + 1, p_width - 3));
+	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (pmons.name + 1, 20));
 	gra_mvprint (gpan, 3, 1, "HP %d/%d (+%.1f)", pmons.HP, pmons.HP_max, pmons.HP_rec);
 	gra_mvprint (gpan, 4, 1, "LV %d:%d/infinity", pmons.level, pmons.exp); // TODO?
 	/*char *rank = get_rank ();
@@ -203,12 +203,8 @@ void p_amsg (const char *str)
 {
 	struct P_msg msg;
 	msg.expiry = Time+1;
-	if (strlen(str) >= P_MSG_LEN)
-	{
-		fprintf(stderr, "Message too long! p_amsg");
-		return;
-	}
-	strcpy (msg.msg, str); // safe (checked above)
+	strncpy (msg.msg, str, P_MSG_LEN-1);
+	msg.msg[P_MSG_LEN-1] = 0;
 	v_push (messages, &msg);
 }
 
@@ -217,10 +213,10 @@ void p_msg (const char *str, ...)
 	va_list args;
 	char out[100];
 
-	sprintf(out, "(%lu) ", Time);
+	snprintf(out, 10, "(%lu) ", Time);
 
 	va_start (args, str);
-	vsprintf (out + strlen(out), str, args);
+	vsnprintf (out + strlen(out), 90, str, args);
 	va_end (args);
 
 	p_amsg (out);
