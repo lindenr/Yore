@@ -158,6 +158,8 @@ int Knlook ()
 
 int Kflook ()
 {
+	int y, x; 
+	pl_mvchoose (&y, &x, "What are you looking for?", NULL);
 	return 0;
 }
 
@@ -305,9 +307,10 @@ uint32_t pl_move (int *ymove, int *xmove, uint32_t key)
 	return key;
 }
 
-void pl_mvchoose (int *yloc, int *xloc, char *instruct, char *confirm)
+void pl_mvchoose (int *yloc, int *xloc, const char *instruct, const char *confirm)
 {
-	/*if (instruct)
+	int orig_y = map_graph->csr_y, orig_x = map_graph->csr_x;
+	if (instruct)
 		p_msg (instruct);
 	p_pane ();
 	gr_refresh ();
@@ -315,19 +318,20 @@ void pl_mvchoose (int *yloc, int *xloc, char *instruct, char *confirm)
 	uint32_t key = pl_move (&ymove, &xmove, gr_getfullch ());
 	while (key != '.' || (confirm && (p_ask ("yn", confirm) != 'y')))
 	{
-		if (ymove == -1 && csr_y > 0)
-			csr_move (csr_y-1, csr_x);
-		else if (ymove == 1 && csr_y < map_graph->vh-1)
-			csr_move (csr_y+1, csr_x);
-		if (xmove == -1 && csr_x > 0)
-			csr_move (csr_y, csr_x-1);
-		else if (xmove == 1 && csr_x < map_graph->vw-1)
-			csr_move (csr_y, csr_x+1);
-		if (gra_nearedge (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x))
-			gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);
+		if (ymove == -1 && map_graph->csr_y > 0)
+			gra_cmove (map_graph, map_graph->csr_y-1, map_graph->csr_x);
+		else if (ymove == 1 && map_graph->csr_y < map_graph->h-1)
+			gra_cmove (map_graph, map_graph->csr_y+1, map_graph->csr_x);
+		if (xmove == -1 && map_graph->csr_x > 0)
+			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x-1);
+		else if (xmove == 1 && map_graph->csr_x < map_graph->w-1)
+			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x+1);
+		//if (gra_nearedge (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x))
+		//	gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);
 		key = pl_move (&ymove, &xmove, gr_getfullch ());
 	}
-	*yloc = map_graph->cy + csr_y;
-	*xloc = map_graph->cx + csr_x;*/
+	*yloc = map_graph->csr_y;
+	*xloc = map_graph->csr_x;
+	gra_cmove (map_graph, orig_y, orig_x);
 }
 

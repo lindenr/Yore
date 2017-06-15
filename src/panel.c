@@ -199,7 +199,7 @@ void p_messages_display ()
 	}*/
 }
 
-void p_amsg (char *str)
+void p_amsg (const char *str)
 {
 	struct P_msg msg;
 	msg.expiry = Time+1;
@@ -212,7 +212,7 @@ void p_amsg (char *str)
 	v_push (messages, &msg);
 }
 
-void p_msg (char *str, ...)
+void p_msg (const char *str, ...)
 {
 	va_list args;
 	char out[100];
@@ -226,7 +226,7 @@ void p_msg (char *str, ...)
 	p_amsg (out);
 }
 
-char p_ask (char *results, char *question)
+char p_ask (const char *results, const char *question)
 {
 	p_amsg (question);
 	p_pane ();

@@ -31,8 +31,9 @@ void p_pane    ();
 void p_panel   (int);
 void p_update  ();
 void p_tab     (int);
-void p_msg     (char *, ...);
-char p_ask     (char *, char *);
+void p_amsg    (const char *);
+void p_msg     (const char *, ...);
+char p_ask     (const char *, const char *);
 char p_lines   (Vector);
 
 extern int p_width, p_height
