@@ -5,8 +5,6 @@
 #include "include/thing.h"
 #include "include/dlevel.h"
 
-void bres_start (int, int, uint8_t *, uint8_t *);
-void bres_callback (int, int, int (*) (struct DLevel *, int, int));
-bool bres_draw (int, int);
+bool bres_draw (int, int, uint8_t *, uint8_t *, int (*)(struct DLevel *, int, int), int, int);
 
 #endif /* VISON_H_INCLUDED */

@@ -66,8 +66,7 @@ typedef struct
 	uint32_t wt;				/* weight */
 	uint32_t attr;				/* can be used for damage (weapons) (8 bits) */
 	uint32_t col;
-}
-ityp;
+} ityp;
 
 /* an actual physical item */
 struct Item

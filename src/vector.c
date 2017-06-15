@@ -26,7 +26,7 @@ Vector v_init (int siz, int mlen)
 
 #define V_NEXT_LENGTH(cur) (cur*2)
 #define DATA(i)            (vec->data + ((i)*(vec->siz)))
-void *v_push (Vector vec, void *data)
+void *v_push (Vector vec, const void *data)
 {
 	if (vec->data == NULL)
 		panic("NULL vector");

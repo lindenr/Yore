@@ -80,9 +80,16 @@ void gra_centcam (Graph gra, int yloc, int xloc)
 void gra_baddch (Graph gra, int buf, glyph gl)
 {
 	if (gra->data[buf] == gl) return;
-	if (gl == (gl&255)) gl |= gra->def;
+	if (gl > 0 && gl < 256) gl |= gra->def;
 	gra->data[buf] = gl;
 	gra->flags[buf] |= 1;
+	if (gl == 0)
+	{
+		int gra_y = buf/gra->w, gra_x = buf%gra->w;
+		int gr_y = gra_y - gra->cy + gra->vy, gr_x = gra_x - gra->cx + gra->vx;
+		int gr_c = gr_buffer (gr_y, gr_x);
+		gr_flags[gr_c] |= 1;
+	}
 }
 
 void gra_mvaddch (Graph gra, int yloc, int xloc, glyph gl)
@@ -269,14 +276,17 @@ void gr_refresh ()
 				int gr_c = gr_buffer (gr_y, gr_x);
 				if (gra_c != -1 && gr_c != -1)
 				{
-					if ((gra->flags[gra_c]&1) || forced_refresh)
+					if ((gra->flags[gra_c]&1) || forced_refresh || gr_flags[gr_c])
 					{
 						glyph gl = gra->data[gra_c];
-						if (gra->csr_state && gra->csr_y == gra_y && gra->csr_x == gra_x)
-							gr_map[gr_c] = ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
-						else
-							gr_map[gr_c] = gl;
-						gr_flags[gr_c] = gra->flags[gra_c];
+						if (gl)
+						{
+							if (gra->csr_state && gra->csr_y == gra_y && gra->csr_x == gra_x)
+								gr_map[gr_c] = ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
+							else
+								gr_map[gr_c] = gl;
+						}
+						gr_flags[gr_c] = 1|gra->flags[gra_c];
 					}
 				}
 				gra->flags[gra_c] &= 254;
@@ -322,6 +332,14 @@ void gra_clear (Graph gra)
 	
 	for (i = 0; i < gra->a; ++ i)
 		gra_baddch (gra, i, 0);
+}
+
+void gra_invert (Graph gra, int yloc, int xloc)
+{
+	int b = gra_buffer(gra, yloc, xloc);
+	glyph *gl = &gra->data[b];
+	*gl = (((*gl) << 12)&0xFFF00000) ^ (((*gl) >> 12)&0x000FFF00) ^ ((*gl)&0xFF);
+	gra->flags[b] |= 1;
 }
 
 int tout_num = 0;

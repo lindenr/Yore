@@ -140,7 +140,10 @@ void mons_attack (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 	do_attack (th, get_sqmons(dlv_things(th->dlevel), th->yloc + y, th->xloc + x));
 }
 
-int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
+/* Return values:
+ * 0 = failed to move; 1 = moved as desired;
+ * 2 = did not move as desired but used turn */
+int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 or 1 */
 {
 	if (th != player)
 		if (!(x | y))
@@ -152,16 +155,18 @@ int mons_move (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
 	/* you can and everything's fine, nothing doing */
 	else if (can == 1)
 	{
-		mons_usedturn (th);
+		if (final)
+			mons_usedturn (th);
 		thing_move (th, th->dlevel, th->yloc+y, th->xloc+x);
 		return 1;
 	}
 	/* melee attack! */
 	else if (can == 2)
 	{
-		mons_usedturn (th);
+		if (final)
+			mons_usedturn (th);
 		mons_attack (th, y, x);
-		return 1;
+		return 2;
 	}
 	/* off map or something */
 	else if (can == -1)
@@ -193,7 +198,7 @@ int player_take_input (char in)
 	if (xmove == 0 && ymove == 0)
 		return (-1);
 
-	return (mons_move (player, ymove, xmove));
+	return (mons_move (player, ymove, xmove, 1));
 }
 
 void thing_move_level (struct Thing *th, int32_t where)
@@ -591,8 +596,7 @@ int player_sense (int yloc, int xloc, int senses)
 {
 	if (senses&SENSE_VISION)
 	{
-		bres_start (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel));
-		if (bres_draw (yloc, xloc))
+		if (bres_draw (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel), NULL, yloc, xloc))
 			return 1;
 	}
 	if (senses&SENSE_HEARING)
@@ -623,10 +627,9 @@ void player_dead (const char *msg, ...)
 int AI_Attack (struct Thing *th, int toy, int tox)
 {
 	int xmove = 0, ymove = 0;
-	bres_start (th->yloc, th->xloc, NULL, dlv_attr(th->dlevel));
-	if (!bres_draw (toy, tox))
+	if (!bres_draw (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel), NULL, toy, tox))
 	{
-		mons_move (th, rn(3) - 1, rn(3) - 1);
+		mons_move (th, rn(3) - 1, rn(3) - 1, 1);
 		return 1;
 	}
 
@@ -638,11 +641,11 @@ int AI_Attack (struct Thing *th, int toy, int tox)
 		xmove = 1;
 	else if (th->xloc > tox)
 		xmove = -1;
-	if (!mons_move (th, ymove, xmove))
-		if (!mons_move (th, ymove, 0))
-			if (!mons_move (th, 0, xmove))
-				if (!mons_move (th, -ymove, xmove))
-					return mons_move (th, rn(3) - 1, rn(3) - 1);
+	if (!mons_move (th, ymove, xmove, 1))
+		if (!mons_move (th, ymove, 0, 1))
+			if (!mons_move (th, 0, xmove, 1))
+				if (!mons_move (th, -ymove, xmove, 1))
+					return mons_move (th, rn(3) - 1, rn(3) - 1, 1);
 	return 1;
 }
 

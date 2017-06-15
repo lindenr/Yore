@@ -236,9 +236,6 @@ void set_can_see (uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
 	int Yloc = player->yloc, Xloc = player->xloc;
 	int Y, X, w;
 
-	/* Initialise the bres thing */
-	bres_start (Yloc, Xloc, sq_seen, sq_attr);
-
 	/* Anything you could see before you can't necessarily now */
 	for (w = 0; w < map_graph->a; ++ w)
 		if (sq_seen[w] == 2)
@@ -246,7 +243,7 @@ void set_can_see (uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
 
 	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
 	for (w = 0; w < gr_area; ++ w)
-		bres_draw (map_graph->cy + w / gr_w, map_graph->cx + w % gr_w);
+		bres_draw (Yloc, Xloc, sq_seen, sq_attr, NULL, map_graph->cy + w / gr_w, map_graph->cx + w % gr_w);
 		//sq_seen[w] = 2;
 
 	/* Make everything we can't see dark */

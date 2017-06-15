@@ -9,6 +9,7 @@
 #include "include/graphics.h"
 #include "include/vector.h"
 #include "include/dlevel.h"
+#include "include/skills.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -209,10 +210,14 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		start = param;
 		upsy = start / map_graph->w;
 		upsx = start % map_graph->w;
-		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0.0, 0, 0, {{0},}, {0,}, 0, 0, 0};
+		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0.0, 0, 0, {{0},}, {0,}, 0, 0, 0, NULL};
 		asdf.name = malloc (85);
 		strncpy (asdf.name, "_", 2);
 		real_player_name = asdf.name;
+		asdf.skills = v_dinit (sizeof(struct Skill));
+		v_push (asdf.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+		v_push (asdf.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+		v_push (asdf.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
 		new_thing (THING_MONS, lvl, upsy, upsx, &asdf);
 	}
 	else if (type == 1)

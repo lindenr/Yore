@@ -76,7 +76,8 @@ void gra_free  (Graph);
 void gra_movecam (Graph, int, int);
 void gra_centcam (Graph, int, int);
 
-void gra_clear (Graph);
+void gra_clear  (Graph);
+void gra_invert (Graph, int, int);
 
 void gra_addch   (Graph, glyph);
 void gra_mvaddch (Graph, int, int, glyph);

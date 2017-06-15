@@ -18,7 +18,7 @@ Vector v_dinit (int);
 Vector v_init  (int, int);
 
 /* write */
-void  *v_push  (Vector, void *);
+void  *v_push  (Vector, const void *);
 void  *v_pstr  (Vector, char *);
 void  *v_pstrf (Vector, char *, ...);
 void   v_rem   (Vector, int);

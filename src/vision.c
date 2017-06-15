@@ -4,27 +4,9 @@
 #include "include/graphics.h"
 #include <math.h>
 
-int fromy, fromx;
-uint8_t *grid, *grid_t;
-int (*callback) (struct DLevel *, int, int) = NULL;
-
-void bres_start (int fry, int frx, uint8_t *g, uint8_t *g_t)
-{
-	fromy = fry;
-	fromx = frx;
-	grid = g;
-	grid_t = g_t;
-}
-
-void bres_callback (int yloc, int xloc, int (*x) (struct DLevel *, int, int))
-{
-	callback = x;
-	fromy = yloc;
-	fromx = xloc;
-}
-
 /* adapted from wikipedia */
-bool bres_draw (int ty, int tx)
+bool bres_draw (int fromy, int fromx, uint8_t *grid, uint8_t *grid_t,
+                int (*callback) (struct DLevel *, int, int), int ty, int tx)
 {
 	if ((!callback) && grid && grid[map_buffer(ty, tx)] == 2)
 		return true;

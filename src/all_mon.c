@@ -21,7 +21,7 @@
 
 const int CORPSE_WEIGHTS[7] = {0, 100, 1000, 3000, 20000, 50000, 300000};
 
-const struct monster_struct mons[] = {
+const mtyp mons[] = {
 	MONST("chicken", 'c', 12,
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_FLSH | FL_WING | FL_SIZ2,

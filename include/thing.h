@@ -25,8 +25,7 @@ enum THING_TYPE
 	THING_NONE = 0,   /* not used */
 	THING_ITEM,       /* an item */
 	THING_MONS,       /* a monster */
-	THING_DGN,        /* a dungeon feature (wall, floor, trap etc) */
-	THING_MAGIC       /* a spell */
+	THING_DGN         /* a dungeon feature (wall, floor, trap etc) */
 };
 
 struct Thing
@@ -39,7 +38,6 @@ struct Thing
 		struct Item item;
 		struct Monster mons;
 		struct map_item_struct mis;
-	//	union  Spell spell;
 	}
 	thing;
 };

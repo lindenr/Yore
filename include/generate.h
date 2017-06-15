@@ -22,3 +22,4 @@ bool is_safe_gen  (struct DLevel *, uint32_t, uint32_t);
 #define DOT ACS_BULLET
 
 #endif /* GENERATE_H_INCLUDED */
+

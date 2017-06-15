@@ -142,7 +142,7 @@ enum ATTK_TYPE
 	ATYP_BEAM
 };
 
-struct monster_struct
+typedef struct
 {
 	const char *name;			/* name */
 	char ch;					/* display character */
@@ -151,9 +151,9 @@ struct monster_struct
 	uint32_t flags;				/* physical flags */
 	uint32_t col;				/* colour */
 	uint32_t exp;				/* exp gained from kill */
-};
+} mtyp;
 
-extern const struct monster_struct mons[];
+extern const mtyp mons[];
 
 struct Monster
 {
@@ -170,12 +170,13 @@ struct Monster
 	uint32_t status;			/* is it eating polymorphed etc */
 	struct Item *eating;		/* eating something (0 if not) */
 	uint8_t boxflags;           /* boxes appearing */
+	Vector skills;              /* available skills */
 };
 
 struct Thing;
 /* general monster functions */
 void   mons_attack     (struct Thing *, int, int);         /* attack in direction                      */
-int    mons_move       (struct Thing *, int, int);         /* move in given directions                 */
+int    mons_move       (struct Thing *, int, int, int);    /* move in given directions                 */
 void   mons_dead       (struct Thing *, struct Thing *);   /* this monster is dead                     */
 int    mons_prhit      (struct Thing *, struct Thing *, int); /* monster hit by a projectile           */
 int    mons_take_move  (struct Thing *);                   /* give a move (AI or player)               */
