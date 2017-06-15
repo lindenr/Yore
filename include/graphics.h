@@ -36,6 +36,7 @@ typedef struct Graph
 	int vis;            /* whether the graph is currently being shown */
 	int csr_y, csr_x;   /* location of the (visible) cursor */
 	int csr_state;      /* off, blinking, or steady */
+	glyph def;          /* default output colour */
 } *Graph;
 
 /* Boxes */
@@ -87,6 +88,7 @@ void gra_fbox (Graph, int, int, int, int, glyph);
 
 void gra_mvaprint (Graph, int, int, const char *);
 void gra_mvprint  (Graph, int, int, const char *, ...);
+void gra_cprint   (Graph, int, const char *, ...);
 
 void gr_refresh ();
 void gr_frefresh();
@@ -167,6 +169,8 @@ void gr_resize    (int, int);
 /* Common colours */
 #define COL_TXT_DEF    0xBBB00000
 #define COL_TXT_BRIGHT 0xFFF00000
+#define COL_STATUS     0x00055A00
+#define COL_PANEL      0xBBF00000
 
 #endif /* GRAPHICS_H_INCLUDED */
 

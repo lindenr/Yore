@@ -33,6 +33,22 @@ int Kcamrt ()
 	return 0;
 }
 
+int Kstatus ()
+{
+	int h = 10, w = 41;
+	int y = (gr_h - h)/2, x = (gr_w - w)/2;
+	Graph status = gra_init (h, w, y, x, h, w);
+	status->def = COL_STATUS;
+	gra_fbox (status, 0, 0, h-1, w-1, ' ');
+	gra_cprint (status, 2, "STATUS SCREEN");
+	gra_mvprint (status, 0, w-5, "(Esc)");
+	gra_cprint (status, 4, "Name: %s  |  Race: %s", pmons.name+1, "Human");
+
+	while (gr_getch() != CH_ESC) {}
+	gra_free (status);
+	return 0;
+}
+
 int Kwait ()
 {
 	mons_usedturn (player);
@@ -235,6 +251,7 @@ struct KStruct Keys[] = {
 	{GRK_DN, &Kcamdn},
 	{GRK_LF, &Kcamlf},
 	{GRK_RT, &Kcamrt},
+	{CH_ESC, &Kstatus},
 	{'.', &Kwait},
 	{',', &Kpickup},
 	{'e', &Keat},

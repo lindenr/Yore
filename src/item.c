@@ -48,7 +48,7 @@ void ask_items (Vector it_out, Vector it_in, const char *msg)
 	// TODO fix
 	Vector list = v_init (128, it_in->len);
 	char first[256];
-	snprintf(first, 128, "%*s", (40+(int)strlen(msg))/2, msg);
+	snprintf (first, 128, " ## %s ##",  msg);
 	v_pstr (list, first);
 	v_pstr (list, "");
 	for (i = 0; i < it_in->len; ++ i)

@@ -24,7 +24,10 @@ void p_pane ()
 	int i;
 	int xpan = 0, ypan = gr_h - PANE_H;
 	if (!gpan)
+	{
 		gpan = gra_init (p_height, p_width, ypan, xpan, p_height, p_width);
+		gpan->def = COL_PANEL;
+	}
 	/*for (i = 0; i < p_height; ++ i)
 		for (j = 0; j < p_width; ++ j)
 			txt_mvaddch (ypan + i, xpan + j, ' ');*/
@@ -235,16 +238,30 @@ char p_ask (const char *results, const char *question)
 
 char p_lines (Vector lines)
 {
-	int h = lines->len + 2, w = 42;
-	int yloc = (gr_h - lines->len)/2 - 1, xloc = (gr_w - 40)/2 - 1;
+	int i;
+	int max = 0;
+	for (i = 0; i < lines->len; ++ i)
+	{
+		int len = strlen(v_at(lines, i));
+		if (len > max)
+			max = len;
+	}
+
+	int h = lines->len + 2, w = max+4;
+	int yloc = (gr_h - h)/2, xloc = (gr_w - w)/2;
 
 	Graph box = gra_init (h, w, yloc, xloc, h, w);
 	gra_fbox (box, 0, 0, h-1, w-1, ' ');
 	
-	int i;
 	for (i = 0; i < lines->len; ++ i)
 	{
-		gra_mvaprint (box, i+1, 2, v_at(lines, i));
+		char *str = v_at(lines, i);
+		if (str[0] != '#')
+		{
+			gra_mvaprint (box, i+1, 2, str);
+			continue;
+		}
+		gra_mvprint (box, i+1, (w-strlen(str)+1)/2, str+1);
 	}
 	gra_box (box, 0, 0, h-1, w-1);
 	char ret = gr_getch();

@@ -80,7 +80,7 @@ void gra_centcam (Graph gra, int yloc, int xloc)
 void gra_baddch (Graph gra, int buf, glyph gl)
 {
 	if (gra->data[buf] == gl) return;
-	if (gl == (gl&255)) gl |= COL_TXT_DEF;
+	if (gl == (gl&255)) gl |= gra->def;
 	gra->data[buf] = gl;
 	gra->flags[buf] |= 1;
 }
@@ -96,7 +96,7 @@ void gra_mvaprint (Graph gra, int yloc, int xloc, const char *str)
 {
 	int i, buf = gra_buffer (gra, yloc, xloc), len = strlen(str);
 
-	for (i = 0; i < len && i+buf < gra->a; ++ i)
+	for (i = 0; i < len && i+buf > 0 && i+buf < gra->a; ++ i)
 		gra_baddch (gra, i+buf, str[i]);
 }
 
@@ -109,6 +109,19 @@ void gra_mvprint (Graph gra, int yloc, int xloc, const char *str, ...)
 	vsnprintf (out, 1024, str, args);
 	va_end (args);
 
+	gra_mvaprint (gra, yloc, xloc, out);
+}
+
+void gra_cprint (Graph gra, int yloc, const char *str, ...)
+{
+	va_list args;
+	char out[1024];
+
+	va_start (args, str);
+	int len = vsnprintf (out, 1024, str, args);
+	va_end (args);
+
+	int xloc = (gra->w - len)/2;
 	gra_mvaprint (gra, yloc, xloc, out);
 }
 
@@ -147,12 +160,12 @@ void gra_dbox (Graph gra, int yloc, int xloc, int height, int width)
 			   DCS_HLINE, DCS_VLINE);
 }
 
-void gra_fbox (Graph gra, int yloc, int xloc, int height, int width, glyph fill)
+void gra_fbox (Graph gra, int yloc, int xloc, int height, int width, glyph gl)
 {
 	int x, y;
 	for (x = 1; x < width; ++x)
 		for (y = 1; y < height; ++y)
-			gra_mvaddch (gra, yloc + y, xloc + x, fill);
+			gra_mvaddch (gra, yloc + y, xloc + x, gl);
 	gra_box (gra, yloc, xloc, height, width);
 }
 
@@ -553,7 +566,7 @@ Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
 	memset (flags, 0, sizeof(uint8_t) * a);
 	
 	gra = malloc (sizeof(struct Graph));
-	struct Graph from = {h, w, a, data, flags, 0, 0, vy, vx, vh, vw, 1, 0, 0, 0};
+	struct Graph from = {h, w, a, data, flags, 0, 0, vy, vx, vh, vw, 1, 0, 0, 0, COL_TXT_DEF};
 	memcpy (gra, &from, sizeof(struct Graph));
 
 	if (!graphs)

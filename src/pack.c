@@ -57,11 +57,11 @@ char show_contents (struct Pack pack, uint32_t accepted, char *msg)
 	Vector inv;
 
 	inv = v_init (256, MAX_ITEMS_IN_PACK);
-	int len = strlen(msg);
+	//int len = strlen(msg);
 	char first[256];
-	snprintf(first, 256, "%*s", (40+len)/2, msg);
+	snprintf (first, 256, "#%s", msg);
 	v_pstr (inv, first);
-	v_pstr (inv, "");
+	v_pstr (inv, "                     ");
 	for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
 	{
 		if (pack.items[i] && item_type_flags (pack.items[i], accepted))
@@ -74,7 +74,7 @@ char show_contents (struct Pack pack, uint32_t accepted, char *msg)
 	}
 	if (!num_items)
 	{
-		snprintf(first, 256, "%23s", "(empty)");
+		snprintf(first, 256, "#(empty)");
 		v_pstr (inv, first);
 	}
 	v_pstr (inv, "");
