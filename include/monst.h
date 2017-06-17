@@ -67,6 +67,7 @@ struct WoW						/* Wielded or Worn */
 
 #define M_EATING 1
 #define M_POLY   2
+#define M_CHARGE 4
 
 enum S_HUN
 {
@@ -93,6 +94,16 @@ extern char *s_hun[];
 #define PLAYER_CHEATER  4
 #define PLAYER_ERROR    5
 
+enum ABLTY /* attribute */
+{
+	AB_ST = 0,
+	AB_CO,
+	AB_DX,
+	AB_WI,
+	AB_IN,
+	AB_CH
+};
+
 typedef uint32_t player_attr[6];
 
 struct player_status
@@ -102,20 +113,11 @@ struct player_status
 	int role;
 	int playing;
 	player_attr attr; /* st, co, ch, etc */
+	int32_t stamina, stamina_max;
 	int32_t luck;
 	uint64_t m_glflags;
 };
 extern struct player_status U;
-
-enum ABLTY /* ability */
-{
-	AB_ST = 0,
-	AB_CO,
-	AB_DX,
-	AB_WI,
-	AB_IN,
-	AB_CH
-};
 
 /* The physical method of attack (bite, claw etc) */
 enum ATTK_METHOD

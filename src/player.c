@@ -53,13 +53,12 @@ int Kstatus ()
 
 int Kskills ()
 {
-	int y, x; 
+	/*int y, x; 
 	pl_mvchoose (&y, &x, "Charge where?", NULL, 1);
 	if (y == -1)
 		return 0;
 	sk_charge (player, y, x);
-	return 1;
-	/*
+	return 1;*/
 	int h = 10, w = 41;
 	int y = (gr_h - h)/2, x = (gr_w - w)/2;
 	Graph status = gra_init (h, w, y, x, h, w);
@@ -83,7 +82,7 @@ int Kskills ()
 		{
 			Skill sk = v_at (pmons.skills, i);
 			int row = 4+i;
-			gra_cprint (status, row, "%s", sk_name(sk));
+			gra_cprint (status, row, "%s %d:%d", sk_name(sk), sk->level, sk->exp);
 		}
 		for (j = 1; j < w-1; ++ j)
 			gra_invert (status, 4+selected, j);
@@ -96,9 +95,19 @@ int Kskills ()
 			-- selected;
 		else if ((in == GRK_DN || in == 'j') && selected < pmons.skills->len-1)
 			++ selected;
+		else if (in == CH_LF || in == CH_CR)
+		{
+			gra_clear (status);
+			pl_mvchoose (&y, &x, "Charge where?", NULL, 1);
+			if (y == -1)
+				continue;
+			gra_free (status);
+			sk_charge (player, y, x, v_at (pmons.skills, selected));
+			return 1;
+		}
 	}
 	gra_free (status);
-	return 0;*/
+	return 0;
 }
 
 int Kwait ()
@@ -391,9 +400,7 @@ void pl_mvchoose (int *yloc, int *xloc, const char *instruct, const char *confir
 	if (showpath)
 	{
 		overlay = gra_init (gr_h, gr_w, 0, 0, gr_h, gr_w);
-		int i;
-		for (i = 0; i < overlay->a; ++ i)
-			gra_baddch (overlay, i, 0);
+		gra_clear (overlay);
 	}
 	if (instruct)
 		p_msg (instruct);
@@ -415,9 +422,7 @@ void pl_mvchoose (int *yloc, int *xloc, const char *instruct, const char *confir
 		//	gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);
 		if (showpath)
 		{
-			int i;
-			for (i = 0; i < overlay->a; ++ i)
-				gra_baddch (overlay, i, 0);
+			gra_clear (overlay);
 			bres_draw (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel), &path_hit, map_graph->csr_y, map_graph->csr_x);
 		}
 		key = pl_move (&ymove, &xmove, gr_getfullch ());

@@ -15,6 +15,7 @@
 #include "include/monst.h"
 #include "include/player.h"
 #include "include/timer.h"
+#include "include/skills.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -183,6 +184,7 @@ void mons_usedturn (struct Thing *th)
 {
 	if (th != player)
 		return;
+	th->thing.mons.status &= ~M_CHARGE;
 	int i;
 	for (i = 0; i < cur_dlevel->mons->len; ++ i)
 	{
@@ -476,10 +478,18 @@ void mons_box (struct Thing *mons, BoxType type)
 	mons->thing.mons.boxflags |= 1<<type;
 }
 
+int mons_charge_bonus (struct Thing *from)
+{
+	return 5*sk_lvl (from, SK_CHARGE);
+}
+
 void do_attack (struct Thing *from, struct Thing *to)
 {
 	int t, strength, type = from->thing.mons.type;
 	int *toHP = &to->thing.mons.HP;
+	int bonus = 0;
+	if (from->thing.mons.status & M_CHARGE)
+		bonus += mons_charge_bonus (from);
 
 	for (t = 0; t < A_NUM; ++t)
 	{
@@ -491,10 +501,11 @@ void do_attack (struct Thing *from, struct Thing *to)
 			case ATTK_HIT:
 			{
 				struct Item **it = mons_get_weap(from);
+				int dmg;
 				if (!it || !(*it))
 				{
 					strength = rn(mons_get_st(from)) >> 1;
-					*toHP -=
+					dmg =
 						rnd(mons[type].attacks[t][0],
 							mons[type].attacks[t][1]) +
                         strength +
@@ -504,11 +515,11 @@ void do_attack (struct Thing *from, struct Thing *to)
 				{
 					int attr = (*it)->type.attr;
 					strength = rn(mons_get_st(from)) >> 1;
-					int damage = rnd(attr & 15, (attr >> 4) & 15) + strength;
+					dmg = rnd(attr & 15, (attr >> 4) & 15) + strength;
 					//printf("%d %d\n", *toHP, *toHP - damage);
-					*toHP -= damage;
 				}
 
+				*toHP -= damage + bonus;
 				mons_passive_attack (to, from);
 				break;
 			}

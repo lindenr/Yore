@@ -11,7 +11,7 @@
 #define player (*(struct Thing **) v_at (all_ids, 1))
 #define pmons  (player->thing.mons)
 
-#define LOOP_THING(t,n,i)  int i;                                     for (i = 0; i < (t)[n]->len; ++ i)
+#define LOOP_THING(t,n,i)  int i;                                        for (i = 0; i < (t)[n]->len; ++ i)
 #define LOOP_THINGS(t,n,i) int i, n; for (n = 0; n < map_graph->a; ++ n) for (i = 0; i < (t)[n]->len; ++ i)
 #define BREAK(n)           {n = map_graph->a; break;}
 
