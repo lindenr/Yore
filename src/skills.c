@@ -43,14 +43,6 @@ void sk_exp (struct Thing *th, Skill sk, int xp)
 		p_msg ("Level up! %s is now level %d", sk_name (sk), sk->level);
 }
 
-void sk_use (struct Thing *th, Skill sk)
-{
-	switch (sk->type)
-	{
-		// TODO
-	}
-}
-
 #define SK_CHARGE_COST 3
 int chID = 0;
 int chargepos (struct DLevel *dlevel, int y, int x)

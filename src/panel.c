@@ -279,13 +279,15 @@ int p_status (enum PanelType type)
 {
 	switch (type)
 	{
-		case STATUS_TYPE:
+		case P_STATUS:
 			break;
-		case STATUS_SKILLS:
+		case P_SKILLS:
+		{
 			int ret = p_skills (type);
 			if (ret)
 				return ret;
 			break;
+		}
 	}
 	int h = 20, w = 81;
 	int y = (gr_h - h)/2 - 10, x = (gr_w - w)/2;
@@ -353,18 +355,37 @@ int p_skills (enum PanelType type)
 			++ selected;
 		else if (in == CH_LF || in == CH_CR)
 		{
-			gra_clear (panel);
+			/*gra_clear (panel);
 			p_mvchoose (&y, &x, "Charge where?", NULL, 1);
 			if (y == -1)
 				continue;
 			gra_free (panel);
 			sk_charge (player, y, x, v_at (pmons.skills, selected));
-			return 1;
+			return 1;*/
+			p_msg ("skill descriptions not supported"); // TODO
 		}
 		else if (in >= 'a' && in < letter)
 		{
 			int n = in - 'a';
-			sk_use (player, v_at(player->skills, n));
+			Skill sk = v_at (pmons.skills, n);
+			switch (sk->type)
+			{
+				case SK_NONE:
+					break;
+				case SK_CHARGE:
+				{
+					int yloc, xloc;
+					gra_clear (panel);
+					p_mvchoose (&yloc, &xloc, "Charge where?", NULL, 1);
+					if (yloc == -1)
+						continue;
+					gra_free (panel);
+					sk_charge (player, yloc, xloc, v_at (pmons.skills, selected));
+					return 1;
+				}
+				case SK_NUM:
+					break;
+			}
 		}
 	}
 	gra_free (panel);

@@ -34,7 +34,6 @@ const char *sk_name (Skill);
 void sk_exp    (struct Thing *, Skill, int);
 int sk_lvl     (struct Thing *, enum SK_TYPE);
 
-void sk_use    (struct Thing *, Skill);
 void sk_charge (struct Thing *, int, int, Skill);
 
 #endif /* SKILL_H_INCLUDED */

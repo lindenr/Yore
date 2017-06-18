@@ -43,7 +43,7 @@ enum PanelType
 };
 
 int  p_status  (enum PanelType);
-//int  p_skills  ();
+int  p_skills  (enum PanelType);
 void p_mvchoose(int *, int *, const char *, const char *, int);
 uint32_t p_move (int *, int *, uint32_t);
 

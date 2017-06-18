@@ -36,7 +36,7 @@ int Kcamrt ()
 
 int Kstatus ()
 {
-	return p_status ();
+	return p_status (P_STATUS);
 }
 
 int Kskills ()
