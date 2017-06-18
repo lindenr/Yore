@@ -36,7 +36,7 @@ void main_loop ()
 		th = THIID (id);
 
 		mon = &th->thing.mons;
-		mon->cur_speed += mons[mon->type].speed;
+		mon->cur_speed += mon->speed;
 		while (mon->cur_speed >= 12)
 		{
 			mon->cur_speed -= 12;

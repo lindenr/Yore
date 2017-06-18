@@ -43,6 +43,15 @@ void sk_exp (struct Thing *th, Skill sk, int xp)
 		p_msg ("Level up! %s is now level %d", sk_name (sk), sk->level);
 }
 
+void sk_use (struct Thing *th, Skill sk)
+{
+	switch (sk->type)
+	{
+		// TODO
+	}
+}
+
+#define SK_CHARGE_COST 3
 int chID = 0;
 int chargepos (struct DLevel *dlevel, int y, int x)
 {
@@ -53,12 +62,19 @@ int chargepos (struct DLevel *dlevel, int y, int x)
 		fprintf(stderr, "AAAAAAA\n");
 		return 0;
 	}
+	if (charger->thing.mons.ST < SK_CHARGE_COST)
+	{
+		p_msg ("You run out of breath.");
+		return 0;
+	}
+	charger->thing.mons.ST -= SK_CHARGE_COST;
 	return mons_move (charger, dy, dx, 0)==1;
 }
 
 void sk_charge (struct Thing *th, int y, int x, Skill sk)
 {
 	sk_exp (th, sk, 1);
+	
 	chID = th->ID;
 	mons_usedturn (th);
 	th->thing.mons.status |= M_CHARGE;

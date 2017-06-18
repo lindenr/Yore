@@ -6,6 +6,8 @@
 #include "include/words.h"
 #include "include/loop.h"
 #include "include/dlevel.h"
+#include "include/vision.h"
+#include "include/skills.h"
 
 #include <stdlib.h>
 #include <malloc.h>
@@ -269,5 +271,193 @@ char p_lines (Vector lines)
 	gra_free (box);
 	
 	return ret;
+}
+
+// status screen stuff
+// ideally want to be able to access skills etc from the status window
+int p_status (enum PanelType type)
+{
+	switch (type)
+	{
+		case STATUS_TYPE:
+			break;
+		case STATUS_SKILLS:
+			int ret = p_skills (type);
+			if (ret)
+				return ret;
+			break;
+	}
+	int h = 20, w = 81;
+	int y = (gr_h - h)/2 - 10, x = (gr_w - w)/2;
+	Graph panel = gra_init (h, w, y, x, h, w);
+	panel->def = COL_STATUS;
+	gra_fbox (panel, 0, 0, h-1, w-1, ' ');
+	gra_cprint (panel, 2, "STATUS SCREEN");
+	gra_mvprint (panel, 0, w-5, "(Esc)");
+	gra_cprint (panel, 4, "Name: %12s  %c  Race:  %s       ", pmons.name+1, ACS_VLINE, "Human");
+	gra_cprint (panel, 5, "  HP: %d/%d (%+.1f)  %c  ST:    %d/%d (%+.1f)",
+				pmons.HP, pmons.HP_max, pmons.HP_rec, ACS_VLINE, pmons.ST, pmons.ST_max, pmons.ST_rec);
+	gra_cprint (panel, 6, "LV %d:%d/infinity  %c  Speed: %d       ", pmons.level, pmons.exp, ACS_VLINE, pmons.speed);
+
+	while (gr_getch() != CH_ESC) {}
+	gra_free (panel);
+	return 0;
+}
+
+int p_skills (enum PanelType type)
+{
+	/*int y, x; 
+	pl_mvchoose (&y, &x, "Charge where?", NULL, 1);
+	if (y == -1)
+		return 0;
+	sk_charge (player, y, x);
+	return 1;*/
+	int h = 10, w = 41;
+	int y = (gr_h - h)/2, x = (gr_w - w)/2;
+	Graph panel = gra_init (h, w, y, x, h, w);
+	panel->def = COL_STATUS;
+	gra_fbox (panel, 0, 0, h-1, w-1, ' ');
+	gra_cprint (panel, 2, "SKILLS");
+	gra_cprint (panel, 3, "(enter to inspect; letter to use)");
+	gra_mvprint (panel, 0, w-5, "(Esc)");
+	if (pmons.skills->len == 0)
+	{
+		gra_cprint (panel, 4, "(no skills available)");
+		while (gr_getch() != CH_ESC) {}
+		gra_free (panel);
+		return 0;
+	}
+	
+	int i, selected = 0;
+	int j;
+	while (1)
+	{
+		char letter = 'a';
+		for (i = 0; i < pmons.skills->len; ++ i)
+		{
+			Skill sk = v_at (pmons.skills, i);
+			int row = 4+i;
+			gra_cprint (panel, row, "%c - %s %d:%d", letter, sk_name(sk), sk->level, sk->exp);
+			++ letter;
+		}
+		for (j = 1; j < w-1; ++ j)
+			gra_invert (panel, 4+selected, j);
+		char in = gr_getch();
+		for (j = 1; j < w-1; ++ j)
+			gra_invert (panel, 4+selected, j);
+		if (in == CH_ESC)
+			break;
+		else if ((in == GRK_UP /*|| in == 'k'*/) && selected > 0)
+			-- selected;
+		else if ((in == GRK_DN /*|| in == 'j'*/) && selected < pmons.skills->len-1)
+			++ selected;
+		else if (in == CH_LF || in == CH_CR)
+		{
+			gra_clear (panel);
+			p_mvchoose (&y, &x, "Charge where?", NULL, 1);
+			if (y == -1)
+				continue;
+			gra_free (panel);
+			sk_charge (player, y, x, v_at (pmons.skills, selected));
+			return 1;
+		}
+		else if (in >= 'a' && in < letter)
+		{
+			int n = in - 'a';
+			sk_use (player, v_at(player->skills, n));
+		}
+	}
+	gra_free (panel);
+	return 0;
+}
+
+Graph overlay = NULL;
+int path_hit (struct DLevel *dlevel, int y, int x)
+{
+	gra_mvaddch (overlay, y-map_graph->cy, x-map_graph->cx, ' '|COL_BG_RED(8));
+	//gra_highlight (map_graph, y, x);
+	return 1;
+}
+
+void p_mvchoose (int *yloc, int *xloc, const char *instruct, const char *confirm, int showpath)
+{
+	int orig_y = map_graph->csr_y, orig_x = map_graph->csr_x;
+	if (showpath)
+	{
+		overlay = gra_init (gr_h, gr_w, 0, 0, gr_h, gr_w);
+		gra_clear (overlay);
+	}
+	if (instruct)
+		p_msg (instruct);
+	p_pane ();
+	gr_refresh ();
+	int xmove, ymove;
+	uint32_t key = p_move (&ymove, &xmove, gr_getfullch ());
+	while (key != '.' || (confirm && (p_ask ("yn", confirm) != 'y')))
+	{
+		if (ymove == -1 && map_graph->csr_y > 0)
+			gra_cmove (map_graph, map_graph->csr_y-1, map_graph->csr_x);
+		else if (ymove == 1 && map_graph->csr_y < map_graph->h-1)
+			gra_cmove (map_graph, map_graph->csr_y+1, map_graph->csr_x);
+		if (xmove == -1 && map_graph->csr_x > 0)
+			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x-1);
+		else if (xmove == 1 && map_graph->csr_x < map_graph->w-1)
+			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x+1);
+		//if (gra_nearedge (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x))
+		//	gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);
+		if (showpath)
+		{
+			gra_clear (overlay);
+			bres_draw (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel), &path_hit, map_graph->csr_y, map_graph->csr_x);
+		}
+		key = p_move (&ymove, &xmove, gr_getfullch ());
+	}
+	*yloc = map_graph->csr_y;
+	*xloc = map_graph->csr_x;
+	gra_cmove (map_graph, orig_y, orig_x);
+	gra_free (overlay);
+}
+
+uint32_t p_move (int *ymove, int *xmove, uint32_t key)
+{
+	switch (key)
+	{
+		case 'k':
+			*ymove = -1;
+			*xmove =  0;
+			break;
+		case 'j':
+			*ymove =  1;
+			*xmove =  0;
+			break;
+		case 'h':
+			*ymove =  0;
+			*xmove = -1;
+			break;
+		case 'l':
+			*ymove =  0;
+			*xmove =  1;
+			break;
+		case 'y':
+			*xmove = -1;
+			*ymove = -1;
+			break;
+		case 'u':
+			*xmove =  1;
+			*ymove = -1;
+			break;
+		case 'b':
+			*xmove = -1;
+			*ymove =  1;
+			break;
+		case 'n':
+			*xmove =  1;
+			*ymove =  1;
+			break;
+		default:
+			*xmove =  0;
+			*ymove =  0;
+	}
+	return key;
 }
 

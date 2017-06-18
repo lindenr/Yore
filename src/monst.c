@@ -196,7 +196,7 @@ void mons_usedturn (struct Thing *th)
 int player_take_input (char in)
 {
 	int xmove, ymove;
-	pl_move (&ymove, &xmove, (uint32_t) in);
+	p_move (&ymove, &xmove, (uint32_t) in);
 	if (xmove == 0 && ymove == 0)
 		return (-1);
 
@@ -234,13 +234,28 @@ char escape (unsigned char a)
 		return a;
 }
 
+void mons_regen (struct Thing *th)
+{
+	struct Monster *self = &th->thing.mons;
+
+	/* HP */
+	if (rn(50) < U.attr[AB_CO])
+		self->HP += (self->level + 10) / 10;
+	if (self->HP > self->HP_max)
+		self->HP = self->HP_max;
+	self->HP_rec = ((10.0 + self->level)/10) * ((float)U.attr[AB_CO] / 50.0);
+
+	/* ST */
+	self->ST += rn(2);
+	if (self->ST > self->ST_max)
+		self->ST = self->ST_max;
+	self->ST_rec = 0.5;
+}
+
 int mons_take_move (struct Thing *th)
 {
-	char in;
-	struct Monster *self = &th->thing.mons;
-	if (self->HP < self->HP_max && rn(50) < U.attr[AB_CO])
-		self->HP += (self->level + 10) / 10;
-	self->HP_rec = ((10.0 + self->level)/10) * ((float)U.attr[AB_CO] / 50.0);
+	mons_regen (th);
+
 	if (mons_eating(th))
 		return true;
 	if (th != player)
@@ -250,6 +265,8 @@ int mons_take_move (struct Thing *th)
 	}
 	while (1)
 	{
+		char in;
+	
 		draw_map ();
 		p_pane ();
 
@@ -519,7 +536,7 @@ void do_attack (struct Thing *from, struct Thing *to)
 					//printf("%d %d\n", *toHP, *toHP - damage);
 				}
 
-				*toHP -= damage + bonus;
+				*toHP -= dmg + bonus;
 				mons_passive_attack (to, from);
 				break;
 			}

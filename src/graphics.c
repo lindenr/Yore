@@ -104,7 +104,7 @@ void gra_mvaprint (Graph gra, int yloc, int xloc, const char *str)
 	int i, buf = gra_buffer (gra, yloc, xloc), len = strlen(str);
 
 	for (i = 0; i < len && i+buf > 0 && i+buf < gra->a; ++ i)
-		gra_baddch (gra, i+buf, str[i]);
+		gra_baddch (gra, i+buf, (unsigned char)str[i]);
 }
 
 void gra_mvprint (Graph gra, int yloc, int xloc, const char *str, ...)
@@ -209,6 +209,12 @@ void gra_cshow (Graph gra)
 void gra_mark (Graph gra, int yloc, int xloc)
 {
 	gra->flags[gra_buffer(gra, yloc, xloc)] |= 1;
+	/*if (!gra->vis)
+		return;
+	if (yloc < gra->cy || yloc >= gra->cy + gra->vh ||
+		xloc < gra->cx || xloc >= gra->cx + gra->vw)
+		return;
+	gr_flags[gr_buffer(gra->cy + yloc, gra->cx + xloc)] |= 1;*/
 }
 
 void gra_bsetbox (Graph gra, int b, uint8_t flags)
@@ -385,7 +391,7 @@ uint32_t gr_getfullch ()
 		{
 			if (gr_onidle)
 				gr_onidle ();
-			gr_wait (20);
+			gr_wait (10);
 			continue;
 		}
 
@@ -458,7 +464,7 @@ void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
 				-- i;
 			}
 			out[i] = 0;
-			gra_mvaddch (gra, yloc, xloc, 0);
+			gra_mvaddch (gra, yloc, xloc, ' ');
 			continue;
 		}
 		if (i < len-1)

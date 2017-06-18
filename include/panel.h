@@ -36,6 +36,17 @@ void p_msg     (const char *, ...);
 char p_ask     (const char *, const char *);
 char p_lines   (Vector);
 
+enum PanelType
+{
+	P_STATUS = 0,
+	P_SKILLS
+};
+
+int  p_status  (enum PanelType);
+//int  p_skills  ();
+void p_mvchoose(int *, int *, const char *, const char *, int);
+uint32_t p_move (int *, int *, uint32_t);
+
 extern int p_width, p_height
 //, p_open
 ;

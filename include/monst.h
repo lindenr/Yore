@@ -113,7 +113,6 @@ struct player_status
 	int role;
 	int playing;
 	player_attr attr; /* st, co, ch, etc */
-	int32_t stamina, stamina_max;
 	int32_t luck;
 	uint64_t m_glflags;
 };
@@ -148,7 +147,7 @@ typedef struct
 {
 	const char *name;			/* name */
 	char ch;					/* display character */
-	uint32_t speed;				/* normal speed */
+	uint32_t speed;				/* base speed */
 	uint32_t attacks[A_NUM][A_PARAM];	/* attacks */
 	uint32_t flags;				/* physical flags */
 	uint32_t col;				/* colour */
@@ -162,10 +161,11 @@ struct Monster
 	uint32_t type;				/* monster type */
 	int32_t level;				/* EXP level */
 	int32_t exp;				/* EXP points */
-	int32_t HP;					/* current HP */
-	int32_t HP_max;				/* maximum HP */
+	int32_t HP, HP_max;			/* current/max HP */
 	float HP_rec;				/* HP recovered per turn, on average */
-	uint32_t cur_speed;			/* current speed-state */
+	int32_t ST, ST_max;			/* current/max stamina */
+	float ST_rec;				/* stamina recovery */
+	uint32_t speed, cur_speed;	/* current speed and state */
 	char *name;					/* label */
 	struct Pack pack;			/* inventory */
 	struct WoW wearing;			/* stuff wielding/wearing/using */

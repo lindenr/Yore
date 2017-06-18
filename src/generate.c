@@ -210,7 +210,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		start = param;
 		upsy = start / map_graph->w;
 		upsx = start % map_graph->w;
-		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0.0, 0, 0, {{0},}, {0,}, 0, 0, 0, NULL};
+		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 12, 0, 0, {{0},}, {0,}, 0, 0, 0, NULL};
 		asdf.name = malloc (85);
 		strncpy (asdf.name, "_", 2);
 		real_player_name = asdf.name;
@@ -248,6 +248,9 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		p.HP = (mons[p.type].flags >> 28) + (mons[p.type].exp >> 1);
 		p.HP += 1+rn(1+ p.HP / 3);
 		p.HP_max = p.HP;
+		p.ST = 10;
+		p.ST_max = p.ST;
+		p.speed = mons[p.type].speed;
 		p.name = NULL;
 		p.level = 1; //mons[p.type].exp? TODO
 		p.exp = mons[p.type].exp;
