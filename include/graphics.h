@@ -68,39 +68,42 @@ extern void (*gr_onresize)  ();
 extern SDL_Surface *screen;
 
 /* Initialisation */
-void gr_init   (void);
-Graph gra_init (int, int, int, int, int, int);
-void gra_free  (Graph);
+void gr_init      (void);
+Graph gra_init    (int, int, int, int, int, int);
+void gra_free     (Graph);
 
 /* Output */
-void gra_movecam (Graph, int, int);
-void gra_centcam (Graph, int, int);
+void gra_movecam  (Graph, int, int);
+void gra_centcam  (Graph, int, int);
 
-void gra_clear  (Graph);
-void gra_invert (Graph, int, int);
+void gra_clear    (Graph);
+void gra_invert   (Graph, int, int);
 
-void gra_addch   (Graph, glyph);
-void gra_mvaddch (Graph, int, int, glyph);
-void gra_baddch  (Graph, int, glyph);
+void gra_addch    (Graph, glyph);
+void gra_mvaddch  (Graph, int, int, glyph);
+void gra_baddch   (Graph, int, glyph);
 
-void gra_box  (Graph, int, int, int, int);
-void gra_dbox (Graph, int, int, int, int);
-void gra_fbox (Graph, int, int, int, int, glyph);
+void gra_box      (Graph, int, int, int, int);
+void gra_dbox     (Graph, int, int, int, int);
+void gra_fbox     (Graph, int, int, int, int, glyph);
 
 void gra_mvaprint (Graph, int, int, const char *);
 void gra_mvprint  (Graph, int, int, const char *, ...);
 void gra_cprint   (Graph, int, const char *, ...);
 
-void gr_refresh ();
-void gr_frefresh();
+void gr_refresh   ();
+void gr_frefresh  ();
 
-void gra_csolid (Graph);
-void gra_cblink (Graph);
-void gra_cmove  (Graph, int, int);
-void gra_cshow  (Graph);
-void gra_chide  (Graph);
+void gra_csolid   (Graph);
+void gra_cblink   (Graph);
+void gra_cmove    (Graph, int, int);
+void gra_cshow    (Graph);
+void gra_chide    (Graph);
 
-void gra_mark (Graph, int, int);
+void gra_show     (Graph);
+void gra_hide     (Graph);
+
+void gra_mark     (Graph, int, int);
 
 /* Input */
 char     gr_getch     ();
@@ -108,11 +111,11 @@ uint32_t gr_getfullch ();
 void     gra_getstr   (Graph, int, int, char *, int);
 int      gr_equiv     (uint32_t, uint32_t);
 
-void gr_tout (int);
+void gr_tout      (int);
 
 /* Misc */
-int  gra_buffer (Graph, int, int);
-int  gr_buffer  (int, int);
+int  gra_buffer   (Graph, int, int);
+int  gr_buffer    (int, int);
 
 int  gra_nearedge (Graph, int, int);
 void gr_wait      (uint32_t);

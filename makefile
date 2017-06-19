@@ -7,5 +7,3 @@ CC_FLAGS := -I$(CURDIR) -Wall -Werror -ggdb -O0
 bin/Yore: $(C_FILES)
 	gcc -L./bin -o $@ $(C_FILES) $(CC_FLAGS) $(LD_FLAGS) -lSDL
 
-#pre/%.c: src/%.c
-#	./function $@ $< 

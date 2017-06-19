@@ -206,6 +206,18 @@ void gra_cshow (Graph gra)
 	gra->csr_state = 1;
 }
 
+void gra_hide (Graph gra)
+{
+	gra->vis = 0;
+	forced_refresh = 1;
+}
+
+void gra_show (Graph gra)
+{
+	gra->vis = 1;
+	forced_refresh = 1;
+}
+
 void gra_mark (Graph gra, int yloc, int xloc)
 {
 	gra->flags[gra_buffer(gra, yloc, xloc)] |= 1;

@@ -6,8 +6,8 @@
 
 const styp all_skills[] = {
 	{SK_NONE, 0, "", ""},
-	{SK_CHARGE,  SK_ACT, "Charge",  "#CHARGE\n#[cost: 3 stamina/square]\nCharge at your opponent, dealing extra damage for one hit. Be careful not to miss! Damage increases with skill level."},
-	{SK_DODGE,   SK_PAS, "Dodge", "#DODGE\n#[passive skill]\nYou are uncommonly nimble. When you are attacked you have a chance to dodge the attack. The chance increases with skill level."}
+	{SK_CHARGE,  SK_ACT, "Charge",  "#CHARGE\n#[cost: 3 stamina/square]\n\nCharge at your opponent, dealing extra damage for one hit. Be careful not to miss! Damage increases with skill level.\n"},
+	{SK_DODGE,   SK_PAS, "Dodge", "#DODGE\n#[passive skill]\n\nYou are uncommonly nimble. When you are attacked you have a chance to dodge the attack. The chance increases with skill level.\n"}
 };
 
 #define SK_MAXLEVEL (sizeof(xp_levels)/sizeof(*xp_levels))

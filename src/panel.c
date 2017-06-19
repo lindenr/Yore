@@ -388,19 +388,12 @@ int p_skills (enum PanelType type)
 			gra_free (sc_skills);
 			return 0;
 		}
-		else if ((in == GRK_UP /*|| in == 'k'*/) && selected > 0)
+		else if (in == GRK_UP && selected > 0)
 			-- selected;
-		else if ((in == GRK_DN /*|| in == 'j'*/) && selected < pmons.skills->len-1)
+		else if (in == GRK_DN && selected < pmons.skills->len-1)
 			++ selected;
 		else if (in == CH_LF || in == CH_CR)
 		{
-			/*gra_clear (sc_skills);
-			p_mvchoose (&y, &x, "Charge where?", NULL, 1);
-			if (y == -1)
-				continue;
-			gra_free (sc_skills);
-			sk_charge (player, y, x, v_at (pmons.skills, selected));
-			return 1;*/
 			Skill sk = v_at (pmons.skills, selected);
 			Vector lines = w_lines (sk_desc(sk), MAX_BOX_LENGTH);
 			p_lines (lines);
@@ -417,13 +410,13 @@ int p_skills (enum PanelType type)
 				case SK_CHARGE:
 				{
 					int yloc, xloc;
-					sc_skills->vis = sc_status->vis = 0;
-					gr_frefresh();
+					gra_hide (sc_status);
+					gra_hide (sc_skills);
 					p_mvchoose (&yloc, &xloc, "Charge where?", NULL, 1);
 					if (yloc == -1)
 					{
-						sc_skills->vis = sc_status->vis = 1;
-						gr_frefresh();
+						gra_show (sc_status);
+						gra_show (sc_skills);
 						continue;
 					}
 					gra_free (sc_skills);
