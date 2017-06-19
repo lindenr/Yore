@@ -216,8 +216,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		real_player_name = asdf.name;
 		asdf.skills = v_dinit (sizeof(struct Skill));
 		v_push (asdf.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
-		v_push (asdf.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
-		v_push (asdf.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+		v_push (asdf.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
 		new_thing (THING_MONS, lvl, upsy, upsx, &asdf);
 	}
 	else if (type == 1)

@@ -5,8 +5,9 @@
 #include "include/panel.h"
 
 const styp all_skills[] = {
-	{SK_NONE,    "",        ""},
-	{SK_CHARGE,  "Charge",  "Charge!"}
+	{SK_NONE, 0, "", ""},
+	{SK_CHARGE,  SK_ACT, "Charge",  "#CHARGE\n#[cost: 3 stamina/square]\nCharge at your opponent, dealing extra damage for one hit. Be careful not to miss! Damage increases with skill level."},
+	{SK_DODGE,   SK_PAS, "Dodge", "#DODGE\n#[passive skill]\nYou are uncommonly nimble. When you are attacked you have a chance to dodge the attack. The chance increases with skill level."}
 };
 
 #define SK_MAXLEVEL (sizeof(xp_levels)/sizeof(*xp_levels))
@@ -15,6 +16,16 @@ const int xp_levels[] = {0, 5};
 const char *sk_name (Skill sk)
 {
 	return all_skills[sk->type].name;
+}
+
+const char *sk_desc (Skill sk)
+{
+	return all_skills[sk->type].desc;
+}
+
+int sk_isact (Skill sk)
+{
+	return all_skills[sk->type].flags == SK_ACT;
 }
 
 int sk_lvl (struct Thing *th, enum SK_TYPE type)

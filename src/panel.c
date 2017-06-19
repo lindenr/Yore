@@ -259,11 +259,9 @@ char p_lines (Vector lines)
 	{
 		char *str = v_at(lines, i);
 		if (str[0] != '#')
-		{
 			gra_mvaprint (box, i+1, 2, str);
-			continue;
-		}
-		gra_mvprint (box, i+1, (w-strlen(str)+1)/2, str+1);
+		else
+			gra_cprint (box, i+1, str+1);
 	}
 	gra_box (box, 0, 0, h-1, w-1);
 	char ret = gr_getch();
@@ -275,8 +273,22 @@ char p_lines (Vector lines)
 
 // status screen stuff
 // ideally want to be able to access skills etc from the status window
+
+Graph sc_status = NULL, sc_skills = NULL;
 int p_status (enum PanelType type)
 {
+	int h = 20, w = 81;
+	int y = (gr_h - h)/2 - 10, x = (gr_w - w)/2;
+	sc_status = gra_init (h, w, y, x, h, w);
+	sc_status->def = COL_STATUS;
+	gra_fbox (sc_status, 0, 0, h-1, w-1, ' ');
+	gra_cprint (sc_status, 2, "STATUS SCREEN");
+	gra_mvprint (sc_status, 0, w-5, "(Esc)");
+	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", pmons.name+1, ACS_VLINE, "Human");
+	gra_cprint (sc_status, 5, "  HP: %d/%d (%+.1f)  %c  ST:    %d/%d (%+.1f)",
+				pmons.HP, pmons.HP_max, pmons.HP_rec, ACS_VLINE, pmons.ST, pmons.ST_max, pmons.ST_rec);
+	gra_cprint (sc_status, 6, "LV %d:%d/infinity  %c  Speed: %d       ", pmons.level, pmons.exp, ACS_VLINE, pmons.speed);
+
 	switch (type)
 	{
 		case P_STATUS:
@@ -284,25 +296,41 @@ int p_status (enum PanelType type)
 		case P_SKILLS:
 		{
 			int ret = p_skills (type);
-			if (ret)
+			if (ret > 0)
+			{
+				gra_free (sc_status);
 				return ret;
+			}
+			else if (ret == -1)
+			{
+				gra_free (sc_status);
+				return 0;
+			}
 			break;
 		}
 	}
-	int h = 20, w = 81;
-	int y = (gr_h - h)/2 - 10, x = (gr_w - w)/2;
-	Graph panel = gra_init (h, w, y, x, h, w);
-	panel->def = COL_STATUS;
-	gra_fbox (panel, 0, 0, h-1, w-1, ' ');
-	gra_cprint (panel, 2, "STATUS SCREEN");
-	gra_mvprint (panel, 0, w-5, "(Esc)");
-	gra_cprint (panel, 4, "Name: %12s  %c  Race:  %s       ", pmons.name+1, ACS_VLINE, "Human");
-	gra_cprint (panel, 5, "  HP: %d/%d (%+.1f)  %c  ST:    %d/%d (%+.1f)",
-				pmons.HP, pmons.HP_max, pmons.HP_rec, ACS_VLINE, pmons.ST, pmons.ST_max, pmons.ST_rec);
-	gra_cprint (panel, 6, "LV %d:%d/infinity  %c  Speed: %d       ", pmons.level, pmons.exp, ACS_VLINE, pmons.speed);
 
-	while (gr_getch() != CH_ESC) {}
-	gra_free (panel);
+	while (1)
+	{
+		char in = gr_getch ();
+		if (in == CH_ESC || in == ' ')
+			break;
+		if (in == 's')
+		{
+			int ret = p_skills (type);
+			if (ret > 0)
+			{
+				gra_free (sc_status);
+				return ret;
+			}
+			else if (ret == -1)
+			{
+				gra_free (sc_status);
+				return 0;
+			}
+		}
+	}
+	gra_free (sc_status);
 	return 0;
 }
 
@@ -316,17 +344,17 @@ int p_skills (enum PanelType type)
 	return 1;*/
 	int h = 10, w = 41;
 	int y = (gr_h - h)/2, x = (gr_w - w)/2;
-	Graph panel = gra_init (h, w, y, x, h, w);
-	panel->def = COL_STATUS;
-	gra_fbox (panel, 0, 0, h-1, w-1, ' ');
-	gra_cprint (panel, 2, "SKILLS");
-	gra_cprint (panel, 3, "(enter to inspect; letter to use)");
-	gra_mvprint (panel, 0, w-5, "(Esc)");
+	sc_skills = gra_init (h, w, y, x, h, w);
+	sc_skills->def = COL_SKILLS;
+	gra_fbox (sc_skills, 0, 0, h-1, w-1, ' ');
+	gra_cprint (sc_skills, 2, "SKILLS");
+	gra_cprint (sc_skills, 3, "(enter to inspect; letter to use)");
+	gra_mvprint (sc_skills, 0, w-5, "(Esc)");
 	if (pmons.skills->len == 0)
 	{
-		gra_cprint (panel, 4, "(no skills available)");
+		gra_cprint (sc_skills, 4, "(no skills available)");
 		while (gr_getch() != CH_ESC) {}
-		gra_free (panel);
+		gra_free (sc_skills);
 		return 0;
 	}
 	
@@ -339,30 +367,44 @@ int p_skills (enum PanelType type)
 		{
 			Skill sk = v_at (pmons.skills, i);
 			int row = 4+i;
-			gra_cprint (panel, row, "%c - %s %d:%d", letter, sk_name(sk), sk->level, sk->exp);
+			if (sk_isact (sk))
+				gra_cprint (sc_skills, row, "%c - %s %d:%d", letter, sk_name(sk), sk->level, sk->exp);
+			else
+				gra_cprint (sc_skills, row, "%s %d:%d", sk_name(sk), sk->level, sk->exp);
 			++ letter;
 		}
 		for (j = 1; j < w-1; ++ j)
-			gra_invert (panel, 4+selected, j);
+			gra_invert (sc_skills, 4+selected, j);
 		char in = gr_getch();
 		for (j = 1; j < w-1; ++ j)
-			gra_invert (panel, 4+selected, j);
+			gra_invert (sc_skills, 4+selected, j);
 		if (in == CH_ESC)
-			break;
+		{
+			gra_free (sc_skills);
+			return -1;
+		}
+		else if (in == ' ')
+		{
+			gra_free (sc_skills);
+			return 0;
+		}
 		else if ((in == GRK_UP /*|| in == 'k'*/) && selected > 0)
 			-- selected;
 		else if ((in == GRK_DN /*|| in == 'j'*/) && selected < pmons.skills->len-1)
 			++ selected;
 		else if (in == CH_LF || in == CH_CR)
 		{
-			/*gra_clear (panel);
+			/*gra_clear (sc_skills);
 			p_mvchoose (&y, &x, "Charge where?", NULL, 1);
 			if (y == -1)
 				continue;
-			gra_free (panel);
+			gra_free (sc_skills);
 			sk_charge (player, y, x, v_at (pmons.skills, selected));
 			return 1;*/
-			p_msg ("skill descriptions not supported"); // TODO
+			Skill sk = v_at (pmons.skills, selected);
+			Vector lines = w_lines (sk_desc(sk), MAX_BOX_LENGTH);
+			p_lines (lines);
+			v_free (lines);
 		}
 		else if (in >= 'a' && in < letter)
 		{
@@ -375,20 +417,27 @@ int p_skills (enum PanelType type)
 				case SK_CHARGE:
 				{
 					int yloc, xloc;
-					gra_clear (panel);
+					sc_skills->vis = sc_status->vis = 0;
+					gr_frefresh();
 					p_mvchoose (&yloc, &xloc, "Charge where?", NULL, 1);
 					if (yloc == -1)
+					{
+						sc_skills->vis = sc_status->vis = 1;
+						gr_frefresh();
 						continue;
-					gra_free (panel);
+					}
+					gra_free (sc_skills);
 					sk_charge (player, yloc, xloc, v_at (pmons.skills, selected));
 					return 1;
 				}
+				case SK_DODGE:
+					break;
 				case SK_NUM:
 					break;
 			}
 		}
 	}
-	gra_free (panel);
+	gra_free (sc_skills);
 	return 0;
 }
 
@@ -416,13 +465,20 @@ void p_mvchoose (int *yloc, int *xloc, const char *instruct, const char *confirm
 	uint32_t key = p_move (&ymove, &xmove, gr_getfullch ());
 	while (key != '.' || (confirm && (p_ask ("yn", confirm) != 'y')))
 	{
-		if (ymove == -1 && map_graph->csr_y > 0)
+		if (key == CH_ESC)
+		{
+			*yloc = -1;
+			gra_cmove (map_graph, orig_y, orig_x);
+			gra_free (overlay);
+			return;
+		}
+		if (ymove == -1 && map_graph->csr_y > 0 && map_graph->csr_y - map_graph->cy > 0)
 			gra_cmove (map_graph, map_graph->csr_y-1, map_graph->csr_x);
-		else if (ymove == 1 && map_graph->csr_y < map_graph->h-1)
+		else if (ymove == 1 && map_graph->csr_y < map_graph->h-1 && map_graph->csr_y - map_graph->cy < map_graph->vh-1)
 			gra_cmove (map_graph, map_graph->csr_y+1, map_graph->csr_x);
-		if (xmove == -1 && map_graph->csr_x > 0)
+		if (xmove == -1 && map_graph->csr_x > 0 && map_graph->csr_x - map_graph->cx > 0)
 			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x-1);
-		else if (xmove == 1 && map_graph->csr_x < map_graph->w-1)
+		else if (xmove == 1 && map_graph->csr_x < map_graph->w-1 && map_graph->csr_x - map_graph->cx < map_graph->vw-1)
 			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x+1);
 		//if (gra_nearedge (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x))
 		//	gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);

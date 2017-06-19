@@ -170,8 +170,6 @@ void gr_resize    (int, int);
 /* Common colours */
 #define COL_TXT_DEF    0xBBB00000
 #define COL_TXT_BRIGHT 0xFFF00000
-#define COL_STATUS     0x00055A00
-#define COL_PANEL      0xBBF00000
 
 #endif /* GRAPHICS_H_INCLUDED */
 

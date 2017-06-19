@@ -3,6 +3,7 @@
 #include "include/all.h"
 #include "include/thing.h"
 #include "include/words.h"
+#include "include/panel.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -41,20 +42,47 @@ char *w_short (char *str, int len)
 	strncat (ret, "...", 4);
 	return ret;
 }
-/*
-Vector w_lines (char *msg, int line)
+
+Vector w_lines (const char *msg, int max)
 {
-	if (line <= 0)
+	if (max <= 0)
 		return NULL;
-	Vector lines = v_dinit (line+1);
-	char *tmp = malloc (line+1);
+	Vector lines = v_dinit (max+1);
+	char *tmp = malloc (max+1);
+	//tmp[line] = 0;
+
+	int i, start = 0, end = -1, len = 0;
+	for (i = 0; msg[i]; ++ i, ++ len)
+	{
+		if (msg[i] == ' ' || msg[i] == '\n')
+			end = i;
+		if (len >= max || msg[i] == '\n')
+		{
+			if (end <= start && msg[i] != '\n')
+			{
+				printf("sadfasdfasdfasdfasdf\n");
+				p_msg ("line too short");
+				return lines;
+			}
+			memcpy (tmp, msg + start, end-start);
+			tmp[end-start] = 0;
+			v_pstr (lines, tmp);
+			len -= end + 1 - start;
+			start = end + 1;
+		}
+	}
+	strncpy (tmp, msg + start, len+1);
+	v_pstr (lines, tmp);
+	return lines;
+/*
 	int i = 0, len = strlen (msg);
 	do
 	{
-		memcpy (tmp, msg + line*(i++), line);
+		memcpy (tmp, msg + line*i, line);
+		++ i;
 		v_pstr (lines, tmp);
 	}
 	while (i*line <= len);
-	return lines;
-}*/
+	return lines;*/
+}
 

@@ -9,6 +9,12 @@
 /* #define AMERICAN */
 #define USING_COL
 
+#define MAX_BOX_LENGTH 40
+
+#define COL_STATUS     0x00055A00
+#define COL_PANEL      0xBBF00000
+#define COL_SKILLS     0x000A5500
+
 /* Int sizes (do not change) */
 #if UINT_MAX>>32 == 0
 #  define INT_SIZE 32
@@ -44,3 +50,4 @@
 #define YORE_VERSION "0.0.6 pre-alpha"
 
 #endif /* ALL_H_INCLUDED */
+
