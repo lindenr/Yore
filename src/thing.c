@@ -374,7 +374,7 @@ void draw_map ()
 	}
 	set_can_see (sq_seen, sq_attr, sq_unseen);
 }
-
+/*
 int pr_type;
 int pr_energy;
 char *pr_name;
@@ -415,5 +415,5 @@ int pr_at (struct DLevel *dlevel, int yloc, int xloc)
 	if (pr_type)
 		-- pr_energy;
 	return (pr_energy > 0);
-}
+}*/
 

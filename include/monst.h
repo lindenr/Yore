@@ -191,6 +191,7 @@ void  *mons_get_weap   (struct Thing *);                   /* what weapon is wie
 void   mons_blast      (struct Thing *, struct Thing *, int); /* monster in an explosion               */
 void   mons_box        (struct Thing *, BoxType);          /* boxy flags for this turn                 */
 void   mons_usedturn   (struct Thing *);                   /* turn is irretrievably used               */
+int    mons_get_st     (struct Thing *);                   /* get monster strength                     */
 
 /* player functions */
 struct Item *player_use_pack (char *, uint32_t);           /* asks player for an item of some type     */
@@ -217,3 +218,4 @@ char   escape          (unsigned char);                    /* escapes a characte
 int    AI_Attack       (struct Thing *, int, int);         /* moves a monster towards the player       */
 
 #endif /* MONST_H_INCLUDED */
+

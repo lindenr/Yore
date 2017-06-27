@@ -16,6 +16,7 @@
 #include "include/player.h"
 #include "include/timer.h"
 #include "include/skills.h"
+#include "include/action.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -234,24 +235,6 @@ char escape (unsigned char a)
 		return a;
 }
 
-void mons_regen (struct Thing *th)
-{
-	struct Monster *self = &th->thing.mons;
-
-	/* HP */
-	if (rn(50) < U.attr[AB_CO])
-		self->HP += (self->level + 10) / 10;
-	if (self->HP > self->HP_max)
-		self->HP = self->HP_max;
-	self->HP_rec = ((10.0 + self->level)/10) * ((float)U.attr[AB_CO] / 50.0);
-
-	/* ST */
-	self->ST += rn(2);
-	if (self->ST > self->ST_max)
-		self->ST = self->ST_max;
-	self->ST_rec = 0.5;
-}
-
 int mons_take_move (struct Thing *th)
 {
 	mons_regen (th);
@@ -331,13 +314,13 @@ skip1:;
 	rem_id (to->ID);
 }
 
-int mons_prhit (struct Thing *from, struct Thing *to, int energy)
+/*int mons_prhit (struct Thing *from, struct Thing *to, int energy) // ACTION
 {
 	to->thing.mons.HP -= energy/2;
 	if (to->thing.mons.HP <= 0)
 		mons_dead (from, to);
 	return 1;
-}
+}*/
 
 /* TODO is it polymorphed? */
 bool mons_edible (struct Thing *th, struct Item *item)
@@ -345,7 +328,7 @@ bool mons_edible (struct Thing *th, struct Item *item)
 	return (item->type.ch == ITEM_FOOD);
 }
 
-bool mons_eating (struct Thing *th)
+bool mons_eating (struct Thing *th) // ACTION
 {
 	int hunger_loss;
 	struct Item *item = th->thing.mons.eating;
@@ -370,7 +353,7 @@ bool mons_eating (struct Thing *th)
 	return true;
 }
 
-void mons_eat (struct Thing *th, struct Item *item)
+void mons_eat (struct Thing *th, struct Item *item) // ACTION
 {
 	if (!mons_edible (th, item))
 	{
@@ -452,9 +435,9 @@ bool mons_wear (struct Thing *th, struct Item *it)
 	return true;
 }
 
-void mons_passive_attack (struct Thing *from, struct Thing *to)
+void mons_passive_attack (struct Thing *from, struct Thing *to) // ACTION
 {
-	uint32_t t;
+/*	uint32_t t;
 	int type = from->thing.mons.type;
 	char posv[30];
 	for (t = 0; t < A_NUM; ++t)
@@ -473,7 +456,7 @@ void mons_passive_attack (struct Thing *from, struct Thing *to)
 			else if (to == player)
 				p_msg ("You are splashed by the %s acid!", posv);
 		}
-	}
+	}*/
 }
 
 int mons_get_st (struct Thing *th)
@@ -483,12 +466,12 @@ int mons_get_st (struct Thing *th)
 	return 1;
 }
 
-void mons_blast (struct Thing *from, struct Thing *to, int siz)
+/*void mons_blast (struct Thing *from, struct Thing *to, int siz) // ACTION
 {
 	to->thing.mons.HP -= siz*(siz+2);
 	if (to->thing.mons.HP <= 0)
 		mons_dead (from, to);
-}
+}*/
 
 void mons_box (struct Thing *mons, BoxType type)
 {
@@ -500,10 +483,14 @@ int mons_charge_bonus (struct Thing *from)
 	return 5*sk_lvl (from, SK_CHARGE);
 }
 
-void do_attack (struct Thing *from, struct Thing *to)
+int mons_react (struct Thing *th) // ACTION
 {
-	int t, strength, type = from->thing.mons.type;
-	int *toHP = &to->thing.mons.HP;
+	return 0;
+}
+
+void do_attack (struct Thing *from, struct Thing *to) // ACTION?
+{
+	int t, type = from->thing.mons.type;
 	int bonus = 0;
 	if (from->thing.mons.status & M_CHARGE)
 		bonus += mons_charge_bonus (from);
@@ -513,40 +500,17 @@ void do_attack (struct Thing *from, struct Thing *to)
 		if (!mons[type].attacks[t][0])
 			break;
 
+		mons_react (to);
 		switch (mons[type].attacks[t][2] & 0xFFFF)
 		{
 			case ATTK_HIT:
 			{
-				struct Item **it = mons_get_weap(from);
-				int dmg;
-				if (!it || !(*it))
-				{
-					strength = rn(mons_get_st(from)) >> 1;
-					dmg =
-						rnd(mons[type].attacks[t][0],
-							mons[type].attacks[t][1]) +
-                        strength +
-					    rn(1 + 3*from->thing.mons.level);
-				}
-				else
-				{
-					int attr = (*it)->type.attr;
-					strength = rn(mons_get_st(from)) >> 1;
-					dmg = rnd(attr & 15, (attr >> 4) & 15) + strength;
-					//printf("%d %d\n", *toHP, *toHP - damage);
-				}
-
-				*toHP -= dmg + bonus;
-				mons_passive_attack (to, from);
+				act_mhit (from, to);
 				break;
 			}
 			case ATTK_TOUCH:
 			{
-				*toHP -=
-					rnd(mons[type].attacks[t][0],
-						mons[type].attacks[t][1]);
-
-				mons_passive_attack (to, from);
+				act_mtouch (from, to);
 				break;
 			}
 			case ATTK_MAGIC:
@@ -555,26 +519,18 @@ void do_attack (struct Thing *from, struct Thing *to)
 			}
 			case ATTK_CLAW:
 			{
-				*toHP -=
-					rnd(mons[type].attacks[t][0],
-						mons[type].attacks[t][1]);
-
-				mons_passive_attack (to, from);
+				act_mclaw (from, to);
 				break;
 			}
 			case ATTK_BITE:
 			{
-				*toHP -=
-					rnd(mons[type].attacks[t][0],
-						mons[type].attacks[t][1]);
-
-				mons_passive_attack (to, from);
+				act_mbite (from, to);
 				break;
 			}
 		}
 		event_mhit (from, to, mons[type].attacks[t][2] & 0xFFFF);
 
-		if ((*toHP) <= 0)
+		if (to->thing.mons.HP <= 0)
 		{
 			mons_dead (from, to);
 			return;

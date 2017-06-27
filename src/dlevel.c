@@ -11,7 +11,6 @@ struct DLevel *cur_dlevel;
 
 void dlv_init ()
 {
-	//sp_init ();
 	all_dlevels = v_dinit (sizeof(struct DLevel));
 
 	void *t = NULL;

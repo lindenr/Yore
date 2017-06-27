@@ -30,7 +30,7 @@ ityp items[] = {
 	ITEM("dagger",         ITEM_WEAPON, IT_DAGGER,     100,   DMG(1, 3),  COL_TXT_GREEN(11)                    ),
 	ITEM("short sword",    ITEM_WEAPON, IT_SHORTSWORD, 2000,  DMG(1, 4),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)),
 	ITEM("gloves",         ITEM_ARMOUR, IT_GLOVES,     70,    0,          COL_TXT_GREEN(11)                    ),
-	ITEM("gold",           ITEM_DOSH,   IT_MONEY,      1,     0,          COL_TXT_RED(15)   | COL_TXT_GREEN(15)),
+	ITEM("gold piece",     ITEM_DOSH,   IT_MONEY,      1,     0,          COL_TXT_RED(15)   | COL_TXT_GREEN(15)),
 /*	ITEM("water charm",    ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(11)                     ),
 	ITEM("air charm",      ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_GREEN(15)                    ),
 	ITEM("fire charm",     ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_RED(15)                      ),
@@ -74,16 +74,16 @@ char *get_item_desc (const struct Item item)
 	else
 	{
 		// const char *str = itoa((item.attr&ITEM_PLUS(3)>>3))
-		snprintf (temp, 128, "%s%s%s%d %s%s",
+		snprintf (temp, 128, "%s%s %s%s",
 		         /* beatitude */
-		         !(item.attr & ITEM_KBUC) ? "" :
-		         (item.attr & ITEM_BLES) ? "blessed " :
-		         (item.attr & ITEM_CURS) ? "cursed " : "uncursed ",
+		         (!(item.attr & ITEM_KBUC)) ? "" :
+		          (item.attr & ITEM_BLES) ? "blessed " :
+		           (item.attr & ITEM_CURS) ? "cursed " : "uncursed ",
 		         /* greasedness */
 		         (item.attr & ITEM_GREASED) ? "greased " : "",
 		         /* enchantment value */
-		         ((item.attr & (ITEM_MINS(3))) | 1 ? ((item.attr & (ITEM_MINS(0))) ? "-" : "+") : ""),
-		         ((item.attr & (ITEM_MINS(3))) | 1 ? (item.attr & ((ITEM_PLUS(3)) >> 3)) : 0),
+		         //((item.attr & (ITEM_MINS(3))) | 1 ? ((item.attr & (ITEM_MINS(0))) ? "-" : "+") : ""),
+		         //((item.attr & (ITEM_MINS(3))) | 1 ? (item.attr & ((ITEM_PLUS(3)) >> 3)) : 0),
 		         /* name */
 		         item.type.name,
 		         /* wielded */
