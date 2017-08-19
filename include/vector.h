@@ -13,17 +13,19 @@ struct vector_
 	int siz, len, mlen;
 };
 
-/* init */
+/* init/free */
 Vector v_dinit (int);
 Vector v_init  (int, int);
+void   v_free  (Vector);
 
-/* write */
+/* add */
 void  *v_push  (Vector, const void *);
 void  *v_pstr  (Vector, char *);
 void  *v_pstrf (Vector, char *, ...);
+
+/* remove */
 void   v_rem   (Vector, int);
 void   v_rptr  (Vector, void *);
-void   v_free  (Vector);
 
 /* read */
 bool   v_isin  (Vector, void *);

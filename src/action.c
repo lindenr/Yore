@@ -7,20 +7,20 @@
 
 void mons_regen (struct Thing *th) // ACTION
 {
-	struct Monster *self = &th->thing.mons;
+	/*struct Monster *self = &th->thing.mons;
 
-	/* HP */
+	/ * HP * /
 	if (rn(50) < U.attr[AB_CO])
 		self->HP += (self->level + 10) / 10;
 	if (self->HP > self->HP_max)
 		self->HP = self->HP_max;
 	self->HP_rec = ((10.0 + self->level)/10) * ((float)U.attr[AB_CO] / 50.0);
 
-	/* ST */
+	/ * ST * /
 	self->ST += rn(2);
 	if (self->ST > self->ST_max)
 		self->ST = self->ST_max;
-	self->ST_rec = 0.5;
+	self->ST_rec = 0.5;*/
 }
 
 void act_mhit (struct Thing *from, struct Thing *to)

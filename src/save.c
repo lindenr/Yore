@@ -5,7 +5,6 @@
 #include "include/save.h"
 #include "include/panel.h"
 #include "include/monst.h"
-#include "include/loop.h"
 #include "include/vector.h"
 #include "include/pack.h"
 #include "include/map.h"

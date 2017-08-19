@@ -7,8 +7,7 @@
 #include "include/save.h"
 #include "include/item.h"
 //#include "include/skills.h"
-
-#include <malloc.h>
+#include "include/event.h"
 
 int Kcamup ()
 {
@@ -46,7 +45,8 @@ int Kskills ()
 
 int Kwait ()
 {
-	mons_usedturn (player);
+	//mons_usedturn (player);
+	ev_queue (pmons.speed, (union Event) { .mturn = {EV_MTURN, player->ID}});
 	return 1;
 }
 
@@ -67,42 +67,29 @@ int Kpickup ()
 	if (ground->len < 1)
 		return 0;
 
+	Vector pickup;
 	if (ground->len == 1)
 	{
 		mons_usedturn (player);
 		/* One item on ground -- pick up immediately. */
-		if (pack_add (&pmons.pack, &THIID(*(int*)v_at (ground, 0))->thing.item))
-			rem_id (*(int*)v_at (ground, 0));
-	
-		v_free (ground);
+		pickup = ground;
 	}
 	else if (ground->len > 1)
 	{
 		mons_usedturn (player); // TODO
 		/* Multiple items - ask which to pick up. */
-		Vector pickup = v_init (sizeof(int), 20);
+		Vector pickup = v_init (sizeof(TID), 20);
 	
 		/* Do the asking */
 		ask_items (pickup, ground, "Pick up what?");
 		v_free (ground);
 	
-		/* Put items in ret_list into inventory. The loop
-		* continues until ret_list is done or the pack is full. */
-		for (i = 0; i < pickup->len; ++ i)
-		{
-			/* Pick up the item; quit if the bag is full */
-			th = THIID(*(int*)v_at (pickup, i));
-			if (!pack_add (&pmons.pack, &th->thing.item))
-				break;
-			/* Remove item from main play */
-			rem_id (th->ID);
-		}
-		v_free (pickup);
 	}
+	ev_queue (0, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
 	return 1;
 }
 
-int Keat ()
+/*int Keat ()
 {
 	struct Item *food = player_use_pack ("Eat what?", ITCAT_FOOD);
 	if (food == NULL)
@@ -110,7 +97,7 @@ int Keat ()
 	mons_usedturn (player);
 	mons_eat (player, food);
 	return 1;
-}
+}*/
 
 int Ksdrop ()
 {
@@ -118,11 +105,11 @@ int Ksdrop ()
 	if (drop == NULL)
 		return 0;
 	mons_usedturn (player);
-	if (drop == player->thing.mons.wearing.rweap)
-		mons_unwield (player);
-	unsigned u = PACK_AT (get_Itref (pmons.pack, drop));
-	pmons.pack.items[u] = NULL;
-	new_thing (THING_ITEM, cur_dlevel, player->yloc, player->xloc, drop);
+
+	Vector vdrop = v_dinit (sizeof(struct Item *));
+	v_push (vdrop, &drop);
+
+	ev_queue (0, (union Event) { .mdrop = {EV_MDROP, player->ID, vdrop}});
 	return 1;
 }
 
@@ -250,17 +237,17 @@ struct KStruct Keys[] = {
 	{'s', &Kskills},
 	{'.', &Kwait},
 	{',', &Kpickup},
-	{'e', &Keat},
+//	{'e', &Keat},
 	{'d', &Ksdrop},
 	{'D', &Kmdrop},
 	{'i', &Kinv},
 	{':', &Knlook},
 	{';', &Kflook},
-	{'w', &Kwield},
-	{CONTROL_(GRK_DN), &Klookdn},
-	{CONTROL_(GRK_UP), &Klookup},
-	{'>', &Kgodown},
-	{'<', &Kgoup},
+//	{'w', &Kwield},
+//	{CONTROL_(GRK_DN), &Klookdn},
+//	{CONTROL_(GRK_UP), &Klookup},
+//	{'>', &Kgodown},
+//	{'<', &Kgoup},
 	{'S', &Ksave},
 	{CONTROL_('q'), &Kquit}
 };

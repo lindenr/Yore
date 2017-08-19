@@ -20,6 +20,8 @@
 
 #define CONTROL_(c) ((KMOD_CTRL << 16) | (c))
 
+typedef int TID;
+
 enum THING_TYPE
 {
 	THING_NONE = 0,   /* not used */
@@ -31,7 +33,8 @@ enum THING_TYPE
 struct Thing
 {
 	enum THING_TYPE type;
-	int dlevel, ID;
+	int dlevel;
+	TID ID;
 	uint32_t yloc, xloc;
 	union
 	{

@@ -4,10 +4,10 @@
 #include "include/thing.h"
 #include "include/graphics.h"
 #include "include/words.h"
-#include "include/loop.h"
 #include "include/dlevel.h"
 #include "include/vision.h"
 #include "include/skills.h"
+#include "include/event.h"
 
 #include <stdlib.h>
 #include <malloc.h>
@@ -61,7 +61,7 @@ void p_pane ()
 			txt_mvaddch (max - i - 1, txt_w - 2, COL_BG_BLUE(10) | ' ');
 	}*/
 
-	gra_mvprint (gpan, 1, 1, "T %lu", Time);
+	gra_mvprint (gpan, 1, 1, "T %lu", curtick);
 
 	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (pmons.name + 1, 20));
 	gra_mvprint (gpan, 3, 1, "HP %d/%d (+%.1f)", pmons.HP, pmons.HP_max, pmons.HP_rec);
@@ -207,7 +207,7 @@ void p_messages_display ()
 void p_amsg (const char *str)
 {
 	struct P_msg msg;
-	msg.expiry = Time+1;
+	msg.expiry = 0;
 	strncpy (msg.msg, str, P_MSG_LEN-1);
 	msg.msg[P_MSG_LEN-1] = 0;
 	v_push (messages, &msg);
@@ -218,7 +218,7 @@ void p_msg (const char *str, ...)
 	va_list args;
 	char out[100];
 
-	snprintf(out, 10, "(%lu) ", Time);
+	snprintf(out, 10, "(%lu) ", curtick);
 
 	va_start (args, str);
 	vsnprintf (out + strlen(out), 90, str, args);

@@ -40,6 +40,8 @@ extern const int CORPSE_WEIGHTS[];
 
 #define WOW_INIT 0
 
+typedef uint64_t Tick;
+
 enum MTYPES
 {
 	MTYP_CHICKEN = 0,
@@ -154,7 +156,7 @@ typedef struct
 	uint32_t exp;				/* exp gained from kill */
 } mtyp;
 
-extern const mtyp mons[];
+extern const mtyp all_mons[];
 
 struct Monster
 {
@@ -178,7 +180,7 @@ struct Monster
 struct Thing;
 /* general monster functions */
 void   mons_attack     (struct Thing *, int, int);         /* attack in direction                      */
-int    mons_move       (struct Thing *, int, int, int);    /* move in given directions                 */
+int    mons_move       (struct Thing *, int, int, int) __attribute__ ((const));    /* move in given directions                 */
 void   mons_dead       (struct Thing *, struct Thing *);   /* this monster is dead                     */
 int    mons_prhit      (struct Thing *, struct Thing *, int); /* monster hit by a projectile           */
 int    mons_take_move  (struct Thing *);                   /* give a move (AI or player)               */
@@ -192,6 +194,7 @@ void   mons_blast      (struct Thing *, struct Thing *, int); /* monster in an e
 void   mons_box        (struct Thing *, BoxType);          /* boxy flags for this turn                 */
 void   mons_usedturn   (struct Thing *);                   /* turn is irretrievably used               */
 int    mons_get_st     (struct Thing *);                   /* get monster strength                     */
+Tick   mons_tregen     (struct Thing *);                   /* time between regen events                */
 
 /* player functions */
 struct Item *player_use_pack (char *, uint32_t);           /* asks player for an item of some type     */
@@ -203,7 +206,7 @@ ityp   find_corpse     (struct Thing *);                   /* gets a corpse type
 void   custom_free     (void);                             /* frees custom types (now only corpses)    */
 
 /* player_status functions */
-char  *get_hungerstr   (void);                             /* gets player's hunger ("Starved" etc)     */
+char  *get_hungerstr   (void) __attribute__ ((pure));                             /* gets player's hunger ("Starved" etc)     */
 bool   digesting       (void);                             /* is the player digesting?                 */
 void   setup_U         (void);                             /* populate the U struct                    */
 void   get_cinfo       (void);                             /* called at start, gets input from player  */

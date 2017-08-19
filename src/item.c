@@ -74,11 +74,11 @@ char *get_item_desc (const struct Item item)
 	else
 	{
 		// const char *str = itoa((item.attr&ITEM_PLUS(3)>>3))
-		snprintf (temp, 128, "%s%s %s%s",
+		snprintf (temp, 128, "%s%s%s%s",
 		         /* beatitude */
 		         (!(item.attr & ITEM_KBUC)) ? "" :
-		          (item.attr & ITEM_BLES) ? "blessed " :
-		           (item.attr & ITEM_CURS) ? "cursed " : "uncursed ",
+		           (item.attr & ITEM_BLES)  ? "blessed " :
+		           (item.attr & ITEM_CURS)  ? "cursed "  : "uncursed ",
 		         /* greasedness */
 		         (item.attr & ITEM_GREASED) ? "greased " : "",
 		         /* enchantment value */

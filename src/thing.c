@@ -128,13 +128,14 @@ void rem_mons (struct DLevel *lvl, int id)
 
 void rem_id (int id)
 {
-	struct Thing *th = (*(struct Thing**) v_at (all_ids, id));
+	struct Thing *th = THIID(id);
 	struct DLevel *lvl = dlv_lvl (th->dlevel);
 	if (th->type == THING_MONS)
 		rem_mons (lvl, th->ID);
 	int n = map_buffer (th->yloc, th->xloc);
 	v_rptr (lvl->things[n], th);
 	thing_watchvec (lvl->things[n]);
+	THIID(id) = NULL;
 }
 
 void thing_move (struct Thing *thing, int new_level, int new_y, int new_x)
@@ -325,7 +326,7 @@ void draw_map ()
 				struct Monster *m = &th->thing.mons;
 				gra_bsetbox (map_graph, at, m->boxflags);
 				changed = true;
-				gra_baddch (map_graph, at, mons[m->type].col | mons[m->type].ch);
+				gra_baddch (map_graph, at, all_mons[m->type].col | all_mons[m->type].ch);
 				if (m->name)
 					if (th == player)
 					{

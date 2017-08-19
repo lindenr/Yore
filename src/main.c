@@ -5,14 +5,13 @@
 #include "include/monst.h"
 #include "include/rand.h"
 #include "include/vision.h"
-#include "include/loop.h"
 #include "include/panel.h"
 #include "include/generate.h"
 #include "include/graphics.h"
 #include "include/save.h"
 #include "include/vector.h"
 #include "include/dlevel.h"
-#include "include/timer.h"
+#include "include/event.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -122,9 +121,15 @@ int main (int argc, char *argv[])
 	p_pane ();
 	draw_map ();
 
-	do
-		main_loop();
-	while (U.playing == PLAYER_PLAYING);
+	//do
+	//	main_loop();
+	//while (U.playing == PLAYER_PLAYING);
+
+	ev_init ();
+	ev_queue (1, (union Event) { .mturn = {EV_MTURN, player->ID}});
+	ev_queue (1, (union Event) { .mregen = {EV_MREGEN, player->ID}});
+	ev_queue (1, (union Event) { .mgen = {EV_MGEN}});
+	ev_loop ();
 
   quit_game:
 	if (U.playing == PLAYER_LOSTGAME)

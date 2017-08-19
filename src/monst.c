@@ -4,24 +4,22 @@
 #include "include/thing.h"
 #include "include/panel.h"
 #include "include/rand.h"
-#include "include/loop.h"
 #include "include/save.h"
 #include "include/vision.h"
 #include "include/generate.h"
 #include "include/words.h"
-#include "include/event.h"
+#include "include/old-event.h"
 #include "include/graphics.h"
 #include "include/dlevel.h"
 #include "include/monst.h"
 #include "include/player.h"
-#include "include/timer.h"
 #include "include/skills.h"
 #include "include/action.h"
+#include "include/event.h"
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdbool.h>
-
 
 struct player_status U;
 char *s_hun[] = {
@@ -103,7 +101,7 @@ int player_gen_type ()
 	for (i = 0; i < NUM_MONS; ++i)
 	{
 		if (nogen(i)) continue; /* genocided or unique and generated etc */
-		array[i] = expcmp(p_exp, mons[i].exp);
+		array[i] = expcmp(p_exp, all_mons[i].exp);
 		total_weight += array[i];
 	}
 
@@ -121,7 +119,7 @@ int player_gen_type ()
 
 int mons_get_wt (int type)
 {
-	return CORPSE_WEIGHTS[mons[type].flags >> 29];
+	return CORPSE_WEIGHTS[all_mons[type].flags >> 29];
 }
 
 void make_corpse (ityp *typ, struct Thing *th)
@@ -129,12 +127,12 @@ void make_corpse (ityp *typ, struct Thing *th)
 	int type = th->thing.mons.type;
 
 	/* fill in the data */
-	snprintf (typ->name, ITEM_NAME_LENGTH, "%s corpse", mons[type].name);
+	snprintf (typ->name, ITEM_NAME_LENGTH, "%s corpse", all_mons[type].name);
 	typ->ch   = ITEM_FOOD;
 	typ->type = IT_CORPSE;
 	typ->wt   = mons_get_wt(type);
 	typ->attr = type << 8;
-	typ->col  = mons[type].col;
+	typ->col  = all_mons[type].col;
 }
 
 void mons_attack (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
@@ -159,7 +157,8 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 	{
 		if (final)
 			mons_usedturn (th);
-		thing_move (th, th->dlevel, th->yloc+y, th->xloc+x);
+		//thing_move (th, th->dlevel, th->yloc+y, th->xloc+x);
+		ev_queue (th->thing.mons.speed, (union Event) { .mmove = {EV_MMOVE, th->ID, th->yloc+y, th->xloc+x}});
 		return 1;
 	}
 	/* melee attack! */
@@ -167,7 +166,8 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 	{
 		if (final)
 			mons_usedturn (th);
-		mons_attack (th, y, x);
+		ev_queue (th->thing.mons.speed, (union Event) { .mattk = {EV_MATTK, th->ID, th->yloc+y, th->xloc+x}});
+		//mons_attack (th, y, x);
 		return 2;
 	}
 	/* off map or something */
@@ -192,16 +192,6 @@ void mons_usedturn (struct Thing *th)
 		int *id = v_at (cur_dlevel->mons, i);
 		(*(struct Thing **) v_at(all_ids, *id))->thing.mons.boxflags = 0;
 	}
-}
-
-int player_take_input (char in)
-{
-	int xmove, ymove;
-	p_move (&ymove, &xmove, (uint32_t) in);
-	if (xmove == 0 && ymove == 0)
-		return (-1);
-
-	return (mons_move (player, ymove, xmove, 1));
 }
 
 void thing_move_level (struct Thing *th, int32_t where)
@@ -237,8 +227,6 @@ char escape (unsigned char a)
 
 int mons_take_move (struct Thing *th)
 {
-	mons_regen (th);
-
 	if (mons_eating(th))
 		return true;
 	if (th != player)
@@ -259,13 +247,16 @@ int mons_take_move (struct Thing *th)
 
 		in = (char) key;
 
-		int mv = player_take_input (in);
-		if (mv != -1)
+		//int mv = player_take_input (in);
+		int xmove, ymove;
+		p_move (&ymove, &xmove, (uint32_t) in);
+		if (!(xmove == 0 && ymove == 0))
 		{
+			int mv = mons_move (player, ymove, xmove, 1);
 			if (gra_nearedge (map_graph, player->yloc, player->xloc))
 				gra_centcam (map_graph, player->yloc, player->xloc);
-			if (U.playing == PLAYER_WONGAME)
-				return false;
+//			if (U.playing == PLAYER_WONGAME)
+//				return false;
 			if (mv)
 				break;
 		}
@@ -298,7 +289,7 @@ void mons_dead (struct Thing *from, struct Thing *to)
 	{
 		if (to->thing.mons.type == MTYP_SATAN)
 			U.playing = PLAYER_WONGAME;
-		pmons.exp += mons[to->thing.mons.type].exp;
+		pmons.exp += all_mons[to->thing.mons.type].exp;
 		//update_level (from);
 	}
 skip1:;
@@ -377,6 +368,11 @@ void mons_eat (struct Thing *th, struct Item *item) // ACTION
 inline void *mons_get_weap (struct Thing *th)
 {
 	return &th->thing.mons.wearing.rweap;
+}
+
+Tick mons_tregen (struct Thing *th)
+{
+	return 12;
 }
 
 bool mons_unwield (struct Thing *th)
@@ -497,11 +493,11 @@ void do_attack (struct Thing *from, struct Thing *to) // ACTION?
 
 	for (t = 0; t < A_NUM; ++t)
 	{
-		if (!mons[type].attacks[t][0])
+		if (!all_mons[type].attacks[t][0])
 			break;
 
 		mons_react (to);
-		switch (mons[type].attacks[t][2] & 0xFFFF)
+		switch (all_mons[type].attacks[t][2] & 0xFFFF)
 		{
 			case ATTK_HIT:
 			{
@@ -528,7 +524,7 @@ void do_attack (struct Thing *from, struct Thing *to) // ACTION?
 				break;
 			}
 		}
-		event_mhit (from, to, mons[type].attacks[t][2] & 0xFFFF);
+		event_mhit (from, to, all_mons[type].attacks[t][2] & 0xFFFF);
 
 		if (to->thing.mons.HP <= 0)
 		{
@@ -613,7 +609,8 @@ int AI_Attack (struct Thing *th, int toy, int tox)
 	int xmove = 0, ymove = 0;
 	if (!bres_draw (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel), NULL, toy, tox))
 	{
-		mons_move (th, rn(3) - 1, rn(3) - 1, 1);
+		if (!mons_move (th, rn(3) - 1, rn(3) - 1, 1))
+			ev_queue (th->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		return 1;
 	}
 
@@ -629,7 +626,8 @@ int AI_Attack (struct Thing *th, int toy, int tox)
 		if (!mons_move (th, ymove, 0, 1))
 			if (!mons_move (th, 0, xmove, 1))
 				if (!mons_move (th, -ymove, xmove, 1))
-					return mons_move (th, rn(3) - 1, rn(3) - 1, 1);
+					if (!mons_move (th, rn(3) - 1, rn(3) - 1, 1))
+						ev_queue (th->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, th->ID}});
 	return 1;
 }
 

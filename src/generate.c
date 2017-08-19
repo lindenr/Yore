@@ -10,6 +10,7 @@
 #include "include/vector.h"
 #include "include/dlevel.h"
 #include "include/skills.h"
+#include "include/event.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -241,21 +242,25 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		if (rn(100) >= (uint32_t) (15 - 2*luck))
 			return 0;
 
+		uint32_t xloc = rn(map_graph->w), yloc = rn(map_graph->h);
+		if (!is_safe_gen (lvl, yloc, xloc))
+			return 0;
+
 		struct Monster p;
 		memclr (&p, sizeof(p));
 		p.type = player_gen_type ();
-		p.HP = (mons[p.type].flags >> 28) + (mons[p.type].exp >> 1);
+		p.HP = (all_mons[p.type].flags >> 28) + (all_mons[p.type].exp >> 1);
 		p.HP += 1+rn(1+ p.HP / 3);
 		p.HP_max = p.HP;
 		p.ST = 10;
 		p.ST_max = p.ST;
-		p.speed = mons[p.type].speed;
+		p.speed = all_mons[p.type].speed;
 		p.name = NULL;
 		p.level = 1; //mons[p.type].exp? TODO
-		p.exp = mons[p.type].exp;
-		uint32_t xloc = rn(map_graph->w), yloc = rn(map_graph->h);
-		if (is_safe_gen (lvl, yloc, xloc))
-			new_thing (THING_MONS, lvl, yloc, xloc, &p);
+		p.exp = all_mons[p.type].exp;
+		struct Thing *th = new_thing (THING_MONS, lvl, yloc, xloc, &p);
+		ev_queue (1, (union Event) { .mturn = {EV_MTURN, th->ID}});
+		printf ("successful generation \n");
 	}
 	return 0;
 }
