@@ -77,6 +77,8 @@ struct Item
 	char *name;
 };
 
+struct Pack;
+
 extern ityp items[];
 extern int NUM_ITEMS;
 
@@ -85,7 +87,7 @@ void ask_items      (Vector, Vector, const char *);
 
 char *get_item_desc (const struct Item);
 void item_look      (const struct Item *);
-char *get_inv_line  (const struct Item *);
+char *get_inv_line  (struct Pack *, const struct Item *);
 
 #endif /* ITEM_H_INCLUDED */
 

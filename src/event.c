@@ -41,7 +41,7 @@ void ev_do (Event ev)
 	Vector pickup, items;
 	switch (ev->type)
 	{
-	  case EV_MMOVE:
+	case EV_MMOVE:
 		//printf("mmove\n");
 		ID = ev->mmove.thID;
 		th = THIID(ID);
@@ -52,7 +52,7 @@ void ev_do (Event ev)
 		if (can == 1)
 			thing_move (th, th->dlevel, ev->mmove.ydest, ev->mmove.xdest);
 		return;
-	  case EV_MATTK:
+	case EV_MATTK:
 		//printf("mattk\n");
 		ID = ev->mmove.thID;
 		fr = THIID(ID);
@@ -70,36 +70,36 @@ void ev_do (Event ev)
 			ev_queue (0, (union Event) { .mkill = {EV_MKILL, ID, to->ID}});
 		}
 		return;
-	  case EV_MKILL:
+	case EV_MKILL:
 		//printf("mkill\n");
 		fr = THIID(ev->mkill.frID); to = THIID(ev->mkill.toID);
-		if (to == player)
+		if (mons_isplayer(to))
 		{
 			p_msg ("You die...");
 			gr_getch ();
 			U.playing = PLAYER_LOSTGAME;
 			return;
 		}
-		if (fr == player)
-		{
-			if (to->thing.mons.type == MTYP_SATAN)
-				U.playing = PLAYER_WONGAME;
-			pmons.exp += all_mons[to->thing.mons.type].exp;
-		}
+		//if (fr == player)
+		//{
+		//	if (to->thing.mons.type == MTYP_SATAN)
+		//		U.playing = PLAYER_WONGAME;
+		//}
+		fr->thing.mons.exp += all_mons[to->thing.mons.type].exp;
 		rem_id (to->ID);
 		return;
-	  case EV_MTURN:
+	case EV_MTURN:
 		//printf("mturn\n");
 		th = THIID(ev->mturn.thID);
 		if (!th) return;
-		mons_take_move (th);
+		mons_take_turn (th);
 		return;
-	  case EV_MGEN:
+	case EV_MGEN:
 		mons_gen (cur_dlevel, 2, U.luck-30);
 		// Next monster gen
 		ev_queue (MGEN_DELAY, (union Event) { .mgen = {EV_MGEN}});
 		return;
-	  case EV_MREGEN:
+	case EV_MREGEN:
 		th = THIID(ev->mregen.thID);
 		if (!th) return;
 		// Next regen
@@ -120,9 +120,9 @@ void ev_do (Event ev)
 			self->ST = self->ST_max;
 		self->ST_rec = 0.5;
 		return;
-	  case EV_MPICKUP:
+	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
-		* continues until ret_list is done or the pack is full. */
+		 * continues until ret_list is done or the pack is full. */
 		pickup = ev->mpickup.things;
 		TID ID = ev->mpickup.thID;
 		th = THIID(ID);
@@ -132,17 +132,17 @@ void ev_do (Event ev)
 		for (i = 0; i < pickup->len; ++ i)
 		{
 			/* Pick up the item; quit if the bag is full */
-			th = THIID(*(int*)v_at (pickup, i));
-			if (!pack_add (&mons->pack, &th->thing.item))
+			struct Thing *item = THIID(*(int*)v_at (pickup, i));
+			if (!pack_add (&mons->pack, &item->thing.item))
 				break;
 			/* Remove item from main play */
-			rem_id (th->ID);
+			rem_id (item->ID);
 		}
 		v_free (pickup);
 		// Next turn
 		ev_queue (mons->speed, (union Event) { .mturn = {EV_MTURN, ID}});
 		return;
-	  case EV_MDROP:
+	case EV_MDROP:
 		items = ev->mdrop.items;
 		th = THIID (ev->mdrop.thID);
 		if (!th) return;
@@ -160,8 +160,8 @@ void ev_do (Event ev)
 		// Next turn
 		ev_queue (mons->speed, (union Event) { .mturn = {EV_MTURN, ev->mdrop.thID}});
 		return;
-	  case EV_NONE:
-	  default:
+	case EV_NONE:
+	default:
 		return;
 	}
 }

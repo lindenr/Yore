@@ -15,13 +15,13 @@
 
 int p_height, p_width;
 int sb_width;
-glyph *sidebar = NULL;
+//glyph *sidebar = NULL;
 
 Vector messages = NULL;
 
 Graph gpan = NULL;
 
-void p_pane ()
+void p_pane (struct Thing *player)
 {
 	int i;
 	int xpan = 0, ypan = gr_h - PANE_H;
@@ -63,9 +63,10 @@ void p_pane ()
 
 	gra_mvprint (gpan, 1, 1, "T %lu", curtick);
 
-	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (pmons.name + 1, 20));
-	gra_mvprint (gpan, 3, 1, "HP %d/%d (+%.1f)", pmons.HP, pmons.HP_max, pmons.HP_rec);
-	gra_mvprint (gpan, 4, 1, "LV %d:%d/infinity", pmons.level, pmons.exp); // TODO?
+	struct Monster *pmons = &player->thing.mons;
+	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (pmons->name, 20));
+	gra_mvprint (gpan, 3, 1, "HP %d/%d (+%.1f)", pmons->HP, pmons->HP_max, pmons->HP_rec);
+	gra_mvprint (gpan, 4, 1, "LV %d:%d/infinity", pmons->level, pmons->exp); // TODO?
 	/*char *rank = get_rank ();
 	int rlen = strlen (rank);
 	txt_mvprint (ypan + 1, xpan + p_width - 1 - rlen, rank);*/
@@ -92,32 +93,8 @@ skip1:
 skip2:
 	;
 }
-/*
-void p_sidebar (int width)
-{
-	int i, j;
-	forced_refresh = 1;
-	if (width == 0)
-	{
-		for (i = 0; i < map_graph->vh; ++ i)
-		{
-			for (j = map_graph->vw; j < txt_w - 1; ++ j)
-				txt_mvaddch (i, j, 0);
-		}
-		map_graph->vw += sb_width;
-		sb_width = 0;
-		return;
-	}
-	if (sb_width != 0)
-		p_sidebar (0);
-	sb_width = width;
-	map_graph->vw -= sb_width;
-	sidebar = realloc (sidebar, sizeof(glyph) * sb_width * map_graph->vh);
-	for (i = 0; i < sb_width * map_graph->vh; ++ i)
-		sidebar[i] = ' ';
-}*/
 
-void sb_baddch (int buf, glyph gl)
+/*void sb_baddch (int buf, glyph gl)
 {
 	sidebar[buf] = gl;
 }
@@ -134,74 +111,15 @@ void sb_mvprint (int yloc, int xloc, char *str, ...)
 int sb_buffer (int yloc, int xloc)
 {
 	return sb_width*yloc + xloc;
-}
+}*/
 
 void p_init ()
 {
 	if (!messages)
 		messages = v_dinit (sizeof(struct P_msg));
 
-	//map_graph->vh = txt_h - PANE_H;
-	//map_graph->vw = txt_w - 1;
-
 	p_height = PANE_H;
 	p_width = map_graph->vw;
-/*
-	int i;
-	if (!messages)
-		messages = v_dinit (1024);
-
-	for (i = 0; i < NUM_TABS; ++ i)
-	{
-		p_tabs[i] = realloc (p_tabs[i], p_width * (glnumy - p_height));
-		memset (p_tabs[i], ' ', p_width * (glnumy - p_height));
-	}*/
-}
-
-void p_tab (int state)
-{/*
-	int i, j;
-	p_open = state;
-
-	if (state == 0)
-	{
-		for (j = glnumx - p_width; j < glnumx; ++ j)
-			txt_mvaddch (p_height, j, ' ');
-		for (i = p_height+1; i < glnumy; ++ i)
-		{
-			for (j = glnumx - p_width; j < glnumx; ++ j)
-				txt_mvaddch (i, j, 0); / * clear it * /
-		}
-		return;
-	}
-
-	p_update ();*/
-}
-
-void p_update ()
-{/*
-	int i, j;
-	if (p_open <= 0 || p_open > NUM_TABS)
-		return;
-
-	for (j = glnumx - p_width; j < glnumx; ++ j)
-		txt_mvaddch (p_height, j, ACS_HLINE);
-	for (i = p_height+1; i < glnumy; ++ i)
-	{
-		for (j = glnumx - p_width; j < glnumx; ++ j)
-			txt_mvaddch (i, j, p_tabs[p_open][(i - p_height)*p_width + j - glnumx]);
-	}*/
-}
-
-void p_messages_display ()
-{/*
-	if (!messages)
-		return;
-
-	int i;
-	for (i = 0; i < messages->len; ++ i)
-	{
-	}*/
 }
 
 void p_amsg (const char *str)
@@ -227,10 +145,11 @@ void p_msg (const char *str, ...)
 	p_amsg (out);
 }
 
-char p_ask (const char *results, const char *question)
+char p_ask (struct Thing *player, const char *results, const char *question)
 {
 	p_amsg (question);
-	p_pane ();
+	if (player)
+		p_pane (player);
 	char in;
 	do
 		in = (char)gr_getch();
@@ -277,17 +196,17 @@ char p_lines (Vector lines)
 Graph sc_status = NULL, sc_skills = NULL;
 int p_status (enum PanelType type)
 {
-	int h = 20, w = 81;
+	/*int h = 20, w = 81;
 	int y = (gr_h - h)/2 - 10, x = (gr_w - w)/2;
 	sc_status = gra_init (h, w, y, x, h, w);
 	sc_status->def = COL_STATUS;
 	gra_fbox (sc_status, 0, 0, h-1, w-1, ' ');
 	gra_cprint (sc_status, 2, "STATUS SCREEN");
 	gra_mvprint (sc_status, 0, w-5, "(Esc)");
-	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", pmons.name+1, ACS_VLINE, "Human");
+	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", pmons->name, ACS_VLINE, "Human");
 	gra_cprint (sc_status, 5, "  HP: %d/%d (%+.1f)  %c  ST:    %d/%d (%+.1f)",
-				pmons.HP, pmons.HP_max, pmons.HP_rec, ACS_VLINE, pmons.ST, pmons.ST_max, pmons.ST_rec);
-	gra_cprint (sc_status, 6, "LV %d:%d/infinity  %c  Speed: %d       ", pmons.level, pmons.exp, ACS_VLINE, pmons.speed);
+				pmons->HP, pmons->HP_max, pmons->HP_rec, ACS_VLINE, pmons->ST, pmons->ST_max, pmons->ST_rec);
+	gra_cprint (sc_status, 6, "LV %d:%d/infinity  %c  Speed: %d       ", pmons->level, pmons->exp, ACS_VLINE, pmons->speed);
 
 	switch (type)
 	{
@@ -330,7 +249,7 @@ int p_status (enum PanelType type)
 			}
 		}
 	}
-	gra_free (sc_status);
+	gra_free (sc_status);*/
 	return 0;
 }
 
@@ -342,7 +261,7 @@ int p_skills (enum PanelType type)
 		return 0;
 	sk_charge (player, y, x);
 	return 1;*/
-	int h = 10, w = 41;
+	/*int h = 10, w = 41;
 	int y = (gr_h - h)/2, x = (gr_w - w)/2;
 	sc_skills = gra_init (h, w, y, x, h, w);
 	sc_skills->def = COL_SKILLS;
@@ -430,7 +349,7 @@ int p_skills (enum PanelType type)
 			}
 		}
 	}
-	gra_free (sc_skills);
+	gra_free (sc_skills);*/
 	return 0;
 }
 
@@ -442,7 +361,7 @@ int path_hit (struct DLevel *dlevel, int y, int x)
 	return 1;
 }
 
-void p_mvchoose (int *yloc, int *xloc, const char *instruct, const char *confirm, int showpath)
+void p_mvchoose (struct Thing *player, int *yloc, int *xloc, const char *instruct, const char *confirm, int showpath)
 {
 	int orig_y = map_graph->csr_y, orig_x = map_graph->csr_x;
 	if (showpath)
@@ -452,11 +371,11 @@ void p_mvchoose (int *yloc, int *xloc, const char *instruct, const char *confirm
 	}
 	if (instruct)
 		p_msg (instruct);
-	p_pane ();
+	p_pane (player);
 	gr_refresh ();
 	int xmove, ymove;
 	uint32_t key = p_move (&ymove, &xmove, gr_getfullch ());
-	while (key != '.' || (confirm && (p_ask ("yn", confirm) != 'y')))
+	while (key != '.' || (confirm && (p_ask (player, "yn", confirm) != 'y')))
 	{
 		if (key == CH_ESC)
 		{

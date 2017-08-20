@@ -211,14 +211,24 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		start = param;
 		upsy = start / map_graph->w;
 		upsx = start % map_graph->w;
-		struct Monster asdf = {MTYP_HUMAN, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 12, 0, 0, {{0},}, {0,}, 0, 0, 0, NULL};
-		asdf.name = malloc (85);
-		strncpy (asdf.name, "_", 2);
-		real_player_name = asdf.name;
-		asdf.skills = v_dinit (sizeof(struct Skill));
-		v_push (asdf.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
-		v_push (asdf.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
-		new_thing (THING_MONS, lvl, upsy, upsx, &asdf);
+
+		struct Monster m1 = {MTYP_HUMAN, CTRL_PLAYER, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 12, 0, 0, {{0},}, {0,}, 0, 0, 0, NULL};
+		m1.name = "Thing 1";
+		m1.skills = v_dinit (sizeof(struct Skill));
+		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
+		struct Thing *t1 = new_thing (THING_MONS, lvl, upsy, upsx, &m1);
+		ev_queue (1, (union Event) { .mturn = {EV_MTURN, t1->ID}});
+		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t1->ID}});
+
+		/*struct Monster m2 = {MTYP_HUMAN, CTRL_PLAYER, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 12, 0, 0, {{0},}, {0,}, 0, 0, 0, NULL};
+		m2.name = "Thing 2";
+		m2.skills = v_dinit (sizeof(struct Skill));
+		//v_push (m2.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+		//v_push (m2.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
+		struct Thing *t2 = new_thing (THING_MONS, lvl, upsy, upsx+1, &m2);
+		ev_queue (1, (union Event) { .mturn = {EV_MTURN, t2->ID}});
+		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t2->ID}});*/
 	}
 	else if (type == 1)
 	{
@@ -249,6 +259,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		struct Monster p;
 		memclr (&p, sizeof(p));
 		p.type = player_gen_type ();
+		p.ctrl = CTRL_AI;
 		p.HP = (all_mons[p.type].flags >> 28) + (all_mons[p.type].exp >> 1);
 		p.HP += 1+rn(1+ p.HP / 3);
 		p.HP_max = p.HP;

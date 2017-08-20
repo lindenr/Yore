@@ -95,14 +95,16 @@ char *get_item_desc (const struct Item item)
 
 void item_look (const struct Item *item)
 {
-	char *str = get_inv_line (item);
+	char *str = get_inv_line (NULL, item);
 	p_msg ("%s", str);
 	free (str);
 }
 
-char *get_inv_line (const struct Item *item)
+char *get_inv_line (struct Pack *pack, const struct Item *item)
 {
-	char ch = get_Itref (pmons.pack, item);
+	char ch = 0;
+	if (pack)
+		ch = get_Itref (*pack, item);
 	char *ret = malloc (80), *orig = get_item_desc(*item);
 	if (!ch)
 		snprintf (ret, 80, "%s", orig);

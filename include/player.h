@@ -22,11 +22,12 @@ int Kquit   ();*/
 struct KStruct
 {
 	uint32_t key;
-	int (*action) ();
+	int (*action) (struct Thing *);
 }
 extern Keys[];
 
-int key_lookup (glyph);
+int key_lookup (struct Thing *, glyph);
+extern int cur_players;
 
 #endif /* PLAYER_H_INCLUDED */
 

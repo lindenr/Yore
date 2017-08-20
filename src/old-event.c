@@ -7,7 +7,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-void event_mhit (struct Thing *from, struct Thing *to, uint32_t atyp)
+/*void event_mhit (struct Thing *from, struct Thing *to, uint32_t atyp)
 {
 	mons_box (to, BOX_HIT);
 	int know = player_sense (to->yloc, to->xloc, SENSE_VISION);
@@ -97,4 +97,4 @@ void event_mlevel (struct Thing *th)
 
 void event_anoise ()
 {
-}
+}*/

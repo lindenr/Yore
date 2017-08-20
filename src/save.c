@@ -322,7 +322,7 @@ void restore (char *filename)
 /* false is quit, true is stay */
 bool quit ()
 {
-	if (p_ask ("yn", "Are you sure you want to quit?") == 'y')
+	if (p_ask (NULL, "yn", "Are you sure you want to quit?") == 'y')
 	{
 		printf ("Quitting...\n");
 		//destroy_save_file (get_filename());

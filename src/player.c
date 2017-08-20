@@ -9,48 +9,50 @@
 //#include "include/skills.h"
 #include "include/event.h"
 
-int Kcamup ()
+int cur_players;
+
+int Kcamup (struct Thing *player)
 {
 	gra_movecam (map_graph, map_graph->cy - 10, map_graph->cx);
 	return 0;
 }
 
-int Kcamdn ()
+int Kcamdn (struct Thing *player)
 {
 	gra_movecam (map_graph, map_graph->cy + 10, map_graph->cx);
 	return 0;
 }
 
-int Kcamlf ()
+int Kcamlf (struct Thing *player)
 {
 	gra_movecam (map_graph, map_graph->cy, map_graph->cx - 10);
 	return 0;
 }
 
-int Kcamrt ()
+int Kcamrt (struct Thing *player)
 {
 	gra_movecam (map_graph, map_graph->cy, map_graph->cx + 10);
 	return 0;
 }
 
-int Kstatus ()
+/*int Kstatus (struct Thing *player)
 {
 	return p_status (P_STATUS);
 }
 
-int Kskills ()
+int Kskills (struct Thing *player)
 {
 	return p_status (P_SKILLS);
-}
+}*/
 
-int Kwait ()
+int Kwait (struct Thing *player)
 {
 	//mons_usedturn (player);
-	ev_queue (pmons.speed, (union Event) { .mturn = {EV_MTURN, player->ID}});
+	ev_queue (player->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, player->ID}});
 	return 1;
 }
 
-int Kpickup ()
+int Kpickup (struct Thing *player)
 {
 	Vector ground = v_init (sizeof (int), 20);
 	int n = map_buffer (player->yloc, player->xloc);
@@ -78,7 +80,7 @@ int Kpickup ()
 	{
 		mons_usedturn (player); // TODO
 		/* Multiple items - ask which to pick up. */
-		Vector pickup = v_init (sizeof(TID), 20);
+		pickup = v_init (sizeof(TID), 20);
 	
 		/* Do the asking */
 		ask_items (pickup, ground, "Pick up what?");
@@ -89,7 +91,7 @@ int Kpickup ()
 	return 1;
 }
 
-/*int Keat ()
+/*int Keat (struct Thing *player)
 {
 	struct Item *food = player_use_pack ("Eat what?", ITCAT_FOOD);
 	if (food == NULL)
@@ -99,9 +101,9 @@ int Kpickup ()
 	return 1;
 }*/
 
-int Ksdrop ()
+int Ksdrop (struct Thing *player)
 {
-	struct Item *drop = player_use_pack ("Drop what?", ITCAT_ALL);
+	struct Item *drop = player_use_pack (player, "Drop what?", ITCAT_ALL);
 	if (drop == NULL)
 		return 0;
 	mons_usedturn (player);
@@ -113,18 +115,18 @@ int Ksdrop ()
 	return 1;
 }
 
-int Kmdrop ()
+int Kmdrop (struct Thing *player)
 {
 	return 0;
 }
 
-int Kinv ()
+int Kinv (struct Thing *player)
 {
-	show_contents (pmons.pack, ITCAT_ALL, "Inventory");
+	show_contents (player->thing.mons.pack, ITCAT_ALL, "Inventory");
 	return 0;
 }
 
-int Knlook ()
+int Knlook (struct Thing *player)
 {
 	int k = 0;
 	int n = map_buffer (player->yloc, player->xloc);
@@ -137,7 +139,7 @@ int Knlook ()
 		if (th->type != THING_ITEM)
 			continue;
 
-		char *line = get_inv_line (&THING(things, n, i)->thing.item);
+		char *line = get_inv_line (NULL, &THING(things, n, i)->thing.item);
 		char out[256];
 		snprintf (out, 256, "You%s see here %s.", (k ? " also" : ""), line);
 		v_pstr (list, out);
@@ -154,14 +156,14 @@ int Knlook ()
 	return 0;
 }
 
-int Kflook ()
+int Kflook (struct Thing *player)
 {
 	int y, x; 
-	p_mvchoose (&y, &x, "What are you looking for?", NULL, 0);
+	p_mvchoose (player, &y, &x, "What are you looking for?", NULL, 0);
 	return 0;
 }
-
-int Kwield ()
+/*
+int Kwield (struct Thing *player)
 {
 	struct Item *wield = player_use_pack ("Wield what?", ITCAT_ALL);
 	if (wield == NULL)
@@ -172,23 +174,23 @@ int Kwield ()
 		mons_wield (player, wield);
 
 	return 1;
-}
-
-int Klookdn ()
+}*/
+/*
+int Klookdn (struct Thing *player)
 {
 	if (cur_dlevel->dnlevel != 0)
 		dlv_set (cur_dlevel->dnlevel);
 	return 0;
 }
 
-int Klookup ()
+int Klookup (struct Thing *player)
 {
 	if (cur_dlevel->uplevel != 0)
 		dlv_set (cur_dlevel->uplevel);
 	return 0;
-}
-
-int Kgodown ()
+}*/
+/*
+int Kgodown (struct Thing *player)
 {
 	int level = cur_dlevel->dnlevel;
 	if (level == 0)
@@ -200,7 +202,7 @@ int Kgodown ()
 	return 1;
 }
 
-int Kgoup ()
+int Kgoup (struct Thing *player)
 {
 	int level = cur_dlevel->uplevel;
 	if (level == 0)
@@ -210,15 +212,15 @@ int Kgoup ()
 	dlv_set (level);
 	thing_move (player, level, player->yloc, player->xloc);
 	return 1;
-}
+}*/
 
-int Ksave ()
+int Ksave (struct Thing *player)
 {
 	U.playing = PLAYER_SAVEGAME;
 	return -1;
 }
 
-int Kquit ()
+int Kquit (struct Thing *player)
 {
 	if (!quit())
 	{
@@ -233,8 +235,8 @@ struct KStruct Keys[] = {
 	{GRK_DN, &Kcamdn},
 	{GRK_LF, &Kcamlf},
 	{GRK_RT, &Kcamrt},
-	{CH_ESC, &Kstatus},
-	{'s', &Kskills},
+//	{CH_ESC, &Kstatus},
+//	{'s', &Kskills},
 	{'.', &Kwait},
 	{',', &Kpickup},
 //	{'e', &Keat},
@@ -252,14 +254,14 @@ struct KStruct Keys[] = {
 	{CONTROL_('q'), &Kquit}
 };
 
-int key_lookup (uint32_t key)
+int key_lookup (struct Thing *player, uint32_t key)
 {
 	int i;
 	char ch = (char) key;
 	for (i = 0; i < NUM_KEYS; ++ i)
 	{
 		if (ch == (char)(Keys[i].key&0xff) && gr_equiv (key, Keys[i].key))
-			return (*Keys[i].action) ();
+			return (*Keys[i].action) (player);
 	}
 	return 0;
 }

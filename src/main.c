@@ -62,13 +62,14 @@ bool game_intro ()
 
 int main (int argc, char *argv[])
 {
-	int i;
+//	int i;
 
 	gr_onresize = p_init;
 	map_graph = gra_init (100, 300, 0, 0, gr_h - PANE_H, gr_w - 1);
 	map_graph->vis = 0;
 	gr_init();
 
+	ev_init ();
 	dlv_init ();
 	rng_init ();
 
@@ -88,18 +89,19 @@ int main (int argc, char *argv[])
 
 	gra_mvprint (introbox, 8, 6, "Who are you? ");
 
-	for (i = 0, *(real_player_name + 1) = '\0';
+	/*for (i = 0, *(real_player_name + 1) = '\0';
 		 i < 10 && *(real_player_name + 1) == '\0';
 		 ++i)
 	{
 		if (i)
 			gra_mvprint (introbox, 10, 6, "Please type in your name.");
 		gra_getstr (introbox, 8, 19, real_player_name + 1, 40);
-	}
+	}*/
+	gr_getch();
 	gra_free(introbox);
 
-	if (*(real_player_name + 1) == '\0')
-		goto quit_game;
+	//if (*(real_player_name + 1) == '\0')
+	//	goto quit_game;
 
 
 	/* So you really want to play? */
@@ -113,33 +115,26 @@ int main (int argc, char *argv[])
 	generate_map (dlv_lvl (1), LEVEL_NORMAL);
 	generate_map (dlv_lvl (2), LEVEL_NORMAL);
 
-	gra_centcam (map_graph, player->yloc, player->xloc);
+	//gra_centcam (map_graph, player->yloc, player->xloc);
 	map_graph->vis = 1;
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 
-	p_pane ();
-	draw_map ();
+	//p_pane ();
+	//draw_map ();
 
-	//do
-	//	main_loop();
-	//while (U.playing == PLAYER_PLAYING);
-
-	ev_init ();
-	ev_queue (1, (union Event) { .mturn = {EV_MTURN, player->ID}});
-	ev_queue (1, (union Event) { .mregen = {EV_MREGEN, player->ID}});
 	ev_queue (1, (union Event) { .mgen = {EV_MGEN}});
 	ev_loop ();
 
   quit_game:
 	if (U.playing == PLAYER_LOSTGAME)
-		printf("Goodbye %s...\n", pmons.name + 1);
+		printf("Goodbye %s...\n", "Bertha");
 	else if (U.playing == PLAYER_SAVEGAME)
 		printf("See you soon...\n");
 	else if (U.playing == PLAYER_STARTING)
 		printf("Give it a try next time...\n");
 	else if (U.playing == PLAYER_WONGAME)
-		printf("Congratulations %s...\n", pmons.name + 1);
+		printf("Congratulations %s...\n", "Wertha");
 
 	exit(0);
 }

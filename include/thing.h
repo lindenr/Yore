@@ -8,8 +8,8 @@
 #include "include/monst.h"
 #include "include/map.h"
 
-#define player (*(struct Thing **) v_at (all_ids, 1))
-#define pmons  (player->thing.mons)
+//#define player (*(struct Thing **) v_at (all_ids, 1))
+//#define pmons  (player->thing.mons)
 
 #define LOOP_THING(t,n,i)  int i;                                        for (i = 0; i < (t)[n]->len; ++ i)
 #define LOOP_THINGS(t,n,i) int i, n; for (n = 0; n < map_graph->a; ++ n) for (i = 0; i < (t)[n]->len; ++ i)
@@ -53,7 +53,7 @@ void rem_id                (int);
 
 struct Thing *new_thing    (uint32_t, struct DLevel *, uint32_t, uint32_t, void *);
 
-void draw_map              (void);
+void draw_map              (struct Thing *);
 
 int get_thing_type         (char);
 const char *get_thing_name (struct Thing);
@@ -63,8 +63,8 @@ void thing_bmove           (struct Thing *, int, int);
 
 int getID                  ();
 
-void projectile            (struct Thing *, char *, int, int);
-int  pr_at                 (struct DLevel *, int, int);
+//void projectile            (struct Thing *, char *, int, int);
+//int  pr_at                 (struct DLevel *, int, int);
 
 #endif /* THING_H_INCLUDED */
 

@@ -95,7 +95,7 @@ bool nogen (int mons_id)
 int player_gen_type ()
 {
 	int i, array[NUM_MONS];
-	uint32_t p_exp = pmons.exp;
+	uint32_t p_exp = 20; // TODO
 	uint32_t total_weight = 0;
 
 	for (i = 0; i < NUM_MONS; ++i)
@@ -135,17 +135,17 @@ void make_corpse (ityp *typ, struct Thing *th)
 	typ->col  = all_mons[type].col;
 }
 
-void mons_attack (struct Thing *th, int y, int x) /* each either -1, 0 or 1 */
+/*void mons_attack (struct Thing *th, int y, int x) / * each either -1, 0 or 1 * /
 {
 	do_attack (th, get_sqmons(dlv_things(th->dlevel), th->yloc + y, th->xloc + x));
-}
+}*/
 
 /* Return values:
  * 0 = failed to move; 1 = moved as desired;
  * 2 = did not move as desired but used turn */
 int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 or 1 */
 {
-	if (th != player)
+	if (!mons_isplayer(th))
 		if (!(x | y))
 			return 0;
 	int can = can_amove (get_sqattr (dlv_things(th->dlevel), th->yloc + y, th->xloc + x));
@@ -183,7 +183,7 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 
 void mons_usedturn (struct Thing *th)
 {
-	if (th != player)
+	if (!mons_isplayer(th))
 		return;
 	th->thing.mons.status &= ~M_CHARGE;
 	int i;
@@ -225,21 +225,23 @@ char escape (unsigned char a)
 		return a;
 }
 
-int mons_take_move (struct Thing *th)
+int mons_take_turn (struct Thing *th)
 {
 	if (mons_eating(th))
 		return true;
-	if (th != player)
+	if (!mons_isplayer(th))
 	{
-		AI_Attack (th, player->yloc, player->xloc);
+		AI_take_turn (th);
 		return true;
 	}
+	if (gra_nearedge (map_graph, th->yloc, th->xloc))
+		gra_centcam (map_graph, th->yloc, th->xloc);
 	while (1)
 	{
 		char in;
 	
-		draw_map ();
-		p_pane ();
+		draw_map (th);
+		p_pane (th);
 
 		gra_cmove (map_graph, th->yloc, th->xloc);
 
@@ -252,17 +254,17 @@ int mons_take_move (struct Thing *th)
 		p_move (&ymove, &xmove, (uint32_t) in);
 		if (!(xmove == 0 && ymove == 0))
 		{
-			int mv = mons_move (player, ymove, xmove, 1);
-			if (gra_nearedge (map_graph, player->yloc, player->xloc))
-				gra_centcam (map_graph, player->yloc, player->xloc);
-//			if (U.playing == PLAYER_WONGAME)
-//				return false;
+			int mv = mons_move (th, ymove, xmove, 1);
 			if (mv)
 				break;
+			if (gra_nearedge (map_graph, th->yloc, th->xloc))
+				gra_centcam (map_graph, th->yloc, th->xloc);
+//			if (U.playing == PLAYER_WONGAME)
+//				return false;
 		}
 		else
 		{
-			int res = key_lookup (key);
+			int res = key_lookup (th, key);
 			if (res == 1)
 				break;
 			else if (res == 0)
@@ -274,9 +276,9 @@ int mons_take_move (struct Thing *th)
 	return true;
 }
 
-void mons_dead (struct Thing *from, struct Thing *to)
+/*void mons_dead (struct Thing *from, struct Thing *to)
 {
-	if (to == player)
+	if (mons_isplayer(to))
 	{
 		player_dead("");
 		return;
@@ -293,7 +295,7 @@ void mons_dead (struct Thing *from, struct Thing *to)
 		//update_level (from);
 	}
 skip1:;
-	/* add corpse */
+	/ * add corpse * /
 	struct Item corpse;
 	make_corpse (&corpse.type, to);
 	corpse.attr = 0;
@@ -301,9 +303,9 @@ skip1:;
 	corpse.cur_weight = 0;
 	new_thing (THING_ITEM, dlv_lvl (to->dlevel), to->yloc, to->xloc, &corpse);
 
-	/* remove dead monster */
+	/ * remove dead monster * /
 	rem_id (to->ID);
-}
+}*/
 
 /*int mons_prhit (struct Thing *from, struct Thing *to, int energy) // ACTION
 {
@@ -327,7 +329,7 @@ bool mons_eating (struct Thing *th) // ACTION
 		return false;
 	if (item->cur_weight <= 1200)
 	{
-		if (th == player)
+		if (mons_isplayer(th))
 		{
 			U.hunger -= (item->cur_weight) >> 4;
 			p_msg ("You finish eating.");
@@ -339,7 +341,7 @@ bool mons_eating (struct Thing *th) // ACTION
 	}
 	hunger_loss = rn(25) + 50;
 	item->cur_weight -= hunger_loss << 4;
-	if (th == player)
+	if (mons_isplayer(th))
 		U.hunger -= hunger_loss;
 	return true;
 }
@@ -348,14 +350,14 @@ void mons_eat (struct Thing *th, struct Item *item) // ACTION
 {
 	if (!mons_edible (th, item))
 	{
-		if (th == player)
+		if (mons_isplayer(th))
 			p_msg("You can't eat that!");
 		return;
 	}
 
 	if ((th->thing.mons.status) & M_EATING)
 	{
-		if (th == player)
+		if (mons_isplayer(th))
 			p_msg("You're already eating!");
 		return;
 	}
@@ -383,7 +385,7 @@ bool mons_unwield (struct Thing *th)
 		return true;
 	if (weap->attr & ITEM_CURS)
 	{
-		if (th == player)
+		if (mons_isplayer(th))
 		{
 			p_msg ("You can't. It's cursed.");
 		}
@@ -398,7 +400,7 @@ bool mons_wield (struct Thing *th, struct Item *it)
 {
 	th->thing.mons.wearing.rweap = it;
 	it->attr ^= ITEM_WIELDED;
-	if (th == player)
+	if (mons_isplayer(th))
 	{
 		item_look (it);
 	}
@@ -409,7 +411,7 @@ bool mons_wear (struct Thing *th, struct Item *it)
 {
 	if (it->type.ch != ITEM_ARMOUR)
 	{
-		if (th == player)
+		if (mons_isplayer(th))
 		{
 			p_msg ("You can't wear that!");
 		}
@@ -457,7 +459,7 @@ void mons_passive_attack (struct Thing *from, struct Thing *to) // ACTION
 
 int mons_get_st (struct Thing *th)
 {
-	if (th == player)
+	if (mons_isplayer(th))
 		return U.attr[AB_ST];
 	return 1;
 }
@@ -484,7 +486,7 @@ int mons_react (struct Thing *th) // ACTION
 	return 0;
 }
 
-void do_attack (struct Thing *from, struct Thing *to) // ACTION?
+/*void do_attack (struct Thing *from, struct Thing *to) // ACTION?
 {
 	int t, type = from->thing.mons.type;
 	int bonus = 0;
@@ -532,12 +534,12 @@ void do_attack (struct Thing *from, struct Thing *to) // ACTION?
 			return;
 		}
 	}
-}
+}*/
 
-struct Item *player_use_pack (char *msg, uint32_t accepted)
+struct Item *player_use_pack (struct Thing *th, char *msg, uint32_t accepted)
 {
 	struct Item *It = NULL;
-	char in = show_contents (pmons.pack, accepted, msg);
+	char in = show_contents (th->thing.mons.pack, accepted, msg);
 	//char in, cs[100];
 	//bool tried = false;
 /*
@@ -567,12 +569,12 @@ struct Item *player_use_pack (char *msg, uint32_t accepted)
 		tried = true;
 	}
 	while (It == NULL);*/
-	It = get_Itemc (pmons.pack, in);
+	It = get_Itemc (th->thing.mons.pack, in);
 
 	return It;
 }
 
-int player_sense (int yloc, int xloc, int senses)
+/*int player_sense (int yloc, int xloc, int senses)
 {
 	if (senses&SENSE_VISION)
 	{
@@ -584,7 +586,7 @@ int player_sense (int yloc, int xloc, int senses)
 		return 1;
 	}
 	return 0;
-}
+}*/
 
 void player_dead (const char *msg, ...)
 {
@@ -603,7 +605,18 @@ void player_dead (const char *msg, ...)
 	U.playing = PLAYER_LOSTGAME;
 }
 
-/* Rudimentary AI system -- move towards player if player is visible. */
+int mons_isplayer (struct Thing *th)
+{
+	return th->thing.mons.ctrl == CTRL_PLAYER;
+}
+
+int AI_take_turn (struct Thing *th)
+{
+	if (!mons_move (th, rn(3) - 1, rn(3) - 1, 1))
+		ev_queue (th->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, th->ID}});
+	return 1;
+}
+/*
 int AI_Attack (struct Thing *th, int toy, int tox)
 {
 	int xmove = 0, ymove = 0;
@@ -629,5 +642,5 @@ int AI_Attack (struct Thing *th, int toy, int tox)
 					if (!mons_move (th, rn(3) - 1, rn(3) - 1, 1))
 						ev_queue (th->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, th->ID}});
 	return 1;
-}
+}*/
 

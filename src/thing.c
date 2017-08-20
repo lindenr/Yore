@@ -232,7 +232,7 @@ struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t
 
 #define US(w) (sq_seen[w]?(sq_attr[w]?DOT:ACS_WALL):ACS_WALL)
 
-void set_can_see (uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
+void set_can_see (struct Thing *player, uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
 {
 	int Yloc = player->yloc, Xloc = player->xloc;
 	int Y, X, w;
@@ -305,7 +305,7 @@ void set_can_see (uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
 }
 
 uint32_t *type = NULL;
-void draw_map ()
+void draw_map (struct Thing *player)
 {
 	type = realloc (type, sizeof(*type) * map_graph->a);
 	memset (type, 0, sizeof(*type) * map_graph->a);
@@ -373,7 +373,7 @@ void draw_map ()
 			type[at] = th->type;
 		}
 	}
-	set_can_see (sq_seen, sq_attr, sq_unseen);
+	set_can_see (player, sq_seen, sq_attr, sq_unseen);
 }
 /*
 int pr_type;

@@ -50,7 +50,7 @@ void sk_exp (struct Thing *th, Skill sk, int xp)
 	++ sk->level;
 	if (sk->level < SK_MAXLEVEL && sk->exp >= xp_levels[sk->level])
 		sk->exp = xp_levels[sk->level]-1;
-	if (th == player)
+	if (mons_isplayer(th))
 		p_msg ("Level up! %s is now level %d", sk_name (sk), sk->level);
 }
 

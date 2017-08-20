@@ -66,7 +66,7 @@ char show_contents (struct Pack pack, uint32_t accepted, char *msg)
 	{
 		if (pack.items[i] && item_type_flags (pack.items[i], accepted))
 		{
-			char *line = get_inv_line (pack.items[i]);
+			char *line = get_inv_line (&pack, pack.items[i]);
 			v_pstr (inv, line);
 			free (line);
 			++ num_items;
@@ -118,7 +118,7 @@ bool pack_add (struct Pack *pack, struct Item *it)
 			pack->items[u] = malloc (sizeof(*it));
 			memcpy (pack->items[u], it, sizeof(*it));
 			/* Say so */
-			msg = get_inv_line (it);
+			msg = get_inv_line (pack, it);
 			p_msg ("%s", msg);
 			free (msg);
 			return true;

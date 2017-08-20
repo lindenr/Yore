@@ -14,26 +14,28 @@
 
 #define P_MSG_LEN 60
 
+struct Thing;
+
 struct P_msg
 {
 	uint64_t expiry;
 	char msg[P_MSG_LEN];
 };
 
-int  sb_buffer (int, int);
-void sb_baddch (int, glyph);
-void sb_mvaddch(int, int, glyph);
-void sb_mvprint(int, int, char *, ...);
-void p_sidebar (int);
+//int  sb_buffer (int, int);
+//void sb_baddch (int, glyph);
+//void sb_mvaddch(int, int, glyph);
+//void sb_mvprint(int, int, char *, ...);
+//void p_sidebar (int);
 
 void p_init    ();
-void p_pane    ();
-void p_panel   (int);
-void p_update  ();
-void p_tab     (int);
+void p_pane    (struct Thing *);
+//void p_panel   (int);
+//void p_update  ();
+//void p_tab     (int);
 void p_amsg    (const char *);
 void p_msg     (const char *, ...);
-char p_ask     (const char *, const char *);
+char p_ask     (struct Thing *, const char *, const char *);
 char p_lines   (Vector);
 
 enum PanelType
@@ -44,7 +46,7 @@ enum PanelType
 
 int  p_status  (enum PanelType);
 int  p_skills  (enum PanelType);
-void p_mvchoose(int *, int *, const char *, const char *, int);
+void p_mvchoose(struct Thing *, int *, int *, const char *, const char *, int);
 uint32_t p_move (int *, int *, uint32_t);
 
 extern int p_width, p_height

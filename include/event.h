@@ -66,7 +66,7 @@ typedef union Event
 
 struct QEv
 {
-	uint64_t tick;
+	Tick tick;
 	union Event ev;
 };
 
