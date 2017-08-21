@@ -14,8 +14,8 @@
 #include <assert.h>
 #include <malloc.h>
 
-int curID = 0;
-int getID ()
+TID curID = 0;
+TID getID ()
 {
 	return (++curID);
 }
@@ -212,8 +212,8 @@ struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t
 {
 	//if (type == THING_ITEM)
 	//	printf ("New: %u %d %dx%d  %p\n", type, dlevel, y, x, actual_thing);
-	int n = map_buffer (y, x), ID = getID (), dlevel = lvl->level;
-	struct Thing t = {type, dlevel, ID, y, x, {}};
+	int n = map_buffer (y, x);
+	struct Thing t = {type, lvl->level, getID(), y, x, {}};
 
 	if (t.ID != all_ids->len)
 		panic ("IDs error");
@@ -225,7 +225,7 @@ struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t
 	thing_watchvec (lvl->things[n]);
 
 	if (type == THING_MONS)
-		v_push (lvl->mons, &ID);
+		v_push (lvl->mons, &t.ID);
 
 	return ret;
 }

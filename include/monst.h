@@ -164,25 +164,40 @@ enum CTRL
 };
 
 extern const mtyp all_mons[];
+typedef int TID;
+
+struct MStatus
+{
+	struct
+	{
+		int ydest, xdest;
+	} moving;
+	struct
+	{
+		int ydest, xdest;
+		TID toID;
+	} attacking;
+	//int dodging;
+};
 
 struct Monster
 {
-	uint32_t type;				/* monster type */
-	enum CTRL ctrl;             /* AI or human player? */
-	int32_t level;				/* EXP level */
-	int32_t exp;				/* EXP points */
-	int32_t HP, HP_max;			/* current/max HP */
-	float HP_rec;				/* HP recovered per turn, on average */
-	int32_t ST, ST_max;			/* current/max stamina */
-	float ST_rec;				/* stamina recovery */
-	uint32_t speed, cur_speed;	/* current speed and state */
-	char *name;					/* label */
-	struct Pack pack;			/* inventory */
+	uint32_t type;				/* monster type                 */
+	enum CTRL ctrl;             /* AI or human player?          */
+	int32_t level;				/* EXP level                    */
+	int32_t exp;				/* EXP points                   */
+	int32_t HP, HP_max;			/* current/max HP               */
+	float HP_rec;				/* HP recovery                  */
+	int32_t ST, ST_max;			/* current/max stamina          */
+	float ST_rec;				/* stamina recovery             */
+	uint32_t speed, cur_speed;	/* current speed and state      */
+	char *name;					/* label                        */
+	struct Pack pack;			/* inventory                    */
 	struct WoW wearing;			/* stuff wielding/wearing/using */
-	uint32_t status;			/* is it eating polymorphed etc */
-	struct Item *eating;		/* eating something (0 if not) */
-	uint8_t boxflags;           /* boxes appearing */
-	Vector skills;              /* available skills */
+	struct MStatus status;		/* eating, positioning info etc */
+	struct Item *eating;		/* eating something (0 if not)  */
+	uint8_t boxflags;           /* boxes appearing              */
+	Vector skills;              /* available skills             */
 };
 
 struct Thing;

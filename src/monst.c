@@ -158,7 +158,7 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 		if (final)
 			mons_usedturn (th);
 		//thing_move (th, th->dlevel, th->yloc+y, th->xloc+x);
-		ev_queue (th->thing.mons.speed, (union Event) { .mmove = {EV_MMOVE, th->ID, th->yloc+y, th->xloc+x}});
+		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, th->ID, th->yloc+y, th->xloc+x}});
 		return 1;
 	}
 	/* melee attack! */
@@ -166,7 +166,7 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 	{
 		if (final)
 			mons_usedturn (th);
-		ev_queue (th->thing.mons.speed, (union Event) { .mattk = {EV_MATTK, th->ID, th->yloc+y, th->xloc+x}});
+		ev_queue (0, (union Event) { .mattk = {EV_MATTK, th->ID, th->yloc+y, th->xloc+x}});
 		//mons_attack (th, y, x);
 		return 2;
 	}
@@ -185,7 +185,7 @@ void mons_usedturn (struct Thing *th)
 {
 	if (!mons_isplayer(th))
 		return;
-	th->thing.mons.status &= ~M_CHARGE;
+	//th->thing.mons.status &= ~M_CHARGE;
 	int i;
 	for (i = 0; i < cur_dlevel->mons->len; ++ i)
 	{
@@ -227,8 +227,8 @@ char escape (unsigned char a)
 
 int mons_take_turn (struct Thing *th)
 {
-	if (mons_eating(th))
-		return true;
+	//if (mons_eating(th))
+	//	return true;
 	if (!mons_isplayer(th))
 	{
 		AI_take_turn (th);
@@ -320,7 +320,7 @@ bool mons_edible (struct Thing *th, struct Item *item)
 {
 	return (item->type.ch == ITEM_FOOD);
 }
-
+/*
 bool mons_eating (struct Thing *th) // ACTION
 {
 	int hunger_loss;
@@ -365,7 +365,7 @@ void mons_eat (struct Thing *th, struct Item *item) // ACTION
 	th->thing.mons.eating = item;
 	if (!item->cur_weight)
 		item->cur_weight = item->type.wt;
-}
+}*/
 
 inline void *mons_get_weap (struct Thing *th)
 {

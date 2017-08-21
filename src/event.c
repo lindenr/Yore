@@ -36,34 +36,59 @@ void ev_do (Event ev)
 {
 	struct Thing *th, *fr, *to;
 	TID ID;
-	int can;
+	int can, ydest, xdest;
 	struct Monster *self, *mons;
 	Vector pickup, items;
 	switch (ev->type)
 	{
 	case EV_MMOVE:
-		//printf("mmove\n");
 		ID = ev->mmove.thID;
 		th = THIID(ID);
 		if (!th) return;
+		ev_queue (th->thing.mons.speed, (union Event) { .mdomove = {EV_MDOMOVE, ID}});
+		th->thing.mons.status.moving.ydest = ev->mmove.ydest;
+		th->thing.mons.status.moving.xdest = ev->mmove.xdest;
+		return;
+	case EV_MDOMOVE:
+		//printf("mdomove\n");
+		ID = ev->mdomove.thID;
+		th = THIID(ID);
+		if (!th) return;
 		// Next turn
-		ev_queue (1, (union Event) { .mturn = {EV_MTURN, ID}});
-		can = can_amove (get_sqattr (dlv_things(th->dlevel), ev->mmove.ydest, ev->mmove.xdest));
+		ev_queue (0, (union Event) { .mturn = {EV_MTURN, ID}});
+		ydest = th->thing.mons.status.moving.ydest; xdest = th->thing.mons.status.moving.xdest;
+		can = can_amove (get_sqattr (dlv_things(th->dlevel), ydest, xdest));
 		if (can == 1)
-			thing_move (th, th->dlevel, ev->mmove.ydest, ev->mmove.xdest);
+		{
+			thing_move (th, th->dlevel, ydest, xdest);
+			th->thing.mons.status.moving.ydest = 0;
+			th->thing.mons.status.moving.xdest = 0;
+		}
 		return;
 	case EV_MATTK:
+		ID = ev->mmove.thID;
+		th = THIID(ID);
+		if (!th) return;
+		ev_queue (th->thing.mons.speed, (union Event) { .mdoattk = {EV_MDOATTK, ID}});
+		th->thing.mons.status.attacking.ydest = ev->mattk.ydest;
+		th->thing.mons.status.attacking.xdest = ev->mattk.xdest;
+		break;
+	case EV_MDOATTK:
 		//printf("mattk\n");
 		ID = ev->mmove.thID;
 		fr = THIID(ID);
 		if (!fr) return;
 		// Next turn
-		ev_queue (1, (union Event) { .mturn = {EV_MTURN, ID}});
-		can = can_amove (get_sqattr (dlv_things(fr->dlevel), ev->mattk.ydest, ev->mattk.xdest));
+		ev_queue (0, (union Event) { .mturn = {EV_MTURN, ID}});
+		ydest = fr->thing.mons.status.attacking.ydest; xdest = fr->thing.mons.status.attacking.xdest;
+		can = can_amove (get_sqattr (dlv_things(fr->dlevel), ydest, xdest));
 		if (can != 2) return;
-		to = get_sqmons(dlv_things(fr->dlevel), ev->mattk.ydest, ev->mattk.xdest);
+		to = get_sqmons(dlv_things(fr->dlevel), ydest, xdest);
 		if (!to) return;
+		// dodging TODO
 		to->thing.mons.HP -= 3;
+		fr->thing.mons.status.attacking.ydest = 0;
+		fr->thing.mons.status.attacking.xdest = 0;
 		if (to->thing.mons.HP <= 0)
 		{
 			// Kill event

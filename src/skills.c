@@ -80,7 +80,7 @@ void sk_charge (struct Thing *th, int y, int x, Skill sk)
 	
 	chID = th->ID;
 	mons_usedturn (th);
-	th->thing.mons.status |= M_CHARGE;
+//	th->thing.mons.status |= M_CHARGE;
 	bres_draw (th->yloc, th->xloc, NULL, dlv_attr(th->dlevel), &chargepos, y, x);
 }
 

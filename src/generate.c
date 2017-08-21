@@ -212,7 +212,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		upsy = start / map_graph->w;
 		upsx = start % map_graph->w;
 
-		struct Monster m1 = {MTYP_HUMAN, CTRL_PLAYER, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 12, 0, 0, {{0},}, {0,}, 0, 0, 0, NULL};
+		struct Monster m1 = {MTYP_HUMAN, CTRL_PLAYER, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 12, 0, 0, {{0},}, {0,}, {{0,},}, NULL, 0, NULL};
 		m1.name = "Thing 1";
 		m1.skills = v_dinit (sizeof(struct Skill));
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
