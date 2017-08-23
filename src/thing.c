@@ -6,12 +6,10 @@
 #include "include/monst.h"
 #include "include/map.h"
 #include "include/generate.h"
-#include "include/vision.h"
+#include "include/drawing.h"
 #include "include/graphics.h"
 #include "include/dlevel.h"
-#include "include/panel.h"
 
-#include <assert.h>
 #include <malloc.h>
 
 TID curID = 0;

@@ -2,13 +2,9 @@
 
 #include "include/graphics.h"
 #include "include/vector.h"
-#include "include/map.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdarg.h>
-#include <string.h>
-#include <time.h>
 
 #define XSTRINGIFY(x) STRINGIFY(x)
 #define STRINGIFY(x) #x

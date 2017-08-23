@@ -1,7 +1,7 @@
 /* skills.c */
 
 #include "include/skills.h"
-#include "include/vision.h"
+#include "include/drawing.h"
 #include "include/panel.h"
 
 const styp all_skills[] = {

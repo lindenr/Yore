@@ -4,20 +4,12 @@
 #include "include/thing.h"
 #include "include/panel.h"
 #include "include/rand.h"
-#include "include/save.h"
-#include "include/vision.h"
-#include "include/generate.h"
-#include "include/words.h"
-#include "include/old-event.h"
-#include "include/graphics.h"
+#include "include/drawing.h"
 #include "include/dlevel.h"
 #include "include/monst.h"
 #include "include/player.h"
-#include "include/skills.h"
-#include "include/action.h"
 #include "include/event.h"
 
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -193,7 +185,7 @@ void mons_usedturn (struct Thing *th)
 		(*(struct Thing **) v_at(all_ids, *id))->thing.mons.boxflags = 0;
 	}
 }
-
+#if 0
 void thing_move_level (struct Thing *th, int32_t where)
 {
 	uint32_t wh;
@@ -216,7 +208,7 @@ void thing_move_level (struct Thing *th, int32_t where)
 		where >>= 1;
 	}
 }
-
+#endif
 char escape (unsigned char a)
 {
 	if (a < 0x20)
@@ -475,7 +467,7 @@ void mons_box (struct Thing *mons, BoxType type)
 {
 	mons->thing.mons.boxflags |= 1<<type;
 }
-
+/*
 int mons_charge_bonus (struct Thing *from)
 {
 	return 5*sk_lvl (from, SK_CHARGE);
@@ -486,7 +478,7 @@ int mons_react (struct Thing *th) // ACTION
 	return 0;
 }
 
-/*void do_attack (struct Thing *from, struct Thing *to) // ACTION?
+void do_attack (struct Thing *from, struct Thing *to) // ACTION?
 {
 	int t, type = from->thing.mons.type;
 	int bonus = 0;

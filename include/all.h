@@ -1,7 +1,6 @@
 #if !defined(ALL_H_INCLUDED)
 #define ALL_H_INCLUDED
 
-#include <limits.h>
 #include "include/debug.h"
 
 /* Player options go here */

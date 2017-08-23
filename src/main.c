@@ -4,13 +4,9 @@
 #include "include/thing.h"
 #include "include/monst.h"
 #include "include/rand.h"
-#include "include/vision.h"
 #include "include/panel.h"
 #include "include/generate.h"
 #include "include/graphics.h"
-#include "include/save.h"
-#include "include/vector.h"
-#include "include/dlevel.h"
 #include "include/event.h"
 
 #include <stdlib.h>

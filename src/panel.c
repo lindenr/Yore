@@ -5,7 +5,7 @@
 #include "include/graphics.h"
 #include "include/words.h"
 #include "include/dlevel.h"
-#include "include/vision.h"
+#include "include/drawing.h"
 #include "include/skills.h"
 #include "include/event.h"
 
