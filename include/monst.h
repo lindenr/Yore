@@ -170,11 +170,11 @@ struct MStatus
 {
 	struct
 	{
-		int ydest, xdest;
+		int ydir, xdir;
 	} moving;
 	struct
 	{
-		int ydest, xdest;
+		int ydir, xdir;
 		TID toID;
 	} attacking;
 	//int dodging;

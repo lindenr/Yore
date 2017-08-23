@@ -212,7 +212,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		upsy = start / map_graph->w;
 		upsx = start % map_graph->w;
 
-		struct Monster m1 = {MTYP_HUMAN, CTRL_PLAYER, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 12, 0, 0, {{0},}, {0,}, {{0,},}, NULL, 0, NULL};
+		struct Monster m1 = {MTYP_HUMAN, CTRL_PLAYER, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 1000, 0, 0, {{0},}, {0,}, {{0,},}, NULL, 0, NULL};
 		m1.name = "Thing 1";
 		m1.skills = v_dinit (sizeof(struct Skill));
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
@@ -221,7 +221,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, t1->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t1->ID}});
 
-		/*struct Monster m2 = {MTYP_HUMAN, CTRL_PLAYER, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 12, 0, 0, {{0},}, {0,}, 0, 0, 0, NULL};
+		/*struct Monster m2 = {MTYP_HUMAN, CTRL_PLAYER, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 1000, 0, 0, {{0},}, {0,}, 0, 0, 0, NULL};
 		m2.name = "Thing 2";
 		m2.skills = v_dinit (sizeof(struct Skill));
 		//v_push (m2.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
@@ -271,7 +271,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		p.exp = all_mons[p.type].exp;
 		struct Thing *th = new_thing (THING_MONS, lvl, yloc, xloc, &p);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, th->ID}});
-		printf ("successful generation \n");
+		//printf ("successful generation \n");
 	}
 	return 0;
 }

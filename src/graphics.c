@@ -37,7 +37,7 @@ SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
 const int screenY = 720, screenX = 1000;
 
 glyph *gr_map = NULL;
-uint8_t *gr_flags = NULL;
+gflags *gr_flags = NULL;
 
 /* window dimensions (in glyphs) */
 int gr_h = 720/GLH, gr_w = 1000/GLW;
@@ -229,12 +229,13 @@ void gra_mark (Graph gra, int yloc, int xloc)
 	gr_flags[gr_buffer(gra->cy + yloc, gra->cx + xloc)] |= 1;*/
 }
 
-void gra_bsetbox (Graph gra, int b, uint8_t flags)
+void gra_bsetbox (Graph gra, int b, gflags flags)
 {
 	gra->flags[b] = 1|flags;
 }
 
-void gr_drawboxes (int y, int x, uint8_t f)
+#define setpixel(y,x) {*(uint32_t*) ((uint8_t*) pixels + 4*(x) + screen->pitch*(y)) = col;}
+void gr_drawboxes (int y, int x, gflags f)
 {
 	if (SDL_MUSTLOCK (screen)) // TODO draw all boxes under one lock
 		SDL_LockSurface (screen);
@@ -246,11 +247,28 @@ void gr_drawboxes (int y, int x, uint8_t f)
 		int r = BOXCOL[type][0], g = BOXCOL[type][1], b = BOXCOL[type][2];
 		uint32_t *pixels = (uint32_t *) ((uintptr_t) screen->pixels + py*screen->pitch + px*4);
 		uint32_t col = SDL_MapRGB (screen->format, r, g, b);
-		*(uint32_t*) ((uint8_t*) pixels) = col;
-		*(uint32_t*) ((uint8_t*) pixels + 4) = col;
-		*(uint32_t*) ((uint8_t*) pixels + screen->pitch) = col;
-		*(uint32_t*) ((uint8_t*) pixels + screen->pitch + 4) = col;
+		setpixel(0,0); setpixel(0,1); setpixel(1,0); setpixel(1,1);
 	}
+
+	if (!(1 & (f>>12))) goto end;
+	int code = (f>>8)&15;
+	int py = y * GLH, px = x * GLW;
+	uint32_t *pixels = (uint32_t *) ((uintptr_t) screen->pixels + py*screen->pitch + px*4);
+	uint32_t col = SDL_MapRGB (screen->format, 255,255,255);
+	int i;
+	switch (code)
+	{
+	case 1: for (i = 0;       i < GLW;   ++ i) setpixel(0,    i);                                                        break;
+	case 2: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(0,    i); for (i = 0;       i < GLH/2; ++ i) setpixel(i, GLW-1); break;
+	case 5:                                                       for (i = 0;       i < GLH;   ++ i) setpixel(i, GLW-1); break;
+	case 8: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(GLH-1,i); for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i, GLW-1); break;
+	case 7: for (i = 0;       i < GLW;   ++ i) setpixel(GLH-1,i);                                                        break;
+	case 6: for (i = 0;       i < GLW/2; ++ i) setpixel(GLH-1,i); for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i,     0); break;
+	case 3:                                                       for (i = 0;       i < GLH;   ++ i) setpixel(i,     0); break;
+	case 0: for (i = 0;       i < GLW/2; ++ i) setpixel(0,    i); for (i = 0;       i < GLH/2; ++ i) setpixel(i,     0); break;
+	}
+
+end:
 	if (SDL_MUSTLOCK (screen))
 		SDL_UnlockSurface (screen);
 }
@@ -319,11 +337,11 @@ void gr_refresh ()
 			int gr_c = gr_buffer (y, x);
 			if ((gr_flags[gr_c]&1) || forced_refresh)
 			{
-				gr_flags[gr_c] &= 254;
 				blit_glyph (gr_map[gr_c], y, x);
-				uint8_t f = gr_flags[gr_c];
+				gflags f = gr_flags[gr_c];
 				if (f)
 					gr_drawboxes (y, x, f);
+				gr_flags[gr_c] &= ~1;
 			}
 			gr_map[gr_c] = 0;
 		}
@@ -504,8 +522,8 @@ void gr_resize (int ysiz, int xsiz)
 	gr_map = realloc (gr_map, sizeof(glyph) * gr_area);
 	for (i = 0; i < gr_area; ++ i)
 		gr_map[i] = ' ';
-	gr_flags = realloc (gr_flags, sizeof(uint8_t) * gr_area);
-	memset (gr_flags, 0, sizeof(char) * gr_area);
+	gr_flags = realloc (gr_flags, sizeof(gflags) * gr_area);
+	memset (gr_flags, 0, sizeof(gflags) * gr_area);
 
 	forced_refresh = 1;
 
@@ -594,12 +612,12 @@ Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
 	int a = h*w;
 
 	glyph *data = malloc (sizeof(glyph) * a);
-	uint8_t *flags = malloc (sizeof(uint8_t) * a);
+	gflags *flags = malloc (sizeof(gflags) * a);
 
 	int i;
 	for (i = 0; i < a; ++ i)
 		data[i] = COL_TXT_DEF;
-	memset (flags, 0, sizeof(uint8_t) * a);
+	memset (flags, 0, sizeof(gflags) * a);
 	
 	gra = malloc (sizeof(struct Graph));
 	struct Graph from = {h, w, a, data, flags, 0, 0, vy, vx, vh, vw, 1, 0, 0, 0, COL_TXT_DEF};

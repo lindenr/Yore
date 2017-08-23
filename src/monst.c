@@ -158,7 +158,7 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 		if (final)
 			mons_usedturn (th);
 		//thing_move (th, th->dlevel, th->yloc+y, th->xloc+x);
-		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, th->ID, th->yloc+y, th->xloc+x}});
+		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, th->ID, y, x}});
 		return 1;
 	}
 	/* melee attack! */
@@ -166,7 +166,7 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 	{
 		if (final)
 			mons_usedturn (th);
-		ev_queue (0, (union Event) { .mattk = {EV_MATTK, th->ID, th->yloc+y, th->xloc+x}});
+		ev_queue (0, (union Event) { .mattk = {EV_MATTK, th->ID, y, x}});
 		//mons_attack (th, y, x);
 		return 2;
 	}
@@ -374,7 +374,7 @@ inline void *mons_get_weap (struct Thing *th)
 
 Tick mons_tregen (struct Thing *th)
 {
-	return 12;
+	return 1000;
 }
 
 bool mons_unwield (struct Thing *th)

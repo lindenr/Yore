@@ -25,7 +25,7 @@ typedef union Event
 	{
 		EV_TYPE type;
 		TID thID;
-		int ydest, xdest;
+		int ydir, xdir;
 	} mmove;
 	struct
 	{
@@ -36,7 +36,7 @@ typedef union Event
 	{
 		EV_TYPE type;
 		TID thID;
-		int ydest, xdest;
+		int ydir, xdir;
 	} mattk;
 	struct
 	{

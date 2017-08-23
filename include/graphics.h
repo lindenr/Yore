@@ -18,6 +18,7 @@
  * character data  00 - FF (8 bits)
  **********************************/
 typedef uint32_t glyph;
+typedef uint16_t gflags;
 
 #ifdef main
 #  undef main
@@ -30,7 +31,7 @@ typedef struct Graph
 {
 	int h, w, a;        /* graph dimensions */
 	glyph *data;        /* an h*w grid of glyphs */
-	uint8_t *flags;     /* tracks changes and boxes */
+	gflags *flags;      /* tracks changes and boxes */
 	int cy, cx;         /* camera location */
 	int vy, vx, vh, vw; /* view location and dimensions on the window */
 	int vis;            /* whether the graph is currently being shown */
@@ -52,7 +53,7 @@ typedef enum
 extern int BOXPOS[BOX_NUM][2];
 extern int BOXCOL[BOX_NUM][3];
 
-void gra_bsetbox (Graph, int, uint8_t);
+void gra_bsetbox (Graph, int, gflags);
 
 /* Prefixes:
  * gr_ is the graphics prefix for generic things to do with the screen

@@ -5,7 +5,7 @@
 #include "include/dlevel.h"
 #include <stdbool.h>
 
-#define MGEN_DELAY 10
+#define MGEN_DELAY 1000
 
 enum LEVEL_TYPE
 {
