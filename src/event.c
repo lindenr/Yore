@@ -41,10 +41,20 @@ void ev_do (Event ev)
 	Vector pickup, items;
 	switch (ev->type)
 	{
+	case EV_MRESET:
+		ID = ev->mevade.thID;
+		th = THIID(ID);
+		if (!th)
+			return;
+		th->thing.mons.status.evading = 0;
+		// Next turn
+		ev_queue (0, (union Event) { .mturn = {EV_MTURN, ID}});
+		return;
 	case EV_MMOVE:
 		ID = ev->mmove.thID;
 		th = THIID(ID);
-		if (!th) return;
+		if (!th)
+			return;
 		ev_queue (th->thing.mons.speed, (union Event) { .mdomove = {EV_MDOMOVE, ID}});
 		th->thing.mons.status.moving.ydir = ev->mmove.ydir;
 		th->thing.mons.status.moving.xdir = ev->mmove.xdir;
@@ -53,7 +63,8 @@ void ev_do (Event ev)
 		//printf("mdomove\n");
 		ID = ev->mdomove.thID;
 		th = THIID(ID);
-		if (!th) return;
+		if (!th)
+			return;
 		// Next turn
 		ev_queue (0, (union Event) { .mturn = {EV_MTURN, ID}});
 		ydest = th->yloc + th->thing.mons.status.moving.ydir; xdest = th->xloc + th->thing.mons.status.moving.xdir;
@@ -61,14 +72,22 @@ void ev_do (Event ev)
 		th->thing.mons.status.moving.ydir = 0;
 		th->thing.mons.status.moving.xdir = 0;
 		if (can == 1)
-		{
 			thing_move (th, th->dlevel, ydest, xdest);
-		}
+		return;
+	case EV_MEVADE:
+		ID = ev->mevade.thID;
+		th = THIID(ID);
+		if (!th)
+			return;
+		th->thing.mons.status.evading = 1;
+		// Next turn
+		ev_queue (th->thing.mons.speed/2, (union Event) { .mreset = {EV_MRESET, ID}});
 		return;
 	case EV_MATTK:
 		ID = ev->mmove.thID;
 		th = THIID(ID);
-		if (!th) return;
+		if (!th)
+			return;
 		ev_queue (th->thing.mons.speed, (union Event) { .mdoattk = {EV_MDOATTK, ID}});
 		th->thing.mons.status.attacking.ydir = ev->mattk.ydir;
 		th->thing.mons.status.attacking.xdir = ev->mattk.xdir;
@@ -77,18 +96,22 @@ void ev_do (Event ev)
 		//printf("mattk\n");
 		ID = ev->mmove.thID;
 		fr = THIID(ID);
-		if (!fr) return;
+		if (!fr)
+			return;
 		// Next turn
 		ev_queue (0, (union Event) { .mturn = {EV_MTURN, ID}});
 		ydest = fr->yloc + fr->thing.mons.status.attacking.ydir; xdest = fr->xloc + fr->thing.mons.status.attacking.xdir;
 		fr->thing.mons.status.attacking.ydir = 0;
 		fr->thing.mons.status.attacking.xdir = 0;
 		can = can_amove (get_sqattr (dlv_things(fr->dlevel), ydest, xdest));
-		if (can != 2) return;
+		if (can != 2)
+			return;
 		to = get_sqmons(dlv_things(fr->dlevel), ydest, xdest);
-		if (!to) return;
+		if (!to)
+			return;
 		// dodging TODO
-		to->thing.mons.HP -= 3;
+		if (!to->thing.mons.status.evading)
+			to->thing.mons.HP -= 3;
 		if (to->thing.mons.HP <= 0)
 		{
 			// Kill event
@@ -105,18 +128,19 @@ void ev_do (Event ev)
 			U.playing = PLAYER_LOSTGAME;
 			return;
 		}
-		//if (fr == player)
-		//{
-		//	if (to->thing.mons.type == MTYP_SATAN)
-		//		U.playing = PLAYER_WONGAME;
-		//}
+		/*if (fr == player)
+		{
+			if (to->thing.mons.type == MTYP_SATAN)
+				U.playing = PLAYER_WONGAME;
+		}*/
 		fr->thing.mons.exp += all_mons[to->thing.mons.type].exp;
 		rem_id (to->ID);
 		return;
 	case EV_MTURN:
 		//printf("mturn\n");
 		th = THIID(ev->mturn.thID);
-		if (!th) return;
+		if (!th)
+			return;
 		mons_take_turn (th);
 		return;
 	case EV_MGEN:
@@ -126,7 +150,8 @@ void ev_do (Event ev)
 		return;
 	case EV_MREGEN:
 		th = THIID(ev->mregen.thID);
-		if (!th) return;
+		if (!th)
+			return;
 		// Next regen
 		ev_queue (mons_tregen (th), (union Event) { .mregen = {EV_MREGEN, ev->mregen.thID}});
 
@@ -151,7 +176,8 @@ void ev_do (Event ev)
 		pickup = ev->mpickup.things;
 		TID ID = ev->mpickup.thID;
 		th = THIID(ID);
-		if (!th) return;
+		if (!th)
+			return;
 		mons = &(th->thing.mons);
 		int i;
 		for (i = 0; i < pickup->len; ++ i)
@@ -170,7 +196,8 @@ void ev_do (Event ev)
 	case EV_MDROP:
 		items = ev->mdrop.items;
 		th = THIID (ev->mdrop.thID);
-		if (!th) return;
+		if (!th)
+			return;
 		mons = &th->thing.mons;
 		for (i = 0; i < items->len; ++ i)
 		{

@@ -177,7 +177,7 @@ struct MStatus
 		int ydir, xdir;
 		TID toID;
 	} attacking;
-	//int dodging;
+	int evading;
 };
 
 struct Monster

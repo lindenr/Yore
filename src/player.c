@@ -101,6 +101,12 @@ int Kpickup (struct Thing *player)
 	return 1;
 }*/
 
+int Kevade (struct Thing *player)
+{
+	ev_queue (0, (union Event) { .mevade = {EV_MEVADE, player->ID}});
+	return 1;
+}
+
 int Ksdrop (struct Thing *player)
 {
 	struct Item *drop = player_use_pack (player, "Drop what?", ITCAT_ALL);
@@ -240,6 +246,7 @@ struct KStruct Keys[] = {
 	{'.', &Kwait},
 	{',', &Kpickup},
 //	{'e', &Keat},
+	{'e', &Kevade},
 	{'d', &Ksdrop},
 	{'D', &Kmdrop},
 	{'i', &Kinv},

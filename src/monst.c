@@ -374,7 +374,7 @@ inline void *mons_get_weap (struct Thing *th)
 
 Tick mons_tregen (struct Thing *th)
 {
-	return 1000;
+	return 100000;
 }
 
 bool mons_unwield (struct Thing *th)

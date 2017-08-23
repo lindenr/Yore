@@ -250,12 +250,15 @@ void gr_drawboxes (int y, int x, gflags f)
 		setpixel(0,0); setpixel(0,1); setpixel(1,0); setpixel(1,1);
 	}
 
-	if (!(1 & (f>>12))) goto end;
-	int code = (f>>8)&15;
-	int py = y * GLH, px = x * GLW;
-	uint32_t *pixels = (uint32_t *) ((uintptr_t) screen->pixels + py*screen->pitch + px*4);
-	uint32_t col = SDL_MapRGB (screen->format, 255,255,255);
-	int i;
+	int ismoving = 1 & (f>>12), isattacking = 1 & (f>>17), code, px, py, i;
+	uint32_t col, *pixels;
+	py = y * GLH, px = x * GLW;
+	pixels = (uint32_t *) ((uintptr_t) screen->pixels + py*screen->pitch + px*4);
+
+	///////////// MOVING
+	if (ismoving == 0) goto end_moving;
+	col = SDL_MapRGB (screen->format, 0xFF,0xFF,0xFF);
+	code = (f>>8)&15;
 	switch (code)
 	{
 	case 1: for (i = 0;       i < GLW;   ++ i) setpixel(0,    i);                                                        break;
@@ -267,8 +270,25 @@ void gr_drawboxes (int y, int x, gflags f)
 	case 3:                                                       for (i = 0;       i < GLH;   ++ i) setpixel(i,     0); break;
 	case 0: for (i = 0;       i < GLW/2; ++ i) setpixel(0,    i); for (i = 0;       i < GLH/2; ++ i) setpixel(i,     0); break;
 	}
+end_moving:
 
-end:
+	///////////// ATTACKING
+	if (isattacking == 0) goto end_attacking;
+	col = SDL_MapRGB (screen->format, 0xFF,0x33,0x33);
+	code = (f>>13)&15;
+	switch (code)
+	{
+	case 1: for (i = 0;       i < GLW;   ++ i) setpixel(0,    i);                                                        break;
+	case 2: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(0,    i); for (i = 0;       i < GLH/2; ++ i) setpixel(i, GLW-1); break;
+	case 5:                                                       for (i = 0;       i < GLH;   ++ i) setpixel(i, GLW-1); break;
+	case 8: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(GLH-1,i); for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i, GLW-1); break;
+	case 7: for (i = 0;       i < GLW;   ++ i) setpixel(GLH-1,i);                                                        break;
+	case 6: for (i = 0;       i < GLW/2; ++ i) setpixel(GLH-1,i); for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i,     0); break;
+	case 3:                                                       for (i = 0;       i < GLH;   ++ i) setpixel(i,     0); break;
+	case 0: for (i = 0;       i < GLW/2; ++ i) setpixel(0,    i); for (i = 0;       i < GLH/2; ++ i) setpixel(i,     0); break;
+	}
+end_attacking:
+
 	if (SDL_MUSTLOCK (screen))
 		SDL_UnlockSurface (screen);
 }

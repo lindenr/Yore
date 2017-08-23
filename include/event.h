@@ -6,8 +6,10 @@
 typedef enum
 {
 	EV_NONE = 0,
+	EV_MRESET,
 	EV_MMOVE,
 	EV_MDOMOVE,
+	EV_MEVADE,
 	EV_MATTK,
 	EV_MDOATTK,
 	EV_MKILL,
@@ -25,6 +27,11 @@ typedef union Event
 	{
 		EV_TYPE type;
 		TID thID;
+	} mreset;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
 		int ydir, xdir;
 	} mmove;
 	struct
@@ -32,6 +39,11 @@ typedef union Event
 		EV_TYPE type;
 		TID thID;
 	} mdomove;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+	} mevade;
 	struct
 	{
 		EV_TYPE type;

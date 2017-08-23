@@ -18,7 +18,7 @@
  * character data  00 - FF (8 bits)
  **********************************/
 typedef uint32_t glyph;
-typedef uint16_t gflags;
+typedef uint32_t gflags;
 
 #ifdef main
 #  undef main
