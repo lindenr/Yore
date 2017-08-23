@@ -9,9 +9,8 @@ Yore should run on any machine which is supported by SDL. It has only been teste
 ####To build for Linux:
 
 1.  you must have gcc and SDL installed (you probably will anyway);
-2.  you must have the [function](http://github.com/lindenr/function) binary in the top directory;
-3.  run
-<pre>$ ./build-linux.sh</pre>
+2.  run
+<pre>$ make</pre>
 
 ####To build for Windows:
 

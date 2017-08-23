@@ -10,14 +10,16 @@ typedef enum
 	EV_MMOVE,
 	EV_MDOMOVE,
 	EV_MEVADE,
-	EV_MATTK,
-	EV_MDOATTK,
-	EV_MKILL,
+	EV_MATTKM,
+	EV_MDOATTKM,
+	EV_MKILLM,
 	EV_MTURN,
 	EV_MGEN,
 	EV_MREGEN,
 	EV_MPICKUP,
-	EV_MDROP
+	EV_MDROP,
+	EV_MANGERM,
+	EV_MCALM
 } EV_TYPE;
 
 typedef union Event
@@ -49,17 +51,17 @@ typedef union Event
 		EV_TYPE type;
 		TID thID;
 		int ydir, xdir;
-	} mattk;
+	} mattkm;
 	struct
 	{
 		EV_TYPE type;
 		TID thID;
-	} mdoattk;
+	} mdoattkm;
 	struct
 	{
 		EV_TYPE type;
 		TID frID, toID;
-	} mkill;
+	} mkillm;
 	struct
 	{
 		EV_TYPE type;
@@ -86,6 +88,16 @@ typedef union Event
 		TID thID;
 		Vector items;
 	} mdrop;
+	struct
+	{
+		EV_TYPE type;
+		TID frID, toID;
+	} mangerm;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+	} mcalm;
 } *Event;
 
 struct QEv

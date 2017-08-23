@@ -5,8 +5,8 @@
 #include "include/monst.h"
 #include "include/rand.h"
 
-void mons_regen (struct Thing *th) // ACTION
-{
+//void mons_regen (struct Thing *th) // ACTION
+//{
 	/*struct Monster *self = &th->thing.mons;
 
 	/ * HP * /
@@ -21,8 +21,8 @@ void mons_regen (struct Thing *th) // ACTION
 	if (self->ST > self->ST_max)
 		self->ST = self->ST_max;
 	self->ST_rec = 0.5;*/
-}
-
+//}
+/*
 void act_mhit (struct Thing *from, struct Thing *to)
 {
 	struct Item **it = mons_get_weap(from);
@@ -73,5 +73,5 @@ void act_mbite (struct Thing *to, struct Thing *from)
 //			mons[type].attacks[t][1]);
 
 //	mons_passive_attack (to, from);
-}
+}*/
 

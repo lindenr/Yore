@@ -166,7 +166,7 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 	{
 		if (final)
 			mons_usedturn (th);
-		ev_queue (0, (union Event) { .mattk = {EV_MATTK, th->ID, y, x}});
+		ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, th->ID, y, x}});
 		//mons_attack (th, y, x);
 		return 2;
 	}
@@ -367,14 +367,14 @@ void mons_eat (struct Thing *th, struct Item *item) // ACTION
 		item->cur_weight = item->type.wt;
 }*/
 
-inline void *mons_get_weap (struct Thing *th)
-{
-	return &th->thing.mons.wearing.rweap;
-}
-
 Tick mons_tregen (struct Thing *th)
 {
-	return 100000;
+	return 10000;
+}
+
+/*inline void *mons_get_weap (struct Thing *th)
+{
+	return &th->thing.mons.wearing.rweap;
 }
 
 bool mons_unwield (struct Thing *th)
@@ -431,7 +431,7 @@ bool mons_wear (struct Thing *th, struct Item *it)
 		}
 	}
 	return true;
-}
+}*/
 
 void mons_passive_attack (struct Thing *from, struct Thing *to) // ACTION
 {
@@ -607,40 +607,48 @@ void player_dead (const char *msg, ...)
 
 int mons_isplayer (struct Thing *th)
 {
-	return th->thing.mons.ctrl == CTRL_PLAYER;
+	return th->thing.mons.ai.mode == AI_NONE;
 }
 
-int AI_take_turn (struct Thing *th)
+int AI_take_turn (struct Thing *ai)
 {
-	if (!mons_move (th, rn(3) - 1, rn(3) - 1, 1))
-		ev_queue (th->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, th->ID}});
-	return 1;
-}
-/*
-int AI_Attack (struct Thing *th, int toy, int tox)
-{
-	int xmove = 0, ymove = 0;
-	if (!bres_draw (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel), NULL, toy, tox))
+	TID aiID = ai->ID;
+	if (ai->thing.mons.ai.mode == AI_TIMID)
 	{
-		if (!mons_move (th, rn(3) - 1, rn(3) - 1, 1))
-			ev_queue (th->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, th->ID}});
+		if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
+			ev_queue (ai->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, aiID}});
 		return 1;
 	}
 
-	if      (th->yloc < toy)
+	struct Thing *to = THIID (ai->thing.mons.ai.aggro.ID);
+	if (!to)
+	{
+		ev_queue (0, (union Event) { .mturn = {EV_MTURN, aiID}});
+		ev_queue (0, (union Event) { .mcalm = {EV_MCALM, aiID}});
+		return 1;
+	}
+
+	int aiy = ai->yloc, aix = ai->xloc;
+	int toy = to->yloc, tox = to->xloc;
+	if (!bres_draw (aiy, aix, NULL, dlv_attr(ai->dlevel), NULL, toy, tox))
+	{
+		if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
+			ev_queue (ai->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, aiID}});
+		return 1;
+	}
+	int ymove = 0, xmove = 0;
+	if      (aiy < toy)
 		ymove = 1;
-	else if (th->yloc > toy)
+	else if (aiy > toy)
 		ymove = -1;
-	if      (th->xloc < tox)
+	if      (aix < tox)
 		xmove = 1;
-	else if (th->xloc > tox)
+	else if (aix > tox)
 		xmove = -1;
-	if (!mons_move (th, ymove, xmove, 1))
-		if (!mons_move (th, ymove, 0, 1))
-			if (!mons_move (th, 0, xmove, 1))
-				if (!mons_move (th, -ymove, xmove, 1))
-					if (!mons_move (th, rn(3) - 1, rn(3) - 1, 1))
-						ev_queue (th->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, th->ID}});
+	if (!mons_move (ai, ymove, xmove, 1))
+		if (!mons_move (ai, ymove, 0, 1))
+			if (!mons_move (ai, 0, xmove, 1))
+				ev_queue (ai->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, aiID}});
 	return 1;
-}*/
+}
 

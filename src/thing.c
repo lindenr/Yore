@@ -185,8 +185,8 @@ void thing_free (struct Thing *thing)
 			struct Monster *monst = &thing->thing.mons;
 			if (monst->name && monst->name[0])
 				free (monst->name);
-			if (monst->eating)
-				free (monst->eating);
+			//if (monst->eating)
+			//	free (monst->eating);
 			int i;
 			for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
 			{

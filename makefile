@@ -1,9 +1,13 @@
 C_FILES := $(wildcard src/*.c)
-OBJ_FILES := $(patsubst src/%.c,obj/%.o,$(C_FILES))
-#PRE_FILES := $(patsubst src/%.c,pre/%.c,$(C_FILES))
+H_FILES := $(wildcard include/*.h)
+#OBJ_FILES := $(patsubst src/%.c,obj/%.o,$(C_FILES))
 LD_FLAGS := -lm -Wall -Werror -ggdb -O0
 CC_FLAGS := -I$(CURDIR) -Wall -Werror -ggdb -O0
 
-bin/Yore: $(C_FILES)
+ALL: bin/Yore
+	gdb ./bin/Yore
+
+bin/Yore: $(C_FILES) $(H_FILES)
+	@echo "[36;41m===STARTING BUILD===[0m"
 	gcc -L./bin -o $@ $(C_FILES) $(CC_FLAGS) $(LD_FLAGS) -lSDL
 

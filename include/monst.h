@@ -156,15 +156,30 @@ typedef struct
 	uint32_t exp;				/* exp gained from kill */
 } mtyp;
 
-enum CTRL
+typedef int TID;
+
+typedef enum
 {
-	CTRL_NONE = 0,
-	CTRL_PLAYER,
-	CTRL_AI
+	AI_NONE = 0, /* player control */
+	AI_TIMID,
+	AI_AGGRO
+} AI_MODE;
+
+union AIstate
+{
+	AI_MODE mode;
+	struct
+	{
+		AI_MODE mode;
+	} timid;
+	struct
+	{
+		AI_MODE mode;
+		TID ID;
+	} aggro;
 };
 
 extern const mtyp all_mons[];
-typedef int TID;
 
 struct MStatus
 {
@@ -183,7 +198,7 @@ struct MStatus
 struct Monster
 {
 	uint32_t type;				/* monster type                 */
-	enum CTRL ctrl;             /* AI or human player?          */
+	union AIstate ai;           /* state of the AI (if used)    */
 	int32_t level;				/* EXP level                    */
 	int32_t exp;				/* EXP points                   */
 	int32_t HP, HP_max;			/* current/max HP               */
@@ -193,9 +208,9 @@ struct Monster
 	uint32_t speed, cur_speed;	/* current speed and state      */
 	char *name;					/* label                        */
 	struct Pack pack;			/* inventory                    */
-	struct WoW wearing;			/* stuff wielding/wearing/using */
+	//struct WoW wearing;			/* stuff wielding/wearing/using */
 	struct MStatus status;		/* eating, positioning info etc */
-	struct Item *eating;		/* eating something (0 if not)  */
+	//struct Item *eating;		/* eating something (0 if not)  */
 	uint8_t boxflags;           /* boxes appearing              */
 	Vector skills;              /* available skills             */
 };
@@ -204,16 +219,16 @@ struct Thing;
 /* general monster functions */
 void   mons_attack     (struct Thing *, int, int);         /* attack in direction                      */
 int    mons_move       (struct Thing *, int, int, int);    /* move in given directions                 */
-void   mons_dead       (struct Thing *, struct Thing *);   /* this monster is dead                     */
-int    mons_prhit      (struct Thing *, struct Thing *, int); /* monster hit by a projectile           */
+//void   mons_dead       (struct Thing *, struct Thing *);   /* this monster is dead                     */
+//int    mons_prhit      (struct Thing *, struct Thing *, int); /* monster hit by a projectile           */
 int    mons_take_turn  (struct Thing *);                   /* give a move (AI or player)               */
-bool   mons_unwield    (struct Thing *);                   /* unwield what is currently wielded        */
-bool   mons_wield      (struct Thing *, struct Item *);    /* wield an item (any item)                 */
-void   mons_eat        (struct Thing *, struct Item *);    /* eat something                            */
-bool   mons_eating     (struct Thing *);                   /* continue eating something                */
-bool   mons_can_hear   (struct Thing *);                   /* has ears? no?                            */
-void  *mons_get_weap   (struct Thing *);                   /* what weapon is wielded?                  */
-void   mons_blast      (struct Thing *, struct Thing *, int); /* monster in an explosion               */
+//bool   mons_unwield    (struct Thing *);                   /* unwield what is currently wielded        */
+//bool   mons_wield      (struct Thing *, struct Item *);    /* wield an item (any item)                 */
+//void   mons_eat        (struct Thing *, struct Item *);    /* eat something                            */
+//bool   mons_eating     (struct Thing *);                   /* continue eating something                */
+//bool   mons_can_hear   (struct Thing *);                   /* has ears? no?                            */
+//void  *mons_get_weap   (struct Thing *);                   /* what weapon is wielded?                  */
+//void   mons_blast      (struct Thing *, struct Thing *, int); /* monster in an explosion               */
 void   mons_box        (struct Thing *, BoxType);          /* boxy flags for this turn                 */
 void   mons_usedturn   (struct Thing *);                   /* turn is irretrievably used               */
 int    mons_get_st     (struct Thing *);                   /* get monster strength                     */
@@ -224,10 +239,9 @@ int    mons_isplayer   (struct Thing *);                   /* is controlled by h
 struct Item *player_use_pack (struct Thing *, char *, uint32_t); /* ask player for an item             */
 int    player_gen_type (void);                             /* get a valid monster type for fighting    */
 void   player_dead     (const char *, ...);                /* the player is dead; absolute end of game */
-void   player_exc      (enum ABLTY, uint32_t);             /* exercise ability by a given amount       */
+//void   player_exc      (enum ABLTY, uint32_t);             /* exercise ability by a given amount       */
 int    player_sense    (int, int, int);                    /* can the player sense a square            */
-ityp   find_corpse     (struct Thing *);                   /* gets a corpse type for a given monster   */
-void   custom_free     (void);                             /* frees custom types (now only corpses)    */
+//ityp   find_corpse     (struct Thing *);                   /* gets a corpse type for a given monster   */
 
 /* player_status functions */
 char  *get_hungerstr   (void);                             /* gets player's hunger ("Starved" etc)     */
@@ -235,7 +249,7 @@ bool   digesting       (void);                             /* is the player dige
 void   setup_U         (void);                             /* populate the U struct                    */
 void   get_cinfo       (void);                             /* called at start, gets input from player  */
 
-void   do_attack       (struct Thing *, struct Thing *);   /* applies an attack                        */
+//void   do_attack       (struct Thing *, struct Thing *);   /* applies an attack                        */
 void  *get_sqmons      (Vector *, int, int);               /* returns the monster on a square          */
 SqAttr get_sqattr      (Vector *, int, int);               /* returns the SqAttr of a square           */
 int    can_amove       (int);                              /* returns if a square can be moved on to   */
@@ -243,7 +257,7 @@ char   escape          (unsigned char);                    /* escapes a characte
 
 /* AI functions */
 int    AI_take_turn    (struct Thing *);                   /* decide what to do                        */
-int    AI_Attack       (struct Thing *, int, int);         /* moves a monster towards a given location */
+//int    AI_Attack       (struct Thing *, int, int);         /* moves a monster towards a given location */
 
 #endif /* MONST_H_INCLUDED */
 
