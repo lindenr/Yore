@@ -1,5 +1,5 @@
-#ifndef NEW_EVENT_H_INCLUDED
-#define NEW_EVENT_H_INCLUDED
+#ifndef EVENT_H_INCLUDED
+#define EVENT_H_INCLUDED
 
 #include "include/thing.h"
 
@@ -19,7 +19,8 @@ typedef enum
 	EV_MPICKUP,
 	EV_MDROP,
 	EV_MANGERM,
-	EV_MCALM
+	EV_MCALM,
+	EV_MCHARGE
 } EV_TYPE;
 
 typedef union Event
@@ -98,6 +99,12 @@ typedef union Event
 		EV_TYPE type;
 		TID thID;
 	} mcalm;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+		int ydest, xdest;
+	} mcharge;
 } *Event;
 
 struct QEv
@@ -112,7 +119,6 @@ extern Tick curtick;
 void ev_init  ();
 void ev_loop  ();
 void ev_queue (int udelay, union Event ev);
-//void ev_do    (Event ev);
 
-#endif /* NEW_EVENT_H_INCLUDED */
+#endif /* EVENT_H_INCLUDED */
 

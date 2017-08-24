@@ -230,6 +230,13 @@ void ev_do (Event ev)
 			return;
 		th->thing.mons.ai.mode = AI_TIMID;
 		return;
+	case EV_MCHARGE:
+		thID = ev->mcharge.thID;
+		th = THIID(thID);
+		if (!th)
+			return;
+		ev_queue (th->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, thID}});
+		return;
 	case EV_NONE:
 		return;
 	}

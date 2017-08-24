@@ -24,7 +24,6 @@ int BOXCOL[BOX_NUM][3] = {
 	{255, 90, 50}
 };
 
-//uint32_t bg_colour;
 int forced_refresh = 0;
 
 SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
@@ -346,12 +345,12 @@ void gr_refresh ()
 		}
 	}
 
-	for (x = 0; x < gr_w; ++ x)
+	int gr_c = 0;
+	for (y = 0; y < gr_h; ++ y)
 	{
-		for (y = 0; y < gr_h; ++ y)
+		for (x = 0; x < gr_w; ++ x, ++ gr_c)
 		{
-			int gr_c = gr_buffer (y, x);
-			if ((gr_flags[gr_c]&1) || forced_refresh)
+			if (gr_flags[gr_c] || forced_refresh)
 			{
 				blit_glyph (gr_map[gr_c], y, x);
 				gflags f = gr_flags[gr_c];

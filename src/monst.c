@@ -241,7 +241,6 @@ int mons_take_turn (struct Thing *th)
 
 		in = (char) key;
 
-		//int mv = player_take_input (in);
 		int xmove, ymove;
 		p_move (&ymove, &xmove, (uint32_t) in);
 		if (!(xmove == 0 && ymove == 0))

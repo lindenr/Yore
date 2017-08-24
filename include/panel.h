@@ -22,12 +22,6 @@ struct P_msg
 	char msg[P_MSG_LEN];
 };
 
-//int  sb_buffer (int, int);
-//void sb_baddch (int, glyph);
-//void sb_mvaddch(int, int, glyph);
-//void sb_mvprint(int, int, char *, ...);
-//void p_sidebar (int);
-
 void p_init    ();
 void p_pane    (struct Thing *);
 //void p_panel   (int);
@@ -44,9 +38,9 @@ enum PanelType
 	P_SKILLS
 };
 
-int  p_status  (enum PanelType);
-int  p_skills  (enum PanelType);
-void p_mvchoose(struct Thing *, int *, int *, const char *, const char *, int);
+int  p_status   (struct Thing *, enum PanelType);
+int  p_skills   (struct Thing *, enum PanelType);
+void p_mvchoose (struct Thing *, int *, int *, const char *, const char *, int);
 uint32_t p_move (int *, int *, uint32_t);
 
 extern int p_width, p_height

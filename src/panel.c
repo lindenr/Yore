@@ -40,8 +40,8 @@ void p_pane (struct Thing *player)
 	/* TODO health bar in its own graph
 	for (i = 0; i < max; ++ i)
 	{
-		int curHP = (pmons.HP_max*i)/max;
-		if (curHP > pmons.HP)
+		int curHP = (player->thing.mons.HP_max*i)/max;
+		if (curHP > player->thing.mons.HP)
 		{
 			txt_mvaddch (max - i - 1, txt_w - 1, ' ');
 			continue;
@@ -54,8 +54,8 @@ void p_pane (struct Thing *player)
 
 	/*for (i = 0; i < max; ++ i)
 	{
-		int curXP = ((level_sum[pmons.level+1] - level_sum[pmons.level])*i)/max;
-		if (curXP + level_sum[pmons.level] >= pmons.exp || i == max-1)
+		int curXP = ((level_sum[player->thing.mons.level+1] - level_sum[player->thing.mons.level])*i)/max;
+		if (curXP + level_sum[player->thing.mons.level] >= player->thing.mons.exp || i == max-1)
 			txt_mvaddch (max - i - 1, txt_w - 2, ' ');
 		else
 			txt_mvaddch (max - i - 1, txt_w - 2, COL_BG_BLUE(10) | ' ');
@@ -93,25 +93,6 @@ skip1:
 skip2:
 	;
 }
-
-/*void sb_baddch (int buf, glyph gl)
-{
-	sidebar[buf] = gl;
-}
-
-void sb_mvaddch (int yloc, int xloc, glyph gl)
-{
-	sb_baddch (sb_buffer (yloc, xloc), gl);
-}
-
-void sb_mvprint (int yloc, int xloc, char *str, ...)
-{
-}
-
-int sb_buffer (int yloc, int xloc)
-{
-	return sb_width*yloc + xloc;
-}*/
 
 void p_init ()
 {
@@ -193,10 +174,11 @@ char p_lines (Vector lines)
 // status screen stuff
 // ideally want to be able to access skills etc from the status window
 
-Graph sc_status = NULL, sc_skills = NULL;
-int p_status (enum PanelType type)
+Graph sc_status = NULL;
+int p_status (struct Thing *player, enum PanelType type)
 {
-	/*int h = 20, w = 81;
+	struct Monster *pmons = &player->thing.mons;
+	int h = 20, w = 81;
 	int y = (gr_h - h)/2 - 10, x = (gr_w - w)/2;
 	sc_status = gra_init (h, w, y, x, h, w);
 	sc_status->def = COL_STATUS;
@@ -210,23 +192,22 @@ int p_status (enum PanelType type)
 
 	switch (type)
 	{
-		case P_STATUS:
-			break;
-		case P_SKILLS:
+		int ret;
+	case P_STATUS:
+		break;
+	case P_SKILLS:
+		ret = p_skills (player, type);
+		if (ret > 0)
 		{
-			int ret = p_skills (type);
-			if (ret > 0)
-			{
-				gra_free (sc_status);
-				return ret;
-			}
-			else if (ret == -1)
-			{
-				gra_free (sc_status);
-				return 0;
-			}
-			break;
+			gra_free (sc_status);
+			return ret;
 		}
+		else if (ret == -1)
+		{
+			gra_free (sc_status);
+			return 0;
+		}
+		break;
 	}
 
 	while (1)
@@ -236,7 +217,7 @@ int p_status (enum PanelType type)
 			break;
 		if (in == 's')
 		{
-			int ret = p_skills (type);
+			int ret = p_skills (player, type);
 			if (ret > 0)
 			{
 				gra_free (sc_status);
@@ -249,42 +230,36 @@ int p_status (enum PanelType type)
 			}
 		}
 	}
-	gra_free (sc_status);*/
+	gra_free (sc_status);
 	return 0;
 }
 
-int p_skills (enum PanelType type)
+Graph sc_skills = NULL;
+int p_skills (struct Thing *player, enum PanelType type)
 {
-	/*int y, x; 
-	pl_mvchoose (&y, &x, "Charge where?", NULL, 1);
-	if (y == -1)
-		return 0;
-	sk_charge (player, y, x);
-	return 1;*/
-	/*int h = 10, w = 41;
+	int h = 10, w = 41;
 	int y = (gr_h - h)/2, x = (gr_w - w)/2;
+	Vector pskills = player->thing.mons.skills;
+
 	sc_skills = gra_init (h, w, y, x, h, w);
 	sc_skills->def = COL_SKILLS;
+
 	gra_fbox (sc_skills, 0, 0, h-1, w-1, ' ');
-	gra_cprint (sc_skills, 2, "SKILLS");
-	gra_cprint (sc_skills, 3, "(enter to inspect; letter to use)");
 	gra_mvprint (sc_skills, 0, w-5, "(Esc)");
-	if (pmons.skills->len == 0)
-	{
-		gra_cprint (sc_skills, 4, "(no skills available)");
-		while (gr_getch() != CH_ESC) {}
-		gra_free (sc_skills);
-		return 0;
-	}
+	gra_cprint (sc_skills, 2, "SKILLS");
+	if (pskills->len == 0)
+		gra_cprint (sc_skills, 3, "(no skills available)");
+	else
+		gra_cprint (sc_skills, 3, "(enter to inspect; letter to use)");
 	
 	int i, selected = 0;
 	int j;
 	while (1)
 	{
 		char letter = 'a';
-		for (i = 0; i < pmons.skills->len; ++ i)
+		for (i = 0; i < pskills->len; ++ i)
 		{
-			Skill sk = v_at (pmons.skills, i);
+			Skill sk = v_at (pskills, i);
 			int row = 4+i;
 			if (sk_isact (sk))
 				gra_cprint (sc_skills, row, "%c - %s %d:%d", letter, sk_name(sk), sk->level, sk->exp);
@@ -292,10 +267,10 @@ int p_skills (enum PanelType type)
 				gra_cprint (sc_skills, row, "%s %d:%d", sk_name(sk), sk->level, sk->exp);
 			++ letter;
 		}
-		for (j = 1; j < w-1; ++ j)
+		if (pskills->len) for (j = 1; j < w-1; ++ j)
 			gra_invert (sc_skills, 4+selected, j);
 		char in = gr_getch();
-		for (j = 1; j < w-1; ++ j)
+		if (pskills->len) for (j = 1; j < w-1; ++ j)
 			gra_invert (sc_skills, 4+selected, j);
 		if (in == CH_ESC)
 		{
@@ -307,13 +282,15 @@ int p_skills (enum PanelType type)
 			gra_free (sc_skills);
 			return 0;
 		}
+		else if (pskills->len == 0)
+			continue;
 		else if (in == GRK_UP && selected > 0)
 			-- selected;
-		else if (in == GRK_DN && selected < pmons.skills->len-1)
+		else if (in == GRK_DN && selected < pskills->len-1)
 			++ selected;
 		else if (in == CH_LF || in == CH_CR)
 		{
-			Skill sk = v_at (pmons.skills, selected);
+			Skill sk = v_at (pskills, selected);
 			Vector lines = w_lines (sk_desc(sk), MAX_BOX_LENGTH);
 			p_lines (lines);
 			v_free (lines);
@@ -321,35 +298,34 @@ int p_skills (enum PanelType type)
 		else if (in >= 'a' && in < letter)
 		{
 			int n = in - 'a';
-			Skill sk = v_at (pmons.skills, n);
+			int yloc, xloc;
+			Skill sk = v_at (pskills, n);
 			switch (sk->type)
 			{
-				case SK_NONE:
-					break;
-				case SK_CHARGE:
+			case SK_NONE:
+				break;
+			case SK_CHARGE:
+				gra_hide (sc_status);
+				gra_hide (sc_skills);
+				p_mvchoose (player, &yloc, &xloc, "Charge where?", NULL, 1);
+				if (yloc == -1)
 				{
-					int yloc, xloc;
-					gra_hide (sc_status);
-					gra_hide (sc_skills);
-					p_mvchoose (&yloc, &xloc, "Charge where?", NULL, 1);
-					if (yloc == -1)
-					{
-						gra_show (sc_status);
-						gra_show (sc_skills);
-						continue;
-					}
-					gra_free (sc_skills);
-					sk_charge (player, yloc, xloc, v_at (pmons.skills, selected));
-					return 1;
+					gra_show (sc_status);
+					gra_show (sc_skills);
+					continue;
 				}
-				case SK_DODGE:
-					break;
-				case SK_NUM:
-					break;
+				gra_free (sc_skills);
+				ev_queue (0, (union Event) { .mcharge = {EV_MCHARGE, player->ID, yloc, xloc}});
+				//sk_charge (player, yloc, xloc, v_at (pskills, selected));
+				return 1;
+			case SK_DODGE:
+				break;
+			case SK_NUM:
+				break;
 			}
 		}
 	}
-	gra_free (sc_skills);*/
+	gra_free (sc_skills);
 	return 0;
 }
 

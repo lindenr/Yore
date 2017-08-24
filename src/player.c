@@ -35,15 +35,15 @@ int Kcamrt (struct Thing *player)
 	return 0;
 }
 
-/*int Kstatus (struct Thing *player)
+int Kstatus (struct Thing *player)
 {
-	return p_status (P_STATUS);
+	return p_status (player, P_STATUS);
 }
 
 int Kskills (struct Thing *player)
 {
-	return p_status (P_SKILLS);
-}*/
+	return p_status (player, P_SKILLS);
+}
 
 int Kwait (struct Thing *player)
 {
@@ -241,8 +241,8 @@ struct KStruct Keys[] = {
 	{GRK_DN, &Kcamdn},
 	{GRK_LF, &Kcamlf},
 	{GRK_RT, &Kcamrt},
-//	{CH_ESC, &Kstatus},
-//	{'s', &Kskills},
+	{CH_ESC, &Kstatus},
+	{'s', &Kskills},
 	{'.', &Kwait},
 	{',', &Kpickup},
 //	{'e', &Keat},
