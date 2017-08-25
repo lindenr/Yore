@@ -126,11 +126,7 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 	int start, end;
 	Vector *things = lvl->things;
 
-	if (type == LEVEL_MINES)
-	{
-		/* TODO */
-	}
-	else if (type == LEVEL_NORMAL)
+	if (type == LEVEL_NORMAL)
 	{
 		int i, y, x;
 
@@ -166,6 +162,9 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 			new_thing (THING_ITEM, lvl, y, x, item);
 			free (item);
 		}
+	}
+	else if (type == LEVEL_TOWN)
+	{
 	}
 	else if (type == LEVEL_MAZE)
 	{
@@ -216,7 +215,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		m1.name = "Thing 1";
 		m1.skills = v_dinit (sizeof(struct Skill));
 		m1.speed = all_mons[m1.type].speed;
-		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
 		struct Thing *t1 = new_thing (THING_MONS, lvl, upsy, upsx, &m1);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, t1->ID}});

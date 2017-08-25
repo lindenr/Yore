@@ -81,7 +81,6 @@ int main (int argc, char *argv[])
 	gra_mvprint (introbox, 2,  2, "Welcome to Yore v"YORE_VERSION);
 	gra_mvprint (introbox, 3, 10, "* A game guide is not yet in place.");
 	gra_mvprint (introbox, 4, 10, "* A wiki is not yet in place.");
-	mons_gen (cur_dlevel, 0, 15150);
 
 	gra_mvprint (introbox, 8, 6, "Who are you? ");
 
@@ -109,7 +108,8 @@ int main (int argc, char *argv[])
 		goto quit_game;
 
 	generate_map (dlv_lvl (1), LEVEL_NORMAL);
-	generate_map (dlv_lvl (2), LEVEL_NORMAL);
+	mons_gen (cur_dlevel, 0, 15150);
+	//generate_map (dlv_lvl (2), LEVEL_NORMAL);
 
 	//gra_centcam (map_graph, player->yloc, player->xloc);
 	map_graph->vis = 1;

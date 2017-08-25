@@ -110,6 +110,7 @@ void ev_do (Event ev)
 		if (!to)
 			return;
 		toID = to->ID;
+		p_msg ("The %s hits the %s!", all_mons[fr->thing.mons.type].name, all_mons[to->thing.mons.type].name);
 		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}});
 		if (!to->thing.mons.status.evading)
 			to->thing.mons.HP -= 3;
@@ -122,6 +123,7 @@ void ev_do (Event ev)
 	case EV_MKILLM:
 		//printf("mkillm\n");
 		fr = THIID(ev->mkillm.frID); to = THIID(ev->mkillm.toID);
+		p_msg ("The %s kills the %s!", all_mons[fr->thing.mons.type].name, all_mons[to->thing.mons.type].name);
 		if (mons_isplayer(to))
 		{
 			p_msg ("You die...");
@@ -220,6 +222,8 @@ void ev_do (Event ev)
 			return;
 		if (to->thing.mons.ai.mode == AI_NONE)
 			return;
+		// TODO only show once
+		p_msg ("The %s angers the %s!", all_mons[fr->thing.mons.type].name, all_mons[to->thing.mons.type].name);
 		to->thing.mons.ai.mode = AI_AGGRO;
 		to->thing.mons.ai.aggro.ID = frID;
 		return;
@@ -228,6 +232,7 @@ void ev_do (Event ev)
 		th = THIID(thID);
 		if (!th)
 			return;
+		p_msg ("The %s calms.", all_mons[th->thing.mons.type].name);
 		th->thing.mons.ai.mode = AI_TIMID;
 		return;
 	case EV_MCHARGE:

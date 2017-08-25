@@ -44,20 +44,20 @@ struct Thing
 /* see dlevel.h */
 struct DLevel;
 
-void thing_free            (struct Thing *);
-void rem_id                (int);
+void          thing_free     (struct Thing *);
+void          rem_id         (int);
 
-struct Thing *new_thing    (uint32_t, struct DLevel *, uint32_t, uint32_t, void *);
+struct Thing *new_thing      (uint32_t, struct DLevel *, uint32_t, uint32_t, void *);
 
-void draw_map              (struct Thing *);
+void          draw_map       (struct Thing *);
 
-int get_thing_type         (char);
-const char *get_thing_name (struct Thing);
+int           get_thing_type (char);
+const char *  get_thing_name (struct Thing);
 
-void thing_move            (struct Thing *, int, int, int);
-void thing_bmove           (struct Thing *, int, int);
+void          thing_move     (struct Thing *, int, int, int);
+void          thing_bmove    (struct Thing *, int, int);
 
-TID  getID                  ();
+TID  getID                   ();
 
 //void projectile            (struct Thing *, char *, int, int);
 //int  pr_at                 (struct DLevel *, int, int);

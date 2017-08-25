@@ -69,13 +69,13 @@ int can_amove (int attr)
 
 struct map_item_struct map_items[] = {
 	MAPITEM("lit space", ACS_BULLET, M_TSPT, 0),
-	MAPITEM("wall", ACS_WALL, M_OPQ, 0),
-	MAPITEM("downstair", '>', M_TSPT, 0),
-	MAPITEM("upstair", '<', M_TSPT, 0),
-	MAPITEM("tree", '+', M_OPQ, 0),
-	MAPITEM("flower", '*', M_TSPT, 0),
-	MAPITEM("corridor", '#', M_TSPT, 0),
-	MAPITEM("_end_", '\0', M_OPQ, 0)
+	MAPITEM("wall",      ACS_WALL,   M_OPQ,  0),
+	MAPITEM("downstair", '>',        M_TSPT, 0),
+	MAPITEM("upstair",   '<',        M_TSPT, 0),
+	MAPITEM("tree",      '+',        M_OPQ,  0),
+	MAPITEM("flower",    '*',        M_TSPT, 0),
+	MAPITEM("corridor",  '#',        M_TSPT, 0),
+	MAPITEM("_end_",     '\0',       M_OPQ,  0)
 };
 
 int GETMAPITEMID(char i)

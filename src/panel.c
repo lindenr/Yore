@@ -61,7 +61,7 @@ void p_pane (struct Thing *player)
 			txt_mvaddch (max - i - 1, txt_w - 2, COL_BG_BLUE(10) | ' ');
 	}*/
 
-	gra_mvprint (gpan, 1, 1, "T %lu", curtick);
+	gra_mvprint (gpan, 1, 1, "T %lu", curtick/1000);
 
 	struct Monster *pmons = &player->thing.mons;
 	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (pmons->name, 20));
