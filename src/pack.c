@@ -28,23 +28,23 @@ char LETTER_AT(unsigned i)
 
 int item_type_flags (struct Item *item, uint32_t accepted)
 {
-	switch (item->type.ch)
+	switch (item->type.gl & 0xFF)
 	{
-		case ITEM_WEAPON:
+		case ITCH_WEAPON:
 			return (accepted & ITCAT_WEAPON);
-		case ITEM_TOOL:
+		case ITCH_TOOL:
 			return (accepted & ITCAT_TOOL);
-		case ITEM_STRANGE:
+		case ITCH_STRANGE:
 			return (accepted & ITCAT_STRANGE);
-		case ITEM_ARMOUR:
+		case ITCH_ARMOUR:
 			return (accepted & ITCAT_ARMOUR);
-		case ITEM_FOOD:
+		case ITCH_FOOD:
 			return (accepted & ITCAT_FOOD);
-		case ITEM_DOSH:
+		case ITCH_DOSH:
 			return (accepted & ITCAT_DOSH);
-		case ITEM_CHARM:
+		case ITCH_CHARM:
 			return (accepted & ITCAT_CHARM);
-		case ITEM_JEWEL:
+		case ITCH_JEWEL:
 			return (accepted & ITCAT_JEWEL);
 	}
 	panic ("item_type_flags() found a strange item type.");

@@ -75,7 +75,23 @@ void gra_centcam (Graph gra, int yloc, int xloc)
 void gra_baddch (Graph gra, int buf, glyph gl)
 {
 	if (gra->data[buf] == gl) return;
-	if (gl > 0 && gl < 256) gl |= gra->def;
+	if (gl > 0 && gl < 256)   gl |= gra->def;
+	gra->data[buf] = gl;
+	gra->flags[buf] |= 1;
+	if (gl == 0)
+	{
+		int gra_y = buf/gra->w, gra_x = buf%gra->w;
+		int gr_y = gra_y - gra->cy + gra->vy, gr_x = gra_x - gra->cx + gra->vx;
+		int gr_c = gr_buffer (gr_y, gr_x);
+		gr_flags[gr_c] |= 1;
+	}
+}
+
+void gra_bgaddch (Graph gra, int buf, glyph gl)
+{
+	if (gra->data[buf] == gl) return;
+	if (gl > 0 && gl < 256)   gl |= gra->def;
+	if ((gl&COL_BG) == 0)     gl |= gra->data[buf] & COL_BG;
 	gra->data[buf] = gl;
 	gra->flags[buf] |= 1;
 	if (gl == 0)

@@ -3,19 +3,20 @@
 
 #include "include/thing.h"
 
-enum ITEM_TYPE
+enum ITYP
 {
-	IT_NONE = 0,				/* placeholder - always useful */
-	IT_LONGSWORD,
-	IT_AXE,
-	IT_DAGGER,
-	IT_SHORTSWORD,
-	IT_CHEST,
-	IT_GLOVES,
-	IT_CORPSE,
-	IT_MONEY,
-	IT_CHARM,
-	IT_JEWEL
+	ITYP_NONE = 0,				/* placeholder - always useful */
+	ITYP_LONGSWORD,
+	ITYP_AXE,
+	ITYP_DAGGER,
+	ITYP_SHORTSWORD,
+	ITYP_CHEST,
+	ITYP_GLOVES,
+	ITYP_CORPSE,
+	ITYP_EGG,
+	ITYP_MONEY,
+	ITYP_CHARM,
+	ITYP_JEWEL
 };
 
 /* BUC status */
@@ -33,15 +34,16 @@ enum ITEM_TYPE
 /* wielded */
 #define ITEM_WIELDED 0x00000100
 
-#define ITEM_WEAPON  ')'
-#define ITEM_TOOL    '('
-#define ITEM_STRANGE ']'
-#define ITEM_ARMOUR  '['
-#define ITEM_FOOD    '%'
-#define ITEM_DOSH    '$'
-#define ITEM_CORPSE  ITEM_FOOD
-#define ITEM_CHARM   '='
-#define ITEM_JEWEL    7
+#define ITCH_WEAPON  ')'
+#define ITCH_TOOL    '('
+#define ITCH_STRANGE ']'
+#define ITCH_ARMOUR  '['
+#define ITCH_FOOD    '%'
+#define ITCH_CORPSE  ITCH_FOOD
+#define ITCH_DOSH    '$'
+#define ITCH_CORPSE  ITCH_FOOD
+#define ITCH_CHARM   '='
+#define ITCH_JEWEL    7
 
 #define ITCAT_DOSH    0x0001
 #define ITCAT_WEAPON  0x0002
@@ -61,11 +63,10 @@ enum ITEM_TYPE
 typedef struct
 {
 	char name[ITEM_NAME_LENGTH];/* name of that type of item */
-	char ch;					/* for the display */
-	enum ITEM_TYPE type;
+	enum ITYP type;             /* type */
 	uint32_t wt;				/* weight */
 	uint32_t attr;				/* can be used for damage (weapons) (8 bits) */
-	uint32_t col;
+	glyph gl;					/* for the display */
 } ityp;
 
 /* an actual physical item */

@@ -17,29 +17,22 @@
    5000g or so */
 
 int NUM_ITEMS;
-#define ITEM(nm,ch,tp,wt,attr,col) {nm,ch,tp,wt,attr,col}
+#define ITEM(nm,tp,wt,attr,gl) {nm,tp,wt,attr,gl}
 #define DMG(a,b) (((a)<<4)+(b))
 
 /* No corpse -- they are a custom item (see src/monst.c). */
 ityp items[] = {
-	/* item name             display         type     weight  attributes           colour */
-	ITEM("long sword",     ITEM_WEAPON, IT_LONGSWORD,  2000,  DMG(1, 5),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)),
-	ITEM("fencing sword",  ITEM_WEAPON, IT_LONGSWORD,  1500,  DMG(1, 5),  COL_TXT_RED(11)   | COL_TXT_BLUE(11) ),
-	ITEM("axe",            ITEM_WEAPON, IT_AXE,        3000,  DMG(1, 4),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)),
-	ITEM("battle-axe",     ITEM_WEAPON, IT_AXE,        5000,  DMG(5, 7),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)),
-	ITEM("dagger",         ITEM_WEAPON, IT_DAGGER,     100,   DMG(1, 3),  COL_TXT_GREEN(11)                    ),
-	ITEM("short sword",    ITEM_WEAPON, IT_SHORTSWORD, 2000,  DMG(1, 4),  COL_TXT_RED(11)   | COL_TXT_GREEN(11)),
-	ITEM("gloves",         ITEM_ARMOUR, IT_GLOVES,     70,    0,          COL_TXT_GREEN(11)                    ),
-	ITEM("gold piece",     ITEM_DOSH,   IT_MONEY,      1,     0,          COL_TXT_RED(15)   | COL_TXT_GREEN(15)),
-/*	ITEM("water charm",    ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(11)                     ),
-	ITEM("air charm",      ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_GREEN(15)                    ),
-	ITEM("fire charm",     ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_RED(15)                      ),
-	ITEM("volt charm",     ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(15)  | COL_TXT_RED(15)  ),
-	ITEM("ice charm",      ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_BLUE(15)                     ),
-	ITEM("earth charm",    ITEM_CHARM,  IT_CHARM,      100,   0,          COL_TXT_GREEN(11) | COL_TXT_RED(11)  ),
-	ITEM("jewel",          ITEM_JEWEL,  IT_JEWEL,      100,   0,          COL_TXT_BRIGHT                       ),*/
-	ITEM("",               0,           0,             0,     0,          0                                    )
-	/* item name             display         type     weight  attributes           colour */
+/*  item name              type            weight  attributes  display                             */
+	ITEM("long sword",     ITYP_LONGSWORD,  2000,  DMG(1, 5),  ITCH_WEAPON | COL_TXT_RGB(11,11, 0)),
+	ITEM("fencing sword",  ITYP_LONGSWORD,  1500,  DMG(1, 5),  ITCH_WEAPON | COL_TXT_RGB(11, 0,11)),
+	ITEM("axe",            ITYP_AXE,        3000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT_RGB(11,11, 0)),
+	ITEM("battle-axe",     ITYP_AXE,        5000,  DMG(5, 7),  ITCH_WEAPON | COL_TXT_RGB(11,11, 0)),
+	ITEM("dagger",         ITYP_DAGGER,     100,   DMG(1, 3),  ITCH_WEAPON | COL_TXT_RGB( 0,11, 0)),
+	ITEM("short sword",    ITYP_SHORTSWORD, 2000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT_RGB(11, 8, 0)),
+	ITEM("gloves",         ITYP_GLOVES,     70,    0,          ITCH_ARMOUR | COL_TXT_RGB( 0,11, 0)),
+	ITEM("gold piece",     ITYP_MONEY,      1,     0,          ITCH_DOSH   | COL_TXT_RGB(15,15, 0)),
+	ITEM("",               ITYP_NONE,       0,     0,          0                                  )
+/*  item name              type            weight  attributes  display                             */
 };
 
 void ask_items (Vector it_out, Vector it_in, const char *msg)

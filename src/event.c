@@ -123,6 +123,8 @@ void ev_do (Event ev)
 	case EV_MKILLM:
 		//printf("mkillm\n");
 		fr = THIID(ev->mkillm.frID); to = THIID(ev->mkillm.toID);
+		if ((!fr) || (!to))
+			return;
 		p_msg ("The %s kills the %s!", all_mons[fr->thing.mons.type].name, all_mons[to->thing.mons.type].name);
 		if (mons_isplayer(to))
 		{
@@ -137,7 +139,23 @@ void ev_do (Event ev)
 				U.playing = PLAYER_WONGAME;
 		}*/
 		fr->thing.mons.exp += all_mons[to->thing.mons.type].exp;
-		rem_id (ev->mkillm.toID);
+		ev_queue (0, (union Event) { .mcorpse = {EV_MCORPSE, ev->mkillm.toID}});
+		return;
+	case EV_MCORPSE:
+		th = THIID(ev->mcorpse.thID);
+		if (!th)
+			return;
+
+		/* add corpse */
+		struct Item corpse;
+		mons_corpse (th, &corpse.type);
+		corpse.attr = 0;
+		corpse.name = NULL;
+		corpse.cur_weight = 0;
+		new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, &corpse);
+
+		/* remove dead monster */
+		rem_id (th->ID);
 		return;
 	case EV_MTURN:
 		//printf("mturn\n");

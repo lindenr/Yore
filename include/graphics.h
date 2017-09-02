@@ -83,6 +83,7 @@ void gra_invert   (Graph, int, int);
 void gra_addch    (Graph, glyph);
 void gra_mvaddch  (Graph, int, int, glyph);
 void gra_baddch   (Graph, int, glyph);
+void gra_bgaddch  (Graph, int, glyph);
 
 void gra_box      (Graph, int, int, int, int);
 void gra_dbox     (Graph, int, int, int, int);
@@ -150,7 +151,7 @@ void gr_resize    (int, int);
 #define ACS_BTEE     0xC1
 #define ACS_PLUS     0xC5
 
-/* doulbe-line graphics */
+/* double-line graphics */
 #define DCS_VLINE    0xBA
 #define DCS_HLINE    0xCD
 #define DCS_ULCORNER 0xC9
@@ -163,17 +164,23 @@ void gr_resize    (int, int);
 #define DCS_BTEE     0xCA
 #define DCS_PLUS     0xCE
 
-/* Colours. 0 <= n < 16 */
-#define COL_TXT_RED(n)   ((n) << 28)
-#define COL_TXT_GREEN(n) ((n) << 24)
-#define COL_TXT_BLUE(n)  ((n) << 20)
+/* Colours, 0 <= n < 16 */
+#define COL_TXT_RED(n)     ((n) << 28)
+#define COL_TXT_GREEN(n)   ((n) << 24)
+#define COL_TXT_BLUE(n)    ((n) << 20)
+#define COL_TXT_RGB(r,g,b) (COL_TXT_RED(r)|COL_TXT_GREEN(g)|COL_TXT_BLUE(b))
 #define COL_BG_RED(n)    ((n) << 16)
 #define COL_BG_GREEN(n)  ((n) << 12)
 #define COL_BG_BLUE(n)   ((n) <<  8)
+#define COL_BG_RGB(r,g,b) (COL_BG_RED(r)|COL_BG_GREEN(g)|COL_BG_BLUE(b))
 
 /* Common colours */
 #define COL_TXT_DEF    0xBBB00000
 #define COL_TXT_BRIGHT 0xFFF00000
+
+/* Bitmasks */
+#define COL_TXT        0xFFF00000
+#define COL_BG         0x000FFF00
 
 #endif /* GRAPHICS_H_INCLUDED */
 

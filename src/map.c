@@ -65,27 +65,19 @@ int can_amove (int attr)
 	return (attr & MAP_MOVEABLE);
 }
 
-#define MAPITEM(nm,ch,at,cl) {nm,ch,at}
+#define MAPITEM(nm,gl,at) {nm,gl,at}
 
 struct map_item_struct map_items[] = {
-	MAPITEM("lit space", ACS_BULLET, M_TSPT, 0),
-	MAPITEM("wall",      ACS_WALL,   M_OPQ,  0),
-	MAPITEM("downstair", '>',        M_TSPT, 0),
-	MAPITEM("upstair",   '<',        M_TSPT, 0),
-	MAPITEM("tree",      '+',        M_OPQ,  0),
-	MAPITEM("flower",    '*',        M_TSPT, 0),
-	MAPITEM("corridor",  '#',        M_TSPT, 0),
-	MAPITEM("_end_",     '\0',       M_OPQ,  0)
+	MAPITEM("lit space", ACS_BULLET, M_TSPT),
+	MAPITEM("grass",     ACS_BULLET|COL_BG_RGB(0,5,0)|COL_TXT_DEF, M_TSPT),
+	MAPITEM("grass",     ACS_BULLET|COL_BG_RGB(1,6,0)|COL_TXT_DEF, M_TSPT),
+	MAPITEM("wall",      ACS_WALL,   M_OPQ),
+	MAPITEM("downstair", '>',        M_TSPT),
+	MAPITEM("upstair",   '<',        M_TSPT),
+	MAPITEM("tree",      5|COL_TXT_RGB(2,1,0)|COL_BG_RGB(0,0,0),        M_TSPT),
+	MAPITEM("flower",    '*'|COL_TXT_RGB(0,8,15),        M_TSPT),
+	MAPITEM("flower",    '*'|COL_TXT_RGB(12,12,3),        M_TSPT),
+	MAPITEM("corridor",  '#',        M_TSPT),
+	MAPITEM("_end_",     '\0',       M_OPQ)
 };
 
-int GETMAPITEMID(char i)
-{
-	int n;
-
-	for (n = 0; map_items[n].ch != '\0'; ++n)
-	{
-		if (map_items[n].ch == i)
-			return n;
-	}
-	return n;
-}

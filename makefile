@@ -7,6 +7,9 @@ CC_FLAGS := -I$(CURDIR) -Wall -Werror -ggdb -O0
 ALL: bin/Yore
 	gdb ./bin/Yore
 
+g: bin/Yore
+	./bin/Yore gen
+
 bin/Yore: $(C_FILES) $(H_FILES)
 	@echo "[36;41m===STARTING BUILD===[0m"
 	gcc -L./bin -o $@ $(C_FILES) $(CC_FLAGS) $(LD_FLAGS) -lSDL

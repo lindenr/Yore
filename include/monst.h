@@ -45,6 +45,7 @@ typedef uint64_t Tick;
 enum MTYPES
 {
 	MTYP_CHICKEN = 0,
+	MTYP_TIGER,
 	MTYP_CRAB,
 	MTYP_GNOME,
 	MTYP_HUMAN,
@@ -234,6 +235,7 @@ void   mons_usedturn   (struct Thing *);                   /* turn is irretrieva
 int    mons_get_st     (struct Thing *);                   /* get monster strength                     */
 Tick   mons_tregen     (struct Thing *);                   /* time between regen events                */
 int    mons_isplayer   (struct Thing *);                   /* is controlled by human                   */
+void   mons_corpse     (struct Thing *, ityp *);           /* make itype corpse type of the monster    */
 
 /* player functions */
 struct Item *player_use_pack (struct Thing *, char *, uint32_t); /* ask player for an item             */

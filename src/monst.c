@@ -114,17 +114,16 @@ int mons_get_wt (int type)
 	return CORPSE_WEIGHTS[all_mons[type].flags >> 29];
 }
 
-void make_corpse (ityp *typ, struct Thing *th)
+void mons_corpse (struct Thing *th, ityp *typ)
 {
 	int type = th->thing.mons.type;
 
 	/* fill in the data */
 	snprintf (typ->name, ITEM_NAME_LENGTH, "%s corpse", all_mons[type].name);
-	typ->ch   = ITEM_FOOD;
-	typ->type = IT_CORPSE;
+	typ->type = ITYP_CORPSE;
 	typ->wt   = mons_get_wt(type);
 	typ->attr = type << 8;
-	typ->col  = all_mons[type].col;
+	typ->gl   = ITCH_CORPSE | all_mons[type].col;
 }
 
 /*void mons_attack (struct Thing *th, int y, int x) / * each either -1, 0 or 1 * /
@@ -267,37 +266,6 @@ int mons_take_turn (struct Thing *th)
 	return true;
 }
 
-/*void mons_dead (struct Thing *from, struct Thing *to)
-{
-	if (mons_isplayer(to))
-	{
-		player_dead("");
-		return;
-	}
-
-	if (!from)
-		goto skip1;
-	event_mkill (from, to);
-	if (from == player)
-	{
-		if (to->thing.mons.type == MTYP_SATAN)
-			U.playing = PLAYER_WONGAME;
-		pmons.exp += all_mons[to->thing.mons.type].exp;
-		//update_level (from);
-	}
-skip1:;
-	/ * add corpse * /
-	struct Item corpse;
-	make_corpse (&corpse.type, to);
-	corpse.attr = 0;
-	corpse.name = NULL;
-	corpse.cur_weight = 0;
-	new_thing (THING_ITEM, dlv_lvl (to->dlevel), to->yloc, to->xloc, &corpse);
-
-	/ * remove dead monster * /
-	rem_id (to->ID);
-}*/
-
 /*int mons_prhit (struct Thing *from, struct Thing *to, int energy) // ACTION
 {
 	to->thing.mons.HP -= energy/2;
@@ -309,7 +277,7 @@ skip1:;
 /* TODO is it polymorphed? */
 bool mons_edible (struct Thing *th, struct Item *item)
 {
-	return (item->type.ch == ITEM_FOOD);
+	return ((item->type.gl & 0xFF) == ITCH_FOOD);
 }
 /*
 bool mons_eating (struct Thing *th) // ACTION
@@ -400,7 +368,7 @@ bool mons_wield (struct Thing *th, struct Item *it)
 
 bool mons_wear (struct Thing *th, struct Item *it)
 {
-	if (it->type.ch != ITEM_ARMOUR)
+	if (it->type.ch != ITCH_ARMOUR)
 	{
 		if (mons_isplayer(th))
 		{
@@ -411,7 +379,7 @@ bool mons_wear (struct Thing *th, struct Item *it)
 
 	switch (it->type.type)
 	{
-		case IT_GLOVES:
+		case ITYP_GLOVES:
 		{
 			th->thing.mons.wearing.hands = it;
 			break;
@@ -606,7 +574,12 @@ int AI_take_turn (struct Thing *ai)
 	TID aiID = ai->ID;
 	if (ai->thing.mons.ai.mode == AI_TIMID)
 	{
-		if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
+		int y = rn(3)-1, x = rn(3)-1;
+		int can = can_amove (get_sqattr (dlv_things(ai->dlevel), ai->yloc + y, ai->xloc + x));
+		if (can == 1)
+			mons_move (ai, y, x, 1);
+		//else if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
+		else
 			ev_queue (ai->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, aiID}});
 		return 1;
 	}

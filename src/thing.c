@@ -194,7 +194,8 @@ void thing_free (struct Thing *thing)
 			}
 			break;
 		}
-		default:
+		case THING_DGN:
+		case THING_NONE:
 			break;
 	}
 }
@@ -324,7 +325,7 @@ void draw_map (struct Thing *player)
 				struct Monster *m = &th->thing.mons;
 				gra_bsetbox (map_graph, at, m->boxflags);
 				changed = true;
-				gra_baddch (map_graph, at, all_mons[m->type].col | all_mons[m->type].ch);
+				gra_bgaddch (map_graph, at, all_mons[m->type].col | all_mons[m->type].ch);
 				map_graph->flags[at] |= 1 | (1<<12) | ((1+m->status.moving.ydir)*3    + 1+m->status.moving.xdir)   <<8;
 				map_graph->flags[at] |= 1 | (1<<17) | ((1+m->status.attacking.ydir)*3 + 1+m->status.attacking.xdir)<<13;
 				if (m->name)
@@ -341,7 +342,7 @@ void draw_map (struct Thing *player)
 				if (type[at] != THING_MONS)
 				{
 					struct Item *t = &th->thing.item;
-					gra_baddch (map_graph, at, t->type.col | t->type.ch);
+					gra_bgaddch (map_graph, at, t->type.gl);
 					changed =  true;
 				}
 				sq_unseen[at] = map_graph->data[at];
@@ -351,17 +352,17 @@ void draw_map (struct Thing *player)
 			case THING_DGN:
 			{
 				gra_bsetbox (map_graph, at, 0);
-				if (type[at] == THING_NONE)
+				if (type[at] == THING_NONE || type[at] == THING_DGN)
 				{
 					struct map_item_struct *m = &th->thing.mis;
-					gra_baddch (map_graph, at, (glyph) ((unsigned char)(m->ch)));
+					gra_bgaddch (map_graph, at, m->gl);
 					sq_attr[at] = m->attr & 1;
 					changed = true;
 				}
 				sq_unseen[at] = map_graph->data[at];
 				break;
 			}
-			default:
+			case THING_NONE:
 			{
 				printf ("%d %d %d\n", at, i, th->type);
 				getchar ();

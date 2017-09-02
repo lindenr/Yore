@@ -13,11 +13,25 @@
 
 typedef uint32_t SqAttr;
 
+enum
+{
+	DGN_GROUND = 0,
+	DGN_GRASS1,
+	DGN_GRASS2,
+	DGN_WALL,
+	DGN_DOWNSTAIR,
+	DGN_UPSTAIR,
+	DGN_TREE,
+	DGN_FLOWER1,
+	DGN_FLOWER2,
+	DGN_CORRIDOR
+};
+
 struct map_item_struct
 {
 	char name[20];
-	char ch;
-	uint32_t attr;
+	glyph gl;
+	SqAttr attr;
 };
 
 extern struct map_item_struct map_items[];

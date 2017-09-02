@@ -71,6 +71,12 @@ int main (int argc, char *argv[])
 
 	setup_U ();
 
+	if (argc > 1)
+	{
+		generate_map (dlv_lvl(1),LEVEL_TOWN);
+		return 0;
+	}
+
 	if (!game_intro())
 		goto quit_game;
 
