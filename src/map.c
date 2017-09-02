@@ -35,7 +35,8 @@ uint32_t get_sqattr (Vector *things, int yloc, int xloc)
 {
 	uint32_t mvbl = 1;
 
-	if (yloc >= map_graph->h || xloc >= map_graph->w)
+	if (yloc < 0 || yloc >= map_graph->h ||
+	    xloc < 0 || xloc >= map_graph->w)
 		return -1;
 
 	int n = map_buffer (yloc, xloc);

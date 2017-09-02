@@ -136,9 +136,8 @@ void mons_corpse (struct Thing *th, ityp *typ)
  * 2 = did not move as desired but used turn */
 int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 or 1 */
 {
-	if (!mons_isplayer(th))
-		if (!(x | y))
-			return 0;
+	if (!(x || y))
+		return 0;
 	int can = can_amove (get_sqattr (dlv_things(th->dlevel), th->yloc + y, th->xloc + x));
 	/* like a an unmoveable boulder or something */
 	if (!can)
@@ -221,10 +220,7 @@ int mons_take_turn (struct Thing *th)
 	//if (mons_eating(th))
 	//	return true;
 	if (!mons_isplayer(th))
-	{
-		AI_take_turn (th);
-		return true;
-	}
+		return AI_take_turn (th);
 	if (gra_nearedge (map_graph, th->yloc, th->xloc))
 		gra_centcam (map_graph, th->yloc, th->xloc);
 	while (1)
