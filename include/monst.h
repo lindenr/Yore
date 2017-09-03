@@ -155,7 +155,7 @@ typedef struct
 	uint32_t flags;				/* physical flags */
 	uint32_t col;				/* colour */
 	uint32_t exp;				/* exp gained from kill */
-} mtyp;
+} Mtyp;
 
 typedef int TID;
 
@@ -180,7 +180,7 @@ union AIstate
 	} aggro;
 };
 
-extern const mtyp all_mons[];
+extern const Mtyp all_mons[];
 
 struct MStatus
 {
@@ -198,7 +198,7 @@ struct MStatus
 
 struct Monster
 {
-	uint32_t type;				/* monster type                 */
+	const Mtyp *type;		    /* monster type                 */
 	union AIstate ai;           /* state of the AI (if used)    */
 	int32_t level;				/* EXP level                    */
 	int32_t exp;				/* EXP points                   */
@@ -234,7 +234,7 @@ void   mons_usedturn   (struct Thing *);                   /* turn is irretrieva
 int    mons_get_st     (struct Thing *);                   /* get monster strength                     */
 Tick   mons_tregen     (struct Thing *);                   /* time between regen events                */
 int    mons_isplayer   (struct Thing *);                   /* is controlled by human                   */
-void   mons_corpse     (struct Thing *, ityp *);           /* make itype corpse type of the monster    */
+void   mons_corpse     (struct Thing *, Ityp *);           /* make itype corpse type of the monster    */
 
 /* player functions */
 struct Item *player_use_pack (struct Thing *, char *, uint32_t); /* ask player for an item             */

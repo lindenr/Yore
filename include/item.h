@@ -67,12 +67,12 @@ typedef struct
 	uint32_t wt;				/* weight */
 	uint32_t attr;				/* can be used for damage (weapons) (8 bits) */
 	glyph gl;					/* for the display */
-} ityp;
+} Ityp;
 
 /* an actual physical item */
 struct Item
 {
-	ityp type;
+	Ityp type;
 	uint32_t attr;
 	uint32_t cur_weight;
 	char *name;
@@ -80,7 +80,7 @@ struct Item
 
 struct Pack;
 
-extern ityp items[];
+extern Ityp items[];
 extern int NUM_ITEMS;
 
 void item_piles     (int, Vector, Vector);

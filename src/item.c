@@ -21,7 +21,7 @@ int NUM_ITEMS;
 #define DMG(a,b) (((a)<<4)+(b))
 
 /* No corpse -- they are a custom item (see src/monst.c). */
-ityp items[] = {
+Ityp items[] = {
 /*  item name              type            weight  attributes  display                             */
 	ITEM("long sword",     ITYP_LONGSWORD,  2000,  DMG(1, 5),  ITCH_WEAPON | COL_TXT_RGB(11,11, 0)),
 	ITEM("fencing sword",  ITYP_LONGSWORD,  1500,  DMG(1, 5),  ITCH_WEAPON | COL_TXT_RGB(11, 0,11)),
@@ -111,7 +111,7 @@ bool stackable (int n, Vector *pile, int i)
 {
 	//struct Item *item1 = &THING(n, *(int*)v_at (*pile, 0))->thing.item,
 	//            *item2 = &THING(n, i)->thing.item;
-	//return (memcmp (&item1->type, &item2->type, sizeof(ityp)) == 0);
+	//return (memcmp (&item1->type, &item2->type, sizeof(Ityp)) == 0);
 	return false;
 }
 
@@ -134,7 +134,3 @@ void item_piles (int n, Vector piles, Vector items)
 	}
 }
 
-void what_am_I_wearing (struct Monster *self)
-{
-	return;
-}

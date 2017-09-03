@@ -241,7 +241,7 @@ void add_another_room (struct DLevel *lvl)
 
 struct Item *gen_item ()
 {
-	ityp is;
+	Ityp is;
 	memcpy (&is, &(items[rn(NUM_ITEMS)]), sizeof(is));
 	struct Item it = {is, 0, is.wt, NULL};
 	//if (is.type == ITYP_JEWEL)
@@ -379,10 +379,10 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		upsy = start / map_graph->w;
 		upsx = start % map_graph->w;
 
-		struct Monster m1 = {MTYP_HUMAN, {.mode=AI_NONE}, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 0,};//1000, 0, 0, {{0},}, {0,}, {{0,},}, NULL, 0, NULL};
+		struct Monster m1 = {&all_mons[MTYP_HUMAN], {.mode=AI_NONE}, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 0,};//1000, 0, 0, {{0},}, {0,}, {{0,},}, NULL, 0, NULL};
 		m1.name = "Thing 1";
 		m1.skills = v_dinit (sizeof(struct Skill));
-		m1.speed = all_mons[m1.type].speed;
+		m1.speed = m1.type->speed;
 		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
 		struct Thing *t1 = new_thing (THING_MONS, lvl, upsy, upsx, &m1);
@@ -426,17 +426,17 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 
 		struct Monster p;
 		memclr (&p, sizeof(p));
-		p.type = player_gen_type ();
+		p.type = &all_mons[player_gen_type ()];
 		p.ai.mode = AI_TIMID;
-		p.HP = (all_mons[p.type].flags >> 28) + (all_mons[p.type].exp >> 1);
+		p.HP = (p.type->flags >> 28) + (p.type->exp >> 1);
 		p.HP += 1+rn(1+ p.HP / 3);
 		p.HP_max = p.HP;
 		p.ST = 10;
 		p.ST_max = p.ST;
-		p.speed = all_mons[p.type].speed;
+		p.speed = p.type->speed;
 		p.name = NULL;
 		p.level = 1; //mons[p.type].exp? TODO
-		p.exp = all_mons[p.type].exp;
+		p.exp = p.type->exp;
 		struct Thing *th = new_thing (THING_MONS, lvl, yloc, xloc, &p);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		//printf ("successful generation \n");

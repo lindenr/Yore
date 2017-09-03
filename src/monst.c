@@ -109,27 +109,22 @@ int player_gen_type ()
 	return 0;
 }
 
-int mons_get_wt (int type)
+int mons_get_wt (const Mtyp *mtype)
 {
-	return CORPSE_WEIGHTS[all_mons[type].flags >> 29];
+	return CORPSE_WEIGHTS[mtype->flags >> 29];
 }
 
-void mons_corpse (struct Thing *th, ityp *typ)
+void mons_corpse (struct Thing *th, Ityp *itype)
 {
-	int type = th->thing.mons.type;
+	const Mtyp *mtype = th->thing.mons.type;
 
 	/* fill in the data */
-	snprintf (typ->name, ITEM_NAME_LENGTH, "%s corpse", all_mons[type].name);
-	typ->type = ITYP_CORPSE;
-	typ->wt   = mons_get_wt(type);
-	typ->attr = type << 8;
-	typ->gl   = ITCH_CORPSE | all_mons[type].col;
+	snprintf (itype->name, ITEM_NAME_LENGTH, "%s corpse", mtype->name);
+	itype->type = ITYP_CORPSE;
+	itype->wt   = mons_get_wt(mtype);
+	itype->attr = 0;
+	itype->gl   = ITCH_CORPSE | mtype->col;
 }
-
-/*void mons_attack (struct Thing *th, int y, int x) / * each either -1, 0 or 1 * /
-{
-	do_attack (th, get_sqmons(dlv_things(th->dlevel), th->yloc + y, th->xloc + x));
-}*/
 
 /* Return values:
  * 0 = failed to move; 1 = moved as desired;
