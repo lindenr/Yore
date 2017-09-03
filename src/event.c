@@ -226,7 +226,7 @@ void ev_do (Event ev)
 			//if (*drop == mons->wearing.rweap)
 			//	mons_unwield (th);
 			unsigned u = PACK_AT (get_Itref (mons->pack, *drop));
-			mons->pack.items[u] = NULL;
+			pack_rem (mons->pack, u);
 			new_thing (THING_ITEM, cur_dlevel, th->yloc, th->xloc, *drop);
 		}
 		v_free (items);

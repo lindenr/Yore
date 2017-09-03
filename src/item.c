@@ -93,11 +93,11 @@ void item_look (const struct Item *item)
 	free (str);
 }
 
-char *get_inv_line (struct Pack *pack, const struct Item *item)
+char *get_inv_line (Pack *pack, const struct Item *item)
 {
 	char ch = 0;
 	if (pack)
-		ch = get_Itref (*pack, item);
+		ch = get_Itref (pack, item);
 	char *ret = malloc (80), *orig = get_item_desc(*item);
 	if (!ch)
 		snprintf (ret, 80, "%s", orig);

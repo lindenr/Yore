@@ -185,13 +185,7 @@ void thing_free (struct Thing *thing)
 				free (monst->name);
 			//if (monst->eating)
 			//	free (monst->eating);
-			int i;
-			for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
-			{
-				struct Item *item = monst->pack.items[i];
-				if (item)
-					free (item);
-			}
+			pack_free (&monst->pack);
 			break;
 		}
 		case THING_DGN:

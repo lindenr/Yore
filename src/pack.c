@@ -51,7 +51,7 @@ int item_type_flags (struct Item *item, uint32_t accepted)
 	return -1;
 }
 
-char show_contents (struct Pack pack, uint32_t accepted, char *msg)
+char show_contents (Pack *pack, uint32_t accepted, char *msg)
 {
 	int i, num_items = 0;
 	Vector inv;
@@ -62,14 +62,17 @@ char show_contents (struct Pack pack, uint32_t accepted, char *msg)
 	snprintf (first, 256, "#%s", msg);
 	v_pstr (inv, first);
 	v_pstr (inv, "                     ");
-	for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
+	if (pack)
 	{
-		if (pack.items[i] && item_type_flags (pack.items[i], accepted))
+		for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
 		{
-			char *line = get_inv_line (&pack, pack.items[i]);
-			v_pstr (inv, line);
-			free (line);
-			++ num_items;
+			if (pack->items[i] && item_type_flags (pack->items[i], accepted))
+			{
+				char *line = get_inv_line (pack, pack->items[i]);
+				v_pstr (inv, line);
+				free (line);
+				++ num_items;
+			}
 		}
 	}
 	if (!num_items)
@@ -83,7 +86,7 @@ char show_contents (struct Pack pack, uint32_t accepted, char *msg)
 	return out;
 }
 
-void pack_get_letters (struct Pack pack, char *ret)
+void pack_get_letters (Pack pack, char *ret)
 {
 	unsigned k, u;
 	for (u = 0, k = 0; u < MAX_ITEMS_IN_PACK; ++u)
@@ -97,18 +100,37 @@ void pack_get_letters (struct Pack pack, char *ret)
 	strncpy (ret + k, " ?*", k+4);
 }
 
-struct Item *pack_rem (struct Pack *pack, char it)
+struct Item *pack_rem (Pack *pack, unsigned u)
 {
-	unsigned u = PACK_AT(it);
 	struct Item *ret = pack->items[u];
 	pack->items[u] = NULL;
 	return ret;
 }
 
-bool pack_add (struct Pack *pack, struct Item *it)
+void pack_free (Pack **pack)
+{
+	int i;
+	if ((!pack) || (!(*pack)))
+		return;
+	for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
+	{
+		struct Item *item = (*pack)->items[i];
+		if (item)
+			free (item);
+	}
+	free (pack);
+}
+
+bool pack_add (Pack **ppack, struct Item *it)
 {
 	uint32_t u;
 	char *msg;
+	if ((*ppack) == 0)
+	{
+		*ppack = malloc (sizeof(Pack));
+		memset (*ppack, 0, sizeof(Pack));
+	}
+	Pack *pack = *ppack;
 
 	for (u = 0; u < MAX_ITEMS_IN_PACK; ++u)
 	{
@@ -128,27 +150,34 @@ bool pack_add (struct Pack *pack, struct Item *it)
 	return false;
 }
 
-struct Item *get_Item (struct Pack pack, unsigned itnum)
+struct Item *get_Item (const Pack *pack, unsigned itnum)
 {
-	return pack.items[itnum];
+	if (!pack)
+		return NULL;
+	return pack->items[itnum];
 }
 
-struct Item *get_Itemc (struct Pack pack, char itch)
+struct Item *get_Itemc (const Pack *pack, char itch)
 {
 	unsigned where = PACK_AT(itch);
 	if (where == -1)
 		return NULL;
-	return pack.items[where];
+	if (!pack)
+		return NULL;
+	return pack->items[where];
 }
 
-char get_Itref (struct Pack pack, const struct Item *item)
+char get_Itref (const Pack *pack, const struct Item *item)
 {
 	unsigned i;
+	if (!pack)
+		return 0;
 
 	for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
 	{
-		if (pack.items[i] == item)
+		if (pack->items[i] == item)
 			return LETTER_AT(i);
 	}
 	return 0;
 }
+

@@ -208,7 +208,7 @@ struct Monster
 	float ST_rec;				/* stamina recovery             */
 	uint32_t speed, cur_speed;	/* current speed and state      */
 	char *name;					/* label                        */
-	struct Pack pack;			/* inventory                    */
+	struct Pack *pack;			/* inventory                    */
 	//struct WoW wearing;			/* stuff wielding/wearing/using */
 	struct MStatus status;		/* eating, positioning info etc */
 	//struct Item *eating;		/* eating something (0 if not)  */
