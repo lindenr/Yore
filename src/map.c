@@ -12,11 +12,6 @@
 
 Graph map_graph = NULL;
 
-int map_buffer (int yloc, int xloc)
-{
-	return map_graph->w*yloc + xloc;
-}
-
 /* remember -- ONLY ONE MONSTER PER SQUARE */
 void *get_sqmons (Vector *things, int yloc, int xloc)
 {
@@ -66,19 +61,21 @@ int can_amove (int attr)
 	return (attr & MAP_MOVEABLE);
 }
 
-#define MAPITEM(nm,gl,at) {nm,gl,at}
+#define MAPITEM(nm,gl,at) {(nm), (gl), (at)}
 
 struct map_item_struct map_items[] = {
-	MAPITEM("lit space", ACS_BULLET, M_TSPT),
-	MAPITEM("grass",     ACS_BULLET|COL_BG_RGB(0,5,0)|COL_TXT_DEF, M_TSPT),
-	MAPITEM("grass",     ACS_BULLET|COL_BG_RGB(1,6,0)|COL_TXT_DEF, M_TSPT),
-	MAPITEM("wall",      ACS_WALL,   M_OPQ),
-	MAPITEM("downstair", '>',        M_TSPT),
-	MAPITEM("upstair",   '<',        M_TSPT),
-	MAPITEM("tree",      5|COL_TXT_RGB(2,1,0)|COL_BG_RGB(0,0,0),        M_TSPT),
-	MAPITEM("flower",    '*'|COL_TXT_RGB(0,8,15),        M_TSPT),
-	MAPITEM("flower",    '*'|COL_TXT_RGB(12,12,3),        M_TSPT),
-	MAPITEM("corridor",  '#',        M_TSPT),
-	MAPITEM("_end_",     '\0',       M_OPQ)
+	MAPITEM("lit space", ACS_BULLET,                           M_TSPT),
+	MAPITEM("grass",     ACS_BULLET|COL_BG(0,5,0)|COL_TXT_DEF, M_TSPT),
+	MAPITEM("grass",     ACS_BULLET|COL_BG(1,6,0)|COL_TXT_DEF, M_TSPT),
+	MAPITEM("wall",      ACS_WALL,                             M_OPQ ),
+	MAPITEM("downstair", '>',                                  M_TSPT),
+	MAPITEM("upstair",   '<',                                  M_TSPT),
+	MAPITEM("tree",      5  |COL_TXT(2,1,0)|COL_BG(0,0,0),     M_TSPT),
+	MAPITEM("flower",    '*'|COL_TXT(0,8,15),                  M_TSPT),
+	MAPITEM("flower",    '*'|COL_TXT(12,12,3),                 M_TSPT),
+	MAPITEM("corridor",  '#',                                  M_TSPT),
+	MAPITEM("door",      '+'|COL_TXT(9,9,0),                   M_OPQ ),
+	MAPITEM("open door", 254|COL_TXT(9,9,0),                   M_TSPT),
+	MAPITEM("_end_",     '\0',                                 M_OPQ )
 };
 

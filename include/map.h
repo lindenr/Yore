@@ -11,6 +11,8 @@
 
 #define PANE_H 10
 
+#define map_buffer(y,x) (gra_buffer (map_graph, (y), (x)))
+
 typedef uint32_t SqAttr;
 
 enum
@@ -24,7 +26,9 @@ enum
 	DGN_TREE,
 	DGN_FLOWER1,
 	DGN_FLOWER2,
-	DGN_CORRIDOR
+	DGN_CORRIDOR,
+	DGN_DOOR,
+	DGN_OPENDOOR
 };
 
 struct map_item_struct
@@ -36,7 +40,6 @@ struct map_item_struct
 
 extern struct map_item_struct map_items[];
 extern Graph map_graph;
-int map_buffer (int, int);
 int GETMAPITEMID(char);
 
 #endif /* MAP_H_INCLUDED */

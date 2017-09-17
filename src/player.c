@@ -168,6 +168,18 @@ int Kflook (struct Thing *player)
 	p_mvchoose (player, &y, &x, "What are you looking for?", NULL, 0);
 	return 0;
 }
+
+/*int Kopen (struct Thing *player)
+{
+	//int y, x; 
+	return 0;
+}
+
+int Kclose (struct Thing *player)
+{
+	//int y, x; 
+	return 0;
+}*/
 /*
 int Kwield (struct Thing *player)
 {
@@ -252,6 +264,8 @@ struct KStruct Keys[] = {
 	{'i', &Kinv},
 	{':', &Knlook},
 	{';', &Kflook},
+//	{'o', &Kopen},
+//	{'c', &Kclose},
 //	{'w', &Kwield},
 //	{CONTROL_(GRK_DN), &Klookdn},
 //	{CONTROL_(GRK_UP), &Klookup},

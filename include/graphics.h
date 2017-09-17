@@ -165,22 +165,22 @@ void gr_resize    (int, int);
 #define DCS_PLUS     0xCE
 
 /* Colours, 0 <= n < 16 */
-#define COL_TXT_RED(n)     ((n) << 28)
-#define COL_TXT_GREEN(n)   ((n) << 24)
-#define COL_TXT_BLUE(n)    ((n) << 20)
-#define COL_TXT_RGB(r,g,b) (COL_TXT_RED(r)|COL_TXT_GREEN(g)|COL_TXT_BLUE(b))
+#define COL_TXT_RED(n)   ((n) << 28)
+#define COL_TXT_GREEN(n) ((n) << 24)
+#define COL_TXT_BLUE(n)  ((n) << 20)
+#define COL_TXT(r,g,b)   (COL_TXT_RED(r)|COL_TXT_GREEN(g)|COL_TXT_BLUE(b))
 #define COL_BG_RED(n)    ((n) << 16)
 #define COL_BG_GREEN(n)  ((n) << 12)
 #define COL_BG_BLUE(n)   ((n) <<  8)
-#define COL_BG_RGB(r,g,b) (COL_BG_RED(r)|COL_BG_GREEN(g)|COL_BG_BLUE(b))
+#define COL_BG(r,g,b)    (COL_BG_RED(r)|COL_BG_GREEN(g)|COL_BG_BLUE(b))
 
 /* Common colours */
 #define COL_TXT_DEF    0xBBB00000
 #define COL_TXT_BRIGHT 0xFFF00000
 
 /* Bitmasks */
-#define COL_TXT        0xFFF00000
-#define COL_BG         0x000FFF00
+#define COL_TXT_MASK   0xFFF00000
+#define COL_BG_MASK    0x000FFF00
 
 #endif /* GRAPHICS_H_INCLUDED */
 

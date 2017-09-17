@@ -260,6 +260,20 @@ void ev_do (Event ev)
 			return;
 		ev_queue (th->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, thID}});
 		return;
+	case EV_MOPENDOOR:
+		thID = ev->mopendoor.thID;
+		th = THIID(thID);
+		if (!th)
+			return;
+		ev_queue (th->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, thID}});
+		return;
+	case EV_MCLOSEDOOR:
+		thID = ev->mclosedoor.thID;
+		th = THIID(thID);
+		if (!th)
+			return;
+		ev_queue (th->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, thID}});
+		return;
 	case EV_NONE:
 		return;
 	}

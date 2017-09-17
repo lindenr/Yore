@@ -265,7 +265,9 @@ void set_can_see (struct Thing *player, uint8_t *sq_seen, uint8_t *sq_attr, glyp
 			if (sq_seen[w] == 1 && sq_attr[w] == 2)
 				gra_baddch (map_graph, w, sq_unseen[w]);
 
-			if (sq_attr[w] != 0 || (map_graph->data[w] & 0xFF) == ' ')
+			if (sq_attr[w] != 0 ||
+			    (map_graph->data[w] & 0xFF) == ' ' ||
+			    (map_graph->data[w] & 0xFF) == '+')
 				continue; /* Only keep going if it is a wall. */
 
 			if (X)

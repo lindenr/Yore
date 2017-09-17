@@ -128,7 +128,7 @@ void mons_corpse (struct Thing *th, Ityp *itype)
 
 /* Return values:
  * 0 = failed to move; 1 = moved as desired;
- * 2 = did not move as desired but used turn */
+ * 2, 3, 4 = did not move as desired but used turn */
 int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 or 1 */
 {
 	if (!(x || y))
@@ -142,7 +142,6 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 	{
 		if (final)
 			mons_usedturn (th);
-		//thing_move (th, th->dlevel, th->yloc+y, th->xloc+x);
 		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, th->ID, y, x}});
 		return 1;
 	}
@@ -152,8 +151,19 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 		if (final)
 			mons_usedturn (th);
 		ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, th->ID, y, x}});
-		//mons_attack (th, y, x);
 		return 2;
+	}
+	else if (can == 3)
+	{
+		if (final)
+			mons_usedturn (th);
+		ev_queue (0, (union Event) { .mopendoor = {EV_MOPENDOOR, th->ID, y, x}});
+	}
+	else if (can == 4)
+	{
+		if (final)
+			mons_usedturn (th);
+		ev_queue (0, (union Event) { .mclosedoor = {EV_MCLOSEDOOR, th->ID, y, x}});
 	}
 	/* off map or something */
 	else if (can == -1)

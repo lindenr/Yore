@@ -23,14 +23,14 @@ int NUM_ITEMS;
 /* No corpse -- they are a custom item (see src/monst.c). */
 Ityp items[] = {
 /*  item name              type            weight  attributes  display                             */
-	ITEM("long sword",     ITYP_LONGSWORD,  2000,  DMG(1, 5),  ITCH_WEAPON | COL_TXT_RGB(11,11, 0)),
-	ITEM("fencing sword",  ITYP_LONGSWORD,  1500,  DMG(1, 5),  ITCH_WEAPON | COL_TXT_RGB(11, 0,11)),
-	ITEM("axe",            ITYP_AXE,        3000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT_RGB(11,11, 0)),
-	ITEM("battle-axe",     ITYP_AXE,        5000,  DMG(5, 7),  ITCH_WEAPON | COL_TXT_RGB(11,11, 0)),
-	ITEM("dagger",         ITYP_DAGGER,     100,   DMG(1, 3),  ITCH_WEAPON | COL_TXT_RGB( 0,11, 0)),
-	ITEM("short sword",    ITYP_SHORTSWORD, 2000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT_RGB(11, 8, 0)),
-	ITEM("gloves",         ITYP_GLOVES,     70,    0,          ITCH_ARMOUR | COL_TXT_RGB( 0,11, 0)),
-	ITEM("gold piece",     ITYP_MONEY,      1,     0,          ITCH_DOSH   | COL_TXT_RGB(15,15, 0)),
+	ITEM("long sword",     ITYP_LONGSWORD,  2000,  DMG(1, 5),  ITCH_WEAPON | COL_TXT(11,11, 0)),
+	ITEM("fencing sword",  ITYP_LONGSWORD,  1500,  DMG(1, 5),  ITCH_WEAPON | COL_TXT(11, 0,11)),
+	ITEM("axe",            ITYP_AXE,        3000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT(11,11, 0)),
+	ITEM("battle-axe",     ITYP_AXE,        5000,  DMG(5, 7),  ITCH_WEAPON | COL_TXT(11,11, 0)),
+	ITEM("dagger",         ITYP_DAGGER,     100,   DMG(1, 3),  ITCH_WEAPON | COL_TXT( 0,11, 0)),
+	ITEM("short sword",    ITYP_SHORTSWORD, 2000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT(11, 8, 0)),
+	ITEM("gloves",         ITYP_GLOVES,     70,    0,          ITCH_ARMOUR | COL_TXT( 0,11, 0)),
+	ITEM("gold piece",     ITYP_MONEY,      1,     0,          ITCH_DOSH   | COL_TXT(15,15, 0)),
 	ITEM("",               ITYP_NONE,       0,     0,          0                                  )
 /*  item name              type            weight  attributes  display                             */
 };

@@ -91,7 +91,7 @@ void gra_bgaddch (Graph gra, int buf, glyph gl)
 {
 	if (gra->data[buf] == gl) return;
 	if (gl > 0 && gl < 256)   gl |= gra->def;
-	if ((gl&COL_BG) == 0)     gl |= gra->data[buf] & COL_BG;
+	if ((gl&COL_BG_MASK) == 0)     gl |= gra->data[buf] & COL_BG_MASK;
 	gra->data[buf] = gl;
 	gra->flags[buf] |= 1;
 	if (gl == 0)

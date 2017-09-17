@@ -207,6 +207,7 @@ void add_another_room (struct DLevel *lvl)
 		if (attempt_room (lvl, y - 2 - rn(3), x + 1, 6 + rn(3), 6))
 		{
 			ADD_MAP(DGN_GROUND, i+1);
+			ADD_MAP(DGN_DOOR, i+1);
 			ADD_MAP(DGN_GROUND, i+2);
 		}
 	}
@@ -217,6 +218,7 @@ void add_another_room (struct DLevel *lvl)
 		{
 			ADD_MAP(DGN_GROUND, i-1);
 			ADD_MAP(DGN_GROUND, i-2);
+			ADD_MAP(DGN_OPENDOOR, i-2);
 		}
 	}
 	else if (things[i-map_graph->w]->len == 0)
@@ -289,7 +291,7 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 			while (!is_safe_gen (lvl, y, x));
 
 			struct Item *item = gen_item ();
-			new_thing (THING_ITEM, lvl, y, x, item);
+			//new_thing (THING_ITEM, lvl, y, x, item);
 			free (item);
 		}
 	}
@@ -402,7 +404,6 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 	{
 		/* Up-stair */
 		start = param;
-		ADD_MAP(DGN_UPSTAIR, start);
 
 		/* Down-stair */
 		do
