@@ -109,7 +109,7 @@ void ev_do (Event ev)
 			return;
 		toID = to->ID;
 		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}}); /* anger to-mons */
-		int stamina_cost = mons_st_hit (fr);
+		int stamina_cost = mons_ST_hit (fr);
 		if (fr->thing.mons.ST < stamina_cost)
 		{
 			p_msg ("The %s tiredly misses the %s!", fr->thing.mons.type->name, to->thing.mons.type->name); /* notify */
@@ -170,7 +170,7 @@ void ev_do (Event ev)
 		return;
 	case EV_MGEN:
 		mons_gen (cur_dlevel, 2, U.luck-30);
-		ev_queue (MGEN_DELAY, (union Event) { .mgen = {EV_MGEN}}); /* Next monster gen */
+		ev_queue (mons_tmgen (), (union Event) { .mgen = {EV_MGEN}}); /* Next monster gen */
 		return;
 	case EV_MREGEN:
 		th = THIID(ev->mregen.thID);
@@ -180,15 +180,15 @@ void ev_do (Event ev)
 		self = &th->thing.mons;
 
 		/* HP */
-		int hp_regen = mons_hp_regen (th), hpmax_regen = mons_hpmax_regen (th);
-		self->HP += hp_regen;
-		self->HP_max += hpmax_regen;
+		int HP_regen = mons_HP_regen (th), HP_max_regen = mons_HP_max_regen (th);
+		self->HP += HP_regen;
+		self->HP_max += HP_max_regen;
 		self->HP_rec = 0.0;
 
 		/* ST */
-		int st_regen = mons_st_regen (th), stmax_regen = mons_stmax_regen (th);
-		self->ST += st_regen;
-		self->ST_max += stmax_regen;
+		int ST_regen = mons_ST_regen (th), ST_max_regen = mons_ST_max_regen (th);
+		self->ST += ST_regen;
+		self->ST_max += ST_max_regen;
 		self->ST_rec = 0.0;
 		return;
 	case EV_MPICKUP:
@@ -250,8 +250,8 @@ void ev_do (Event ev)
 			return;
 		if (to->thing.mons.ai.mode == AI_NONE)
 			return;
-		// TODO only show once
-		p_msg ("The %s angers the %s!", fr->thing.mons.type->name, to->thing.mons.type->name);
+		if (to->thing.mons.ai.mode != AI_AGGRO)
+			p_msg ("The %s angers the %s!", fr->thing.mons.type->name, to->thing.mons.type->name);
 		to->thing.mons.ai.mode = AI_AGGRO;
 		to->thing.mons.ai.aggro.ID = frID;
 		return;

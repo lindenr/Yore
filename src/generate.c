@@ -293,6 +293,7 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 			struct Item *item = gen_item ();
 			//new_thing (THING_ITEM, lvl, y, x, item);
 			free (item);
+			mons_gen (cur_dlevel, 2, U.luck-30);
 		}
 	}
 	else if (type == LEVEL_TOWN)
@@ -381,7 +382,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		upsy = start / map_graph->w;
 		upsx = start % map_graph->w;
 
-		struct Monster m1 = {&all_mons[MTYP_HUMAN], {.mode=AI_NONE}, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 0,};//1000, 0, 0, {{0},}, {0,}, {{0,},}, NULL, 0, NULL};
+		struct Monster m1 = {&all_mons[MTYP_HUMAN], {.mode=AI_NONE}, 1, 0, 20, 20, 0.0, 15, 15, 0.0, 0,};
 		m1.name = "Thing 1";
 		m1.skills = v_dinit (sizeof(struct Skill));
 		m1.speed = m1.type->speed;
@@ -431,10 +432,10 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		memclr (&p, sizeof(p));
 		p.type = &all_mons[player_gen_type ()];
 		p.ai.mode = AI_TIMID;
-		p.HP = (p.type->flags >> 28) + (p.type->exp >> 1);
-		p.HP += 1+rn(1+ p.HP / 3);
+		p.HP = mons_HP_init (p.type); //(p.type->flags >> 28) + (p.type->exp >> 1);
+		//p.HP += 1+rn(1+ p.HP / 3);
 		p.HP_max = p.HP;
-		p.ST = 10;
+		p.ST = mons_ST_init (p.type); //10;
 		p.ST_max = p.ST;
 		p.speed = p.type->speed;
 		p.name = NULL;
@@ -442,6 +443,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		p.exp = p.type->exp;
 		struct Thing *th = new_thing (THING_MONS, lvl, yloc, xloc, &p);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, th->ID}});
+		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, th->ID}});
 		//printf ("successful generation \n");
 	}
 	return 0;

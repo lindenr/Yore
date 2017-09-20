@@ -327,6 +327,11 @@ void mons_eat (struct Thing *th, struct Item *item) // ACTION
 		item->cur_weight = item->type.wt;
 }*/
 
+Tick mons_tmgen ()
+{
+	return 10000 + rn (500);
+}
+
 Tick mons_tregen (struct Thing *th)
 {
 	return 10000;
@@ -417,12 +422,12 @@ void mons_passive_attack (struct Thing *from, struct Thing *to) // ACTION
 	}*/
 }
 
-int mons_get_st (struct Thing *th)
+/*int mons_get_st (struct Thing *th)
 {
 	if (mons_isplayer(th))
 		return U.attr[AB_ST];
 	return 1;
-}
+}*/
 
 /*void mons_blast (struct Thing *from, struct Thing *to, int siz) // ACTION
 {
@@ -544,29 +549,39 @@ int mons_hitdmg (struct Thing *from, struct Thing *to)
 	return 3;
 }
 
-int mons_st_hit (struct Thing *from)
+int mons_ST_hit (struct Thing *from)
 {
 	return 3;
 }
 
-int mons_hp_regen (struct Thing *th)
+int mons_HP_regen (struct Thing *th)
 {
 	return 0;
 }
 
-int mons_hpmax_regen (struct Thing *th)
+int mons_HP_max_regen (struct Thing *th)
 {
 	return 0;
 }
 
-int mons_st_regen (struct Thing *th)
+int mons_ST_regen (struct Thing *th)
 {
 	return (rn(2)) * (th->thing.mons.ST < th->thing.mons.ST_max);
 }
 
-int mons_stmax_regen (struct Thing *th)
+int mons_ST_max_regen (struct Thing *th)
 {
 	return 0;
+}
+
+int mons_HP_init (const Mtyp *type)
+{
+	return type->HP;
+}
+
+int mons_ST_init (const Mtyp *type)
+{
+	return type->ST;
 }
 
 /*int player_sense (int yloc, int xloc, int senses)

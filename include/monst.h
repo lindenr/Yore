@@ -34,18 +34,15 @@ extern const int CORPSE_WEIGHTS[];
 
 #define A_PARAM 3				/* AdB damage, of type C */
 #define A_NUM   6				/* number of normal attacks per monster (like NH) */
-// extern const int CORPSE_WEIGHTS[7];
 
 #define get_filename() "Yore-savegame.sav"
-
-#define WOW_INIT 0
 
 typedef uint64_t Tick;
 
 enum MTYPES
 {
 	MTYP_CHICKEN = 0,
-	MTYP_TIGER,
+	MTYP_RABBIT,
 	MTYP_CRAB,
 	MTYP_GNOME,
 	MTYP_HUMAN,
@@ -136,8 +133,7 @@ enum ATTK_METHOD
 /* The magical method of attack (fire, acid etc -- phys is *not* magical) */
 enum ATTK_TYPE
 {
-	ATYP_PHYS = 0,				/* no magic attack, purely physical (like a
-								   soldier with a sword - nothing special) */
+	ATYP_PHYS = 0,
 	ATYP_COLD,
 	ATYP_FIRE,
 	ATYP_HEAL,
@@ -155,6 +151,7 @@ typedef struct
 	uint32_t flags;				/* physical flags */
 	uint32_t col;				/* colour */
 	uint32_t exp;				/* exp gained from kill */
+	int HP, ST;                 /* base HP, stamina */
 } Mtyp;
 
 typedef int TID;
@@ -232,15 +229,20 @@ void   mons_box        (struct Thing *, BoxType);          /* boxy flags for thi
 void   mons_usedturn   (struct Thing *);                   /* turn is irretrievably used               */
 //int    mons_get_st     (struct Thing *);                   /* get monster strength                     */
 void   mons_corpse     (struct Thing *, Ityp *);           /* make itype corpse type of the monster    */
+Tick   mons_tmgen      ();                                 /* time until next monster generations      */
 Tick   mons_tregen     (struct Thing *);                   /* time between regen events                */
 int    mons_hits       (struct Thing *, struct Thing *);   /* will it hit                              */
 int    mons_hitdmg     (struct Thing *, struct Thing *);   /* how much damage                          */
-int    mons_st_hit     (struct Thing *);                   /* how much stamina will it consume         */
-int    mons_hp_regen   (struct Thing *);                   /* how much HP will regen                   */
-int    mons_hpmax_regen(struct Thing *);                   /* similarly for max HP                     */
-int    mons_st_regen   (struct Thing *);                   /* stamina                                  */
-int    mons_stmax_regen(struct Thing *);                   /* max stamina                              */
+int    mons_ST_hit     (struct Thing *);                   /* how much stamina will it consume         */
+int    mons_HP_regen   (struct Thing *);                   /* how much HP will regen                   */
+int    mons_HP_max_regen(struct Thing *);                  /* similarly for max HP                     */
+int    mons_ST_regen   (struct Thing *);                   /* stamina                                  */
+int    mons_ST_max_regen(struct Thing *);                  /* max stamina                              */
 int    mons_isplayer   (struct Thing *);                   /* is controlled by human                   */
+
+/* initialization functions */
+int    mons_HP_init    (const Mtyp *);                     /* starting health                          */
+int    mons_ST_init    (const Mtyp *);                     /* starting stamina                         */
 
 /* player functions */
 struct Item *player_use_pack (struct Thing *, char *, uint32_t); /* ask player for an item             */
