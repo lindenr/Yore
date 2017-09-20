@@ -66,7 +66,8 @@ void p_pane (struct Thing *player)
 	struct Monster *pmons = &player->thing.mons;
 	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (pmons->name, 20));
 	gra_mvprint (gpan, 3, 1, "HP %d/%d (+%.1f)", pmons->HP, pmons->HP_max, pmons->HP_rec);
-	gra_mvprint (gpan, 4, 1, "LV %d:%d/infinity", pmons->level, pmons->exp); // TODO?
+	gra_mvprint (gpan, 4, 1, "ST %d/%d (+%.1f)", pmons->ST, pmons->ST_max, pmons->ST_rec);
+	gra_mvprint (gpan, 5, 1, "LV %d:%d/infinity", pmons->level, pmons->exp); // TODO?
 	/*char *rank = get_rank ();
 	int rlen = strlen (rank);
 	txt_mvprint (ypan + 1, xpan + p_width - 1 - rlen, rank);*/

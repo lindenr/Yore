@@ -534,6 +534,41 @@ struct Item *player_use_pack (struct Thing *th, char *msg, uint32_t accepted)
 	return It;
 }
 
+int mons_hits (struct Thing *from, struct Thing *to)
+{
+	return 1; // evading?
+}
+
+int mons_hitdmg (struct Thing *from, struct Thing *to)
+{
+	return 3;
+}
+
+int mons_st_hit (struct Thing *from)
+{
+	return 3;
+}
+
+int mons_hp_regen (struct Thing *th)
+{
+	return 0;
+}
+
+int mons_hpmax_regen (struct Thing *th)
+{
+	return 0;
+}
+
+int mons_st_regen (struct Thing *th)
+{
+	return (rn(2)) * (th->thing.mons.ST < th->thing.mons.ST_max);
+}
+
+int mons_stmax_regen (struct Thing *th)
+{
+	return 0;
+}
+
 /*int player_sense (int yloc, int xloc, int senses)
 {
 	if (senses&SENSE_VISION)

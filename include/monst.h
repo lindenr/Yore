@@ -218,10 +218,9 @@ struct Monster
 
 struct Thing;
 /* general monster functions */
-void   mons_attack     (struct Thing *, int, int);         /* attack in direction                      */
 int    mons_move       (struct Thing *, int, int, int);    /* move in given directions                 */
-//int    mons_prhit      (struct Thing *, struct Thing *, int); /* monster hit by a projectile           */
 int    mons_take_turn  (struct Thing *);                   /* give a move (AI or player)               */
+//int    mons_prhit      (struct Thing *, struct Thing *, int); /* monster hit by a projectile           */
 //bool   mons_unwield    (struct Thing *);                   /* unwield what is currently wielded        */
 //bool   mons_wield      (struct Thing *, struct Item *);    /* wield an item (any item)                 */
 //void   mons_eat        (struct Thing *, struct Item *);    /* eat something                            */
@@ -231,21 +230,26 @@ int    mons_take_turn  (struct Thing *);                   /* give a move (AI or
 //void   mons_blast      (struct Thing *, struct Thing *, int); /* monster in an explosion               */
 void   mons_box        (struct Thing *, BoxType);          /* boxy flags for this turn                 */
 void   mons_usedturn   (struct Thing *);                   /* turn is irretrievably used               */
-int    mons_get_st     (struct Thing *);                   /* get monster strength                     */
-Tick   mons_tregen     (struct Thing *);                   /* time between regen events                */
-int    mons_isplayer   (struct Thing *);                   /* is controlled by human                   */
+//int    mons_get_st     (struct Thing *);                   /* get monster strength                     */
 void   mons_corpse     (struct Thing *, Ityp *);           /* make itype corpse type of the monster    */
+Tick   mons_tregen     (struct Thing *);                   /* time between regen events                */
+int    mons_hits       (struct Thing *, struct Thing *);   /* will it hit                              */
+int    mons_hitdmg     (struct Thing *, struct Thing *);   /* how much damage                          */
+int    mons_st_hit     (struct Thing *);                   /* how much stamina will it consume         */
+int    mons_hp_regen   (struct Thing *);                   /* how much HP will regen                   */
+int    mons_hpmax_regen(struct Thing *);                   /* similarly for max HP                     */
+int    mons_st_regen   (struct Thing *);                   /* stamina                                  */
+int    mons_stmax_regen(struct Thing *);                   /* max stamina                              */
+int    mons_isplayer   (struct Thing *);                   /* is controlled by human                   */
 
 /* player functions */
 struct Item *player_use_pack (struct Thing *, char *, uint32_t); /* ask player for an item             */
 int    player_gen_type (void);                             /* get a valid monster type for fighting    */
-void   player_dead     (const char *, ...);                /* the player is dead; absolute end of game */
-//void   player_exc      (enum ABLTY, uint32_t);             /* exercise ability by a given amount       */
-int    player_sense    (int, int, int);                    /* can the player sense a square            */
+//int    player_sense    (int, int, int);                    /* can the player sense a square            */
 
 /* player_status functions */
-char  *get_hungerstr   (void);                             /* gets player's hunger ("Starved" etc)     */
-bool   digesting       (void);                             /* is the player digesting?                 */
+//char  *get_hungerstr   (void);                             /* gets player's hunger ("Starved" etc)     */
+//bool   digesting       (void);                             /* is the player digesting?                 */
 void   setup_U         (void);                             /* populate the U struct                    */
 void   get_cinfo       (void);                             /* called at start, gets input from player  */
 

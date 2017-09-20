@@ -387,6 +387,8 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		m1.speed = m1.type->speed;
 		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
+		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
+		pack_add (&m1.pack, &myhammer);
 		struct Thing *t1 = new_thing (THING_MONS, lvl, upsy, upsx, &m1);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, t1->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t1->ID}});

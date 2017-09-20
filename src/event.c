@@ -93,35 +93,44 @@ void ev_do (Event ev)
 		th->thing.mons.status.attacking.xdir = ev->mattkm.xdir;
 		break;
 	case EV_MDOATTKM:
-		//printf("mattkm\n");
 		frID = ev->mdoattkm.thID;
-		fr = THIID(frID);
+		fr = THIID(frID); /* get from-mons */
 		if (!fr)
 			return;
-		// Next turn
-		ev_queue (0, (union Event) { .mturn = {EV_MTURN, frID}});
+		ev_queue (0, (union Event) { .mturn = {EV_MTURN, frID}}); /* next turn of from-mons */
 		ydest = fr->yloc + fr->thing.mons.status.attacking.ydir; xdest = fr->xloc + fr->thing.mons.status.attacking.xdir;
 		fr->thing.mons.status.attacking.ydir = 0;
 		fr->thing.mons.status.attacking.xdir = 0;
 		can = can_amove (get_sqattr (dlv_things(fr->dlevel), ydest, xdest));
 		if (can != 2)
 			return;
-		to = get_sqmons(dlv_things(fr->dlevel), ydest, xdest);
+		to = get_sqmons(dlv_things(fr->dlevel), ydest, xdest); /* get to-mons */
 		if (!to)
 			return;
 		toID = to->ID;
-		p_msg ("The %s hits the %s!", fr->thing.mons.type->name, to->thing.mons.type->name);
-		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}});
-		if (!to->thing.mons.status.evading)
-			to->thing.mons.HP -= 3;
+		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}}); /* anger to-mons */
+		int stamina_cost = mons_st_hit (fr);
+		if (fr->thing.mons.ST < stamina_cost)
+		{
+			p_msg ("The %s tiredly misses the %s!", fr->thing.mons.type->name, to->thing.mons.type->name); /* notify */
+			return;
+		}
+		fr->thing.mons.ST -= stamina_cost;
+		if (!mons_hits (fr, to))
+		{
+			p_msg ("The %s misses the %s!", fr->thing.mons.type->name, to->thing.mons.type->name); /* notify */
+			return;
+		}
+		p_msg ("The %s hits the %s!", fr->thing.mons.type->name, to->thing.mons.type->name); /* notify */
+		int damage = mons_hitdmg (fr, to);
+		to->thing.mons.HP -= damage;
 		if (to->thing.mons.HP <= 0)
 		{
-			// Kill event
-			ev_queue (0, (union Event) { .mkillm = {EV_MKILLM, frID, toID}});
+			to->thing.mons.HP = 0;
+			ev_queue (0, (union Event) { .mkillm = {EV_MKILLM, frID, toID}}); /* kill to-mons */
 		}
 		return;
 	case EV_MKILLM:
-		//printf("mkillm\n");
 		fr = THIID(ev->mkillm.frID); to = THIID(ev->mkillm.toID);
 		if ((!fr) || (!to))
 			return;
@@ -129,15 +138,11 @@ void ev_do (Event ev)
 		if (mons_isplayer(to))
 		{
 			p_msg ("You die...");
+			p_pane (to);
 			gr_getch ();
 			U.playing = PLAYER_LOSTGAME;
 			return;
 		}
-		/*if (fr == player)
-		{
-			if (to->thing.mons.type == MTYP_SATAN)
-				U.playing = PLAYER_WONGAME;
-		}*/
 		fr->thing.mons.exp += to->thing.mons.type->exp;
 		ev_queue (0, (union Event) { .mcorpse = {EV_MCORPSE, ev->mkillm.toID}});
 		return;
@@ -158,7 +163,6 @@ void ev_do (Event ev)
 		rem_id (th->ID);
 		return;
 	case EV_MTURN:
-		//printf("mturn\n");
 		th = THIID(ev->mturn.thID);
 		if (!th)
 			return;
@@ -166,30 +170,26 @@ void ev_do (Event ev)
 		return;
 	case EV_MGEN:
 		mons_gen (cur_dlevel, 2, U.luck-30);
-		// Next monster gen
-		ev_queue (MGEN_DELAY, (union Event) { .mgen = {EV_MGEN}});
+		ev_queue (MGEN_DELAY, (union Event) { .mgen = {EV_MGEN}}); /* Next monster gen */
 		return;
 	case EV_MREGEN:
 		th = THIID(ev->mregen.thID);
 		if (!th)
 			return;
-		// Next regen
-		ev_queue (mons_tregen (th), (union Event) { .mregen = {EV_MREGEN, ev->mregen.thID}});
-
+		ev_queue (mons_tregen (th), (union Event) { .mregen = {EV_MREGEN, ev->mregen.thID}}); /* Next regen */
 		self = &th->thing.mons;
 
 		/* HP */
-		if (rn(50) < U.attr[AB_CO])
-			self->HP += (self->level + 10) / 10;
-		if (self->HP > self->HP_max)
-			self->HP = self->HP_max;
-		self->HP_rec = ((10.0 + self->level)/10) * ((float)U.attr[AB_CO] / 50.0);
+		int hp_regen = mons_hp_regen (th), hpmax_regen = mons_hpmax_regen (th);
+		self->HP += hp_regen;
+		self->HP_max += hpmax_regen;
+		self->HP_rec = 0.0;
 
 		/* ST */
-		self->ST += rn(2);
-		if (self->ST > self->ST_max)
-			self->ST = self->ST_max;
-		self->ST_rec = 0.5;
+		int st_regen = mons_st_regen (th), stmax_regen = mons_stmax_regen (th);
+		self->ST += st_regen;
+		self->ST_max += stmax_regen;
+		self->ST_rec = 0.0;
 		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
@@ -205,8 +205,18 @@ void ev_do (Event ev)
 		{
 			/* Pick up the item; quit if the bag is full */
 			struct Thing *item = THIID(*(int*)v_at (pickup, i));
-			if (!pack_add (&mons->pack, &item->thing.item))
+			if (pack_add (&mons->pack, &item->thing.item))
+			{
+				/* Say so */
+				char *msg = get_inv_line (mons->pack, &item->thing.item);
+				p_msg ("%s", msg);
+				free (msg);
+			}
+			else
+			{
+				p_msg ("No more space. :/");
 				break;
+			}
 			/* Remove item from main play */
 			rem_id (item->ID);
 		}

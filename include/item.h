@@ -8,6 +8,7 @@ enum ITYP
 	ITYP_NONE = 0,				/* placeholder - always useful */
 	ITYP_LONGSWORD,
 	ITYP_AXE,
+	ITYP_HAMMER,
 	ITYP_DAGGER,
 	ITYP_SHORTSWORD,
 	ITYP_CHEST,

@@ -124,7 +124,6 @@ void pack_free (Pack **pack)
 bool pack_add (Pack **ppack, struct Item *it)
 {
 	uint32_t u;
-	char *msg;
 	if ((*ppack) == 0)
 	{
 		*ppack = malloc (sizeof(Pack));
@@ -139,14 +138,9 @@ bool pack_add (Pack **ppack, struct Item *it)
 			/* Put in pack */
 			pack->items[u] = malloc (sizeof(*it));
 			memcpy (pack->items[u], it, sizeof(*it));
-			/* Say so */
-			msg = get_inv_line (pack, it);
-			p_msg ("%s", msg);
-			free (msg);
 			return true;
 		}
 	}
-	p_msg ("No space. :/");
 	return false;
 }
 
