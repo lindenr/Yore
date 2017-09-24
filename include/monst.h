@@ -108,7 +108,6 @@ typedef uint32_t player_attr[6];
 
 struct player_status
 {
-	int32_t hunger, oldhunger;
 	struct Thing *pl;
 	int role;
 	int playing;
@@ -142,18 +141,6 @@ enum ATTK_TYPE
 	ATYP_BEAM
 };
 
-typedef struct
-{
-	const char *name;			/* name */
-	char ch;					/* display character */
-	uint32_t speed;				/* base speed */
-	uint32_t attacks[A_NUM][A_PARAM];	/* attacks */
-	uint32_t flags;				/* physical flags */
-	uint32_t col;				/* colour */
-	uint32_t exp;				/* exp gained from kill */
-	int HP, ST;                 /* base HP, stamina */
-} Mtyp;
-
 typedef int TID;
 
 typedef enum
@@ -163,7 +150,7 @@ typedef enum
 	AI_AGGRO
 } AI_MODE;
 
-union AIstate
+union AIState
 {
 	AI_MODE mode;
 	struct
@@ -176,8 +163,6 @@ union AIstate
 		TID ID;
 	} aggro;
 };
-
-extern const Mtyp all_mons[];
 
 struct MStatus
 {
@@ -195,41 +180,50 @@ struct MStatus
 
 struct Monster
 {
-	const Mtyp *type;		    /* monster type                 */
-	union AIstate ai;           /* state of the AI (if used)    */
-	int32_t level;				/* EXP level                    */
-	int32_t exp;				/* EXP points                   */
+	const char *mname;          /* name of monster type         */
+	glyph gl;                   /* display glyph                */
+	union AIState ai;           /* state of the AI (if used)    */
+	int32_t level;				/* experience level             */
+	int32_t exp;				/* experience points            */
+	char *name;					/* monster name                 */
+
+	/* stats which regenerate automatically */
 	int32_t HP, HP_max;			/* current/max HP               */
-	float HP_rec;				/* HP recovery                  */
 	int32_t ST, ST_max;			/* current/max stamina          */
-	float ST_rec;				/* stamina recovery             */
-	uint32_t speed, cur_speed;	/* current speed and state      */
-	char *name;					/* label                        */
+	//int32_t MP, MP_max;       /* current/max mana TODO        */
+	/* fixed stats (may be trained?) */
+	uint32_t con;               /* constitution (HP regen)      */
+	uint32_t str;               /* strength (ST regen)          */
+	//uint32_t wis;             /* wisdom (MP regen) TODO       */
+	uint32_t agi;               /* agility (chance to dodge)    */
+	uint32_t dex;               /* dexterity (chance to hit)    */
+	uint32_t speed;             /* speed (movement delay) */
+
 	struct Pack *pack;			/* inventory                    */
 	//struct WoW wearing;			/* stuff wielding/wearing/using */
 	struct MStatus status;		/* eating, positioning info etc */
 	//struct Item *eating;		/* eating something (0 if not)  */
+	uint32_t mflags;            /* physical flags               */
 	uint8_t boxflags;           /* boxes appearing              */
 	Vector skills;              /* available skills             */
 };
+
+extern const struct Monster all_mons[];
 
 struct Thing;
 /* general monster functions */
 int    mons_move       (struct Thing *, int, int, int);    /* move in given directions                 */
 int    mons_take_turn  (struct Thing *);                   /* give a move (AI or player)               */
-//int    mons_prhit      (struct Thing *, struct Thing *, int); /* monster hit by a projectile           */
+//void   mons_init_stats (struct MStats *, const struct MType *); /* generate monster stats              */
+void   mons_box        (struct Thing *, BoxType);          /* boxy flags for this turn                 */
+void   mons_usedturn   (struct Thing *);                   /* turn is irretrievably used               */
 //bool   mons_unwield    (struct Thing *);                   /* unwield what is currently wielded        */
 //bool   mons_wield      (struct Thing *, struct Item *);    /* wield an item (any item)                 */
 //void   mons_eat        (struct Thing *, struct Item *);    /* eat something                            */
 //bool   mons_eating     (struct Thing *);                   /* continue eating something                */
 //bool   mons_can_hear   (struct Thing *);                   /* has ears? no?                            */
-//void  *mons_get_weap   (struct Thing *);                   /* what weapon is wielded?                  */
-//void   mons_blast      (struct Thing *, struct Thing *, int); /* monster in an explosion               */
-void   mons_box        (struct Thing *, BoxType);          /* boxy flags for this turn                 */
-void   mons_usedturn   (struct Thing *);                   /* turn is irretrievably used               */
-//int    mons_get_st     (struct Thing *);                   /* get monster strength                     */
 void   mons_corpse     (struct Thing *, Ityp *);           /* make itype corpse type of the monster    */
-Tick   mons_tmgen      ();                                 /* time until next monster generations      */
+Tick   mons_tmgen      ();                                 /* time until next monster generation       */
 Tick   mons_tregen     (struct Thing *);                   /* time between regen events                */
 int    mons_hits       (struct Thing *, struct Thing *);   /* will it hit                              */
 int    mons_hitdmg     (struct Thing *, struct Thing *);   /* how much damage                          */
@@ -239,10 +233,6 @@ int    mons_HP_max_regen(struct Thing *);                  /* similarly for max 
 int    mons_ST_regen   (struct Thing *);                   /* stamina                                  */
 int    mons_ST_max_regen(struct Thing *);                  /* max stamina                              */
 int    mons_isplayer   (struct Thing *);                   /* is controlled by human                   */
-
-/* initialization functions */
-int    mons_HP_init    (const Mtyp *);                     /* starting health                          */
-int    mons_ST_init    (const Mtyp *);                     /* starting stamina                         */
 
 /* player functions */
 struct Item *player_use_pack (struct Thing *, char *, uint32_t); /* ask player for an item             */

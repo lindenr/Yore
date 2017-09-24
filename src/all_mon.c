@@ -12,15 +12,20 @@
 #  define COL(cl) 0
 #endif
 
-#define MONST(nm,ch,sp,at,fl,cl,ex,hp,st) {nm,ch,sp,at,fl,COL(cl),ex,hp,st}
+#define MONST(nm,ch,sp,at,fl,cl,ex,hp,st) \
+{nm,ch|COL(cl),{.mode=AI_NONE},0,ex,NULL, \
+hp, hp, st, st, 0, 0, 0, 0, sp, NULL, \
+{{0,0},{0,0,0},0},fl,0,NULL}
+
 #define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}
 #define AM(a,b) ((a)|((b)<<16))
 #define A(a,b,c) {a,b,c}
 #define AT_NONE {0,0,0}
+#define STAT(con,str,agi,dex,speed) {con,con,str,str,con,str,agi,dex,speed}
 
 const int CORPSE_WEIGHTS[7] = {0, 100, 1000, 3000, 20000, 50000, 300000};
 
-const Mtyp all_mons[] = {
+const struct Monster all_mons[] = {
 	MONST("chicken", 'c', 1000,
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_FLSH | FL_WING | FL_SIZ2,

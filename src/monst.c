@@ -22,7 +22,7 @@ char *s_hun[] = {
 	"Starved",
 	"Dead"
 };
-
+/*
 char *get_hungerstr()
 {
 	if (U.hunger < HN_LIMIT_1)
@@ -41,14 +41,14 @@ char *get_hungerstr()
 bool digesting()
 {
 	return true;
-}
+}*/
 
 void setup_U ()
 {
 	int i;
 
 	U.playing = PLAYER_ERROR;	/* If this function returns early */
-	U.hunger = 100;
+//	U.hunger = 100;
 	U.luck = 0;
 
 	for (i = 0; i < 6; ++i)
@@ -109,21 +109,21 @@ int player_gen_type ()
 	return 0;
 }
 
-int mons_get_wt (const Mtyp *mtype)
+int mons_get_wt (struct Monster *mons)
 {
-	return CORPSE_WEIGHTS[mtype->flags >> 29];
+	return CORPSE_WEIGHTS[mons->mflags >> 29];
 }
 
 void mons_corpse (struct Thing *th, Ityp *itype)
 {
-	const Mtyp *mtype = th->thing.mons.type;
+	struct Monster *mons = &th->thing.mons;
 
 	/* fill in the data */
-	snprintf (itype->name, ITEM_NAME_LENGTH, "%s corpse", mtype->name);
+	snprintf (itype->name, ITEM_NAME_LENGTH, "%s corpse", mons->mname);
 	itype->type = ITYP_CORPSE;
-	itype->wt   = mons_get_wt(mtype);
+	itype->wt   = mons_get_wt(mons);
 	itype->attr = 0;
-	itype->gl   = ITCH_CORPSE | mtype->col;
+	itype->gl   = ITCH_CORPSE | (mons->gl & ~0xff);
 }
 
 /* Return values:
@@ -222,8 +222,6 @@ char escape (unsigned char a)
 
 int mons_take_turn (struct Thing *th)
 {
-	//if (mons_eating(th))
-	//	return true;
 	if (!mons_isplayer(th))
 		return AI_take_turn (th);
 	if (gra_nearedge (map_graph, th->yloc, th->xloc))
@@ -250,8 +248,6 @@ int mons_take_turn (struct Thing *th)
 				break;
 			if (gra_nearedge (map_graph, th->yloc, th->xloc))
 				gra_centcam (map_graph, th->yloc, th->xloc);
-//			if (U.playing == PLAYER_WONGAME)
-//				return false;
 		}
 		else
 		{
@@ -422,85 +418,10 @@ void mons_passive_attack (struct Thing *from, struct Thing *to) // ACTION
 	}*/
 }
 
-/*int mons_get_st (struct Thing *th)
-{
-	if (mons_isplayer(th))
-		return U.attr[AB_ST];
-	return 1;
-}*/
-
-/*void mons_blast (struct Thing *from, struct Thing *to, int siz) // ACTION
-{
-	to->thing.mons.HP -= siz*(siz+2);
-	if (to->thing.mons.HP <= 0)
-		mons_dead (from, to);
-}*/
-
 void mons_box (struct Thing *mons, BoxType type)
 {
 	mons->thing.mons.boxflags |= 1<<type;
 }
-/*
-int mons_charge_bonus (struct Thing *from)
-{
-	return 5*sk_lvl (from, SK_CHARGE);
-}
-
-int mons_react (struct Thing *th) // ACTION
-{
-	return 0;
-}
-
-void do_attack (struct Thing *from, struct Thing *to) // ACTION?
-{
-	int t, type = from->thing.mons.type;
-	int bonus = 0;
-	if (from->thing.mons.status & M_CHARGE)
-		bonus += mons_charge_bonus (from);
-
-	for (t = 0; t < A_NUM; ++t)
-	{
-		if (!all_mons[type].attacks[t][0])
-			break;
-
-		mons_react (to);
-		switch (all_mons[type].attacks[t][2] & 0xFFFF)
-		{
-			case ATTK_HIT:
-			{
-				act_mhit (from, to);
-				break;
-			}
-			case ATTK_TOUCH:
-			{
-				act_mtouch (from, to);
-				break;
-			}
-			case ATTK_MAGIC:
-			{
-				break;
-			}
-			case ATTK_CLAW:
-			{
-				act_mclaw (from, to);
-				break;
-			}
-			case ATTK_BITE:
-			{
-				act_mbite (from, to);
-				break;
-			}
-		}
-		event_mhit (from, to, all_mons[type].attacks[t][2] & 0xFFFF);
-
-		if (to->thing.mons.HP <= 0)
-		{
-			mons_dead (from, to);
-			return;
-		}
-	}
-}*/
-
 struct Item *player_use_pack (struct Thing *th, char *msg, uint32_t accepted)
 {
 	struct Item *It = NULL;
@@ -556,7 +477,9 @@ int mons_ST_hit (struct Thing *from)
 
 int mons_HP_regen (struct Thing *th)
 {
-	return 0;
+	if (th->thing.mons.HP >= th->thing.mons.HP_max)
+		return 0;
+	return !rn(5);
 }
 
 int mons_HP_max_regen (struct Thing *th)
@@ -566,7 +489,9 @@ int mons_HP_max_regen (struct Thing *th)
 
 int mons_ST_regen (struct Thing *th)
 {
-	return (rn(2)) * (th->thing.mons.ST < th->thing.mons.ST_max);
+	if (th->thing.mons.ST >= th->thing.mons.ST_max)
+		return 0;
+	return rn(2);
 }
 
 int mons_ST_max_regen (struct Thing *th)
@@ -574,15 +499,10 @@ int mons_ST_max_regen (struct Thing *th)
 	return 0;
 }
 
-int mons_HP_init (const Mtyp *type)
-{
-	return type->HP;
-}
-
-int mons_ST_init (const Mtyp *type)
-{
-	return type->ST;
-}
+//void mons_init_stats (struct MStats *stats, const struct MType *type)
+//{
+//	memcpy (stats, &type->stats, sizeof (*stats));
+//}
 
 /*int player_sense (int yloc, int xloc, int senses)
 {

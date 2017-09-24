@@ -112,16 +112,16 @@ void ev_do (Event ev)
 		int stamina_cost = mons_ST_hit (fr);
 		if (fr->thing.mons.ST < stamina_cost)
 		{
-			p_msg ("The %s tiredly misses the %s!", fr->thing.mons.type->name, to->thing.mons.type->name); /* notify */
+			p_msg ("The %s tiredly misses the %s!", fr->thing.mons.mname, to->thing.mons.mname); /* notify */
 			return;
 		}
 		fr->thing.mons.ST -= stamina_cost;
 		if (!mons_hits (fr, to))
 		{
-			p_msg ("The %s misses the %s!", fr->thing.mons.type->name, to->thing.mons.type->name); /* notify */
+			p_msg ("The %s misses the %s!", fr->thing.mons.mname, to->thing.mons.mname); /* notify */
 			return;
 		}
-		p_msg ("The %s hits the %s!", fr->thing.mons.type->name, to->thing.mons.type->name); /* notify */
+		p_msg ("The %s hits the %s!", fr->thing.mons.mname, to->thing.mons.mname); /* notify */
 		int damage = mons_hitdmg (fr, to);
 		to->thing.mons.HP -= damage;
 		if (to->thing.mons.HP <= 0)
@@ -134,7 +134,7 @@ void ev_do (Event ev)
 		fr = THIID(ev->mkillm.frID); to = THIID(ev->mkillm.toID);
 		if ((!fr) || (!to))
 			return;
-		p_msg ("The %s kills the %s!", fr->thing.mons.type->name, to->thing.mons.type->name);
+		p_msg ("The %s kills the %s!", fr->thing.mons.mname, to->thing.mons.mname);
 		if (mons_isplayer(to))
 		{
 			p_msg ("You die...");
@@ -143,7 +143,7 @@ void ev_do (Event ev)
 			U.playing = PLAYER_LOSTGAME;
 			return;
 		}
-		fr->thing.mons.exp += to->thing.mons.type->exp;
+		fr->thing.mons.exp += to->thing.mons.exp;
 		ev_queue (0, (union Event) { .mcorpse = {EV_MCORPSE, ev->mkillm.toID}});
 		return;
 	case EV_MCORPSE:
@@ -183,13 +183,11 @@ void ev_do (Event ev)
 		int HP_regen = mons_HP_regen (th), HP_max_regen = mons_HP_max_regen (th);
 		self->HP += HP_regen;
 		self->HP_max += HP_max_regen;
-		self->HP_rec = 0.0;
 
 		/* ST */
 		int ST_regen = mons_ST_regen (th), ST_max_regen = mons_ST_max_regen (th);
 		self->ST += ST_regen;
 		self->ST_max += ST_max_regen;
-		self->ST_rec = 0.0;
 		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
@@ -251,7 +249,7 @@ void ev_do (Event ev)
 		if (to->thing.mons.ai.mode == AI_NONE)
 			return;
 		if (to->thing.mons.ai.mode != AI_AGGRO)
-			p_msg ("The %s angers the %s!", fr->thing.mons.type->name, to->thing.mons.type->name);
+			p_msg ("The %s angers the %s!", fr->thing.mons.mname, to->thing.mons.mname);
 		to->thing.mons.ai.mode = AI_AGGRO;
 		to->thing.mons.ai.aggro.ID = frID;
 		return;
@@ -260,7 +258,7 @@ void ev_do (Event ev)
 		th = THIID(thID);
 		if (!th)
 			return;
-		p_msg ("The %s calms.", th->thing.mons.type->name);
+		p_msg ("The %s calms.", th->thing.mons.mname);
 		th->thing.mons.ai.mode = AI_TIMID;
 		return;
 	case EV_MCHARGE:

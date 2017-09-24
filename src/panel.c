@@ -65,8 +65,8 @@ void p_pane (struct Thing *player)
 
 	struct Monster *pmons = &player->thing.mons;
 	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (pmons->name, 20));
-	gra_mvprint (gpan, 3, 1, "HP %d/%d (+%.1f)", pmons->HP, pmons->HP_max, pmons->HP_rec);
-	gra_mvprint (gpan, 4, 1, "ST %d/%d (+%.1f)", pmons->ST, pmons->ST_max, pmons->ST_rec);
+	gra_mvprint (gpan, 3, 1, "HP %d/%d", pmons->HP, pmons->HP_max);
+	gra_mvprint (gpan, 4, 1, "ST %d/%d", pmons->ST, pmons->ST_max);
 	gra_mvprint (gpan, 5, 1, "LV %d:%d/infinity", pmons->level, pmons->exp); // TODO?
 	/*char *rank = get_rank ();
 	int rlen = strlen (rank);
@@ -187,8 +187,8 @@ int p_status (struct Thing *player, enum PanelType type)
 	gra_cprint (sc_status, 2, "STATUS SCREEN");
 	gra_mvprint (sc_status, 0, w-5, "(Esc)");
 	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", pmons->name, ACS_VLINE, "Human");
-	gra_cprint (sc_status, 5, "  HP: %d/%d (%+.1f)  %c  ST:    %d/%d (%+.1f)",
-				pmons->HP, pmons->HP_max, pmons->HP_rec, ACS_VLINE, pmons->ST, pmons->ST_max, pmons->ST_rec);
+	gra_cprint (sc_status, 5, "  HP: %d/%d  %c  ST:    %d/%d",
+				pmons->HP, pmons->HP_max, ACS_VLINE, pmons->ST, pmons->ST_max);
 	gra_cprint (sc_status, 6, "LV %d:%d/infinity  %c  Speed: %d       ", pmons->level, pmons->exp, ACS_VLINE, pmons->speed);
 
 	switch (type)

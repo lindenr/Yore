@@ -371,6 +371,7 @@ char *real_player_name;
  * 0 : initialised at start of game
  * 1 : generated at start of level
  * 2 : randomly throughout level */
+#define init_mons(mons,TYP) (memcpy ((mons), &all_mons[TYP], sizeof(struct Monster)))
 uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 {
 	int32_t luck, start;
@@ -382,26 +383,17 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		upsy = start / map_graph->w;
 		upsx = start % map_graph->w;
 
-		struct Monster m1 = {&all_mons[MTYP_HUMAN], {.mode=AI_NONE}, 1, 0, 20, 20, 0.0, 15, 15, 0.0, 0,};
+		struct Monster m1;
+		init_mons (&m1, MTYP_HUMAN);
 		m1.name = "Thing 1";
 		m1.skills = v_dinit (sizeof(struct Skill));
-		m1.speed = m1.type->speed;
-		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
 		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
 		pack_add (&m1.pack, &myhammer);
 		struct Thing *t1 = new_thing (THING_MONS, lvl, upsy, upsx, &m1);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, t1->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t1->ID}});
-
-		/*struct Monster m2 = {MTYP_HUMAN, CTRL_PLAYER, 1, 0, 20, 20, 0.0, 10, 10, 0.0, 1000, 0, 0, {{0},}, {0,}, 0, 0, 0, NULL};
-		m2.name = "Thing 2";
-		m2.skills = v_dinit (sizeof(struct Skill));
-		//v_push (m2.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
-		//v_push (m2.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
-		struct Thing *t2 = new_thing (THING_MONS, lvl, upsy, upsx+1, &m2);
-		ev_queue (1, (union Event) { .mturn = {EV_MTURN, t2->ID}});
-		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t2->ID}});*/
 	}
 	else if (type == 1)
 	{
@@ -429,18 +421,17 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 			return 0;
 
 		struct Monster p;
-		memclr (&p, sizeof(p));
-		p.type = &all_mons[player_gen_type ()];
+		init_mons (&p, player_gen_type ());
 		p.ai.mode = AI_TIMID;
-		p.HP = mons_HP_init (p.type); //(p.type->flags >> 28) + (p.type->exp >> 1);
-		//p.HP += 1+rn(1+ p.HP / 3);
-		p.HP_max = p.HP;
-		p.ST = mons_ST_init (p.type); //10;
-		p.ST_max = p.ST;
-		p.speed = p.type->speed;
-		p.name = NULL;
+		//mons_do_stats (&p.stats, &all_mons[player_gen_type ()])
+		//p.stats.HP = mons_HP_init (p.type);
+		//p.stats.HP_max = p.HP;
+		//p.stats.ST = mons_ST_init (p.type);
+		//p.stats.ST_max = p.ST;
+		//p.stats.speed = p.type->speed;
+		//p.name = NULL;
 		p.level = 1; //mons[p.type].exp? TODO
-		p.exp = p.type->exp;
+		//p.exp = p.type->exp;
 		struct Thing *th = new_thing (THING_MONS, lvl, yloc, xloc, &p);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, th->ID}});

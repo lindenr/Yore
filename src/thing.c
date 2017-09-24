@@ -321,7 +321,7 @@ void draw_map (struct Thing *player)
 				struct Monster *m = &th->thing.mons;
 				gra_bsetbox (map_graph, at, m->boxflags);
 				changed = true;
-				gra_bgaddch (map_graph, at, m->type->col | m->type->ch);
+				gra_bgaddch (map_graph, at, m->gl);
 				map_graph->flags[at] |= 1 | (1<<12) | ((1+m->status.moving.ydir)*3    + 1+m->status.moving.xdir)   <<8;
 				map_graph->flags[at] |= 1 | (1<<17) | ((1+m->status.attacking.ydir)*3 + 1+m->status.attacking.xdir)<<13;
 				if (th == player)
