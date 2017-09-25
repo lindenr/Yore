@@ -113,15 +113,15 @@ void thing_watchvec (Vector vec)
 
 void rem_mons (struct DLevel *lvl, int id)
 {
-	int i;
-	for (i = 0; i < lvl->mons->len; ++ i)
-	{
-		if (*(int*) v_at (lvl->mons, i) == id)
-		{
-			v_rem (lvl->mons, i);
-			break;
-		}
-	}
+	//int i;
+	//for (i = 0; i < lvl->mons->len; ++ i)
+	//{
+	//	if (*(int*) v_at (lvl->mons, i) == id)
+	//	{
+	//		v_rem (lvl->mons, i);
+	//		break;
+	//	}
+	//}
 }
 
 void rem_id (int id)
@@ -147,11 +147,11 @@ void thing_move (struct Thing *thing, int new_level, int new_y, int new_x)
 	int old = map_buffer (thing->yloc, thing->xloc),
 	    new = map_buffer (new_y, new_x);
 
-	if (thing->type == THING_MONS && new_level != thing->dlevel)
-	{
-		rem_mons (olv, thing->ID);
-		v_push (nlv->mons, &thing->ID);
-	}
+	//if (thing->type == THING_MONS && new_level != thing->dlevel)
+	//{
+	//	rem_mons (olv, thing->ID);
+	//	v_push (nlv->mons, &thing->ID);
+	//}
 
 	thing->yloc = new_y;
 	thing->xloc = new_x;
@@ -217,8 +217,8 @@ struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t
 	v_push (all_ids, ret);
 	thing_watchvec (lvl->things[n]);
 
-	if (type == THING_MONS)
-		v_push (lvl->mons, &t.ID);
+	//if (type == THING_MONS)
+	//	v_push (lvl->mons, &t.ID);
 
 	return ret;
 }

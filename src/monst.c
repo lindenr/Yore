@@ -178,15 +178,15 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 
 void mons_usedturn (struct Thing *th)
 {
-	if (!mons_isplayer(th))
-		return;
+//	if (!mons_isplayer(th))
+//		return;
 	//th->thing.mons.status &= ~M_CHARGE;
-	int i;
-	for (i = 0; i < cur_dlevel->mons->len; ++ i)
-	{
-		int *id = v_at (cur_dlevel->mons, i);
-		(*(struct Thing **) v_at(all_ids, *id))->thing.mons.boxflags = 0;
-	}
+//	int i;
+//	for (i = 0; i < cur_dlevel->mons->len; ++ i)
+//	{
+//		int *id = v_at (cur_dlevel->mons, i);
+//		(*(struct Thing **) v_at(all_ids, *id))->thing.mons.boxflags = 0;
+//	}
 }
 #if 0
 void thing_move_level (struct Thing *th, int32_t where)

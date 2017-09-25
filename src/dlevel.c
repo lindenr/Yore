@@ -78,10 +78,10 @@ Vector *dlv_things (int level)
 	return dlv_lvl (level)->things;
 }
 
-Vector dlv_mons (int level)
-{
-	return dlv_lvl (level)->mons;
-}
+//Vector dlv_mons (int level)
+//{
+//	return dlv_lvl (level)->mons;
+//}
 
 uint8_t *dlv_attr (int level)
 {

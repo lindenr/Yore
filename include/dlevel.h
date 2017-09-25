@@ -9,7 +9,7 @@ struct DLevel
 {
 	int level;
 	Vector *things;
-	Vector mons;
+	Vector mrons;
 
 /* Output of the bresenham algorithm (drawing.c): 0 if we can't see it (outside 
  * our field of vision); 1 if we remember it; and 2 if we are looking at it.
