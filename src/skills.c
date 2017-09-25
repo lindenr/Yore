@@ -28,7 +28,7 @@ int sk_isact (Skill sk)
 	return all_skills[sk->type].flags == SK_ACT;
 }
 
-int sk_lvl (struct Thing *th, enum SK_TYPE type)
+int sk_lvl (struct MThing *th, enum SK_TYPE type)
 {
 	int i;
 	Vector sk_vec = th->thing.mons.skills;
@@ -42,7 +42,7 @@ int sk_lvl (struct Thing *th, enum SK_TYPE type)
 	return 0;
 }
 
-void sk_exp (struct Thing *th, Skill sk, int xp)
+void sk_exp (struct MThing *th, Skill sk, int xp)
 {
 	sk->exp += xp;
 	if (sk->level == SK_MAXLEVEL || sk->exp < xp_levels[sk->level])
@@ -58,7 +58,7 @@ void sk_exp (struct Thing *th, Skill sk, int xp)
 int chID = 0;
 int chargepos (struct DLevel *dlevel, int y, int x)
 {
-	struct Thing *charger = THIID (chID);
+	struct MThing *charger = MTHIID (chID);
 	int dy = y - charger->yloc, dx = x - charger->xloc;
 	if (dx*dx > 1 || dy*dy > 1)
 	{
@@ -74,7 +74,7 @@ int chargepos (struct DLevel *dlevel, int y, int x)
 	return mons_move (charger, dy, dx, 0)==1;
 }
 
-void sk_charge (struct Thing *th, int y, int x, Skill sk)
+void sk_charge (struct MThing *th, int y, int x, Skill sk)
 {
 	sk_exp (th, sk, 1);
 	

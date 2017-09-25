@@ -21,7 +21,7 @@ Vector messages = NULL;
 
 Graph gpan = NULL;
 
-void p_pane (struct Thing *player)
+void p_pane (struct MThing *player)
 {
 	int i;
 	int xpan = 0, ypan = gr_h - PANE_H;
@@ -127,7 +127,7 @@ void p_msg (const char *str, ...)
 	p_amsg (out);
 }
 
-char p_ask (struct Thing *player, const char *results, const char *question)
+char p_ask (struct MThing *player, const char *results, const char *question)
 {
 	p_amsg (question);
 	if (player)
@@ -176,7 +176,7 @@ char p_lines (Vector lines)
 // ideally want to be able to access skills etc from the status window
 
 Graph sc_status = NULL;
-int p_status (struct Thing *player, enum PanelType type)
+int p_status (struct MThing *player, enum PanelType type)
 {
 	struct Monster *pmons = &player->thing.mons;
 	int h = 20, w = 81;
@@ -236,7 +236,7 @@ int p_status (struct Thing *player, enum PanelType type)
 }
 
 Graph sc_skills = NULL;
-int p_skills (struct Thing *player, enum PanelType type)
+int p_skills (struct MThing *player, enum PanelType type)
 {
 	int h = 10, w = 41;
 	int y = (gr_h - h)/2, x = (gr_w - w)/2;
@@ -338,7 +338,7 @@ int path_hit (struct DLevel *dlevel, int y, int x)
 	return 1;
 }
 
-void p_mvchoose (struct Thing *player, int *yloc, int *xloc, const char *instruct, const char *confirm, int showpath)
+void p_mvchoose (struct MThing *player, int *yloc, int *xloc, const char *instruct, const char *confirm, int showpath)
 {
 	int orig_y = map_graph->csr_y, orig_x = map_graph->csr_x;
 	if (showpath)

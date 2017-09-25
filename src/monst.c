@@ -114,7 +114,7 @@ int mons_get_wt (struct Monster *mons)
 	return CORPSE_WEIGHTS[mons->mflags >> 29];
 }
 
-void mons_corpse (struct Thing *th, Ityp *itype)
+void mons_corpse (struct MThing *th, Ityp *itype)
 {
 	struct Monster *mons = &th->thing.mons;
 
@@ -129,7 +129,7 @@ void mons_corpse (struct Thing *th, Ityp *itype)
 /* Return values:
  * 0 = failed to move; 1 = moved as desired;
  * 2, 3, 4 = did not move as desired but used turn */
-int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 or 1 */
+int mons_move (struct MThing *th, int y, int x, int final) /* each either -1, 0 or 1 */
 {
 	if (!(x || y))
 		return 0;
@@ -178,7 +178,7 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 	return 0;
 }
 
-void mons_usedturn (struct Thing *th)
+void mons_usedturn (struct MThing *th)
 {
 //	if (!mons_isplayer(th))
 //		return;
@@ -191,7 +191,7 @@ void mons_usedturn (struct Thing *th)
 //	}
 }
 #if 0
-void thing_move_level (struct Thing *th, int32_t where)
+void thing_move_level (struct MThing *th, int32_t where)
 {
 	uint32_t wh;
 	if (where == 0) /* Uncontrolled teleport within level */
@@ -222,7 +222,7 @@ char escape (unsigned char a)
 		return a;
 }
 
-int mons_take_turn (struct Thing *th)
+int mons_take_turn (struct MThing *th)
 {
 	if (!mons_isplayer(th))
 		return AI_take_turn (th);
@@ -265,7 +265,7 @@ int mons_take_turn (struct Thing *th)
 	return true;
 }
 
-/*int mons_prhit (struct Thing *from, struct Thing *to, int energy) // ACTION
+/*int mons_prhit (struct MThing *from, struct MThing *to, int energy) // ACTION
 {
 	to->thing.mons.HP -= energy/2;
 	if (to->thing.mons.HP <= 0)
@@ -274,12 +274,12 @@ int mons_take_turn (struct Thing *th)
 }*/
 
 /* TODO is it polymorphed? */
-bool mons_edible (struct Thing *th, struct Item *item)
+bool mons_edible (struct MThing *th, struct Item *item)
 {
 	return ((item->type.gl & 0xFF) == ITCH_FOOD);
 }
 /*
-bool mons_eating (struct Thing *th) // ACTION
+bool mons_eating (struct MThing *th) // ACTION
 {
 	int hunger_loss;
 	struct Item *item = th->thing.mons.eating;
@@ -304,7 +304,7 @@ bool mons_eating (struct Thing *th) // ACTION
 	return true;
 }
 
-void mons_eat (struct Thing *th, struct Item *item) // ACTION
+void mons_eat (struct MThing *th, struct Item *item) // ACTION
 {
 	if (!mons_edible (th, item))
 	{
@@ -330,17 +330,17 @@ Tick mons_tmgen ()
 	return 10000 + rn (500);
 }
 
-Tick mons_tregen (struct Thing *th)
+Tick mons_tregen (struct MThing *th)
 {
 	return 10000;
 }
 
-/*inline void *mons_get_weap (struct Thing *th)
+/*inline void *mons_get_weap (struct MThing *th)
 {
 	return &th->thing.mons.wearing.rweap;
 }
 
-bool mons_unwield (struct Thing *th)
+bool mons_unwield (struct MThing *th)
 {
 	struct Item **pweap = mons_get_weap (th);
 	struct Item *weap = *pweap;
@@ -359,7 +359,7 @@ bool mons_unwield (struct Thing *th)
 	return true;
 }
 
-bool mons_wield (struct Thing *th, struct Item *it)
+bool mons_wield (struct MThing *th, struct Item *it)
 {
 	th->thing.mons.wearing.rweap = it;
 	it->attr ^= ITEM_WIELDED;
@@ -370,7 +370,7 @@ bool mons_wield (struct Thing *th, struct Item *it)
 	return true;
 }
 
-bool mons_wear (struct Thing *th, struct Item *it)
+bool mons_wear (struct MThing *th, struct Item *it)
 {
 	if (it->type.ch != ITCH_ARMOUR)
 	{
@@ -396,7 +396,7 @@ bool mons_wear (struct Thing *th, struct Item *it)
 	return true;
 }*/
 
-void mons_passive_attack (struct Thing *from, struct Thing *to) // ACTION
+void mons_passive_attack (struct MThing *from, struct MThing *to) // ACTION
 {
 /*	uint32_t t;
 	int type = from->thing.mons.type;
@@ -420,11 +420,11 @@ void mons_passive_attack (struct Thing *from, struct Thing *to) // ACTION
 	}*/
 }
 
-void mons_box (struct Thing *mons, BoxType type)
+void mons_box (struct MThing *mons, BoxType type)
 {
 	mons->thing.mons.boxflags |= 1<<type;
 }
-struct Item *player_use_pack (struct Thing *th, char *msg, uint32_t accepted)
+struct Item *player_use_pack (struct MThing *th, char *msg, uint32_t accepted)
 {
 	struct Item *It = NULL;
 	char in = show_contents (th->thing.mons.pack, accepted, msg);
@@ -462,41 +462,41 @@ struct Item *player_use_pack (struct Thing *th, char *msg, uint32_t accepted)
 	return It;
 }
 
-int mons_hits (struct Thing *from, struct Thing *to)
+int mons_hits (struct MThing *from, struct MThing *to)
 {
 	return 1; // evading?
 }
 
-int mons_hitdmg (struct Thing *from, struct Thing *to)
+int mons_hitdmg (struct MThing *from, struct MThing *to)
 {
 	return 3;
 }
 
-int mons_ST_hit (struct Thing *from)
+int mons_ST_hit (struct MThing *from)
 {
 	return 3;
 }
 
-int mons_HP_regen (struct Thing *th)
+int mons_HP_regen (struct MThing *th)
 {
 	if (th->thing.mons.HP >= th->thing.mons.HP_max)
 		return 0;
 	return !rn(5);
 }
 
-int mons_HP_max_regen (struct Thing *th)
+int mons_HP_max_regen (struct MThing *th)
 {
 	return 0;
 }
 
-int mons_ST_regen (struct Thing *th)
+int mons_ST_regen (struct MThing *th)
 {
 	if (th->thing.mons.ST >= th->thing.mons.ST_max)
 		return 0;
 	return rn(2);
 }
 
-int mons_ST_max_regen (struct Thing *th)
+int mons_ST_max_regen (struct MThing *th)
 {
 	return 0;
 }
@@ -537,12 +537,12 @@ void player_dead (const char *msg, ...)
 	U.playing = PLAYER_LOSTGAME;
 }
 
-int mons_isplayer (struct Thing *th)
+int mons_isplayer (struct MThing *th)
 {
 	return th->thing.mons.ai.mode == AI_NONE;
 }
 
-int AI_take_turn (struct Thing *ai)
+int AI_take_turn (struct MThing *ai)
 {
 	TID aiID = ai->ID;
 	if (ai->thing.mons.ai.mode == AI_TIMID)
@@ -557,7 +557,7 @@ int AI_take_turn (struct Thing *ai)
 		return 1;
 	}
 
-	struct Thing *to = THIID (ai->thing.mons.ai.aggro.ID);
+	struct MThing *to = MTHIID (ai->thing.mons.ai.aggro.ID);
 	if (!to)
 	{
 		ev_queue (0, (union Event) { .mturn = {EV_MTURN, aiID}});

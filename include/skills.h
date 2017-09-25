@@ -38,10 +38,10 @@ typedef struct Skill
 const char *sk_name (Skill);
 const char *sk_desc (Skill);
 int  sk_isact  (Skill);
-void sk_exp    (struct Thing *, Skill, int);
-int  sk_lvl    (struct Thing *, enum SK_TYPE);
+void sk_exp    (struct MThing *, Skill, int);
+int  sk_lvl    (struct MThing *, enum SK_TYPE);
 
-void sk_charge (struct Thing *, int, int, Skill);
+void sk_charge (struct MThing *, int, int, Skill);
 
 #endif /* SKILL_H_INCLUDED */
 

@@ -11,7 +11,8 @@
 #define LOOP_THINGS(t,n,i) int i, n; for (n = 0; n < map_graph->a; ++ n) for (i = 0; i < (t)[n]->len; ++ i)
 #define BREAK(n)           {n = map_graph->a; break;}
 
-#define THIID(id)          (*(struct Thing **) v_at (all_ids, (id)))
+#define THIID(id)          (*(struct Thing **)  v_at (all_ids, (id)))
+#define MTHIID(id)         (*(struct MThing **) v_at (all_ids, (id)))
 #define THING(t,n,i)       ((struct Thing*)((t)[n]->data + (i)*sizeof(struct Thing)))
 
 #define CONTROL_(c) ((KMOD_CTRL << 16) | (c))
@@ -22,7 +23,7 @@ enum THING_TYPE
 {
 	THING_NONE = 0,   /* not used */
 	THING_ITEM,       /* an item */
-	THING_MONS,       /* a monster */
+//	THING_MONS,       /* a monster */
 	THING_DGN         /* a dungeon feature (wall, floor, trap etc) */
 };
 
@@ -35,8 +36,31 @@ struct Thing
 	union
 	{
 		struct Item item;
-		struct Monster mons;
+//		struct Monster mons;
 		struct map_item_struct mis;
+	}
+	thing;
+};
+
+enum MTHING_TYPE
+{
+	MTHING_NONE = 0,   /* not used */
+//	THING_ITEM,       /* an item */
+	THING_MONS,       /* a monster */
+//	THING_DGN         /* a dungeon feature (wall, floor, trap etc) */
+};
+
+struct MThing
+{
+	enum MTHING_TYPE type;
+	int dlevel;
+	TID ID;
+	uint32_t yloc, xloc;
+	union
+	{
+//		struct Item item;
+		struct Monster mons;
+//		struct map_item_struct mis;
 	}
 	thing;
 };
@@ -45,16 +69,18 @@ struct Thing
 struct DLevel;
 
 void          thing_free     (struct Thing *);
-void          rem_id         (int);
+void          rem_id         (TID);
+void          rem_mid        (TID);
 
 struct Thing *new_thing      (uint32_t, struct DLevel *, uint32_t, uint32_t, void *);
+struct MThing *new_mthing    (struct DLevel *, uint32_t, uint32_t, void *);
 
-void          draw_map       (struct Thing *);
+void          draw_map       (struct MThing *);
 
 int           get_thing_type (char);
 const char *  get_thing_name (struct Thing);
 
-void          monsthing_move (struct Thing *, int, int, int);
+void          monsthing_move (struct MThing *, int, int, int);
 //void          thing_bmove    (struct Thing *, int, int);
 
 TID  getID                   ();

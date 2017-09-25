@@ -11,48 +11,48 @@
 
 int cur_players;
 
-int Kcamup (struct Thing *player)
+int Kcamup (struct MThing *player)
 {
 	gra_movecam (map_graph, map_graph->cy - 10, map_graph->cx);
 	return 0;
 }
 
-int Kcamdn (struct Thing *player)
+int Kcamdn (struct MThing *player)
 {
 	gra_movecam (map_graph, map_graph->cy + 10, map_graph->cx);
 	return 0;
 }
 
-int Kcamlf (struct Thing *player)
+int Kcamlf (struct MThing *player)
 {
 	gra_movecam (map_graph, map_graph->cy, map_graph->cx - 10);
 	return 0;
 }
 
-int Kcamrt (struct Thing *player)
+int Kcamrt (struct MThing *player)
 {
 	gra_movecam (map_graph, map_graph->cy, map_graph->cx + 10);
 	return 0;
 }
 
-int Kstatus (struct Thing *player)
+int Kstatus (struct MThing *player)
 {
 	return p_status (player, P_STATUS);
 }
 
-int Kskills (struct Thing *player)
+int Kskills (struct MThing *player)
 {
 	return p_status (player, P_SKILLS);
 }
 
-int Kwait (struct Thing *player)
+int Kwait (struct MThing *player)
 {
 	//mons_usedturn (player);
 	ev_queue (player->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, player->ID}});
 	return 1;
 }
 
-int Kpickup (struct Thing *player)
+int Kpickup (struct MThing *player)
 {
 	Vector ground = v_init (sizeof (int), 20);
 	int n = map_buffer (player->yloc, player->xloc);
@@ -91,7 +91,7 @@ int Kpickup (struct Thing *player)
 	return 1;
 }
 
-/*int Keat (struct Thing *player)
+/*int Keat (struct MThing *player)
 {
 	struct Item *food = player_use_pack ("Eat what?", ITCAT_FOOD);
 	if (food == NULL)
@@ -101,13 +101,13 @@ int Kpickup (struct Thing *player)
 	return 1;
 }*/
 
-int Kevade (struct Thing *player)
+int Kevade (struct MThing *player)
 {
 	ev_queue (0, (union Event) { .mevade = {EV_MEVADE, player->ID}});
 	return 1;
 }
 
-int Ksdrop (struct Thing *player)
+int Ksdrop (struct MThing *player)
 {
 	struct Item *drop = player_use_pack (player, "Drop what?", ITCAT_ALL);
 	if (drop == NULL)
@@ -121,18 +121,18 @@ int Ksdrop (struct Thing *player)
 	return 1;
 }
 
-int Kmdrop (struct Thing *player)
+int Kmdrop (struct MThing *player)
 {
 	return 0;
 }
 
-int Kinv (struct Thing *player)
+int Kinv (struct MThing *player)
 {
 	show_contents (player->thing.mons.pack, ITCAT_ALL, "Inventory");
 	return 0;
 }
 
-int Knlook (struct Thing *player)
+int Knlook (struct MThing *player)
 {
 	int k = 0;
 	int n = map_buffer (player->yloc, player->xloc);
@@ -162,26 +162,26 @@ int Knlook (struct Thing *player)
 	return 0;
 }
 
-int Kflook (struct Thing *player)
+int Kflook (struct MThing *player)
 {
 	int y, x; 
 	p_mvchoose (player, &y, &x, "What are you looking for?", NULL, 0);
 	return 0;
 }
 
-/*int Kopen (struct Thing *player)
+/*int Kopen (struct MThing *player)
 {
 	//int y, x; 
 	return 0;
 }
 
-int Kclose (struct Thing *player)
+int Kclose (struct MThing *player)
 {
 	//int y, x; 
 	return 0;
 }*/
 /*
-int Kwield (struct Thing *player)
+int Kwield (struct MThing *player)
 {
 	struct Item *wield = player_use_pack ("Wield what?", ITCAT_ALL);
 	if (wield == NULL)
@@ -194,21 +194,21 @@ int Kwield (struct Thing *player)
 	return 1;
 }*/
 /*
-int Klookdn (struct Thing *player)
+int Klookdn (struct MThing *player)
 {
 	if (cur_dlevel->dnlevel != 0)
 		dlv_set (cur_dlevel->dnlevel);
 	return 0;
 }
 
-int Klookup (struct Thing *player)
+int Klookup (struct MThing *player)
 {
 	if (cur_dlevel->uplevel != 0)
 		dlv_set (cur_dlevel->uplevel);
 	return 0;
 }*/
 /*
-int Kgodown (struct Thing *player)
+int Kgodown (struct MThing *player)
 {
 	int level = cur_dlevel->dnlevel;
 	if (level == 0)
@@ -220,7 +220,7 @@ int Kgodown (struct Thing *player)
 	return 1;
 }
 
-int Kgoup (struct Thing *player)
+int Kgoup (struct MThing *player)
 {
 	int level = cur_dlevel->uplevel;
 	if (level == 0)
@@ -232,13 +232,13 @@ int Kgoup (struct Thing *player)
 	return 1;
 }*/
 
-int Ksave (struct Thing *player)
+int Ksave (struct MThing *player)
 {
 	U.playing = PLAYER_SAVEGAME;
 	return -1;
 }
 
-int Kquit (struct Thing *player)
+int Kquit (struct MThing *player)
 {
 	if (!quit())
 	{
@@ -248,7 +248,7 @@ int Kquit (struct Thing *player)
 	return 0;
 }
 
-int Kdebug (struct Thing *player)
+int Kdebug (struct MThing *player)
 {
 	ev_debug ();
 	return 0;
@@ -282,7 +282,7 @@ struct KStruct Keys[] = {
 	{CONTROL_('q'), &Kquit}
 };
 
-int key_lookup (struct Thing *player, uint32_t key)
+int key_lookup (struct MThing *player, uint32_t key)
 {
 	int i;
 	char ch = (char) key;

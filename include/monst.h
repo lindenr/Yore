@@ -108,7 +108,7 @@ typedef uint32_t player_attr[6];
 
 struct player_status
 {
-	struct Thing *pl;
+	struct MThing *pl;
 	int role;
 	int playing;
 	player_attr attr; /* st, co, ch, etc */
@@ -210,32 +210,32 @@ struct Monster
 
 extern const struct Monster all_mons[];
 
-struct Thing;
+struct MThing;
 /* general monster functions */
-int    mons_move       (struct Thing *, int, int, int);    /* move in given directions                 */
-int    mons_take_turn  (struct Thing *);                   /* give a move (AI or player)               */
+int    mons_move       (struct MThing *, int, int, int);    /* move in given directions                 */
+int    mons_take_turn  (struct MThing *);                   /* give a move (AI or player)               */
 //void   mons_init_stats (struct MStats *, const struct MType *); /* generate monster stats              */
-void   mons_box        (struct Thing *, BoxType);          /* boxy flags for this turn                 */
-void   mons_usedturn   (struct Thing *);                   /* turn is irretrievably used               */
-//bool   mons_unwield    (struct Thing *);                   /* unwield what is currently wielded        */
-//bool   mons_wield      (struct Thing *, struct Item *);    /* wield an item (any item)                 */
-//void   mons_eat        (struct Thing *, struct Item *);    /* eat something                            */
-//bool   mons_eating     (struct Thing *);                   /* continue eating something                */
-//bool   mons_can_hear   (struct Thing *);                   /* has ears? no?                            */
-void   mons_corpse     (struct Thing *, Ityp *);           /* make itype corpse type of the monster    */
+void   mons_box        (struct MThing *, BoxType);          /* boxy flags for this turn                 */
+void   mons_usedturn   (struct MThing *);                   /* turn is irretrievably used               */
+//bool   mons_unwield    (struct MThing *);                   /* unwield what is currently wielded        */
+//bool   mons_wield      (struct MThing *, struct Item *);    /* wield an item (any item)                 */
+//void   mons_eat        (struct MThing *, struct Item *);    /* eat something                            */
+//bool   mons_eating     (struct MThing *);                   /* continue eating something                */
+//bool   mons_can_hear   (struct MThing *);                   /* has ears? no?                            */
+void   mons_corpse     (struct MThing *, Ityp *);           /* make itype corpse type of the monster    */
 Tick   mons_tmgen      ();                                 /* time until next monster generation       */
-Tick   mons_tregen     (struct Thing *);                   /* time between regen events                */
-int    mons_hits       (struct Thing *, struct Thing *);   /* will it hit                              */
-int    mons_hitdmg     (struct Thing *, struct Thing *);   /* how much damage                          */
-int    mons_ST_hit     (struct Thing *);                   /* how much stamina will it consume         */
-int    mons_HP_regen   (struct Thing *);                   /* how much HP will regen                   */
-int    mons_HP_max_regen(struct Thing *);                  /* similarly for max HP                     */
-int    mons_ST_regen   (struct Thing *);                   /* stamina                                  */
-int    mons_ST_max_regen(struct Thing *);                  /* max stamina                              */
-int    mons_isplayer   (struct Thing *);                   /* is controlled by human                   */
+Tick   mons_tregen     (struct MThing *);                   /* time between regen events                */
+int    mons_hits       (struct MThing *, struct MThing *);   /* will it hit                              */
+int    mons_hitdmg     (struct MThing *, struct MThing *);   /* how much damage                          */
+int    mons_ST_hit     (struct MThing *);                   /* how much stamina will it consume         */
+int    mons_HP_regen   (struct MThing *);                   /* how much HP will regen                   */
+int    mons_HP_max_regen(struct MThing *);                  /* similarly for max HP                     */
+int    mons_ST_regen   (struct MThing *);                   /* stamina                                  */
+int    mons_ST_max_regen(struct MThing *);                  /* max stamina                              */
+int    mons_isplayer   (struct MThing *);                   /* is controlled by human                   */
 
 /* player functions */
-struct Item *player_use_pack (struct Thing *, char *, uint32_t); /* ask player for an item             */
+struct Item *player_use_pack (struct MThing *, char *, uint32_t); /* ask player for an item             */
 int    player_gen_type (void);                             /* get a valid monster type for fighting    */
 //int    player_sense    (int, int, int);                    /* can the player sense a square            */
 
@@ -249,7 +249,7 @@ int    can_amove       (int);                              /* returns if a squar
 char   escape          (unsigned char);                    /* escapes a character                      */
 
 /* AI functions */
-int    AI_take_turn    (struct Thing *);                   /* decide what to do                        */
+int    AI_take_turn    (struct MThing *);                   /* decide what to do                        */
 
 #endif /* MONST_H_INCLUDED */
 
