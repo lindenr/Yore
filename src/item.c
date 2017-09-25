@@ -48,7 +48,7 @@ void ask_items (Vector it_out, Vector it_in, const char *msg)
 	for (i = 0; i < it_in->len; ++ i)
 	{
 		v_push (it_out, v_at (it_in, i));
-		char *asdf = get_item_desc ((*(struct Thing **)v_at(all_ids, *(int*)v_at(it_in, i)))->thing.item);
+		char *asdf = get_item_desc ((THIID (*(TID*)v_at(it_in, i)))->thing.item);
 		v_pstrf (list, "  (*)   %s", asdf);
 		free (asdf);
 	}

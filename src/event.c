@@ -17,14 +17,29 @@ void ev_queue (int udelay, union Event ev)
 	int when = curtick + udelay;
 	//printf ("queue %d %d\n", when, ev.type);
 	struct QEv qe = {when, ev};
-	int i;
-	for (i = 0; i < events->len; ++ i)
-		ev_print (v_at (events, i));
-	for (i = 0; i < events->len && ((struct QEv*)v_at(events, i))->tick < when; ++ i)
+	int i = 0;
+	//for (i = 0; i < events->len; ++ i)
+	//	ev_print (v_at (events, i));
+	if (udelay)
+	for (i = 0; i < events->len && ((struct QEv*)v_at(events, i))->tick <= when; ++ i)
 		{}
 	v_push (events, &qe);
 	memmove (v_at (events, i+1), v_at (events, i), events->siz * (events->len - i - 1));
 	memcpy (v_at (events, i), &qe, events->siz);
+}
+
+void ev_debug ()
+{
+	int i;
+	printf ("curtick is %lu\n", curtick);
+	for (i = 0; i < events->len; ++ i)
+	{
+		struct QEv *qe = v_at (events, i);
+		printf ("due at %lu: %d\n", qe->tick, qe->ev.type);
+		if (qe->ev.type == EV_MTURN)
+			printf ("     id %d\n", qe->ev.mturn.thID);
+	}
+	printf("\n");
 }
 
 void ev_print (struct QEv *qe)
@@ -68,11 +83,11 @@ void ev_do (Event ev)
 		// Next turn
 		ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
 		ydest = th->yloc + th->thing.mons.status.moving.ydir; xdest = th->xloc + th->thing.mons.status.moving.xdir;
-		can = can_amove (get_sqattr (dlv_things(th->dlevel), ydest, xdest));
+		can = can_amove (get_sqattr (dlv_lvl(th->dlevel), ydest, xdest));
 		th->thing.mons.status.moving.ydir = 0;
 		th->thing.mons.status.moving.xdir = 0;
 		if (can == 1)
-			thing_move (th, th->dlevel, ydest, xdest);
+			monsthing_move (th, th->dlevel, ydest, xdest);
 		return;
 	case EV_MEVADE:
 		thID = ev->mevade.thID;
@@ -101,11 +116,11 @@ void ev_do (Event ev)
 		ydest = fr->yloc + fr->thing.mons.status.attacking.ydir; xdest = fr->xloc + fr->thing.mons.status.attacking.xdir;
 		fr->thing.mons.status.attacking.ydir = 0;
 		fr->thing.mons.status.attacking.xdir = 0;
-		can = can_amove (get_sqattr (dlv_things(fr->dlevel), ydest, xdest));
+		can = can_amove (get_sqattr (dlv_lvl(fr->dlevel), ydest, xdest));
 		if (can != 2)
 			return;
-		to = get_sqmons(dlv_things(fr->dlevel), ydest, xdest); /* get to-mons */
-		if (!to)
+		to = &dlv_lvl(fr->dlevel)->mons[map_buffer(ydest, xdest)]; /* get to-mons */
+		if (!to->ID)
 			return;
 		toID = to->ID;
 		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}}); /* anger to-mons */

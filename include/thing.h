@@ -54,8 +54,8 @@ void          draw_map       (struct Thing *);
 int           get_thing_type (char);
 const char *  get_thing_name (struct Thing);
 
-void          thing_move     (struct Thing *, int, int, int);
-void          thing_bmove    (struct Thing *, int, int);
+void          monsthing_move (struct Thing *, int, int, int);
+//void          thing_bmove    (struct Thing *, int, int);
 
 TID  getID                   ();
 

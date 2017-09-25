@@ -133,7 +133,7 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 {
 	if (!(x || y))
 		return 0;
-	int can = can_amove (get_sqattr (dlv_things(th->dlevel), th->yloc + y, th->xloc + x));
+	int can = can_amove (get_sqattr (dlv_lvl(th->dlevel), th->yloc + y, th->xloc + x));
 	/* like a an unmoveable boulder or something */
 	if (!can)
 		return 0;
@@ -158,12 +158,14 @@ int mons_move (struct Thing *th, int y, int x, int final) /* each either -1, 0 o
 		if (final)
 			mons_usedturn (th);
 		ev_queue (0, (union Event) { .mopendoor = {EV_MOPENDOOR, th->ID, y, x}});
+		return 3;
 	}
 	else if (can == 4)
 	{
 		if (final)
 			mons_usedturn (th);
 		ev_queue (0, (union Event) { .mclosedoor = {EV_MCLOSEDOOR, th->ID, y, x}});
+		return 4;
 	}
 	/* off map or something */
 	else if (can == -1)
@@ -185,7 +187,7 @@ void mons_usedturn (struct Thing *th)
 //	for (i = 0; i < cur_dlevel->mons->len; ++ i)
 //	{
 //		int *id = v_at (cur_dlevel->mons, i);
-//		(*(struct Thing **) v_at(all_ids, *id))->thing.mons.boxflags = 0;
+//		THIID(*id)->thing.mons.boxflags = 0;
 //	}
 }
 #if 0
@@ -546,7 +548,7 @@ int AI_take_turn (struct Thing *ai)
 	if (ai->thing.mons.ai.mode == AI_TIMID)
 	{
 		int y = rn(3)-1, x = rn(3)-1;
-		int can = can_amove (get_sqattr (dlv_things(ai->dlevel), ai->yloc + y, ai->xloc + x));
+		int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
 		if (can == 1)
 			mons_move (ai, y, x, 1);
 		//else if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))

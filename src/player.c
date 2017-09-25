@@ -248,6 +248,12 @@ int Kquit (struct Thing *player)
 	return 0;
 }
 
+int Kdebug (struct Thing *player)
+{
+	ev_debug ();
+	return 0;
+}
+
 struct KStruct Keys[] = {
 	{GRK_UP, &Kcamup},
 	{GRK_DN, &Kcamdn},
@@ -264,6 +270,7 @@ struct KStruct Keys[] = {
 	{'i', &Kinv},
 	{':', &Knlook},
 	{';', &Kflook},
+	{'Z', &Kdebug},
 //	{'o', &Kopen},
 //	{'c', &Kclose},
 //	{'w', &Kwield},

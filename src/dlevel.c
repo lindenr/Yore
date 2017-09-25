@@ -27,8 +27,8 @@ void dlv_make (int level, int uplevel, int dnlevel)
 	int i;
 	struct DLevel new_level = {
 		level,
-		NULL,
-		v_dinit (sizeof(int)),
+		malloc (sizeof(Vector) * map_graph->a),
+		malloc (sizeof(struct Thing)*map_graph->a),//v_dinit (sizeof(int)),
 		malloc (sizeof(uint8_t)*map_graph->a),
 		malloc (sizeof(uint8_t)*map_graph->a),
 		malloc (sizeof(glyph)*map_graph->a),
@@ -41,9 +41,9 @@ void dlv_make (int level, int uplevel, int dnlevel)
 	lvl = dlv_lvl (dnlevel);
 	if (lvl)
 		lvl->uplevel = level;
-	new_level.things = malloc (sizeof(Vector) * map_graph->a);
 	for (i = 0; i < map_graph->a; ++ i)
 		new_level.things[i] = v_dinit (sizeof(struct Thing));
+	memset (new_level.mons, 0, sizeof(struct Thing)*map_graph->a);
 	memset (new_level.seen, 0, sizeof(uint8_t)*map_graph->a);
 	memset (new_level.attr, 0, sizeof(uint8_t)*map_graph->a);
 	memset (new_level.unseen, 0, sizeof(glyph)*map_graph->a);

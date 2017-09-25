@@ -96,10 +96,10 @@ void walls_test ()
 	}
 }*/
 
-void thing_bmove (struct Thing *thing, int level, int num)
-{
-	thing_move (thing, level, num/map_graph->w, num%map_graph->w);
-}
+//void thing_bmove (struct Thing *thing, int level, int num)
+//{
+//	thing_move (thing, level, num/map_graph->w, num%map_graph->w);
+//}
 
 void thing_watchvec (Vector vec)
 {
@@ -107,7 +107,7 @@ void thing_watchvec (Vector vec)
 	for (i = 0; i < vec->len; ++ i)
 	{
 		struct Thing *th = v_at (vec, i);
-		*(struct Thing **) v_at (all_ids, th->ID) = th;
+		THIID (th->ID) = th;
 	}
 }
 
@@ -128,16 +128,22 @@ void rem_id (int id)
 {
 	struct Thing *th = THIID(id);
 	struct DLevel *lvl = dlv_lvl (th->dlevel);
-	if (th->type == THING_MONS)
-		rem_mons (lvl, th->ID);
 	int n = map_buffer (th->yloc, th->xloc);
+	if (th->type == THING_MONS)
+	{
+		THIID (id) = NULL; 
+		rem_mons (lvl, th->ID);
+		memset (&lvl->mons[n], 0, sizeof(struct Thing));
+		return;
+	}
 	v_rptr (lvl->things[n], th);
 	thing_watchvec (lvl->things[n]);
 	THIID(id) = NULL;
 }
 
-void thing_move (struct Thing *thing, int new_level, int new_y, int new_x)
+void monsthing_move (struct Thing *thing, int new_level, int new_y, int new_x)
 {
+	if (thing->type != THING_MONS) panic ("not monster");
 	if (thing->yloc == new_y && thing->xloc == new_x && thing->dlevel == new_level)
 		return;
 
@@ -153,15 +159,21 @@ void thing_move (struct Thing *thing, int new_level, int new_y, int new_x)
 	//	v_push (nlv->mons, &thing->ID);
 	//}
 
+	if (nlv->mons[new].ID) panic ("monster already there");
+	memcpy (&nlv->mons[new], &olv->mons[old], sizeof(struct Thing));
+	memset (&olv->mons[old], 0, sizeof(struct Thing));
+	thing = &nlv->mons[new];
+	THIID (thing->ID) = thing;
+
 	thing->yloc = new_y;
 	thing->xloc = new_x;
 	thing->dlevel = new_level;
 
-	v_push (nlv->things[new], thing);
-	v_rptr (olv->things[old], thing); 
+	//v_push (nlv->things[new], thing);
+	//v_rptr (olv->things[old], thing); 
 
-	thing_watchvec (nlv->things[new]);
-	thing_watchvec (olv->things[old]);
+	//thing_watchvec (nlv->things[new]);
+	//thing_watchvec (olv->things[old]);
 }
 
 void thing_free (struct Thing *thing)
@@ -203,8 +215,6 @@ int TSIZ[] = {
 
 struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)
 {
-	//if (type == THING_ITEM)
-	//	printf ("New: %u %d %dx%d  %p\n", type, dlevel, y, x, actual_thing);
 	int n = map_buffer (y, x);
 	struct Thing t = {type, lvl->level, getID(), y, x, {}};
 
@@ -212,10 +222,20 @@ struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t
 		panic ("IDs error");
 
 	memcpy (&t.thing, actual_thing, TSIZ[type]);
-	struct Thing *ret = v_push (lvl->things[n], &t);
-
-	v_push (all_ids, ret);
-	thing_watchvec (lvl->things[n]);
+	struct Thing *ret;
+	if (type == THING_MONS)
+	{
+		ret = &lvl->mons[n];
+		if (ret->ID) panic ("monster already there!");
+		memcpy (ret, &t, sizeof(t));
+		v_push (all_ids, &ret);
+	}
+	else
+	{
+		ret = v_push (lvl->things[n], &t);
+		v_push (all_ids, &ret);
+		thing_watchvec (lvl->things[n]);
+	}
 
 	//if (type == THING_MONS)
 	//	v_push (lvl->mons, &t.ID);
@@ -310,29 +330,35 @@ void draw_map (struct Thing *player)
 	uint8_t *sq_seen = lvl->seen, *sq_attr = lvl->attr;
 	glyph *sq_unseen = lvl->unseen;
 
-	LOOP_THINGS(things, at, i)
+	int i, at;
+	for (at = 0; at < map_graph->a; ++ at)
 	{
-		struct Thing *th = THING(things, at, i);
-		bool changed = false;
-		switch (th->type)
+		if (lvl->mons[at].ID)
 		{
-			case THING_MONS:
+			struct Thing *th = &lvl->mons[at];
+			struct Monster *m = &th->thing.mons;
+			gra_bsetbox (map_graph, at, m->boxflags);
+			gra_bgaddch (map_graph, at, m->gl);
+			map_graph->flags[at] |= 1 | (1<<12) | ((1+m->status.moving.ydir)*3    + 1+m->status.moving.xdir)   <<8;
+			map_graph->flags[at] |= 1 | (1<<17) | ((1+m->status.attacking.ydir)*3 + 1+m->status.attacking.xdir)<<13;
+			if (th == player)
 			{
-				struct Monster *m = &th->thing.mons;
-				gra_bsetbox (map_graph, at, m->boxflags);
-				changed = true;
-				gra_bgaddch (map_graph, at, m->gl);
-				map_graph->flags[at] |= 1 | (1<<12) | ((1+m->status.moving.ydir)*3    + 1+m->status.moving.xdir)   <<8;
-				map_graph->flags[at] |= 1 | (1<<17) | ((1+m->status.attacking.ydir)*3 + 1+m->status.attacking.xdir)<<13;
-				if (th == player)
-				{
-					//map_graph->data[ati] |= COL_TXT_BRIGHT;
-				}
-				sq_attr[at] = 2;
-				break;
+				//map_graph->data[ati] |= COL_TXT_BRIGHT;
 			}
-			case THING_ITEM:
+			sq_attr[at] = 2;
+			type[at] = th->type;
+			continue;
+		}
+		for (i = 0; i < things[at]->len; ++ i)
+		{
+			struct Thing *th = THING(things, at, i);
+			bool changed = false;
+			switch (th->type)
 			{
+			case THING_MONS:
+				panic ("should be no mons in things");
+				break;
+			case THING_ITEM:
 				gra_bsetbox (map_graph, at, 0);
 				if (type[at] != THING_MONS)
 				{
@@ -343,9 +369,7 @@ void draw_map (struct Thing *player)
 				sq_unseen[at] = map_graph->data[at];
 				sq_attr[at] = 1;
 				break;
-			}
 			case THING_DGN:
-			{
 				gra_bsetbox (map_graph, at, 0);
 				if (type[at] == THING_NONE || type[at] == THING_DGN)
 				{
@@ -356,17 +380,15 @@ void draw_map (struct Thing *player)
 				}
 				sq_unseen[at] = map_graph->data[at];
 				break;
-			}
 			case THING_NONE:
-			{
 				printf ("%d %d %d\n", at, i, th->type);
 				getchar ();
 				panic ("default reached in draw_map()");
 			}
-		}
-		if (changed)
-		{
-			type[at] = th->type;
+			if (changed)
+			{
+				type[at] = th->type;
+			}
 		}
 	}
 	set_can_see (player, sq_seen, sq_attr, sq_unseen);

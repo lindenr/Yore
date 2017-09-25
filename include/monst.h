@@ -245,8 +245,6 @@ int    player_gen_type (void);                             /* get a valid monste
 void   setup_U         (void);                             /* populate the U struct                    */
 void   get_cinfo       (void);                             /* called at start, gets input from player  */
 
-void  *get_sqmons      (Vector *, int, int);               /* returns the monster on a square          */
-SqAttr get_sqattr      (Vector *, int, int);               /* returns the SqAttr of a square           */
 int    can_amove       (int);                              /* returns if a square can be moved on to   */
 char   escape          (unsigned char);                    /* escapes a character                      */
 

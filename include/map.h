@@ -38,7 +38,10 @@ struct map_item_struct
 	SqAttr attr;
 };
 
+struct DLevel;
 extern struct map_item_struct map_items[];
+void  *get_sqmons      (struct DLevel *, int, int);     /* returns the monster on a square     */
+SqAttr get_sqattr      (struct DLevel *, int, int);     /* returns the SqAttr of a square      */
 extern Graph map_graph;
 int GETMAPITEMID(char);
 
