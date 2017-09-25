@@ -143,16 +143,16 @@ void rem_id (TID id)
 
 void rem_mid (TID id)
 {
-	struct MThing *th = MTHIID(id);
+	struct Monster *th = MTHIID(id);
 	struct DLevel *lvl = dlv_lvl (th->dlevel);
 	int n = map_buffer (th->yloc, th->xloc);
 	MTHIID (id) = NULL; 
 	rem_mons (lvl, th->ID);
-	memset (&lvl->mons[n], 0, sizeof(struct MThing));
+	memset (&lvl->mons[n], 0, sizeof(struct Monster));
 	return;
 }
 
-void monsthing_move (struct MThing *thing, int new_level, int new_y, int new_x)
+void monsthing_move (struct Monster *thing, int new_level, int new_y, int new_x)
 {
 //	if (thing->type != THING_MONS) panic ("not monster");
 	if (thing->yloc == new_y && thing->xloc == new_x && thing->dlevel == new_level)
@@ -171,8 +171,8 @@ void monsthing_move (struct MThing *thing, int new_level, int new_y, int new_x)
 	//}
 
 	if (nlv->mons[new].ID) panic ("monster already there");
-	memcpy (&nlv->mons[new], &olv->mons[old], sizeof(struct MThing));
-	memset (&olv->mons[old], 0, sizeof(struct MThing));
+	memcpy (&nlv->mons[new], &olv->mons[old], sizeof(struct Monster));
+	memset (&olv->mons[old], 0, sizeof(struct Monster));
 	thing = &nlv->mons[new];
 	MTHIID (thing->ID) = thing;
 
@@ -203,7 +203,7 @@ void thing_free (struct Thing *thing)
 		}
 //		case THING_MONS:
 //		{
-//			struct Monster *monst = &thing->mons;
+//			struct Monster *monst = &thing;
 //			if (monst->name && monst->name[0])
 //				free (monst->name);
 			//if (monst->eating)
@@ -241,30 +241,25 @@ struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t
 	return ret;
 }
 
-struct MThing *new_mthing (struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)
+struct Monster *new_mthing (struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)
 {
 	int n = map_buffer (y, x);
-	struct MThing t = {THING_MONS, lvl->level, getID(), y, x, {}};
-
-	if (t.ID != all_ids->len)
-		panic ("IDs error");
-
-	memcpy (&t.mons, actual_thing, sizeof(struct Monster));
-	struct MThing *ret;
+	struct Monster t;
+	memcpy (&t, actual_thing, sizeof(struct Monster));
+	t.ID = getID();
+	t.dlevel = lvl->level;
+	t.yloc = y; t.xloc = x;
+	struct Monster *ret;
 	ret = &lvl->mons[n];
 	if (ret->ID) panic ("monster already there!");
 	memcpy (ret, &t, sizeof(t));
 	v_push (all_ids, &ret);
-
-	//if (type == THING_MONS)
-	//	v_push (lvl->mons, &t.ID);
-
 	return ret;
 }
 
 #define US(w) (sq_seen[w]?(sq_attr[w]?DOT:ACS_WALL):ACS_WALL)
 
-void set_can_see (struct MThing *player, uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
+void set_can_see (struct Monster *player, uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
 {
 	int Yloc = player->yloc, Xloc = player->xloc;
 	int Y, X, w;
@@ -339,7 +334,7 @@ void set_can_see (struct MThing *player, uint8_t *sq_seen, uint8_t *sq_attr, gly
 }
 
 uint32_t *type = NULL;
-void draw_map (struct MThing *player)
+void draw_map (struct Monster *player)
 {
 	type = realloc (type, sizeof(*type) * map_graph->a);
 	memset (type, 0, sizeof(*type) * map_graph->a);
@@ -354,8 +349,8 @@ void draw_map (struct MThing *player)
 	{
 		if (lvl->mons[at].ID)
 		{
-			struct MThing *th = &lvl->mons[at];
-			struct Monster *m = &th->mons;
+			struct Monster *th = &lvl->mons[at];
+			struct Monster *m = th;
 			gra_bsetbox (map_graph, at, m->boxflags);
 			gra_bgaddch (map_graph, at, m->gl);
 			map_graph->flags[at] |= 1 | (1<<12) | ((1+m->status.moving.ydir)*3    + 1+m->status.moving.xdir)   <<8;
@@ -365,7 +360,6 @@ void draw_map (struct MThing *player)
 				//map_graph->data[ati] |= COL_TXT_BRIGHT;
 			}
 			sq_attr[at] = 2;
-			type[at] = th->type;
 			continue;
 		}
 		for (i = 0; i < things[at]->len; ++ i)
@@ -440,7 +434,7 @@ int pr_at (struct DLevel *dlevel, int yloc, int xloc)
 			if (mons_prhit (pr_from, th, pr_energy))
 			{
 				pr_energy -= 5;
-				p_msg ("The %s hits the %s!", pr_name, mons[th->mons.type].name);
+				p_msg ("The %s hits the %s!", pr_name, mons[th.type].name);
 			}
 			break;
 		}

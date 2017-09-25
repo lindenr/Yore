@@ -11,48 +11,48 @@
 
 int cur_players;
 
-int Kcamup (struct MThing *player)
+int Kcamup (struct Monster *player)
 {
 	gra_movecam (map_graph, map_graph->cy - 10, map_graph->cx);
 	return 0;
 }
 
-int Kcamdn (struct MThing *player)
+int Kcamdn (struct Monster *player)
 {
 	gra_movecam (map_graph, map_graph->cy + 10, map_graph->cx);
 	return 0;
 }
 
-int Kcamlf (struct MThing *player)
+int Kcamlf (struct Monster *player)
 {
 	gra_movecam (map_graph, map_graph->cy, map_graph->cx - 10);
 	return 0;
 }
 
-int Kcamrt (struct MThing *player)
+int Kcamrt (struct Monster *player)
 {
 	gra_movecam (map_graph, map_graph->cy, map_graph->cx + 10);
 	return 0;
 }
 
-int Kstatus (struct MThing *player)
+int Kstatus (struct Monster *player)
 {
 	return p_status (player, P_STATUS);
 }
 
-int Kskills (struct MThing *player)
+int Kskills (struct Monster *player)
 {
 	return p_status (player, P_SKILLS);
 }
 
-int Kwait (struct MThing *player)
+int Kwait (struct Monster *player)
 {
 	//mons_usedturn (player);
-	ev_queue (player->mons.speed, (union Event) { .mturn = {EV_MTURN, player->ID}});
+	ev_queue (player->speed, (union Event) { .mturn = {EV_MTURN, player->ID}});
 	return 1;
 }
 
-int Kpickup (struct MThing *player)
+int Kpickup (struct Monster *player)
 {
 	Vector ground = v_init (sizeof (int), 20);
 	int n = map_buffer (player->yloc, player->xloc);
@@ -91,7 +91,7 @@ int Kpickup (struct MThing *player)
 	return 1;
 }
 
-/*int Keat (struct MThing *player)
+/*int Keat (struct Monster *player)
 {
 	struct Item *food = player_use_pack ("Eat what?", ITCAT_FOOD);
 	if (food == NULL)
@@ -101,13 +101,13 @@ int Kpickup (struct MThing *player)
 	return 1;
 }*/
 
-int Kevade (struct MThing *player)
+int Kevade (struct Monster *player)
 {
 	ev_queue (0, (union Event) { .mevade = {EV_MEVADE, player->ID}});
 	return 1;
 }
 
-int Ksdrop (struct MThing *player)
+int Ksdrop (struct Monster *player)
 {
 	struct Item *drop = player_use_pack (player, "Drop what?", ITCAT_ALL);
 	if (drop == NULL)
@@ -121,18 +121,18 @@ int Ksdrop (struct MThing *player)
 	return 1;
 }
 
-int Kmdrop (struct MThing *player)
+int Kmdrop (struct Monster *player)
 {
 	return 0;
 }
 
-int Kinv (struct MThing *player)
+int Kinv (struct Monster *player)
 {
-	show_contents (player->mons.pack, ITCAT_ALL, "Inventory");
+	show_contents (player->pack, ITCAT_ALL, "Inventory");
 	return 0;
 }
 
-int Knlook (struct MThing *player)
+int Knlook (struct Monster *player)
 {
 	int k = 0;
 	int n = map_buffer (player->yloc, player->xloc);
@@ -162,26 +162,26 @@ int Knlook (struct MThing *player)
 	return 0;
 }
 
-int Kflook (struct MThing *player)
+int Kflook (struct Monster *player)
 {
 	int y, x; 
 	p_mvchoose (player, &y, &x, "What are you looking for?", NULL, 0);
 	return 0;
 }
 
-/*int Kopen (struct MThing *player)
+/*int Kopen (struct Monster *player)
 {
 	//int y, x; 
 	return 0;
 }
 
-int Kclose (struct MThing *player)
+int Kclose (struct Monster *player)
 {
 	//int y, x; 
 	return 0;
 }*/
 /*
-int Kwield (struct MThing *player)
+int Kwield (struct Monster *player)
 {
 	struct Item *wield = player_use_pack ("Wield what?", ITCAT_ALL);
 	if (wield == NULL)
@@ -194,21 +194,21 @@ int Kwield (struct MThing *player)
 	return 1;
 }*/
 /*
-int Klookdn (struct MThing *player)
+int Klookdn (struct Monster *player)
 {
 	if (cur_dlevel->dnlevel != 0)
 		dlv_set (cur_dlevel->dnlevel);
 	return 0;
 }
 
-int Klookup (struct MThing *player)
+int Klookup (struct Monster *player)
 {
 	if (cur_dlevel->uplevel != 0)
 		dlv_set (cur_dlevel->uplevel);
 	return 0;
 }*/
 /*
-int Kgodown (struct MThing *player)
+int Kgodown (struct Monster *player)
 {
 	int level = cur_dlevel->dnlevel;
 	if (level == 0)
@@ -220,7 +220,7 @@ int Kgodown (struct MThing *player)
 	return 1;
 }
 
-int Kgoup (struct MThing *player)
+int Kgoup (struct Monster *player)
 {
 	int level = cur_dlevel->uplevel;
 	if (level == 0)
@@ -232,13 +232,13 @@ int Kgoup (struct MThing *player)
 	return 1;
 }*/
 
-int Ksave (struct MThing *player)
+int Ksave (struct Monster *player)
 {
 	U.playing = PLAYER_SAVEGAME;
 	return -1;
 }
 
-int Kquit (struct MThing *player)
+int Kquit (struct Monster *player)
 {
 	if (!quit())
 	{
@@ -248,7 +248,7 @@ int Kquit (struct MThing *player)
 	return 0;
 }
 
-int Kdebug (struct MThing *player)
+int Kdebug (struct Monster *player)
 {
 	ev_debug ();
 	return 0;
@@ -282,7 +282,7 @@ struct KStruct Keys[] = {
 	{CONTROL_('q'), &Kquit}
 };
 
-int key_lookup (struct MThing *player, uint32_t key)
+int key_lookup (struct Monster *player, uint32_t key)
 {
 	int i;
 	char ch = (char) key;

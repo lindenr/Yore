@@ -28,10 +28,10 @@ int sk_isact (Skill sk)
 	return all_skills[sk->type].flags == SK_ACT;
 }
 
-int sk_lvl (struct MThing *th, enum SK_TYPE type)
+int sk_lvl (struct Monster *th, enum SK_TYPE type)
 {
 	int i;
-	Vector sk_vec = th->mons.skills;
+	Vector sk_vec = th->skills;
 	for (i = 0; i < sk_vec->len; ++ i)
 	{
 		Skill sk = v_at (sk_vec, i);
@@ -42,7 +42,7 @@ int sk_lvl (struct MThing *th, enum SK_TYPE type)
 	return 0;
 }
 
-void sk_exp (struct MThing *th, Skill sk, int xp)
+void sk_exp (struct Monster *th, Skill sk, int xp)
 {
 	sk->exp += xp;
 	if (sk->level == SK_MAXLEVEL || sk->exp < xp_levels[sk->level])
@@ -58,29 +58,29 @@ void sk_exp (struct MThing *th, Skill sk, int xp)
 int chID = 0;
 int chargepos (struct DLevel *dlevel, int y, int x)
 {
-	struct MThing *charger = MTHIID (chID);
+	struct Monster *charger = MTHIID (chID);
 	int dy = y - charger->yloc, dx = x - charger->xloc;
 	if (dx*dx > 1 || dy*dy > 1)
 	{
 		fprintf(stderr, "AAAAAAA\n");
 		return 0;
 	}
-	if (charger->mons.ST < SK_CHARGE_COST)
+	if (charger->ST < SK_CHARGE_COST)
 	{
 		p_msg ("You run out of breath.");
 		return 0;
 	}
-	charger->mons.ST -= SK_CHARGE_COST;
+	charger->ST -= SK_CHARGE_COST;
 	return mons_move (charger, dy, dx, 0)==1;
 }
 
-void sk_charge (struct MThing *th, int y, int x, Skill sk)
+void sk_charge (struct Monster *th, int y, int x, Skill sk)
 {
 	sk_exp (th, sk, 1);
 	
 	chID = th->ID;
 	mons_usedturn (th);
-//	th->mons.status |= M_CHARGE;
+//	th.status |= M_CHARGE;
 	bres_draw (th->yloc, th->xloc, NULL, dlv_attr(th->dlevel), &chargepos, y, x);
 }
 

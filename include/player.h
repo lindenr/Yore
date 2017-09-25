@@ -10,11 +10,11 @@
 struct KStruct
 {
 	uint32_t key;
-	int (*action) (struct MThing *);
+	int (*action) (struct Monster *);
 }
 extern Keys[];
 
-int key_lookup (struct MThing *, glyph);
+int key_lookup (struct Monster *, glyph);
 extern int cur_players;
 
 #endif /* PLAYER_H_INCLUDED */

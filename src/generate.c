@@ -391,7 +391,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
 		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
 		pack_add (&m1.pack, &myhammer);
-		struct MThing *t1 = new_mthing (lvl, upsy, upsx, &m1);
+		struct Monster *t1 = new_mthing (lvl, upsy, upsx, &m1);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, t1->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t1->ID}});
 	}
@@ -432,7 +432,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		//p.name = NULL;
 		p.level = 1; //mons[p.type].exp? TODO
 		//p.exp = p.type->exp;
-		struct MThing *th = new_mthing (lvl, yloc, xloc, &p);
+		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, th->ID}});
 		//printf ("successful generation \n");

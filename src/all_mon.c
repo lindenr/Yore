@@ -13,7 +13,7 @@
 #endif
 
 #define MONST(nm,ch,sp,at,fl,cl,ex,hp,st) \
-{nm,ch|COL(cl),{.mode=AI_NONE},0,ex,NULL, \
+{0,0,-1,-1,nm,ch|COL(cl),{.mode=AI_NONE},0,ex,NULL, \
 hp, hp, st, st, 0, 0, 0, 0, sp, NULL, \
 {{0,0},{0,0,0},0},fl,0,NULL}
 

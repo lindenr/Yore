@@ -49,10 +49,9 @@ void ev_print (struct QEv *qe)
 
 void ev_do (Event ev)
 {
-	struct MThing *th, *fr, *to;
+	struct Monster *th, *fr, *to;
 	TID thID, frID, toID;
 	int can, ydest, xdest;
-	struct Monster *self, *mons;
 	Vector pickup, items;
 	switch (ev->type)
 	{
@@ -61,7 +60,7 @@ void ev_do (Event ev)
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		th->mons.status.evading = 0;
+		th->status.evading = 0;
 		// Next turn
 		ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
 		return;
@@ -70,9 +69,9 @@ void ev_do (Event ev)
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->mons.speed, (union Event) { .mdomove = {EV_MDOMOVE, thID}});
-		th->mons.status.moving.ydir = ev->mmove.ydir;
-		th->mons.status.moving.xdir = ev->mmove.xdir;
+		ev_queue (th->speed, (union Event) { .mdomove = {EV_MDOMOVE, thID}});
+		th->status.moving.ydir = ev->mmove.ydir;
+		th->status.moving.xdir = ev->mmove.xdir;
 		return;
 	case EV_MDOMOVE:
 		//printf("mdomove\n");
@@ -82,10 +81,10 @@ void ev_do (Event ev)
 			return;
 		// Next turn
 		ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
-		ydest = th->yloc + th->mons.status.moving.ydir; xdest = th->xloc + th->mons.status.moving.xdir;
+		ydest = th->yloc + th->status.moving.ydir; xdest = th->xloc + th->status.moving.xdir;
 		can = can_amove (get_sqattr (dlv_lvl(th->dlevel), ydest, xdest));
-		th->mons.status.moving.ydir = 0;
-		th->mons.status.moving.xdir = 0;
+		th->status.moving.ydir = 0;
+		th->status.moving.xdir = 0;
 		if (can == 1)
 			monsthing_move (th, th->dlevel, ydest, xdest);
 		return;
@@ -94,18 +93,18 @@ void ev_do (Event ev)
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		th->mons.status.evading = 1;
+		th->status.evading = 1;
 		// Next turn
-		ev_queue (th->mons.speed/2, (union Event) { .mreset = {EV_MRESET, thID}});
+		ev_queue (th->speed/2, (union Event) { .mreset = {EV_MRESET, thID}});
 		return;
 	case EV_MATTKM:
 		thID = ev->mattkm.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->mons.speed, (union Event) { .mdoattkm = {EV_MDOATTKM, thID}});
-		th->mons.status.attacking.ydir = ev->mattkm.ydir;
-		th->mons.status.attacking.xdir = ev->mattkm.xdir;
+		ev_queue (th->speed, (union Event) { .mdoattkm = {EV_MDOATTKM, thID}});
+		th->status.attacking.ydir = ev->mattkm.ydir;
+		th->status.attacking.xdir = ev->mattkm.xdir;
 		break;
 	case EV_MDOATTKM:
 		frID = ev->mdoattkm.thID;
@@ -113,9 +112,9 @@ void ev_do (Event ev)
 		if (!fr)
 			return;
 		ev_queue (0, (union Event) { .mturn = {EV_MTURN, frID}}); /* next turn of from-mons */
-		ydest = fr->yloc + fr->mons.status.attacking.ydir; xdest = fr->xloc + fr->mons.status.attacking.xdir;
-		fr->mons.status.attacking.ydir = 0;
-		fr->mons.status.attacking.xdir = 0;
+		ydest = fr->yloc + fr->status.attacking.ydir; xdest = fr->xloc + fr->status.attacking.xdir;
+		fr->status.attacking.ydir = 0;
+		fr->status.attacking.xdir = 0;
 		can = can_amove (get_sqattr (dlv_lvl(fr->dlevel), ydest, xdest));
 		if (can != 2)
 			return;
@@ -125,23 +124,23 @@ void ev_do (Event ev)
 		toID = to->ID;
 		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}}); /* anger to-mons */
 		int stamina_cost = mons_ST_hit (fr);
-		if (fr->mons.ST < stamina_cost)
+		if (fr->ST < stamina_cost)
 		{
-			p_msg ("The %s tiredly misses the %s!", fr->mons.mname, to->mons.mname); /* notify */
+			p_msg ("The %s tiredly misses the %s!", fr->mname, to->mname); /* notify */
 			return;
 		}
-		fr->mons.ST -= stamina_cost;
+		fr->ST -= stamina_cost;
 		if (!mons_hits (fr, to))
 		{
-			p_msg ("The %s misses the %s!", fr->mons.mname, to->mons.mname); /* notify */
+			p_msg ("The %s misses the %s!", fr->mname, to->mname); /* notify */
 			return;
 		}
-		p_msg ("The %s hits the %s!", fr->mons.mname, to->mons.mname); /* notify */
+		p_msg ("The %s hits the %s!", fr->mname, to->mname); /* notify */
 		int damage = mons_hitdmg (fr, to);
-		to->mons.HP -= damage;
-		if (to->mons.HP <= 0)
+		to->HP -= damage;
+		if (to->HP <= 0)
 		{
-			to->mons.HP = 0;
+			to->HP = 0;
 			ev_queue (0, (union Event) { .mkillm = {EV_MKILLM, frID, toID}}); /* kill to-mons */
 		}
 		return;
@@ -149,7 +148,7 @@ void ev_do (Event ev)
 		fr = MTHIID(ev->mkillm.frID); to = MTHIID(ev->mkillm.toID);
 		if ((!fr) || (!to))
 			return;
-		p_msg ("The %s kills the %s!", fr->mons.mname, to->mons.mname);
+		p_msg ("The %s kills the %s!", fr->mname, to->mname);
 		if (mons_isplayer(to))
 		{
 			p_msg ("You die...");
@@ -158,7 +157,7 @@ void ev_do (Event ev)
 			U.playing = PLAYER_LOSTGAME;
 			return;
 		}
-		fr->mons.exp += to->mons.exp;
+		fr->exp += to->exp;
 		ev_queue (0, (union Event) { .mcorpse = {EV_MCORPSE, ev->mkillm.toID}});
 		return;
 	case EV_MCORPSE:
@@ -192,17 +191,15 @@ void ev_do (Event ev)
 		if (!th)
 			return;
 		ev_queue (mons_tregen (th), (union Event) { .mregen = {EV_MREGEN, ev->mregen.thID}}); /* Next regen */
-		self = &th->mons;
-
 		/* HP */
 		int HP_regen = mons_HP_regen (th), HP_max_regen = mons_HP_max_regen (th);
-		self->HP += HP_regen;
-		self->HP_max += HP_max_regen;
+		th->HP += HP_regen;
+		th->HP_max += HP_max_regen;
 
 		/* ST */
 		int ST_regen = mons_ST_regen (th), ST_max_regen = mons_ST_max_regen (th);
-		self->ST += ST_regen;
-		self->ST_max += ST_max_regen;
+		th->ST += ST_regen;
+		th->ST_max += ST_max_regen;
 		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
@@ -212,16 +209,15 @@ void ev_do (Event ev)
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		mons = &(th->mons);
 		int i;
 		for (i = 0; i < pickup->len; ++ i)
 		{
 			/* Pick up the item; quit if the bag is full */
 			struct Thing *item = THIID(*(int*)v_at (pickup, i));
-			if (pack_add (&mons->pack, &item->thing.item))
+			if (pack_add (&th->pack, &item->thing.item))
 			{
 				/* Say so */
-				char *msg = get_inv_line (mons->pack, &item->thing.item);
+				char *msg = get_inv_line (th->pack, &item->thing.item);
 				p_msg ("%s", msg);
 				free (msg);
 			}
@@ -235,68 +231,67 @@ void ev_do (Event ev)
 		}
 		v_free (pickup);
 		// Next turn
-		ev_queue (mons->speed, (union Event) { .mturn = {EV_MTURN, thID}});
+		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, thID}});
 		return;
 	case EV_MDROP:
 		th = MTHIID (ev->mdrop.thID);
 		if (!th)
 			return;
 		items = ev->mdrop.items;
-		mons = &th->mons;
 		for (i = 0; i < items->len; ++ i)
 		{
 			struct Item **drop = v_at (items, i);
-			//if (*drop == mons->wearing.rweap)
+			//if (*drop == th->wearing.rweap)
 			//	mons_unwield (th);
-			unsigned u = PACK_AT (get_Itref (mons->pack, *drop));
-			pack_rem (mons->pack, u);
+			unsigned u = PACK_AT (get_Itref (th->pack, *drop));
+			pack_rem (th->pack, u);
 			new_thing (THING_ITEM, cur_dlevel, th->yloc, th->xloc, *drop);
 			free(*drop);
 		}
 		v_free (items);
 		// Next turn
-		ev_queue (mons->speed, (union Event) { .mturn = {EV_MTURN, ev->mdrop.thID}});
+		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, ev->mdrop.thID}});
 		return;
 	case EV_MANGERM:
 		frID = ev->mangerm.frID; toID = ev->mangerm.toID;
 		fr = MTHIID(frID); to = MTHIID(toID);
 		if ((!fr) || (!to))
 			return;
-		if (to->mons.ai.mode == AI_NONE)
+		if (to->ai.mode == AI_NONE)
 			return;
-		if (to->mons.ai.mode != AI_AGGRO)
-			p_msg ("The %s angers the %s!", fr->mons.mname, to->mons.mname);
-		to->mons.ai.mode = AI_AGGRO;
-		to->mons.ai.aggro.ID = frID;
+		if (to->ai.mode != AI_AGGRO)
+			p_msg ("The %s angers the %s!", fr->mname, to->mname);
+		to->ai.mode = AI_AGGRO;
+		to->ai.aggro.ID = frID;
 		return;
 	case EV_MCALM:
 		thID = ev->mcalm.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		p_msg ("The %s calms.", th->mons.mname);
-		th->mons.ai.mode = AI_TIMID;
+		p_msg ("The %s calms.", th->mname);
+		th->ai.mode = AI_TIMID;
 		return;
 	case EV_MCHARGE:
 		thID = ev->mcharge.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->mons.speed, (union Event) { .mturn = {EV_MTURN, thID}});
+		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, thID}});
 		return;
 	case EV_MOPENDOOR:
 		thID = ev->mopendoor.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->mons.speed, (union Event) { .mturn = {EV_MTURN, thID}});
+		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, thID}});
 		return;
 	case EV_MCLOSEDOOR:
 		thID = ev->mclosedoor.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->mons.speed, (union Event) { .mturn = {EV_MTURN, thID}});
+		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, thID}});
 		return;
 	case EV_NONE:
 		return;

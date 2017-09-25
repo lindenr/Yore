@@ -12,7 +12,7 @@
 #define BREAK(n)           {n = map_graph->a; break;}
 
 #define THIID(id)          (*(struct Thing **)  v_at (all_ids, (id)))
-#define MTHIID(id)         (*(struct MThing **) v_at (all_ids, (id)))
+#define MTHIID(id)         (*(struct Monster **) v_at (all_ids, (id)))
 #define THING(t,n,i)       ((struct Thing*)((t)[n]->data + (i)*sizeof(struct Thing)))
 
 #define CONTROL_(c) ((KMOD_CTRL << 16) | (c))
@@ -40,20 +40,20 @@ struct Thing
 	thing;
 };
 
-enum MTHING_TYPE
+/*enum MTHING_TYPE
 {
-	MTHING_NONE = 0,  /* not used */
-	THING_MONS,       /* a monster */
+	MTHING_NONE = 0,  / * not used * /
+	THING_MONS,       / * a monster * /
 };
 
-struct MThing
+struct Monster
 {
 	enum MTHING_TYPE type;
 	int dlevel;
 	TID ID;
 	uint32_t yloc, xloc;
 	struct Monster mons;
-};
+};*/
 
 /* see dlevel.h */
 struct DLevel;
@@ -63,14 +63,14 @@ void          rem_id         (TID);
 void          rem_mid        (TID);
 
 struct Thing *new_thing      (uint32_t, struct DLevel *, uint32_t, uint32_t, void *);
-struct MThing *new_mthing    (struct DLevel *, uint32_t, uint32_t, void *);
+struct Monster *new_mthing    (struct DLevel *, uint32_t, uint32_t, void *);
 
-void          draw_map       (struct MThing *);
+void          draw_map       (struct Monster *);
 
 int           get_thing_type (char);
 const char *  get_thing_name (struct Thing);
 
-void          monsthing_move (struct MThing *, int, int, int);
+void          monsthing_move (struct Monster *, int, int, int);
 //void          thing_bmove    (struct Thing *, int, int);
 
 TID  getID                   ();

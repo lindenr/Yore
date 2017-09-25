@@ -21,7 +21,7 @@ Vector messages = NULL;
 
 Graph gpan = NULL;
 
-void p_pane (struct MThing *player)
+void p_pane (struct Monster *player)
 {
 	int i;
 	int xpan = 0, ypan = gr_h - PANE_H;
@@ -40,8 +40,8 @@ void p_pane (struct MThing *player)
 	/* TODO health bar in its own graph
 	for (i = 0; i < max; ++ i)
 	{
-		int curHP = (player->mons.HP_max*i)/max;
-		if (curHP > player->mons.HP)
+		int curHP = (player.HP_max*i)/max;
+		if (curHP > player.HP)
 		{
 			txt_mvaddch (max - i - 1, txt_w - 1, ' ');
 			continue;
@@ -54,8 +54,8 @@ void p_pane (struct MThing *player)
 
 	/*for (i = 0; i < max; ++ i)
 	{
-		int curXP = ((level_sum[player->mons.level+1] - level_sum[player->mons.level])*i)/max;
-		if (curXP + level_sum[player->mons.level] >= player->mons.exp || i == max-1)
+		int curXP = ((level_sum[player.level+1] - level_sum[player.level])*i)/max;
+		if (curXP + level_sum[player.level] >= player.exp || i == max-1)
 			txt_mvaddch (max - i - 1, txt_w - 2, ' ');
 		else
 			txt_mvaddch (max - i - 1, txt_w - 2, COL_BG_BLUE(10) | ' ');
@@ -63,11 +63,10 @@ void p_pane (struct MThing *player)
 
 	gra_mvprint (gpan, 1, 1, "T %lu", curtick/1000);
 
-	struct Monster *pmons = &player->mons;
-	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (pmons->name, 20));
-	gra_mvprint (gpan, 3, 1, "HP %d/%d", pmons->HP, pmons->HP_max);
-	gra_mvprint (gpan, 4, 1, "ST %d/%d", pmons->ST, pmons->ST_max);
-	gra_mvprint (gpan, 5, 1, "LV %d:%d/infinity", pmons->level, pmons->exp); // TODO?
+	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (player->name, 20));
+	gra_mvprint (gpan, 3, 1, "HP %d/%d", player->HP, player->HP_max);
+	gra_mvprint (gpan, 4, 1, "ST %d/%d", player->ST, player->ST_max);
+	gra_mvprint (gpan, 5, 1, "LV %d:%d/infinity", player->level, player->exp); // TODO?
 	/*char *rank = get_rank ();
 	int rlen = strlen (rank);
 	txt_mvprint (ypan + 1, xpan + p_width - 1 - rlen, rank);*/
@@ -127,7 +126,7 @@ void p_msg (const char *str, ...)
 	p_amsg (out);
 }
 
-char p_ask (struct MThing *player, const char *results, const char *question)
+char p_ask (struct Monster *player, const char *results, const char *question)
 {
 	p_amsg (question);
 	if (player)
@@ -176,9 +175,8 @@ char p_lines (Vector lines)
 // ideally want to be able to access skills etc from the status window
 
 Graph sc_status = NULL;
-int p_status (struct MThing *player, enum PanelType type)
+int p_status (struct Monster *player, enum PanelType type)
 {
-	struct Monster *pmons = &player->mons;
 	int h = 20, w = 81;
 	int y = (gr_h - h)/2 - 10, x = (gr_w - w)/2;
 	sc_status = gra_init (h, w, y, x, h, w);
@@ -186,10 +184,10 @@ int p_status (struct MThing *player, enum PanelType type)
 	gra_fbox (sc_status, 0, 0, h-1, w-1, ' ');
 	gra_cprint (sc_status, 2, "STATUS SCREEN");
 	gra_mvprint (sc_status, 0, w-5, "(Esc)");
-	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", pmons->name, ACS_VLINE, "Human");
+	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", player->name, ACS_VLINE, "Human");
 	gra_cprint (sc_status, 5, "  HP: %d/%d  %c  ST:    %d/%d",
-				pmons->HP, pmons->HP_max, ACS_VLINE, pmons->ST, pmons->ST_max);
-	gra_cprint (sc_status, 6, "LV %d:%d/infinity  %c  Speed: %d       ", pmons->level, pmons->exp, ACS_VLINE, pmons->speed);
+				player->HP, player->HP_max, ACS_VLINE, player->ST, player->ST_max);
+	gra_cprint (sc_status, 6, "LV %d:%d/infinity  %c  Speed: %d       ", player->level, player->exp, ACS_VLINE, player->speed);
 
 	switch (type)
 	{
@@ -236,11 +234,11 @@ int p_status (struct MThing *player, enum PanelType type)
 }
 
 Graph sc_skills = NULL;
-int p_skills (struct MThing *player, enum PanelType type)
+int p_skills (struct Monster *player, enum PanelType type)
 {
 	int h = 10, w = 41;
 	int y = (gr_h - h)/2, x = (gr_w - w)/2;
-	Vector pskills = player->mons.skills;
+	Vector pskills = player->skills;
 
 	sc_skills = gra_init (h, w, y, x, h, w);
 	sc_skills->def = COL_SKILLS;
@@ -338,7 +336,7 @@ int path_hit (struct DLevel *dlevel, int y, int x)
 	return 1;
 }
 
-void p_mvchoose (struct MThing *player, int *yloc, int *xloc, const char *instruct, const char *confirm, int showpath)
+void p_mvchoose (struct Monster *player, int *yloc, int *xloc, const char *instruct, const char *confirm, int showpath)
 {
 	int orig_y = map_graph->csr_y, orig_x = map_graph->csr_x;
 	if (showpath)
