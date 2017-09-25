@@ -31,7 +31,7 @@ int sk_isact (Skill sk)
 int sk_lvl (struct MThing *th, enum SK_TYPE type)
 {
 	int i;
-	Vector sk_vec = th->thing.mons.skills;
+	Vector sk_vec = th->mons.skills;
 	for (i = 0; i < sk_vec->len; ++ i)
 	{
 		Skill sk = v_at (sk_vec, i);
@@ -65,12 +65,12 @@ int chargepos (struct DLevel *dlevel, int y, int x)
 		fprintf(stderr, "AAAAAAA\n");
 		return 0;
 	}
-	if (charger->thing.mons.ST < SK_CHARGE_COST)
+	if (charger->mons.ST < SK_CHARGE_COST)
 	{
 		p_msg ("You run out of breath.");
 		return 0;
 	}
-	charger->thing.mons.ST -= SK_CHARGE_COST;
+	charger->mons.ST -= SK_CHARGE_COST;
 	return mons_move (charger, dy, dx, 0)==1;
 }
 
@@ -80,7 +80,7 @@ void sk_charge (struct MThing *th, int y, int x, Skill sk)
 	
 	chID = th->ID;
 	mons_usedturn (th);
-//	th->thing.mons.status |= M_CHARGE;
+//	th->mons.status |= M_CHARGE;
 	bres_draw (th->yloc, th->xloc, NULL, dlv_attr(th->dlevel), &chargepos, y, x);
 }
 

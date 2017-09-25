@@ -48,7 +48,7 @@ int Kskills (struct MThing *player)
 int Kwait (struct MThing *player)
 {
 	//mons_usedturn (player);
-	ev_queue (player->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, player->ID}});
+	ev_queue (player->mons.speed, (union Event) { .mturn = {EV_MTURN, player->ID}});
 	return 1;
 }
 
@@ -128,7 +128,7 @@ int Kmdrop (struct MThing *player)
 
 int Kinv (struct MThing *player)
 {
-	show_contents (player->thing.mons.pack, ITCAT_ALL, "Inventory");
+	show_contents (player->mons.pack, ITCAT_ALL, "Inventory");
 	return 0;
 }
 

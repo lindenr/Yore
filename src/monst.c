@@ -116,7 +116,7 @@ int mons_get_wt (struct Monster *mons)
 
 void mons_corpse (struct MThing *th, Ityp *itype)
 {
-	struct Monster *mons = &th->thing.mons;
+	struct Monster *mons = &th->mons;
 
 	/* fill in the data */
 	snprintf (itype->name, ITEM_NAME_LENGTH, "%s corpse", mons->mname);
@@ -182,12 +182,12 @@ void mons_usedturn (struct MThing *th)
 {
 //	if (!mons_isplayer(th))
 //		return;
-	//th->thing.mons.status &= ~M_CHARGE;
+	//th->mons.status &= ~M_CHARGE;
 //	int i;
 //	for (i = 0; i < cur_dlevel->mons->len; ++ i)
 //	{
 //		int *id = v_at (cur_dlevel->mons, i);
-//		THIID(*id)->thing.mons.boxflags = 0;
+//		THIID(*id)->mons.boxflags = 0;
 //	}
 }
 #if 0
@@ -267,8 +267,8 @@ int mons_take_turn (struct MThing *th)
 
 /*int mons_prhit (struct MThing *from, struct MThing *to, int energy) // ACTION
 {
-	to->thing.mons.HP -= energy/2;
-	if (to->thing.mons.HP <= 0)
+	to->mons.HP -= energy/2;
+	if (to->mons.HP <= 0)
 		mons_dead (from, to);
 	return 1;
 }*/
@@ -282,7 +282,7 @@ bool mons_edible (struct MThing *th, struct Item *item)
 bool mons_eating (struct MThing *th) // ACTION
 {
 	int hunger_loss;
-	struct Item *item = th->thing.mons.eating;
+	struct Item *item = th->mons.eating;
 	if (!item)
 		return false;
 	if (item->cur_weight <= 1200)
@@ -292,9 +292,9 @@ bool mons_eating (struct MThing *th) // ACTION
 			U.hunger -= (item->cur_weight) >> 4;
 			p_msg ("You finish eating.");
 		}
-		th->thing.mons.status &= ~M_EATING;
-		th->thing.mons.eating = NULL;
-		th->thing.mons.pack.items[PACK_AT(get_Itref(th->thing.mons.pack, item))] = NULL;
+		th->mons.status &= ~M_EATING;
+		th->mons.eating = NULL;
+		th->mons.pack.items[PACK_AT(get_Itref(th->mons.pack, item))] = NULL;
 		return false;
 	}
 	hunger_loss = rn(25) + 50;
@@ -313,14 +313,14 @@ void mons_eat (struct MThing *th, struct Item *item) // ACTION
 		return;
 	}
 
-	if ((th->thing.mons.status) & M_EATING)
+	if ((th->mons.status) & M_EATING)
 	{
 		if (mons_isplayer(th))
 			p_msg("You're already eating!");
 		return;
 	}
-	th->thing.mons.status |= M_EATING;
-	th->thing.mons.eating = item;
+	th->mons.status |= M_EATING;
+	th->mons.eating = item;
 	if (!item->cur_weight)
 		item->cur_weight = item->type.wt;
 }*/
@@ -337,7 +337,7 @@ Tick mons_tregen (struct MThing *th)
 
 /*inline void *mons_get_weap (struct MThing *th)
 {
-	return &th->thing.mons.wearing.rweap;
+	return &th->mons.wearing.rweap;
 }
 
 bool mons_unwield (struct MThing *th)
@@ -361,7 +361,7 @@ bool mons_unwield (struct MThing *th)
 
 bool mons_wield (struct MThing *th, struct Item *it)
 {
-	th->thing.mons.wearing.rweap = it;
+	th->mons.wearing.rweap = it;
 	it->attr ^= ITEM_WIELDED;
 	if (mons_isplayer(th))
 	{
@@ -385,7 +385,7 @@ bool mons_wear (struct MThing *th, struct Item *it)
 	{
 		case ITYP_GLOVES:
 		{
-			th->thing.mons.wearing.hands = it;
+			th->mons.wearing.hands = it;
 			break;
 		}
 		default:
@@ -399,7 +399,7 @@ bool mons_wear (struct MThing *th, struct Item *it)
 void mons_passive_attack (struct MThing *from, struct MThing *to) // ACTION
 {
 /*	uint32_t t;
-	int type = from->thing.mons.type;
+	int type = from->mons.type;
 	char posv[30];
 	for (t = 0; t < A_NUM; ++t)
 		if ((mons[type].attacks[t][2] & 0xFFFF) == ATTK_PASS)
@@ -422,12 +422,12 @@ void mons_passive_attack (struct MThing *from, struct MThing *to) // ACTION
 
 void mons_box (struct MThing *mons, BoxType type)
 {
-	mons->thing.mons.boxflags |= 1<<type;
+	mons->mons.boxflags |= 1<<type;
 }
 struct Item *player_use_pack (struct MThing *th, char *msg, uint32_t accepted)
 {
 	struct Item *It = NULL;
-	char in = show_contents (th->thing.mons.pack, accepted, msg);
+	char in = show_contents (th->mons.pack, accepted, msg);
 	//char in, cs[100];
 	//bool tried = false;
 /*
@@ -457,7 +457,7 @@ struct Item *player_use_pack (struct MThing *th, char *msg, uint32_t accepted)
 		tried = true;
 	}
 	while (It == NULL);*/
-	It = get_Itemc (th->thing.mons.pack, in);
+	It = get_Itemc (th->mons.pack, in);
 
 	return It;
 }
@@ -479,7 +479,7 @@ int mons_ST_hit (struct MThing *from)
 
 int mons_HP_regen (struct MThing *th)
 {
-	if (th->thing.mons.HP >= th->thing.mons.HP_max)
+	if (th->mons.HP >= th->mons.HP_max)
 		return 0;
 	return !rn(5);
 }
@@ -491,7 +491,7 @@ int mons_HP_max_regen (struct MThing *th)
 
 int mons_ST_regen (struct MThing *th)
 {
-	if (th->thing.mons.ST >= th->thing.mons.ST_max)
+	if (th->mons.ST >= th->mons.ST_max)
 		return 0;
 	return rn(2);
 }
@@ -539,13 +539,13 @@ void player_dead (const char *msg, ...)
 
 int mons_isplayer (struct MThing *th)
 {
-	return th->thing.mons.ai.mode == AI_NONE;
+	return th->mons.ai.mode == AI_NONE;
 }
 
 int AI_take_turn (struct MThing *ai)
 {
 	TID aiID = ai->ID;
-	if (ai->thing.mons.ai.mode == AI_TIMID)
+	if (ai->mons.ai.mode == AI_TIMID)
 	{
 		int y = rn(3)-1, x = rn(3)-1;
 		int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
@@ -553,11 +553,11 @@ int AI_take_turn (struct MThing *ai)
 			mons_move (ai, y, x, 1);
 		//else if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
 		else
-			ev_queue (ai->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, aiID}});
+			ev_queue (ai->mons.speed, (union Event) { .mturn = {EV_MTURN, aiID}});
 		return 1;
 	}
 
-	struct MThing *to = MTHIID (ai->thing.mons.ai.aggro.ID);
+	struct MThing *to = MTHIID (ai->mons.ai.aggro.ID);
 	if (!to)
 	{
 		ev_queue (0, (union Event) { .mturn = {EV_MTURN, aiID}});
@@ -570,7 +570,7 @@ int AI_take_turn (struct MThing *ai)
 	if (!bres_draw (aiy, aix, NULL, dlv_attr(ai->dlevel), NULL, toy, tox))
 	{
 		if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
-			ev_queue (ai->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, aiID}});
+			ev_queue (ai->mons.speed, (union Event) { .mturn = {EV_MTURN, aiID}});
 		return 1;
 	}
 	int ymove = 0, xmove = 0;
@@ -585,7 +585,7 @@ int AI_take_turn (struct MThing *ai)
 	if (!mons_move (ai, ymove, xmove, 1))
 		if (!mons_move (ai, ymove, 0, 1))
 			if (!mons_move (ai, 0, xmove, 1))
-				ev_queue (ai->thing.mons.speed, (union Event) { .mturn = {EV_MTURN, aiID}});
+				ev_queue (ai->mons.speed, (union Event) { .mturn = {EV_MTURN, aiID}});
 	return 1;
 }
 

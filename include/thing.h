@@ -23,7 +23,6 @@ enum THING_TYPE
 {
 	THING_NONE = 0,   /* not used */
 	THING_ITEM,       /* an item */
-//	THING_MONS,       /* a monster */
 	THING_DGN         /* a dungeon feature (wall, floor, trap etc) */
 };
 
@@ -36,7 +35,6 @@ struct Thing
 	union
 	{
 		struct Item item;
-//		struct Monster mons;
 		struct map_item_struct mis;
 	}
 	thing;
@@ -44,10 +42,8 @@ struct Thing
 
 enum MTHING_TYPE
 {
-	MTHING_NONE = 0,   /* not used */
-//	THING_ITEM,       /* an item */
+	MTHING_NONE = 0,  /* not used */
 	THING_MONS,       /* a monster */
-//	THING_DGN         /* a dungeon feature (wall, floor, trap etc) */
 };
 
 struct MThing
@@ -56,13 +52,7 @@ struct MThing
 	int dlevel;
 	TID ID;
 	uint32_t yloc, xloc;
-	union
-	{
-//		struct Item item;
-		struct Monster mons;
-//		struct map_item_struct mis;
-	}
-	thing;
+	struct Monster mons;
 };
 
 /* see dlevel.h */

@@ -40,8 +40,8 @@ void p_pane (struct MThing *player)
 	/* TODO health bar in its own graph
 	for (i = 0; i < max; ++ i)
 	{
-		int curHP = (player->thing.mons.HP_max*i)/max;
-		if (curHP > player->thing.mons.HP)
+		int curHP = (player->mons.HP_max*i)/max;
+		if (curHP > player->mons.HP)
 		{
 			txt_mvaddch (max - i - 1, txt_w - 1, ' ');
 			continue;
@@ -54,8 +54,8 @@ void p_pane (struct MThing *player)
 
 	/*for (i = 0; i < max; ++ i)
 	{
-		int curXP = ((level_sum[player->thing.mons.level+1] - level_sum[player->thing.mons.level])*i)/max;
-		if (curXP + level_sum[player->thing.mons.level] >= player->thing.mons.exp || i == max-1)
+		int curXP = ((level_sum[player->mons.level+1] - level_sum[player->mons.level])*i)/max;
+		if (curXP + level_sum[player->mons.level] >= player->mons.exp || i == max-1)
 			txt_mvaddch (max - i - 1, txt_w - 2, ' ');
 		else
 			txt_mvaddch (max - i - 1, txt_w - 2, COL_BG_BLUE(10) | ' ');
@@ -63,7 +63,7 @@ void p_pane (struct MThing *player)
 
 	gra_mvprint (gpan, 1, 1, "T %lu", curtick/1000);
 
-	struct Monster *pmons = &player->thing.mons;
+	struct Monster *pmons = &player->mons;
 	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (pmons->name, 20));
 	gra_mvprint (gpan, 3, 1, "HP %d/%d", pmons->HP, pmons->HP_max);
 	gra_mvprint (gpan, 4, 1, "ST %d/%d", pmons->ST, pmons->ST_max);
@@ -178,7 +178,7 @@ char p_lines (Vector lines)
 Graph sc_status = NULL;
 int p_status (struct MThing *player, enum PanelType type)
 {
-	struct Monster *pmons = &player->thing.mons;
+	struct Monster *pmons = &player->mons;
 	int h = 20, w = 81;
 	int y = (gr_h - h)/2 - 10, x = (gr_w - w)/2;
 	sc_status = gra_init (h, w, y, x, h, w);
@@ -240,7 +240,7 @@ int p_skills (struct MThing *player, enum PanelType type)
 {
 	int h = 10, w = 41;
 	int y = (gr_h - h)/2, x = (gr_w - w)/2;
-	Vector pskills = player->thing.mons.skills;
+	Vector pskills = player->mons.skills;
 
 	sc_skills = gra_init (h, w, y, x, h, w);
 	sc_skills->def = COL_SKILLS;

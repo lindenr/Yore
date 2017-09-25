@@ -203,7 +203,7 @@ void thing_free (struct Thing *thing)
 		}
 //		case THING_MONS:
 //		{
-//			struct Monster *monst = &thing->thing.mons;
+//			struct Monster *monst = &thing->mons;
 //			if (monst->name && monst->name[0])
 //				free (monst->name);
 			//if (monst->eating)
@@ -249,7 +249,7 @@ struct MThing *new_mthing (struct DLevel *lvl, uint32_t y, uint32_t x, void *act
 	if (t.ID != all_ids->len)
 		panic ("IDs error");
 
-	memcpy (&t.thing, actual_thing, sizeof(struct Monster));
+	memcpy (&t.mons, actual_thing, sizeof(struct Monster));
 	struct MThing *ret;
 	ret = &lvl->mons[n];
 	if (ret->ID) panic ("monster already there!");
@@ -355,7 +355,7 @@ void draw_map (struct MThing *player)
 		if (lvl->mons[at].ID)
 		{
 			struct MThing *th = &lvl->mons[at];
-			struct Monster *m = &th->thing.mons;
+			struct Monster *m = &th->mons;
 			gra_bsetbox (map_graph, at, m->boxflags);
 			gra_bgaddch (map_graph, at, m->gl);
 			map_graph->flags[at] |= 1 | (1<<12) | ((1+m->status.moving.ydir)*3    + 1+m->status.moving.xdir)   <<8;
@@ -440,7 +440,7 @@ int pr_at (struct DLevel *dlevel, int yloc, int xloc)
 			if (mons_prhit (pr_from, th, pr_energy))
 			{
 				pr_energy -= 5;
-				p_msg ("The %s hits the %s!", pr_name, mons[th->thing.mons.type].name);
+				p_msg ("The %s hits the %s!", pr_name, mons[th->mons.type].name);
 			}
 			break;
 		}
