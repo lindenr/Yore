@@ -40,21 +40,6 @@ struct Thing
 	thing;
 };
 
-/*enum MTHING_TYPE
-{
-	MTHING_NONE = 0,  / * not used * /
-	THING_MONS,       / * a monster * /
-};
-
-struct Monster
-{
-	enum MTHING_TYPE type;
-	int dlevel;
-	TID ID;
-	uint32_t yloc, xloc;
-	struct Monster mons;
-};*/
-
 /* see dlevel.h */
 struct DLevel;
 

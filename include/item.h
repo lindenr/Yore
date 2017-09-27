@@ -84,6 +84,8 @@ struct Pack;
 extern Ityp items[];
 extern int NUM_ITEMS;
 
+extern struct Item no_item;
+
 void item_piles     (int, Vector, Vector);
 void ask_items      (Vector, Vector, const char *);
 

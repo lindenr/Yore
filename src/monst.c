@@ -467,7 +467,12 @@ int mons_hits (struct Monster *from, struct Monster *to)
 
 int mons_hitdmg (struct Monster *from, struct Monster *to)
 {
-	return 3;
+	struct Item *it = from->wearing.weaps[0];
+	if (!it)
+		return 3;
+	uint32_t attr = it->type.attr;
+	int ret = rnd((attr>>4)&15, attr&15);
+	return ret;
 }
 
 int mons_ST_hit (struct Monster *from)

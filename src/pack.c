@@ -153,6 +153,8 @@ struct Item *get_Item (const Pack *pack, unsigned itnum)
 
 struct Item *get_Itemc (const Pack *pack, char itch)
 {
+	if (itch == '-')
+		return &no_item;
 	unsigned where = PACK_AT(itch);
 	if (where == -1)
 		return NULL;

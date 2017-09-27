@@ -54,11 +54,20 @@ enum MTYPES
 	NUM_MONS
 };
 
-struct WoW						/* Wielded or Worn */
+#define MMAX_HEADS  2
+#define MMAX_ARMS   4
+#define MMAX_TORSOS 1
+#define MMAX_LEGS   8
+#define MMAX_WINGS  4
+#define MMAX_EYES   3
+#define MMAX_FINGS  2 /* one on each hand */
+
+struct WoW /* Wielded or Worn */
 {
-	struct Item *head, *torso, *legs, *feet, *hands, *arms, *rfin, *lfin; /* armour */
-	struct Item *rweap, *lweap;	/* weapon(s) */
-	bool two_weaponing;
+	struct Item *head[MMAX_HEADS], *torso[MMAX_TORSOS],
+	            *legs[MMAX_LEGS], *feet[MMAX_LEGS],
+				*hands[MMAX_ARMS], *arms[MMAX_ARMS]; /* armour */
+	struct Item *weaps[MMAX_ARMS]; /* weapon(s) */
 };
 
 #define SENSE_NONE    0
@@ -120,13 +129,13 @@ extern struct player_status U;
 /* The physical method of attack (bite, claw etc) */
 enum ATTK_METHOD
 {
-	ATTK_NONE = 0,				/* placeholder */
-	ATTK_HIT,					/* weapon */
-	ATTK_TOUCH,					/* for slow mons */
-	ATTK_PASS,					/* passive */
-	ATTK_MAGIC,					/* purely magical */
-	ATTK_BITE,					/* bite */
-	ATTK_CLAW					/* scratch */
+	ATTK_NONE = 0, /* placeholder */
+	ATTK_HIT,      /* weapon */
+	ATTK_TOUCH,    /* for slow mons */
+	ATTK_PASS,     /* passive */
+	ATTK_MAGIC,    /* purely magical */
+	ATTK_BITE,     /* bite */
+	ATTK_CLAW      /* scratch */
 };
 
 /* The magical method of attack (fire, acid etc -- phys is *not* magical) */
@@ -180,19 +189,19 @@ struct MStatus
 
 struct Monster
 {
-	TID ID;
-	int dlevel;
-	int yloc, xloc;
+	TID ID;                     /* thing ID                     */
+	int dlevel;                 /* parent dungeon level         */
+	int yloc, xloc;             /* location in dungeon          */
 	const char *mname;          /* name of monster type         */
 	glyph gl;                   /* display glyph                */
 	union AIState ai;           /* state of the AI (if used)    */
-	int32_t level;				/* experience level             */
-	int32_t exp;				/* experience points            */
-	char *name;					/* monster name                 */
+	int32_t level;              /* experience level             */
+	int32_t exp;                /* experience points            */
+	char *name;                 /* monster name                 */
 
 	/* stats which regenerate automatically */
-	int32_t HP, HP_max;			/* current/max HP               */
-	int32_t ST, ST_max;			/* current/max stamina          */
+	int32_t HP, HP_max;         /* current/max HP               */
+	int32_t ST, ST_max;         /* current/max stamina          */
 	//int32_t MP, MP_max;       /* current/max mana TODO        */
 	/* fixed stats (may be trained?) */
 	uint32_t con;               /* constitution (HP regen)      */
@@ -202,10 +211,10 @@ struct Monster
 	uint32_t dex;               /* dexterity (chance to hit)    */
 	uint32_t speed;             /* speed (movement delay) */
 
-	struct Pack *pack;			/* inventory                    */
-	//struct WoW wearing;			/* stuff wielding/wearing/using */
-	struct MStatus status;		/* eating, positioning info etc */
-	//struct Item *eating;		/* eating something (0 if not)  */
+	struct Pack *pack;          /* inventory                    */
+	struct WoW wearing;         /* stuff wielding/wearing/using */
+	struct MStatus status;      /* eating, positioning info etc */
+	//struct Item *eating;      /* eating something (0 if not)  */
 	uint32_t mflags;            /* physical flags               */
 	uint8_t boxflags;           /* boxes appearing              */
 	Vector skills;              /* available skills             */
@@ -226,10 +235,10 @@ void   mons_usedturn   (struct Monster *);                   /* turn is irretrie
 //bool   mons_eating     (struct Monster *);                   /* continue eating something                */
 //bool   mons_can_hear   (struct Monster *);                   /* has ears? no?                            */
 void   mons_corpse     (struct Monster *, Ityp *);           /* make itype corpse type of the monster    */
-Tick   mons_tmgen      ();                                 /* time until next monster generation       */
+Tick   mons_tmgen      ();                                   /* time until next monster generation       */
 Tick   mons_tregen     (struct Monster *);                   /* time between regen events                */
-int    mons_hits       (struct Monster *, struct Monster *);   /* will it hit                              */
-int    mons_hitdmg     (struct Monster *, struct Monster *);   /* how much damage                          */
+int    mons_hits       (struct Monster *, struct Monster *); /* will it hit                              */
+int    mons_hitdmg     (struct Monster *, struct Monster *); /* how much damage                          */
 int    mons_ST_hit     (struct Monster *);                   /* how much stamina will it consume         */
 int    mons_HP_regen   (struct Monster *);                   /* how much HP will regen                   */
 int    mons_HP_max_regen(struct Monster *);                  /* similarly for max HP                     */
@@ -239,7 +248,7 @@ int    mons_isplayer   (struct Monster *);                   /* is controlled by
 
 /* player functions */
 struct Item *player_use_pack (struct Monster *, char *, uint32_t); /* ask player for an item             */
-int    player_gen_type (void);                             /* get a valid monster type for fighting    */
+int    player_gen_type (void);                               /* get a valid monster type for fighting    */
 //int    player_sense    (int, int, int);                    /* can the player sense a square            */
 
 /* player_status functions */

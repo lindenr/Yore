@@ -50,6 +50,7 @@ void ev_print (struct QEv *qe)
 void ev_do (Event ev)
 {
 	struct Monster *th, *fr, *to;
+	struct Thing *item;
 	TID thID, frID, toID;
 	int can, ydest, xdest;
 	Vector pickup, items;
@@ -201,6 +202,24 @@ void ev_do (Event ev)
 		th->ST += ST_regen;
 		th->ST_max += ST_max_regen;
 		return;
+	case EV_MWIELD:
+		th = MTHIID(ev->mwield.thID);
+		int arm = ev->mwield.arm;
+		struct Item *it = ev->mwield.it;
+		if (th->wearing.weaps[arm])
+			th->wearing.weaps[arm]->attr &= ~ITEM_WIELDED;
+		if (it->type.type == ITYP_NONE)
+		{
+			th->wearing.weaps[arm] = NULL;
+			ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, th->ID}});
+			return;
+		}
+		th->wearing.weaps[arm] = it;
+		it->attr |= ITEM_WIELDED;
+		if (mons_isplayer(th))
+			item_look (it);
+		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, th->ID}});
+		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
 		 * continues until ret_list is done or the pack is full. */
@@ -213,7 +232,7 @@ void ev_do (Event ev)
 		for (i = 0; i < pickup->len; ++ i)
 		{
 			/* Pick up the item; quit if the bag is full */
-			struct Thing *item = THIID(*(int*)v_at (pickup, i));
+			item = THIID(*(int*)v_at (pickup, i));
 			if (pack_add (&th->pack, &item->thing.item))
 			{
 				/* Say so */

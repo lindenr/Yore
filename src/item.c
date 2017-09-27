@@ -17,6 +17,7 @@
    5000g or so */
 
 int NUM_ITEMS;
+struct Item no_item;
 #define ITEM(nm,tp,wt,attr,gl) {nm,tp,wt,attr,gl}
 #define DMG(a,b) (((a)<<4)+(b))
 

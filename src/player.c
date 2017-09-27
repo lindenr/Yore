@@ -180,19 +180,20 @@ int Kclose (struct Monster *player)
 	//int y, x; 
 	return 0;
 }*/
-/*
+
 int Kwield (struct Monster *player)
 {
-	struct Item *wield = player_use_pack ("Wield what?", ITCAT_ALL);
+	struct Item *wield = player_use_pack (player, "Wield what?", ITCAT_ALL);
 	if (wield == NULL)
 		return 0;
 
 	mons_usedturn (player);
-	if (mons_unwield (player))
-		mons_wield (player, wield);
+	ev_queue (0, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield}});
+	//if (mons_unwield (player))
+	//	mons_wield (player, wield);
 
 	return 1;
-}*/
+}
 /*
 int Klookdn (struct Monster *player)
 {
@@ -273,7 +274,7 @@ struct KStruct Keys[] = {
 	{'Z', &Kdebug},
 //	{'o', &Kopen},
 //	{'c', &Kclose},
-//	{'w', &Kwield},
+	{'w', &Kwield},
 //	{CONTROL_(GRK_DN), &Klookdn},
 //	{CONTROL_(GRK_UP), &Klookup},
 //	{'>', &Kgodown},

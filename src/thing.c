@@ -96,11 +96,6 @@ void walls_test ()
 	}
 }*/
 
-//void thing_bmove (struct Thing *thing, int level, int num)
-//{
-//	thing_move (thing, level, num/map_graph->w, num%map_graph->w);
-//}
-
 void thing_watchvec (Vector vec)
 {
 	int i;
@@ -111,31 +106,11 @@ void thing_watchvec (Vector vec)
 	}
 }
 
-void rem_mons (struct DLevel *lvl, int id)
-{
-	//int i;
-	//for (i = 0; i < lvl->mons->len; ++ i)
-	//{
-	//	if (*(int*) v_at (lvl->mons, i) == id)
-	//	{
-	//		v_rem (lvl->mons, i);
-	//		break;
-	//	}
-	//}
-}
-
 void rem_id (TID id)
 {
 	struct Thing *th = THIID(id);
 	struct DLevel *lvl = dlv_lvl (th->dlevel);
 	int n = map_buffer (th->yloc, th->xloc);
-//	if (th->type == THING_MONS)
-//	{
-//		THIID (id) = NULL; 
-//		rem_mons (lvl, th->ID);
-//		memset (&lvl->mons[n], 0, sizeof(struct Thing));
-//		return;
-//	}
 	v_rptr (lvl->things[n], th);
 	thing_watchvec (lvl->things[n]);
 	THIID(id) = NULL;
@@ -147,14 +122,12 @@ void rem_mid (TID id)
 	struct DLevel *lvl = dlv_lvl (th->dlevel);
 	int n = map_buffer (th->yloc, th->xloc);
 	MTHIID (id) = NULL; 
-	rem_mons (lvl, th->ID);
 	memset (&lvl->mons[n], 0, sizeof(struct Monster));
 	return;
 }
 
 void monsthing_move (struct Monster *thing, int new_level, int new_y, int new_x)
 {
-//	if (thing->type != THING_MONS) panic ("not monster");
 	if (thing->yloc == new_y && thing->xloc == new_x && thing->dlevel == new_level)
 		return;
 
@@ -163,12 +136,6 @@ void monsthing_move (struct Monster *thing, int new_level, int new_y, int new_x)
 
 	int old = map_buffer (thing->yloc, thing->xloc),
 	    new = map_buffer (new_y, new_x);
-
-	//if (thing->type == THING_MONS && new_level != thing->dlevel)
-	//{
-	//	rem_mons (olv, thing->ID);
-	//	v_push (nlv->mons, &thing->ID);
-	//}
 
 	if (nlv->mons[new].ID) panic ("monster already there");
 	memcpy (&nlv->mons[new], &olv->mons[old], sizeof(struct Monster));
@@ -179,12 +146,6 @@ void monsthing_move (struct Monster *thing, int new_level, int new_y, int new_x)
 	thing->yloc = new_y;
 	thing->xloc = new_x;
 	thing->dlevel = new_level;
-
-	//v_push (nlv->things[new], thing);
-	//v_rptr (olv->things[old], thing); 
-
-	//thing_watchvec (nlv->things[new]);
-	//thing_watchvec (olv->things[old]);
 }
 
 void thing_free (struct Thing *thing)
@@ -201,16 +162,6 @@ void thing_free (struct Thing *thing)
 				free (i->name);
 			break;
 		}
-//		case THING_MONS:
-//		{
-//			struct Monster *monst = &thing;
-//			if (monst->name && monst->name[0])
-//				free (monst->name);
-			//if (monst->eating)
-			//	free (monst->eating);
-//			pack_free (&monst->pack);
-//			break;
-//		}
 		case THING_DGN:
 		case THING_NONE:
 			break;
@@ -249,8 +200,7 @@ struct Monster *new_mthing (struct DLevel *lvl, uint32_t y, uint32_t x, void *ac
 	t.ID = getID();
 	t.dlevel = lvl->level;
 	t.yloc = y; t.xloc = x;
-	struct Monster *ret;
-	ret = &lvl->mons[n];
+	struct Monster *ret = &lvl->mons[n];
 	if (ret->ID) panic ("monster already there!");
 	memcpy (ret, &t, sizeof(t));
 	v_push (all_ids, &ret);
@@ -368,17 +318,11 @@ void draw_map (struct Monster *player)
 			bool changed = false;
 			switch (th->type)
 			{
-			//case THING_MONS:
-			//	panic ("should be no mons in things");
-			//	break;
 			case THING_ITEM:
 				gra_bsetbox (map_graph, at, 0);
-				if (1)//(type[at] != THING_MONS)
-				{
-					struct Item *t = &th->thing.item;
-					gra_bgaddch (map_graph, at, t->type.gl);
-					changed =  true;
-				}
+				struct Item *t = &th->thing.item;
+				gra_bgaddch (map_graph, at, t->type.gl);
+				changed =  true;
 				sq_unseen[at] = map_graph->data[at];
 				sq_attr[at] = 1;
 				break;

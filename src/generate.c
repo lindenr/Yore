@@ -350,11 +350,11 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 	struct Thing *T;
 	struct map_item_struct *m;
 	int n = map_buffer(yloc, xloc);
+	if (lvl->mons[n].ID)
+		return false;
 	LOOP_THING(things, n, i)
 	{
 		T = THING(things, n, i);
-//		if (T->type == THING_MONS)
-//			return false;
 		if (T->type == THING_DGN)
 		{
 			m = &(T->thing.mis);
@@ -387,6 +387,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		init_mons (&m1, MTYP_HUMAN);
 		m1.name = "Thing 1";
 		m1.skills = v_dinit (sizeof(struct Skill));
+		m1.exp = 0;
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
 		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
@@ -423,15 +424,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		struct Monster p;
 		init_mons (&p, player_gen_type ());
 		p.ai.mode = AI_TIMID;
-		//mons_do_stats (&p.stats, &all_mons[player_gen_type ()])
-		//p.stats.HP = mons_HP_init (p.type);
-		//p.stats.HP_max = p.HP;
-		//p.stats.ST = mons_ST_init (p.type);
-		//p.stats.ST_max = p.ST;
-		//p.stats.speed = p.type->speed;
-		//p.name = NULL;
 		p.level = 1; //mons[p.type].exp? TODO
-		//p.exp = p.type->exp;
 		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, th->ID}});

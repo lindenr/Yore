@@ -14,7 +14,7 @@
 
 #define MONST(nm,ch,sp,at,fl,cl,ex,hp,st) \
 {0,0,-1,-1,nm,ch|COL(cl),{.mode=AI_NONE},0,ex,NULL, \
-hp, hp, st, st, 0, 0, 0, 0, sp, NULL, \
+hp, hp, st, st, 0, 0, 0, 0, sp, NULL, {{0,},},\
 {{0,0},{0,0,0},0},fl,0,NULL}
 
 #define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}

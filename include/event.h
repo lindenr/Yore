@@ -17,6 +17,7 @@ typedef enum
 	EV_MTURN,
 	EV_MGEN,
 	EV_MREGEN,
+	EV_MWIELD,
 	EV_MPICKUP,
 	EV_MDROP,
 	EV_MANGERM,
@@ -85,6 +86,13 @@ typedef union Event
 		EV_TYPE type;
 		TID thID;
 	} mregen;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+		int arm;
+		struct Item *it;
+	} mwield;
 	struct
 	{
 		EV_TYPE type;
