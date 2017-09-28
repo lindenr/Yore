@@ -194,6 +194,12 @@ int Kclose (struct Monster *player)
 	return 0;
 }*/
 
+int player_try_wield (struct Monster *player)
+{
+	ev_queue (0, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, player->ai.cont.data}});
+	return 0;
+}
+
 int Kwield (struct Monster *player)
 {
 	struct Item *wield = player_use_pack (player, "Wield what?", ITCAT_ALL);
@@ -203,10 +209,13 @@ int Kwield (struct Monster *player)
 		return 0;
 
 	mons_usedturn (player);
+	if (player->wearing.weaps[0] && wield->type.type)
+	{
+		ev_queue (player->speed, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
+		mons_cont (player, &player_try_wield, wield, sizeof (*wield));
+		return 1;
+	}
 	ev_queue (player->speed, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield}});
-	//if (mons_unwield (player))
-	//	mons_wield (player, wield);
-
 	return 1;
 }
 /*
