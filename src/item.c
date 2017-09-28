@@ -136,3 +136,13 @@ void item_piles (int n, Vector piles, Vector items)
 	}
 }
 
+int items_equal (struct Item *it1, struct Item *it2)
+{
+	if (it1 == it2)
+		return 1;
+	if ((it1 == NULL || it1->type.type == ITYP_NONE) &&
+	    (it2 == NULL || it2->type.type == ITYP_NONE))
+		return 1;
+	return 0;
+}
+

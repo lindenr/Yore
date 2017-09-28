@@ -204,6 +204,8 @@ void ev_do (Event ev)
 		return;
 	case EV_MWIELD:
 		th = MTHIID(ev->mwield.thID);
+		if (!th)
+			return;
 		int arm = ev->mwield.arm;
 		struct Item *it = ev->mwield.it;
 		if (th->wearing.weaps[arm])
@@ -211,14 +213,14 @@ void ev_do (Event ev)
 		if (it->type.type == ITYP_NONE)
 		{
 			th->wearing.weaps[arm] = NULL;
-			ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, th->ID}});
+			ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 			return;
 		}
 		th->wearing.weaps[arm] = it;
 		it->attr |= ITEM_WIELDED;
 		if (mons_isplayer(th))
 			item_look (it);
-		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, th->ID}});
+		ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
@@ -250,7 +252,7 @@ void ev_do (Event ev)
 		}
 		v_free (pickup);
 		// Next turn
-		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, thID}});
+		ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
 		return;
 	case EV_MDROP:
 		th = MTHIID (ev->mdrop.thID);
@@ -260,8 +262,8 @@ void ev_do (Event ev)
 		for (i = 0; i < items->len; ++ i)
 		{
 			struct Item **drop = v_at (items, i);
-			//if (*drop == th->wearing.rweap)
-			//	mons_unwield (th);
+			if ((*drop)->attr & ITEM_WIELDED)
+				continue;
 			unsigned u = PACK_AT (get_Itref (th->pack, *drop));
 			pack_rem (th->pack, u);
 			new_thing (THING_ITEM, cur_dlevel, th->yloc, th->xloc, *drop);
@@ -269,7 +271,7 @@ void ev_do (Event ev)
 		}
 		v_free (items);
 		// Next turn
-		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, ev->mdrop.thID}});
+		ev_queue (0, (union Event) { .mturn = {EV_MTURN, ev->mdrop.thID}});
 		return;
 	case EV_MANGERM:
 		frID = ev->mangerm.frID; toID = ev->mangerm.toID;

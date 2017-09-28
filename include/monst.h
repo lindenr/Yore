@@ -155,13 +155,23 @@ typedef int TID;
 typedef enum
 {
 	AI_NONE = 0, /* player control */
-	AI_TIMID,
-	AI_AGGRO
+	AI_CONT,     /* player control using continuation */
+	AI_TIMID,    /* neutral non-player monster */
+	AI_AGGRO     /* angry non-player monster */
 } AI_MODE;
 
+struct Monster;
+typedef int (*MCont) (struct Monster *);
 union AIState
 {
 	AI_MODE mode;
+	struct
+	{
+		AI_MODE mode;
+		MCont cont;
+		void *data;
+		int len;
+	} cont;
 	struct
 	{
 		AI_MODE mode;
@@ -245,6 +255,7 @@ int    mons_HP_max_regen(struct Monster *);                  /* similarly for ma
 int    mons_ST_regen   (struct Monster *);                   /* stamina                                  */
 int    mons_ST_max_regen(struct Monster *);                  /* max stamina                              */
 int    mons_isplayer   (struct Monster *);                   /* is controlled by human                   */
+int    mons_cont       (struct Monster *, MCont, void *, int);/* continuation to be called next turn      */
 
 /* player functions */
 struct Item *player_use_pack (struct Monster *, char *, uint32_t); /* ask player for an item             */

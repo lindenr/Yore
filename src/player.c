@@ -87,7 +87,7 @@ int Kpickup (struct Monster *player)
 		v_free (ground);
 	
 	}
-	ev_queue (0, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
+	ev_queue (player->speed, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
 	return 1;
 }
 
@@ -107,6 +107,13 @@ int Kevade (struct Monster *player)
 	return 1;
 }
 
+int player_try_drop (struct Monster *player)
+{
+	// TODO check can be dropped?
+	ev_queue (0, (union Event) { .mdrop = {EV_MDROP, player->ID, player->ai.cont.data}});
+	return 0;
+}
+
 int Ksdrop (struct Monster *player)
 {
 	struct Item *drop = player_use_pack (player, "Drop what?", ITCAT_ALL);
@@ -117,7 +124,13 @@ int Ksdrop (struct Monster *player)
 	Vector vdrop = v_dinit (sizeof(struct Item *));
 	v_push (vdrop, &drop);
 
-	ev_queue (0, (union Event) { .mdrop = {EV_MDROP, player->ID, vdrop}});
+	if (drop->attr & ITEM_WIELDED)
+	{
+		ev_queue (player->speed, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
+		mons_cont (player, &player_try_drop, vdrop, sizeof(*vdrop));
+		return 1;
+	}
+	ev_queue (player->speed, (union Event) { .mdrop = {EV_MDROP, player->ID, vdrop}});
 	return 1;
 }
 
@@ -186,9 +199,11 @@ int Kwield (struct Monster *player)
 	struct Item *wield = player_use_pack (player, "Wield what?", ITCAT_ALL);
 	if (wield == NULL)
 		return 0;
+	if (items_equal (wield, player->wearing.weaps[0]))
+		return 0;
 
 	mons_usedturn (player);
-	ev_queue (0, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield}});
+	ev_queue (player->speed, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield}});
 	//if (mons_unwield (player))
 	//	mons_wield (player, wield);
 

@@ -224,6 +224,12 @@ int mons_take_turn (struct Monster *th)
 {
 	if (!mons_isplayer(th))
 		return AI_take_turn (th);
+	if (th->ai.mode == AI_CONT)
+	{
+		if (!((th->ai.cont.cont) (th)))
+			th->ai.mode = AI_NONE;
+		return 1;
+	}
 	if (gra_nearedge (map_graph, th->yloc, th->xloc))
 		gra_centcam (map_graph, th->yloc, th->xloc);
 	while (1)
@@ -540,9 +546,20 @@ void player_dead (const char *msg, ...)
 	U.playing = PLAYER_LOSTGAME;
 }
 
+int mons_cont (struct Monster *player, MCont cont, void *data, int len)
+{
+	if (player->ai.mode != AI_NONE)
+		panic ("mons_cont called on non-AI_NONE monster!");
+	player->ai.cont.mode = AI_CONT;
+	player->ai.cont.cont = cont;
+	player->ai.cont.data = data;
+	player->ai.cont.len = len;
+	return 1;
+}
+
 int mons_isplayer (struct Monster *th)
 {
-	return th->ai.mode == AI_NONE;
+	return th->ai.mode == AI_NONE || th->ai.mode == AI_CONT;
 }
 
 int AI_take_turn (struct Monster *ai)
