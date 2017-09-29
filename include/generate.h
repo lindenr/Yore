@@ -16,7 +16,7 @@ enum LEVEL_TYPE
 
 extern char *real_player_name;
 void generate_map (struct DLevel *, enum LEVEL_TYPE);
-uint32_t mons_gen (struct DLevel *, int, int32_t);
+struct Monster *mons_gen (struct DLevel *, int, int32_t);
 bool is_safe_gen  (struct DLevel *, uint32_t, uint32_t);
 
 // TODO remove

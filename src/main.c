@@ -58,7 +58,7 @@ bool game_intro ()
 
 int main (int argc, char *argv[])
 {
-//	int i;
+	int i;
 
 	gr_onresize = p_init;
 	map_graph = gra_init (100, 300, 0, 0, gr_h - PANE_H, gr_w - 1);
@@ -89,20 +89,20 @@ int main (int argc, char *argv[])
 	gra_mvprint (introbox, 4, 10, "* A wiki is not yet in place.");
 
 	gra_mvprint (introbox, 8, 6, "Who are you? ");
+	char player_name[41] = {0,};
 
-	/*for (i = 0, *(real_player_name + 1) = '\0';
-		 i < 10 && *(real_player_name + 1) == '\0';
+	for (i = 0;
+		 i < 10 && player_name[0] == '\0';
 		 ++i)
 	{
 		if (i)
 			gra_mvprint (introbox, 10, 6, "Please type in your name.");
-		gra_getstr (introbox, 8, 19, real_player_name + 1, 40);
-	}*/
-	gr_getch();
+		gra_getstr (introbox, 8, 19, player_name, 40);
+	}
 	gra_free(introbox);
 
-	//if (*(real_player_name + 1) == '\0')
-	//	goto quit_game;
+	if (!player_name[0])
+		goto quit_game;
 
 
 	/* So you really want to play? */
@@ -114,7 +114,10 @@ int main (int argc, char *argv[])
 		goto quit_game;
 
 	generate_map (dlv_lvl (1), LEVEL_NORMAL);
-	mons_gen (cur_dlevel, 0, 15150);
+	struct Monster *pl = mons_gen (cur_dlevel, 0, 15150);
+	pl->name = malloc(41);
+	strncpy (pl->name, player_name, 40);
+	pl->name[40] = 0;
 	//generate_map (dlv_lvl (2), LEVEL_NORMAL);
 
 	//gra_centcam (map_graph, player->yloc, player->xloc);

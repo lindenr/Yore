@@ -268,7 +268,11 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		while (total_rooms < 100);
 
 		start = map_buffer (map_graph->h/2, map_graph->w/2);
-		end = mons_gen (lvl, 1, start);
+		/* Down-stair */
+		do
+			end = (int32_t) rn(map_graph->a);
+		while (end == start);
+		ADD_MAP(DGN_DOWNSTAIR, end);
 		
 		/* clear space at the beginning (for the up-stair) */
 		ADD_MAP (DGN_GROUND, start);
@@ -365,17 +369,14 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 	return true;
 }
 
-char *real_player_name;
-
 /* type:
  * 0 : initialised at start of game
  * 1 : generated at start of level
  * 2 : randomly throughout level */
 #define init_mons(mons,TYP) (memcpy ((mons), &all_mons[TYP], sizeof(struct Monster)))
-uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
+struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 {
 	int32_t luck, start;
-	int32_t end;
 	uint32_t upsy, upsx;
 	if (type == 0)
 	{
@@ -395,21 +396,7 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		struct Monster *t1 = new_mthing (lvl, upsy, upsx, &m1);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, t1->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t1->ID}});
-	}
-	else if (type == 1)
-	{
-		/* Up-stair */
-		start = param;
-
-		/* Down-stair */
-		do
-			end = (int32_t) rn(map_graph->a);
-		while (end == start);
-		ADD_MAP(DGN_DOWNSTAIR, end);
-
-		/* Move to the up-stair */
-//		thing_bmove (player, start);
-		return end;
+		return t1;
 	}
 	else if (type == 2)
 	{
@@ -429,7 +416,8 @@ uint32_t mons_gen (struct DLevel *lvl, int type, int32_t param)
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, th->ID}});
 		//printf ("successful generation \n");
+		return th;
 	}
-	return 0;
+	return NULL;;
 }
 

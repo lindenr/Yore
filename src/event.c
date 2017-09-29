@@ -324,6 +324,7 @@ void ev_init ()
 	events = v_dinit (sizeof(struct QEv));
 }
 
+// TODO make events a heap
 void ev_loop ()
 {
 	while (U.playing == PLAYER_PLAYING)
