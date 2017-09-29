@@ -356,7 +356,7 @@ void gr_refresh ()
 						gr_flags[gr_c] = 1|gra->flags[gra_c];
 					}
 				}
-				gra->flags[gra_c] &= 254;
+				gra->flags[gra_c] &= (~1);
 			}
 		}
 	}

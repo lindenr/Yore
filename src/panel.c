@@ -349,7 +349,8 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc, const char *instr
 	p_pane (player);
 	gr_refresh ();
 	int xmove, ymove;
-	uint32_t key = p_move (&ymove, &xmove, gr_getfullch ());
+	uint32_t key = gr_getfullch ();
+	p_move (&ymove, &xmove, key);
 	while (key != '.' || (confirm && (p_ask (player, "yn", confirm) != 'y')))
 	{
 		if (key == CH_ESC)
@@ -374,7 +375,8 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc, const char *instr
 			gra_clear (overlay);
 			bres_draw (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel), &path_hit, map_graph->csr_y, map_graph->csr_x);
 		}
-		key = p_move (&ymove, &xmove, gr_getfullch ());
+		key = gr_getfullch ();
+		p_move (&ymove, &xmove, key);
 	}
 	*yloc = map_graph->csr_y;
 	*xloc = map_graph->csr_x;
@@ -382,46 +384,50 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc, const char *instr
 	gra_free (overlay);
 }
 
-uint32_t p_move (int *ymove, int *xmove, uint32_t key)
+int p_move (int *ymove, int *xmove, uint32_t key)
 {
 	switch (key)
 	{
 		case 'k':
 			*ymove = -1;
 			*xmove =  0;
-			break;
+			return 1;
 		case 'j':
 			*ymove =  1;
 			*xmove =  0;
-			break;
+			return 1;
 		case 'h':
 			*ymove =  0;
 			*xmove = -1;
-			break;
+			return 1;
 		case 'l':
 			*ymove =  0;
 			*xmove =  1;
-			break;
+			return 1;
 		case 'y':
 			*xmove = -1;
 			*ymove = -1;
-			break;
+			return 1;
 		case 'u':
 			*xmove =  1;
 			*ymove = -1;
-			break;
+			return 1;
 		case 'b':
 			*xmove = -1;
 			*ymove =  1;
-			break;
+			return 1;
 		case 'n':
 			*xmove =  1;
 			*ymove =  1;
-			break;
+			return 1;
+		case '.':
+			*xmove =  0;
+			*ymove =  0;
+			return 1;
 		default:
 			*xmove =  0;
 			*ymove =  0;
 	}
-	return key;
+	return 0;
 }
 

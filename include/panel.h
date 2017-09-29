@@ -41,7 +41,7 @@ enum PanelType
 int  p_status   (struct Monster *, enum PanelType);
 int  p_skills   (struct Monster *, enum PanelType);
 void p_mvchoose (struct Monster *, int *, int *, const char *, const char *, int);
-uint32_t p_move (int *, int *, uint32_t);
+int  p_move     (int *, int *, uint32_t);
 
 extern int p_width, p_height
 //, p_open

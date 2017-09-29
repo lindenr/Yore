@@ -88,6 +88,7 @@ void ev_do (Event ev)
 		th->status.moving.xdir = 0;
 		if (can == 1)
 			monsthing_move (th, th->dlevel, ydest, xdest);
+		//else: tried and failed to move TODO
 		return;
 	case EV_MEVADE:
 		thID = ev->mevade.thID;
@@ -118,7 +119,7 @@ void ev_do (Event ev)
 		fr->status.attacking.xdir = 0;
 		can = can_amove (get_sqattr (dlv_lvl(fr->dlevel), ydest, xdest));
 		if (can != 2)
-			return;
+			return; // tried and failed to attack TODO
 		to = &dlv_lvl(fr->dlevel)->mons[map_buffer(ydest, xdest)]; /* get to-mons */
 		if (!to->ID)
 			return;

@@ -218,6 +218,7 @@ int Kwield (struct Monster *player)
 	ev_queue (player->speed, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield}});
 	return 1;
 }
+
 /*
 int Klookdn (struct Monster *player)
 {
