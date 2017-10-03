@@ -22,7 +22,5 @@ bool is_safe_gen  (struct DLevel *, uint32_t, uint32_t);
 // TODO remove
 void generate_auto (double *, int, int, uint16_t*, int, int, double);
 
-#define DOT ACS_BULLET
-
 #endif /* GENERATE_H_INCLUDED */
 

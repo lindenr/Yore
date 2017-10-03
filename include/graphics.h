@@ -136,7 +136,8 @@ void gr_resize    (int, int);
 #define GRK_LF       0x11
 #define GRK_RT       0x10
 
-#define ACS_BULLET   0xFA
+#define ACS_DOT      0xFA
+#define ACS_BIGDOT   0xF9
 
 /* line graphics */
 #define ACS_VLINE    0xB3

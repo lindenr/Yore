@@ -410,7 +410,10 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 
 		struct Monster p;
 		init_mons (&p, player_gen_type ());
-		p.ai.mode = AI_TIMID;
+		if (p.mflags & FL_HOSTILE)
+			p.ai.mode = AI_HOSTILE;
+		else
+			p.ai.mode = AI_TIMID;
 		p.level = 1; //mons[p.type].exp? TODO
 		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, th->ID}});

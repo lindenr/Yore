@@ -16,6 +16,9 @@
 #define FL_MIND 0x00000080      /* mindful        */
 #define FL_WING 0x00000100      /* has wings      */
 
+#define FL_HOSTILE 0x01000000   /* starts hostile */
+#define FL_NEUTRAL 0x00000000   /* starts neutral */
+
 /* Size flags with _rough_ approximations         */
 #define FL_SIZ1 0x20000000      /* tiny (bee)     */
 #define FL_SIZ2 0x40000000      /* small (cat)    */
@@ -157,6 +160,7 @@ typedef enum
 	AI_NONE = 0, /* player control */
 	AI_CONT,     /* player control using continuation */
 	AI_TIMID,    /* neutral non-player monster */
+	AI_HOSTILE,  /* will anger on sight */
 	AI_AGGRO     /* angry non-player monster */
 } AI_MODE;
 
@@ -239,17 +243,15 @@ int    mons_take_turn  (struct Monster *);                   /* give a move (AI 
 //void   mons_init_stats (struct MStats *, const struct MType *); /* generate monster stats              */
 void   mons_box        (struct Monster *, BoxType);          /* boxy flags for this turn                 */
 void   mons_usedturn   (struct Monster *);                   /* turn is irretrievably used               */
-//bool   mons_unwield    (struct Monster *);                   /* unwield what is currently wielded        */
-//bool   mons_wield      (struct Monster *, struct Item *);    /* wield an item (any item)                 */
 //void   mons_eat        (struct Monster *, struct Item *);    /* eat something                            */
 //bool   mons_eating     (struct Monster *);                   /* continue eating something                */
 //bool   mons_can_hear   (struct Monster *);                   /* has ears? no?                            */
 void   mons_corpse     (struct Monster *, Ityp *);           /* make itype corpse type of the monster    */
 Tick   mons_tmgen      ();                                   /* time until next monster generation       */
 Tick   mons_tregen     (struct Monster *);                   /* time between regen events                */
-int    mons_hits       (struct Monster *, struct Monster *); /* will it hit                              */
-int    mons_hitdmg     (struct Monster *, struct Monster *); /* how much damage                          */
-int    mons_ST_hit     (struct Monster *);                   /* how much stamina will it consume         */
+int    mons_hits       (struct Monster *, struct Monster *, struct Item *); /* will it hit               */
+int    mons_hitdmg     (struct Monster *, struct Monster *, struct Item *); /* how much damage           */
+int    mons_ST_hit     (struct Monster *, struct Item *);    /* how much stamina will it consume         */
 int    mons_HP_regen   (struct Monster *);                   /* how much HP will regen                   */
 int    mons_HP_max_regen(struct Monster *);                  /* similarly for max HP                     */
 int    mons_ST_regen   (struct Monster *);                   /* stamina                                  */

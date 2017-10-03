@@ -64,8 +64,8 @@ glyph WALL_TYPE (glyph y, glyph u,
         glyph h, glyph j, glyph k, glyph l,
                  glyph b, glyph n)
 {
-	int H = !(h == DOT), J = !(j == DOT), K = !(k == DOT), L = !(l == DOT),
-        Y = !(y == DOT), U = !(u == DOT), B = !(b == DOT), N = !(n == DOT);
+	int H = !(h == ACS_DOT), J = !(j == ACS_DOT), K = !(k == ACS_DOT), L = !(l == ACS_DOT),
+        Y = !(y == ACS_DOT), U = !(u == ACS_DOT), B = !(b == ACS_DOT), N = !(n == ACS_DOT);
 	return ACS_ARRAY[wall_output[(((((((((((((Y<<1)+H)<<1)+B)<<1)+J)<<1)+N)<<1)+L)<<1)+U)<<1)+K]];
 }
 /*
@@ -171,7 +171,6 @@ void thing_free (struct Thing *thing)
 int TSIZ[] = {
 	0,
 	sizeof (struct Item),
-	//sizeof (struct Monster),
 	sizeof (struct map_item_struct)
 };
 
@@ -207,7 +206,7 @@ struct Monster *new_mthing (struct DLevel *lvl, uint32_t y, uint32_t x, void *ac
 	return ret;
 }
 
-#define US(w) (sq_seen[w]?(sq_attr[w]?DOT:ACS_WALL):ACS_WALL)
+#define US(w) (sq_seen[w]?(sq_attr[w]?ACS_DOT:ACS_WALL):ACS_WALL)
 
 void set_can_see (struct Monster *player, uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
 {
@@ -218,6 +217,7 @@ void set_can_see (struct Monster *player, uint8_t *sq_seen, uint8_t *sq_attr, gl
 	for (w = 0; w < map_graph->a; ++ w)
 		if (sq_seen[w] == 2)
 			sq_seen[w] = 1;
+			
 
 	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
 	for (w = 0; w < gr_area; ++ w)
@@ -238,9 +238,9 @@ void set_can_see (struct Monster *player, uint8_t *sq_seen, uint8_t *sq_attr, gl
 	{
 		for (X = 0; X < map_graph->w; ++X, ++w)
 		{
-			uint32_t y = DOT, u = DOT,
-            h = DOT, j = DOT, k = DOT, l = DOT,
-                     b = DOT, n = DOT;
+			uint32_t     y = ACS_DOT, u = ACS_DOT,
+            h = ACS_DOT, j = ACS_DOT, k = ACS_DOT, l = ACS_DOT,
+                         b = ACS_DOT, n = ACS_DOT;
 
 			//if (sq_seen[w] == 2 && sq_attr[w] == 0 && us[w] != ' ')
 			//	us[w] |= COL_TXT_BRIGHT; /* Brighten what you can see iff it's a wall. */
@@ -248,6 +248,8 @@ void set_can_see (struct Monster *player, uint8_t *sq_seen, uint8_t *sq_attr, gl
 			/* Replace something unseeable with what's behind it. */
 			if (sq_seen[w] == 1 && sq_attr[w] == 2)
 				gra_baddch (map_graph, w, sq_unseen[w]);
+			if (sq_seen[w] == 1 && (map_graph->data[w]&255) == ACS_BIGDOT)
+				gra_baddch (map_graph, w, ACS_DOT);
 
 			if (sq_attr[w] != 0 ||
 			    (map_graph->data[w] & 0xFF) == ' ' ||
@@ -297,21 +299,6 @@ void draw_map (struct Monster *player)
 	int i, at;
 	for (at = 0; at < map_graph->a; ++ at)
 	{
-		if (lvl->mons[at].ID)
-		{
-			struct Monster *th = &lvl->mons[at];
-			struct Monster *m = th;
-			gra_bsetbox (map_graph, at, m->boxflags);
-			gra_bgaddch (map_graph, at, m->gl);
-			map_graph->flags[at] |= 1 | (1<<12) | ((1+m->status.moving.ydir)*3    + 1+m->status.moving.xdir)   <<8;
-			map_graph->flags[at] |= 1 | (1<<17) | ((1+m->status.attacking.ydir)*3 + 1+m->status.attacking.xdir)<<13;
-			if (th == player)
-			{
-				//map_graph->data[ati] |= COL_TXT_BRIGHT;
-			}
-			sq_attr[at] = 2;
-			continue;
-		}
 		for (i = 0; i < things[at]->len; ++ i)
 		{
 			struct Thing *th = THING(things, at, i);
@@ -346,6 +333,15 @@ void draw_map (struct Monster *player)
 			{
 				type[at] = th->type;
 			}
+		}
+		if (lvl->mons[at].ID)
+		{
+			struct Monster *m = &lvl->mons[at];
+			gra_bsetbox (map_graph, at, m->boxflags);
+			gra_bgaddch (map_graph, at, m->gl);
+			map_graph->flags[at] |= 1| (1<<12) | ((1+m->status.moving.ydir)*3    + 1+m->status.moving.xdir)   <<8;
+			map_graph->flags[at] |= 1| (1<<17) | ((1+m->status.attacking.ydir)*3 + 1+m->status.attacking.xdir)<<13;
+			sq_attr[at] = 2;
 		}
 	}
 	set_can_see (player, sq_seen, sq_attr, sq_unseen);

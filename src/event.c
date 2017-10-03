@@ -125,20 +125,21 @@ void ev_do (Event ev)
 			return;
 		toID = to->ID;
 		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}}); /* anger to-mons */
-		int stamina_cost = mons_ST_hit (fr);
+		struct Item *with = fr->wearing.weaps[0];
+		int stamina_cost = mons_ST_hit (fr, with);
 		if (fr->ST < stamina_cost)
 		{
 			p_msg ("The %s tiredly misses the %s!", fr->mname, to->mname); /* notify */
 			return;
 		}
 		fr->ST -= stamina_cost;
-		if (!mons_hits (fr, to))
+		if (!mons_hits (fr, to, with))
 		{
 			p_msg ("The %s misses the %s!", fr->mname, to->mname); /* notify */
 			return;
 		}
 		p_msg ("The %s hits the %s!", fr->mname, to->mname); /* notify */
-		int damage = mons_hitdmg (fr, to);
+		int damage = mons_hitdmg (fr, to, with);
 		to->HP -= damage;
 		if (to->HP <= 0)
 		{
@@ -279,7 +280,7 @@ void ev_do (Event ev)
 		fr = MTHIID(frID); to = MTHIID(toID);
 		if ((!fr) || (!to))
 			return;
-		if (to->ai.mode == AI_NONE)
+		if (mons_isplayer (to))
 			return;
 		if (to->ai.mode != AI_AGGRO)
 			p_msg ("The %s angers the %s!", fr->mname, to->mname);

@@ -224,6 +224,8 @@ int player_move_gently (struct Monster *player)
 {
 	uint32_t key = gr_getfullch ();
 	char in = (char) key;
+	if (key == CH_ESC)
+		return 0;
 	
 	int ymove, xmove;
 	if (!p_move (&ymove, &xmove, (uint32_t) in))
@@ -239,6 +241,8 @@ int player_move_attack (struct Monster *player)
 {
 	uint32_t key = gr_getfullch ();
 	char in = (char) key;
+	if (key == CH_ESC)
+		return 0;
 	
 	int ymove, xmove;
 	if (!p_move (&ymove, &xmove, (uint32_t) in))
@@ -509,24 +513,27 @@ struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
 	return It;
 }
 
-int mons_hits (struct Monster *from, struct Monster *to)
+int mons_hits (struct Monster *from, struct Monster *to, struct Item *with)
 {
-	return 1; // evading?
+	if (!with)
+		return 1; // evading?
+	return 1;
 }
 
-int mons_hitdmg (struct Monster *from, struct Monster *to)
+int mons_hitdmg (struct Monster *from, struct Monster *to, struct Item *with)
 {
-	struct Item *it = from->wearing.weaps[0];
-	if (!it)
-		return 3;
-	uint32_t attr = it->type.attr;
+	if (!with)
+		return 1 + rn(2);
+	uint32_t attr = with->type.attr;
 	int ret = rnd((attr>>4)&15, attr&15);
 	return ret;
 }
 
-int mons_ST_hit (struct Monster *from)
+int mons_ST_hit (struct Monster *from, struct Item *with)
 {
-	return 3;
+	if (!with)
+		return 3;
+	return 1 + (with->cur_weight)/500;
 }
 
 int mons_HP_regen (struct Monster *th)
@@ -550,7 +557,9 @@ int mons_ST_regen (struct Monster *th)
 
 int mons_ST_max_regen (struct Monster *th)
 {
-	return 0;
+	if (th->ST >= th->ST_max)
+		return 0;
+	return !rn(10);
 }
 
 //void mons_init_stats (struct MStats *stats, const struct MType *type)
@@ -610,6 +619,19 @@ int AI_take_turn (struct Monster *ai)
 	TID aiID = ai->ID;
 	if (ai->ai.mode == AI_TIMID)
 	{
+		int y = rn(3)-1, x = rn(3)-1;
+		int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
+		if (can == 1)
+			mons_move (ai, y, x, 1);
+		//else if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
+		else
+			ev_queue (ai->speed, (union Event) { .mturn = {EV_MTURN, aiID}});
+		return 1;
+	}
+
+	if (ai->ai.mode == AI_HOSTILE)
+	{
+		// TODO attack player on sight
 		int y = rn(3)-1, x = rn(3)-1;
 		int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
 		if (can == 1)
