@@ -13,8 +13,8 @@ bool bres_draw (int fromy, int fromx, uint8_t *grid, uint8_t *grid_t,
 	int dy, dx, sy, sx, err, e2, fy, fx;
 	fy = fromy;
 	fx = fromx;
-	dy = fabs(ty - fy);
-	dx = fabs(tx - fx);
+	dy = abs(ty - fy);
+	dx = abs(tx - fx);
 	if (fx < tx)
 		sx = 1;
 	else
@@ -59,4 +59,3 @@ bool bres_draw (int fromy, int fromx, uint8_t *grid, uint8_t *grid_t,
 	callback = NULL;
 	return true;
 }
-
