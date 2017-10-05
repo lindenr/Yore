@@ -58,18 +58,18 @@ int Kpickup (struct Monster *player)
 	int n = map_buffer (player->yloc, player->xloc);
 	Vector *things = dlv_things (player->dlevel);
 	struct Thing *th;
-	
+
 	LOOP_THING(things, n, i)
 	{
 		th = THING(things, n, i);
 		if (th->type == THING_ITEM)
 			v_push (ground, &th->ID);
 	}
-	
+
 	if (ground->len < 1)
 		return 0;
 
-	Vector pickup;
+	Vector pickup = NULL;
 	if (ground->len == 1)
 	{
 		mons_usedturn (player);
@@ -81,11 +81,11 @@ int Kpickup (struct Monster *player)
 		mons_usedturn (player); // TODO
 		/* Multiple items - ask which to pick up. */
 		pickup = v_init (sizeof(TID), 20);
-	
+
 		/* Do the asking */
 		ask_items (pickup, ground, "Pick up what?");
 		v_free (ground);
-	
+
 	}
 	ev_queue (player->speed, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
 	return 1;
@@ -169,7 +169,7 @@ int Knlook (struct Monster *player)
 		p_msg ("You see nothing here. ");
 	else
 		p_lines (list);
-	
+
 	v_free (list);
 
 	return 0;
@@ -177,20 +177,20 @@ int Knlook (struct Monster *player)
 
 int Kflook (struct Monster *player)
 {
-	int y, x; 
+	int y, x;
 	p_mvchoose (player, &y, &x, "What are you looking for?", NULL, 0);
 	return 0;
 }
 
 /*int Kopen (struct Monster *player)
 {
-	//int y, x; 
+	//int y, x;
 	return 0;
 }
 
 int Kclose (struct Monster *player)
 {
-	//int y, x; 
+	//int y, x;
 	return 0;
 }*/
 
@@ -319,4 +319,3 @@ int key_lookup (struct Monster *player, uint32_t key)
 	}
 	return 0;
 }
-
