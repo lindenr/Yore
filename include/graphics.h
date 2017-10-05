@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_H_INCLUDED
 #define GRAPHICS_H_INCLUDED
 
-#include "SDL/SDL.h"
+#include "SDL.h"
 #include "include/all.h"
 #include <stdint.h>
 
@@ -184,4 +184,3 @@ void gr_resize    (int, int);
 #define COL_BG_MASK    0x000FFF00
 
 #endif /* GRAPHICS_H_INCLUDED */
-

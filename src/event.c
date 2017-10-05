@@ -31,11 +31,11 @@ void ev_queue (Tick udelay, union Event ev)
 void ev_debug ()
 {
 	int i;
-	printf ("curtick is %lu\n", curtick);
+	printf ("curtick is %llu\n", curtick);
 	for (i = 0; i < events->len; ++ i)
 	{
 		struct QEv *qe = v_at (events, i);
-		printf ("due at %lu: %d\n", qe->tick, qe->ev.type);
+		printf ("due at %llu: %d\n", qe->tick, qe->ev.type);
 		if (qe->ev.type == EV_MTURN)
 			printf ("     id %d\n", qe->ev.mturn.thID);
 	}
@@ -336,10 +336,9 @@ void ev_loop ()
 		memcpy (&qe, v_at (events, 0), sizeof (qe));
 		//ev_print (&qe);
 		v_rem (events, 0);
-		
+
 		curtick = qe.tick;
 
 		ev_do (&qe.ev);
 	}
 }
-

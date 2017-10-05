@@ -2,7 +2,7 @@
 bin/Yore
 # Save files (testing)
 *.sav
+.*.swp
 # function preprocessor
 #function
 #function.exe
-

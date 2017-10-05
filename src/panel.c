@@ -35,7 +35,7 @@ void p_pane (struct Monster *player)
 	gra_fbox (gpan, 0, 0, p_height-1, p_width-1, ' ');
 
 	//int max = gr_h;
-	
+
 	/* TODO health bar in its own graph
 	for (i = 0; i < max; ++ i)
 	{
@@ -60,7 +60,7 @@ void p_pane (struct Monster *player)
 			txt_mvaddch (max - i - 1, txt_w - 2, COL_BG_BLUE(10) | ' ');
 	}*/
 
-	gra_mvprint (gpan, 1, 1, "T %lu", curtick/1000);
+	gra_mvprint (gpan, 1, 1, "T %llu", curtick/1000);
 
 	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (player->name, 20));
 	gra_mvprint (gpan, 3, 1, "HP %d/%d", player->HP, player->HP_max);
@@ -116,7 +116,7 @@ void p_msg (const char *str, ...)
 	va_list args;
 	char out[100];
 
-	snprintf(out, 10, "(%lu) ", curtick);
+	snprintf(out, 10, "(%llu) ", curtick);
 
 	va_start (args, str);
 	vsnprintf (out + strlen(out), 90, str, args);
@@ -153,7 +153,7 @@ char p_lines (Vector lines)
 
 	Graph box = gra_init (h, w, yloc, xloc, h, w);
 	gra_fbox (box, 0, 0, h-1, w-1, ' ');
-	
+
 	for (i = 0; i < lines->len; ++ i)
 	{
 		char *str = v_at(lines, i);
@@ -166,7 +166,7 @@ char p_lines (Vector lines)
 	char ret = gr_getch();
 
 	gra_free (box);
-	
+
 	return ret;
 }
 
@@ -249,7 +249,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 		gra_cprint (sc_skills, 3, "(no skills available)");
 	else
 		gra_cprint (sc_skills, 3, "(enter to inspect; letter to use)");
-	
+
 	int i, selected = 0;
 	int j;
 	while (1)
@@ -429,4 +429,3 @@ int p_move (int *ymove, int *xmove, uint32_t key)
 	}
 	return 0;
 }
-
