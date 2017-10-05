@@ -10,8 +10,6 @@
 #include "include/graphics.h"
 #include "include/dlevel.h"
 
-#include <malloc.h>
-
 TID curID = 0;
 TID getID ()
 {

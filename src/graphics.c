@@ -435,7 +435,7 @@ uint32_t gr_getfullch ()
 
 	SDL_Event event;
 	//uint32_t modifier_keys = (KMOD_SHIFT | KMOD_CAPS | KMOD_NUM) << 16;
-	int ticks = SDL_GetTicks ();
+	uint32_t ticks = SDL_GetTicks ();
 	if (tout_num && end <= ticks)
 		end = tout_num + ticks;
 	if (tout_num == 0)

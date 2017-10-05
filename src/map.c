@@ -59,7 +59,7 @@ uint32_t get_sqattr (struct DLevel *lvl, int yloc, int xloc)
 
 int can_amove (int attr)
 {
-	if (attr == (uint32_t) - 1)
+	if (attr == ~0)
 		return attr;
 	return (attr & MAP_MOVEABLE);
 }

@@ -146,7 +146,7 @@ extern Tick curtick;
 
 void ev_init  ();
 void ev_loop  ();
-void ev_queue (int udelay, union Event ev);
+void ev_queue (Tick udelay, union Event ev);
 void ev_debug ();
 
 #endif /* EVENT_H_INCLUDED */

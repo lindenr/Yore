@@ -5,14 +5,15 @@
 #include "include/thing.h"
 #include "include/graphics.h"
 
-#define NUM_KEYS (sizeof(Keys)/sizeof(*Keys))
+#define NUM_KEYS ((int)(sizeof(Keys)/sizeof(*Keys)))
 
 struct KStruct
 {
 	uint32_t key;
 	int (*action) (struct Monster *);
-}
-extern Keys[];
+};
+
+extern struct KStruct Keys[];
 
 int key_lookup (struct Monster *, glyph);
 extern int cur_players;

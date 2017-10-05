@@ -6,8 +6,6 @@
 #include "include/item.h"
 #include "include/panel.h"
 
-#include <malloc.h>
-
 unsigned PACK_AT(char a)
 {
 	if (a < 65 || a > 122 || (a > 90 && a < 97))
@@ -156,7 +154,7 @@ struct Item *get_Itemc (const Pack *pack, char itch)
 	if (itch == '-')
 		return &no_item;
 	unsigned where = PACK_AT(itch);
-	if (where == -1)
+	if (where == ~0u)
 		return NULL;
 	if (!pack)
 		return NULL;

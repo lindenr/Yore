@@ -10,7 +10,7 @@ const styp all_skills[] = {
 	{SK_DODGE,   SK_PAS, "Dodge", "#DODGE\n#[passive skill]\n\nYou are uncommonly nimble. When you are attacked you have a chance to dodge the attack. The chance increases with skill level.\n"}
 };
 
-#define SK_MAXLEVEL (sizeof(xp_levels)/sizeof(*xp_levels))
+#define SK_MAXLEVEL ((int)(sizeof(xp_levels)/sizeof(*xp_levels)))
 const int xp_levels[] = {0, 5};
 
 const char *sk_name (Skill sk)

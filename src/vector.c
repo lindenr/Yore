@@ -2,11 +2,11 @@
 
 #include "include/vector.h"
 
-#include <malloc.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #define V_DEFAULT_LENGTH 2
 Vector v_dinit (int siz)
@@ -89,10 +89,10 @@ void v_rem (Vector vec, int rem)
 void v_rptr (Vector vec, void *data)
 {
 	uintptr_t p = (uintptr_t) data;
+	if (p < (uintptr_t) vec->data || p >= (uintptr_t) vec->data + vec->len * vec->siz)
+		return;
 	p -= (uintptr_t) vec->data;
 	p /= vec->siz;
-	if (p < 0 || p >= vec->len)
-		return;
 	v_rem (vec, p);
 }
 

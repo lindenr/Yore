@@ -10,7 +10,6 @@
 #include "include/dlevel.h"
 
 #include <stdio.h>
-#include <malloc.h>
 
 /* Item weight should roughly be in grams - so a stong person (St >= 18) would 
    be able to carry 30000g before getting burdened, and weak would be just

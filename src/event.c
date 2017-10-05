@@ -12,9 +12,9 @@
 void ev_print (struct QEv *qe);
 Vector events = NULL;
 Tick curtick = 0;
-void ev_queue (int udelay, union Event ev)
+void ev_queue (Tick udelay, union Event ev)
 {
-	int when = curtick + udelay;
+	Tick when = curtick + udelay;
 	//printf ("queue %d %d\n", when, ev.type);
 	struct QEv qe = {when, ev};
 	int i = 0;

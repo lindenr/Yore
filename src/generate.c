@@ -401,7 +401,7 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 	else if (type == 2)
 	{
 		luck = param;
-		if (rn(100) >= (uint32_t) (15 - 2*luck))
+		if (rn(100) >= 15 - 2*luck)
 			return 0;
 
 		uint32_t xloc = rn(map_graph->w), yloc = rn(map_graph->h);
