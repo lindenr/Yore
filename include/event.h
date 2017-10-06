@@ -141,7 +141,6 @@ struct QEv
 	union Event ev;
 };
 
-typedef uint64_t Tick;
 extern Tick curtick;
 
 void ev_init  ();

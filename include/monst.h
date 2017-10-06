@@ -40,7 +40,7 @@ extern const int CORPSE_WEIGHTS[];
 
 #define get_filename() "Yore-savegame.sav"
 
-typedef uint64_t Tick;
+typedef long long unsigned Tick;
 
 enum MTYPES
 {
