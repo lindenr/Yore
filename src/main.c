@@ -32,6 +32,9 @@ bool game_intro ()
 	while (1)
 	{
 		gra_mvprint (ibox, 11, (bw - 30)/2, "[hit the spacebar to continue]");
+		gr_frefresh();
+		gr_wait(1000);
+		goto fin;
 		do
 			c = gr_getch();
 		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
@@ -73,7 +76,7 @@ int main (int argc, char *argv[])
 
 	if (argc > 1)
 	{
-		generate_map (dlv_lvl(1),LEVEL_TOWN);
+		generate_map (dlv_lvl(1), LEVEL_TOWN);
 		return 0;
 	}
 
@@ -97,8 +100,10 @@ int main (int argc, char *argv[])
 	{
 		if (i)
 			gra_mvprint (introbox, 10, 6, "Please type in your name.");
+		break;
 		gra_getstr (introbox, 8, 19, player_name, 40);
 	}
+	player_name[0] = 'L';
 	gra_free(introbox);
 
 	if (!player_name[0])

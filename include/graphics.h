@@ -66,7 +66,7 @@ extern int forced_refresh;
 extern void (*gr_onresize)  ();
 //extern void (*gr_onrefresh) ();
 
-extern SDL_Surface *screen;
+//extern SDL_Surface *screen;
 
 /* Initialisation */
 void gr_init      (void);

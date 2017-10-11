@@ -26,7 +26,10 @@ int BOXCOL[BOX_NUM][3] = {
 
 int forced_refresh = 0;
 
-SDL_Surface *screen = NULL, *tiles = NULL, *glyph_col = NULL;
+//SDL_Surface *screen = NULL, *glyph_col = NULL;
+SDL_Window *sdlWindow;
+SDL_Renderer *sdlRenderer;
+SDL_Texture *tiles_tex = NULL;
 
 /* starting size */
 const int screenY = 720, screenX = 1000;
@@ -246,7 +249,7 @@ void gra_bsetbox (Graph gra, int b, gflags flags)
 }
 
 #define setpixel(y,x) {*(uint32_t*) ((uint8_t*) pixels + 4*(x) + screen->pitch*(y)) = col;}
-void gr_drawboxes (int y, int x, gflags f)
+/*void gr_drawboxes (int y, int x, gflags f)
 {
 	if (SDL_MUSTLOCK (screen)) // TODO draw all boxes under one lock
 		SDL_LockSurface (screen);
@@ -302,7 +305,7 @@ end_attacking:
 
 	if (SDL_MUSTLOCK (screen))
 		SDL_UnlockSurface (screen);
-}
+}*/
 
 #define GL_TRD ((gl&0xF0000000)>>24)
 #define GL_TGN ((gl&0x0F000000)>>20)
@@ -316,15 +319,18 @@ void blit_glyph (glyph gl, int yloc, int xloc)
 	SDL_Rect srcrect = {GLW*(ch&15), GLH*((ch>>4)&15), GLW, GLH};
 	SDL_Rect dstrect = {GLW*xloc, GLH*yloc, GLW, GLH};
 
-	SDL_FillRect (glyph_col, NULL, SDL_MapRGB (glyph_col->format, GL_BRD, GL_BGN, GL_BBL));
-	SDL_BlitSurface (tiles, &srcrect, glyph_col, NULL);
+	SDL_RenderCopy (sdlRenderer, tiles_tex, &srcrect, &dstrect);
+
+//	SDL_FillRect (glyph_col, NULL, SDL_MapRGB (glyph_col->format, GL_BRD, GL_BGN, GL_BBL));
+//	SDL_BlitSurface (tiles_tex, &srcrect, glyph_col, NULL);
 	
-	SDL_FillRect (screen, &dstrect, SDL_MapRGB (screen->format, GL_TRD, GL_TGN, GL_TBL));
-	SDL_BlitSurface (glyph_col, NULL, screen, &dstrect);
+//	SDL_FillRect (screen, &dstrect, SDL_MapRGB (screen->format, GL_TRD, GL_TGN, GL_TBL));
+//	SDL_BlitSurface (glyph_col, NULL, screen, &dstrect);
 }
 
 void gr_refresh ()
 {
+	fprintf(stderr, "refresh!\n");
 	int i, x, y;
 
 	for (i = 0; i < graphs->len; ++ i)
@@ -369,9 +375,9 @@ void gr_refresh ()
 			if (gr_flags[gr_c] || forced_refresh)
 			{
 				blit_glyph (gr_map[gr_c], y, x);
-				gflags f = gr_flags[gr_c];
-				if (f)
-					gr_drawboxes (y, x, f);
+				//gflags f = gr_flags[gr_c];
+				//if (f)
+				//	gr_drawboxes (y, x, f);
 				gr_flags[gr_c] &= ~1;
 			}
 			gr_map[gr_c] = 0;
@@ -382,7 +388,7 @@ void gr_refresh ()
 		gr_onrefresh ();
 
 	forced_refresh = 0;
-	SDL_UpdateRect (screen, 0, 0, 0, 0);
+	SDL_RenderPresent (sdlRenderer);
 }
 
 void gr_frefresh ()
@@ -458,14 +464,14 @@ uint32_t gr_getfullch ()
 
 		switch (event.type)
 		{
-			case SDL_KEYDOWN:
+			/*case SDL_KEYDOWN:
 			 {
 				uint32_t mod = event.key.keysym.mod << 16;
-				/*if ((mod & (~modifier_keys)) && (event.key.keysym.unicode != 0))
+				/ *if ((mod & (~modifier_keys)) && (event.key.keysym.unicode != 0))
 				{
 					//printf ("%d %d\n", event.key.keysym.sym, event.key.keysym.unicode);
 					return mod|event.key.keysym.sym;
-				}*/
+				}* /
 				if (event.key.keysym.sym == SDLK_UP)
 					return mod|GRK_UP;
 				if (event.key.keysym.sym == SDLK_DOWN)
@@ -474,8 +480,8 @@ uint32_t gr_getfullch ()
 					return mod|GRK_LF;
 				if (event.key.keysym.sym == SDLK_RIGHT)
 					return mod|GRK_RT;
-				if (event.key.keysym.unicode == 0)
-					break;
+				//if (event.key.keysym.unicode == 0)
+				//	break;
 				if (mod & ((KMOD_LCTRL|KMOD_RCTRL)<<16))
 				{
 					if ((!!(mod & ((KMOD_LSHIFT|KMOD_RSHIFT)<<16))) ^ (!!(mod & (KMOD_CAPS<<16))))
@@ -484,14 +490,14 @@ uint32_t gr_getfullch ()
 				}
 
 				return mod|event.key.keysym.unicode;
-			}
+			}*/
 
-			case SDL_VIDEORESIZE:
+			/*case SDL_VIDEORESIZE:
 			{
 				// TODO: something nice about window resizing
 				gr_resize (event.resize.h, event.resize.w);
 				break;
-			}
+			}*/
 			
 			case SDL_QUIT:
 				exit(0);
@@ -543,8 +549,8 @@ void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
 void gr_resize (int ysiz, int xsiz)
 {
 	int i;
-	SDL_FreeSurface (screen);
-	screen = SDL_SetVideoMode (xsiz, ysiz, 32, SDL_SWSURFACE | SDL_RESIZABLE);
+	//SDL_FreeSurface (screen);
+	//screen = SDL_SetVideoMode (xsiz, ysiz, 32, SDL_SWSURFACE | SDL_RESIZABLE);
 
 	gr_h = ysiz/GLH;
 	gr_w = xsiz/GLW;
@@ -584,6 +590,7 @@ printf("Couldn't find tiles at %s.\n", filepath)
 
 void gr_load_tiles ()
 {
+	SDL_Surface *tiles;
 	char filepath[100] = "";
 	void *temp = NULL;
 
@@ -595,13 +602,18 @@ void gr_load_tiles ()
 	exit (1);
 	
   success:
-	tiles = SDL_DisplayFormat (temp);
-	SDL_FreeSurface(temp);
+	tiles = SDL_ConvertSurfaceFormat (temp, SDL_GetWindowPixelFormat (sdlWindow), 0);
+	SDL_FreeSurface (temp);
+	SDL_SetColorKey (tiles, SDL_TRUE, SDL_MapRGB (tiles->format, 255, 0, 255));
+	tiles_tex = SDL_CreateTextureFromSurface (sdlRenderer, tiles);
+	SDL_FreeSurface (tiles);
 }
 
 void gr_cleanup ()
 {
-	SDL_FreeSurface (screen);
+	SDL_DestroyTexture (tiles_tex);
+	SDL_DestroyRenderer (sdlRenderer);
+	SDL_DestroyWindow (sdlWindow);
 	SDL_Quit ();
 }
 
@@ -612,8 +624,40 @@ void gr_init ()
 		fprintf (stderr, "Error initialising SDL: %s\n", SDL_GetError ());
 		exit (1);
 	}
-	
+
 	atexit (gr_cleanup);
+	sdlWindow = SDL_CreateWindow ("Yore", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+		screenX, screenY, 0);
+//	SDL_CreateWindowAndRenderer (screenX, screenY, 0, &sdlWindow, &sdlRenderer);
+	if (sdlWindow == NULL)
+	{
+		fprintf (stderr, "SDL error: window is NULL\n");
+		exit (1);
+	}
+
+	gr_wait(500);
+	sdlRenderer = SDL_CreateRenderer (sdlWindow, -1, 0);
+	gr_wait(500);
+	if (sdlRenderer == NULL)
+	{
+		fprintf (stderr, "SDL error: renderer is NULL\n");
+		exit (1);
+	}
+
+//	SDL_SetWindowTitle (sdlWindow, "Yore");
+	SDL_RenderPresent (sdlRenderer);
+	gr_wait(500);
+	gr_load_tiles ();
+	gr_resize (screenY, screenX);
+}
+/*
+void gr_init ()
+{
+	if (SDL_Init (SDL_INIT_VIDEO) < 0)
+	{
+		fprintf (stderr, "Error initialising SDL: %s\n", SDL_GetError ());
+		exit (1);
+	}
 	
 	screen = SDL_SetVideoMode (screenX, screenY, 32, SDL_SWSURFACE | SDL_RESIZABLE);
 	if (screen == NULL)
@@ -635,7 +679,7 @@ void gr_init ()
 	SDL_EnableUNICODE (1);
 	SDL_EnableKeyRepeat (200, 30);
 	SDL_WM_SetCaption ("Yore", "Yore");
-}
+}*/
 
 Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
 {

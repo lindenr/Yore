@@ -1,9 +1,9 @@
 C_FILES := $(wildcard src/*.c)
 H_FILES := $(wildcard include/*.h)
 #OBJ_FILES := $(patsubst src/%.c,obj/%.o,$(C_FILES))
-LD_FLAGS := -lm -Wall -Werror -ggdb -O0
-CC_FLAGS := -I$(CURDIR) -Wall -Werror -ggdb -O0
-SDL_FLAGS = $$(sdl-config --cflags --libs)
+LD_FLAGS := -lm -Wall -Werror
+CC_FLAGS := -I$(CURDIR) -Wall -Werror -O2
+SDL_FLAGS = $$(sdl2-config --cflags --libs)
 
 ALL: bin/Yore
 	gdb ./bin/Yore
