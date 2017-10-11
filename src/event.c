@@ -329,8 +329,6 @@ void ev_init ()
 // TODO make events a heap
 void ev_loop ()
 {
-	gr_wait(1000);
-	return;
 	while (U.playing == PLAYER_PLAYING)
 	{
 		////printf ("CURTICK=%d\n", curtick);

@@ -330,7 +330,6 @@ void blit_glyph (glyph gl, int yloc, int xloc)
 
 void gr_refresh ()
 {
-	fprintf(stderr, "refresh!\n");
 	int i, x, y;
 
 	for (i = 0; i < graphs->len; ++ i)
@@ -446,7 +445,7 @@ int gr_getkeyevent ()
 		end = tout_num + ticks;
 	if (tout_num == 0)
 		end = 0;
-
+	SDL_StartTextInput();
 	while (1)
 	{
 		if (end && SDL_GetTicks () >= end)
@@ -464,15 +463,19 @@ int gr_getkeyevent ()
 
 		switch (sdlEvent.type)
 		{
+			case SDL_TEXTINPUT:
+				//fprintf (stderr, "%s\n", sdlEvent.text.text);
+				return 1;
 			case SDL_KEYDOWN:
-			 {
+			{
+				break;
 				//uint32_t mod = sdlEvent.key.keysym.mod << 16;
 				/*if ((mod & (~modifier_keys)) && (event.key.keysym.unicode != 0))
 				{
 					//printf ("%d %d\n", event.key.keysym.sym, event.key.keysym.unicode);
 					return mod|event.key.keysym.sym;
 				}*/
-				return 1;
+			//	return 1;
 				/*if (event.key.keysym.sym == SDLK_UP)
 					return mod|GRK_UP;
 				if (event.key.keysym.sym == SDLK_DOWN)
@@ -507,6 +510,7 @@ int gr_getkeyevent ()
 				break;
 		}
 	}
+	SDL_StopTextInput();
 	return 0;
 }
 
@@ -515,8 +519,9 @@ char gr_getch ()
 	//return (char)(gr_getfullch () & 0xFF);
 	if (!gr_getkeyevent ())
 		return EOF;
-	printf ("%d\n", sdlEvent.key.keysym.sym);
-	return sdlEvent.key.keysym.sym;
+	//printf ("%d\n", sdlEvent.key.keysym.sym);
+//	return sdlEvent.key.keysym.sym;
+	return sdlEvent.text.text[0];
 }
 
 void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
