@@ -222,13 +222,12 @@ char escape (unsigned char a)
 
 int player_move_gently (struct Monster *player)
 {
-	uint32_t key = gr_getfullch ();
-	char in = (char) key;
-	if (key == CH_ESC)
+	char in = gr_getch ();
+	if (in == CH_ESC)
 		return 0;
 	
 	int ymove, xmove;
-	if (!p_move (&ymove, &xmove, (uint32_t) in))
+	if (!p_move (&ymove, &xmove, in))
 	{
 		p_msg ("That's not a direction!");
 		return 0;
@@ -239,13 +238,12 @@ int player_move_gently (struct Monster *player)
 
 int player_move_attack (struct Monster *player)
 {
-	uint32_t key = gr_getfullch ();
-	char in = (char) key;
-	if (key == CH_ESC)
+	char in = gr_getch ();
+	if (in == CH_ESC)
 		return 0;
 	
 	int ymove, xmove;
-	if (!p_move (&ymove, &xmove, (uint32_t) in))
+	if (!p_move (&ymove, &xmove, in))
 	{
 		p_msg ("That's not a direction!");
 		return 0;
@@ -269,31 +267,28 @@ int mons_take_turn (struct Monster *th)
 	while (1)
 	{
 		char in;
-		uint32_t key;
 	
 		draw_map (th);
 		p_pane (th);
 
 		gra_cmove (map_graph, th->yloc, th->xloc);
 
-		key = gr_getfullch();
-		if ((char) key == 'm')
+		in = gr_getch();
+		if (in == 'm')
 		{
 			if (player_move_gently (th))
 				break;
 			continue;	
 		}
-		else if ((char) key == 'F')
+		else if (in == 'F')
 		{
 			if (player_move_attack (th))
 				break;
 			continue;
 		}
 
-		in = (char) key;
-
 		int ymove, xmove;
-		p_move (&ymove, &xmove, (uint32_t) in);
+		p_move (&ymove, &xmove, in);
 		if (!(ymove == 0 && xmove == 0))
 		{
 			int mv = mons_move (th, ymove, xmove, 1);
@@ -304,7 +299,7 @@ int mons_take_turn (struct Monster *th)
 		}
 		else
 		{
-			int res = key_lookup (th, key);
+			int res = key_lookup (th, in);
 			if (res == 1)
 				break;
 			else if (res == 0)

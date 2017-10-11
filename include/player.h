@@ -15,7 +15,7 @@ struct KStruct
 
 extern struct KStruct Keys[];
 
-int key_lookup (struct Monster *, glyph);
+int key_lookup (struct Monster *, char);
 extern int cur_players;
 
 #endif /* PLAYER_H_INCLUDED */

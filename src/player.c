@@ -308,13 +308,14 @@ struct KStruct Keys[] = {
 	{CONTROL_('q'), &Kquit}
 };
 
-int key_lookup (struct Monster *player, uint32_t key)
+int key_lookup (struct Monster *player, char key)
 {
 	int i;
 	char ch = (char) key;
 	for (i = 0; i < NUM_KEYS; ++ i)
 	{
-		if (ch == (char)(Keys[i].key&0xff) && gr_equiv (key, Keys[i].key))
+		//if (ch == (char)(Keys[i].key&0xff) && gr_equiv (key, Keys[i].key))
+		if (ch == Keys[i].key)
 			return (*Keys[i].action) (player);
 	}
 	return 0;

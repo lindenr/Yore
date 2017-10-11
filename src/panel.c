@@ -348,7 +348,7 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc, const char *instr
 	p_pane (player);
 	gr_refresh ();
 	int xmove, ymove;
-	uint32_t key = gr_getfullch ();
+	char key = gr_getch ();
 	p_move (&ymove, &xmove, key);
 	while (key != '.' || (confirm && (p_ask (player, "yn", confirm) != 'y')))
 	{
@@ -374,7 +374,7 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc, const char *instr
 			gra_clear (overlay);
 			bres_draw (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel), &path_hit, map_graph->csr_y, map_graph->csr_x);
 		}
-		key = gr_getfullch ();
+		key = gr_getch ();
 		p_move (&ymove, &xmove, key);
 	}
 	*yloc = map_graph->csr_y;
@@ -383,7 +383,7 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc, const char *instr
 	gra_free (overlay);
 }
 
-int p_move (int *ymove, int *xmove, uint32_t key)
+int p_move (int *ymove, int *xmove, char key)
 {
 	switch (key)
 	{

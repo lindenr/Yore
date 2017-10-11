@@ -109,7 +109,7 @@ void gra_mark     (Graph, int, int);
 
 /* Input */
 char     gr_getch     ();
-uint32_t gr_getfullch ();
+//SDL_Keysym gr_getkey ();
 void     gra_getstr   (Graph, int, int, char *, int);
 int      gr_equiv     (uint32_t, uint32_t);
 

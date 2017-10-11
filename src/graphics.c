@@ -435,11 +435,11 @@ int gr_equiv (uint32_t key1, uint32_t key2)
 }
 
 uint32_t end = 0;
-uint32_t gr_getfullch ()
+SDL_Event sdlEvent;
+int gr_getkeyevent ()
 {
 	gr_refresh ();
 
-	SDL_Event event;
 	//uint32_t modifier_keys = (KMOD_SHIFT | KMOD_CAPS | KMOD_NUM) << 16;
 	uint32_t ticks = SDL_GetTicks ();
 	if (tout_num && end <= ticks)
@@ -454,7 +454,7 @@ uint32_t gr_getfullch ()
 			end = 0;
 			break;
 		}
-		if (!SDL_PollEvent (&event))
+		if (!SDL_PollEvent (&sdlEvent))
 		{
 			if (gr_onidle)
 				gr_onidle ();
@@ -462,17 +462,18 @@ uint32_t gr_getfullch ()
 			continue;
 		}
 
-		switch (event.type)
+		switch (sdlEvent.type)
 		{
-			/*case SDL_KEYDOWN:
+			case SDL_KEYDOWN:
 			 {
-				uint32_t mod = event.key.keysym.mod << 16;
-				/ *if ((mod & (~modifier_keys)) && (event.key.keysym.unicode != 0))
+				//uint32_t mod = sdlEvent.key.keysym.mod << 16;
+				/*if ((mod & (~modifier_keys)) && (event.key.keysym.unicode != 0))
 				{
 					//printf ("%d %d\n", event.key.keysym.sym, event.key.keysym.unicode);
 					return mod|event.key.keysym.sym;
-				}* /
-				if (event.key.keysym.sym == SDLK_UP)
+				}*/
+				return 1;
+				/*if (event.key.keysym.sym == SDLK_UP)
 					return mod|GRK_UP;
 				if (event.key.keysym.sym == SDLK_DOWN)
 					return mod|GRK_DN;
@@ -482,15 +483,15 @@ uint32_t gr_getfullch ()
 					return mod|GRK_RT;
 				//if (event.key.keysym.unicode == 0)
 				//	break;
-				if (mod & ((KMOD_LCTRL|KMOD_RCTRL)<<16))
-				{
-					if ((!!(mod & ((KMOD_LSHIFT|KMOD_RSHIFT)<<16))) ^ (!!(mod & (KMOD_CAPS<<16))))
-						return mod|(event.key.keysym.unicode+64);
-					return mod|(event.key.keysym.unicode+96);
-				}
+				//if (mod & ((KMOD_LCTRL|KMOD_RCTRL)<<16))
+				//{
+				//	if ((!!(mod & ((KMOD_LSHIFT|KMOD_RSHIFT)<<16))) ^ (!!(mod & (KMOD_CAPS<<16))))
+				//		return mod|(event.key.keysym.unicode+64);
+				//	return mod|(event.key.keysym.unicode+96);
+				//}
 
-				return mod|event.key.keysym.unicode;
-			}*/
+				return mod|(event.key.keysym.sym & 0xffff);*/
+			}
 
 			/*case SDL_VIDEORESIZE:
 			{
@@ -506,12 +507,16 @@ uint32_t gr_getfullch ()
 				break;
 		}
 	}
-	return EOF;
+	return 0;
 }
 
 char gr_getch ()
 {
-	return (char)(gr_getfullch () & 0xFF);
+	//return (char)(gr_getfullch () & 0xFF);
+	if (!gr_getkeyevent ())
+		return EOF;
+	printf ("%d\n", sdlEvent.key.keysym.sym);
+	return sdlEvent.key.keysym.sym;
 }
 
 void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
@@ -628,25 +633,19 @@ void gr_init ()
 	atexit (gr_cleanup);
 	sdlWindow = SDL_CreateWindow ("Yore", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 		screenX, screenY, 0);
-//	SDL_CreateWindowAndRenderer (screenX, screenY, 0, &sdlWindow, &sdlRenderer);
 	if (sdlWindow == NULL)
 	{
 		fprintf (stderr, "SDL error: window is NULL\n");
 		exit (1);
 	}
 
-	gr_wait(500);
 	sdlRenderer = SDL_CreateRenderer (sdlWindow, -1, 0);
-	gr_wait(500);
 	if (sdlRenderer == NULL)
 	{
 		fprintf (stderr, "SDL error: renderer is NULL\n");
 		exit (1);
 	}
 
-//	SDL_SetWindowTitle (sdlWindow, "Yore");
-	SDL_RenderPresent (sdlRenderer);
-	gr_wait(500);
 	gr_load_tiles ();
 	gr_resize (screenY, screenX);
 }
