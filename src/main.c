@@ -99,8 +99,6 @@ int main (int argc, char *argv[])
 			gra_mvprint (introbox, 10, 6, "Please type in your name.");
 		gra_getstr (introbox, 8, 19, player_name, 40);
 	}
-	player_name[0] = 'L';
-	player_name[1] = 0;
 	gra_free(introbox);
 
 	if (!player_name[0])

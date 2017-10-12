@@ -41,10 +41,7 @@ bool bres_draw (int fromy, int fromx, uint8_t *grid, uint8_t *grid_t,
 		if (callback)
 		{
 			if (!callback (cur_dlevel, fy, fx))
-			{
-				callback = NULL;
 				return false;
-			}
 			continue;
 		}
 		if (fy == ty && fx == tx)
@@ -56,6 +53,6 @@ bool bres_draw (int fromy, int fromx, uint8_t *grid, uint8_t *grid_t,
 	}
 	if (grid)
 		grid[map_buffer(fy, fx)] = 2;
-	callback = NULL;
 	return true;
 }
+

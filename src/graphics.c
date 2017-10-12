@@ -26,10 +26,10 @@ int BOXCOL[BOX_NUM][3] = {
 
 int forced_refresh = 0;
 
-//SDL_Surface *screen = NULL, *glyph_col = NULL;
 SDL_Window *sdlWindow;
 SDL_Renderer *sdlRenderer;
-SDL_Texture *tiles_tex = NULL;
+SDL_Surface *tiles, *screen, *glyph_col;
+SDL_Texture *sdlTexture;
 
 /* starting size */
 const int screenY = 720, screenX = 1000;
@@ -319,13 +319,13 @@ void blit_glyph (glyph gl, int yloc, int xloc)
 	SDL_Rect srcrect = {GLW*(ch&15), GLH*((ch>>4)&15), GLW, GLH};
 	SDL_Rect dstrect = {GLW*xloc, GLH*yloc, GLW, GLH};
 
-	SDL_RenderCopy (sdlRenderer, tiles_tex, &srcrect, &dstrect);
+//	SDL_BlitSurface (tiles, &srcrect, screen, &dstrect);
 
-//	SDL_FillRect (glyph_col, NULL, SDL_MapRGB (glyph_col->format, GL_BRD, GL_BGN, GL_BBL));
-//	SDL_BlitSurface (tiles_tex, &srcrect, glyph_col, NULL);
+	SDL_FillRect (glyph_col, NULL, SDL_MapRGB (glyph_col->format, GL_BRD, GL_BGN, GL_BBL));
+	SDL_BlitSurface (tiles, &srcrect, glyph_col, NULL);
 	
-//	SDL_FillRect (screen, &dstrect, SDL_MapRGB (screen->format, GL_TRD, GL_TGN, GL_TBL));
-//	SDL_BlitSurface (glyph_col, NULL, screen, &dstrect);
+	SDL_FillRect (screen, &dstrect, SDL_MapRGB (screen->format, GL_TRD, GL_TGN, GL_TBL));
+	SDL_BlitSurface (glyph_col, NULL, screen, &dstrect);
 }
 
 void gr_refresh ()
@@ -338,9 +338,9 @@ void gr_refresh ()
 		if (!gra->vis)
 			continue;
 
-		for (x = 0; x < gra->vw; ++ x)
+		for (y = 0; y < gra->vh; ++ y)
 		{
-			for (y = 0; y < gra->vh; ++ y)
+			for (x = 0; x < gra->vw; ++ x)
 			{
 				int gra_y = y + gra->cy, gra_x = x + gra->cx;
 				int gr_y = y + gra->vy, gr_x = x + gra->vx;
@@ -366,13 +366,17 @@ void gr_refresh ()
 		}
 	}
 
+	uint32_t asdf = gr_getms();
+	//fprintf(stderr, "time: %ums\n", (asdf=gr_getms()));
 	int gr_c = 0;
+	int drawn = 0;
 	for (y = 0; y < gr_h; ++ y)
 	{
 		for (x = 0; x < gr_w; ++ x, ++ gr_c)
 		{
 			if (gr_flags[gr_c] || forced_refresh)
 			{
+				++ drawn;
 				blit_glyph (gr_map[gr_c], y, x);
 				//gflags f = gr_flags[gr_c];
 				//if (f)
@@ -383,11 +387,22 @@ void gr_refresh ()
 		}
 	}
 
+	//fprintf(stderr, "visible: %d\n", gr_c);
+	//fprintf(stderr, "drawn: %d\n", drawn);
+	SDL_UpdateTexture (sdlTexture, NULL, screen->pixels, screenX * sizeof(Uint32));
 	if (gr_onrefresh)
 		gr_onrefresh ();
 
 	forced_refresh = 0;
+	SDL_RenderClear (sdlRenderer);
+	SDL_RenderCopy (sdlRenderer, sdlTexture, NULL, NULL);
 	SDL_RenderPresent (sdlRenderer);
+	fprintf(stderr, "taime: %ums\n", gr_getms() - asdf);
+}
+
+void gr_test_ref ()
+{
+	blit_glyph ('a' | COL_TXT_DEF, 0, 0);
 }
 
 void gr_frefresh ()
@@ -433,22 +448,23 @@ int gr_equiv (uint32_t key1, uint32_t key2)
 	return 1;
 }
 
-uint32_t end = 0;
-SDL_Event sdlEvent;
-int gr_getkeyevent ()
+#define KEY_DELAY_TIME 30
+uint32_t end = 0, key_fire_ms = 0;
+char cur_key_down = 0;
+char gr_getch ()
 {
 	gr_refresh ();
 
 	//uint32_t modifier_keys = (KMOD_SHIFT | KMOD_CAPS | KMOD_NUM) << 16;
-	uint32_t ticks = SDL_GetTicks ();
+	uint32_t ticks = gr_getms ();
 	if (tout_num && end <= ticks)
 		end = tout_num + ticks;
 	if (tout_num == 0)
 		end = 0;
-	SDL_StartTextInput();
+	SDL_Event sdlEvent;
 	while (1)
 	{
-		if (end && SDL_GetTicks () >= end)
+		if (end && gr_getms () >= end)
 		{
 			end = 0;
 			break;
@@ -457,33 +473,42 @@ int gr_getkeyevent ()
 		{
 			if (gr_onidle)
 				gr_onidle ();
+			if (cur_key_down && gr_getms () >= key_fire_ms)
+			{
+				key_fire_ms = gr_getms () + KEY_DELAY_TIME;
+				return cur_key_down;
+			}
 			gr_wait (10);
 			continue;
 		}
 
+		char input_key = 0;
 		switch (sdlEvent.type)
 		{
 			case SDL_TEXTINPUT:
+				input_key = sdlEvent.text.text[0];
 				//fprintf (stderr, "%s\n", sdlEvent.text.text);
-				return 1;
+				break;
 			case SDL_KEYDOWN:
 			{
-				break;
-				//uint32_t mod = sdlEvent.key.keysym.mod << 16;
+				uint32_t mod = sdlEvent.key.keysym.mod << 16;
 				/*if ((mod & (~modifier_keys)) && (event.key.keysym.unicode != 0))
 				{
 					//printf ("%d %d\n", event.key.keysym.sym, event.key.keysym.unicode);
 					return mod|event.key.keysym.sym;
 				}*/
 			//	return 1;
-				/*if (event.key.keysym.sym == SDLK_UP)
-					return mod|GRK_UP;
-				if (event.key.keysym.sym == SDLK_DOWN)
-					return mod|GRK_DN;
-				if (event.key.keysym.sym == SDLK_LEFT)
-					return mod|GRK_LF;
-				if (event.key.keysym.sym == SDLK_RIGHT)
-					return mod|GRK_RT;
+				SDL_Keycode code = sdlEvent.key.keysym.sym;
+				if (code == SDLK_UP)
+					input_key = mod|GRK_UP;
+				else if (code == SDLK_DOWN)
+					input_key = mod|GRK_DN;
+				else if (code == SDLK_LEFT)
+					input_key = mod|GRK_LF;
+				else if (code == SDLK_RIGHT)
+					input_key = mod|GRK_RT;
+				else if (code == SDLK_RETURN)
+					input_key = mod|CH_LF;
 				//if (event.key.keysym.unicode == 0)
 				//	break;
 				//if (mod & ((KMOD_LCTRL|KMOD_RCTRL)<<16))
@@ -493,8 +518,13 @@ int gr_getkeyevent ()
 				//	return mod|(event.key.keysym.unicode+96);
 				//}
 
-				return mod|(event.key.keysym.sym & 0xffff);*/
+				//return mod|(event.key.keysym.sym & 0xffff);*/
+				break;
 			}
+
+			case SDL_KEYUP:
+				cur_key_down = 0;
+				break;
 
 			/*case SDL_VIDEORESIZE:
 			{
@@ -509,11 +539,18 @@ int gr_getkeyevent ()
 			default:
 				break;
 		}
+		if (input_key && input_key == cur_key_down)
+			continue;
+		else if (input_key)
+		{
+			cur_key_down = input_key;
+			key_fire_ms = gr_getms() + 150 + KEY_DELAY_TIME;
+			return input_key;
+		}
 	}
-	SDL_StopTextInput();
-	return 0;
+	return EOF;
 }
-
+/*
 char gr_getch ()
 {
 	//return (char)(gr_getfullch () & 0xFF);
@@ -522,7 +559,7 @@ char gr_getch ()
 	//printf ("%d\n", sdlEvent.key.keysym.sym);
 //	return sdlEvent.key.keysym.sym;
 	return sdlEvent.text.text[0];
-}
+}*/
 
 void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
 {
@@ -600,7 +637,6 @@ printf("Couldn't find tiles at %s.\n", filepath)
 
 void gr_load_tiles ()
 {
-	SDL_Surface *tiles;
 	char filepath[100] = "";
 	void *temp = NULL;
 
@@ -615,13 +651,14 @@ void gr_load_tiles ()
 	tiles = SDL_ConvertSurfaceFormat (temp, SDL_GetWindowPixelFormat (sdlWindow), 0);
 	SDL_FreeSurface (temp);
 	SDL_SetColorKey (tiles, SDL_TRUE, SDL_MapRGB (tiles->format, 255, 0, 255));
-	tiles_tex = SDL_CreateTextureFromSurface (sdlRenderer, tiles);
-	SDL_FreeSurface (tiles);
+	//tiles_tex = SDL_CreateTexture (sdlRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, (8*16), 12*16);//SDL_CreateTextureFromSurface (sdlRenderer, tiles);
+	//SDL_FreeSurface (tiles);
 }
 
 void gr_cleanup ()
 {
-	SDL_DestroyTexture (tiles_tex);
+	SDL_StopTextInput();
+//	SDL_DestroyTexture (tiles_tex);
 	SDL_DestroyRenderer (sdlRenderer);
 	SDL_DestroyWindow (sdlWindow);
 	SDL_Quit ();
@@ -644,46 +681,24 @@ void gr_init ()
 		exit (1);
 	}
 
-	sdlRenderer = SDL_CreateRenderer (sdlWindow, -1, 0);
+	sdlRenderer = SDL_CreateRenderer (sdlWindow, -1, SDL_RENDERER_ACCELERATED);
 	if (sdlRenderer == NULL)
 	{
 		fprintf (stderr, "SDL error: renderer is NULL\n");
 		exit (1);
 	}
+	SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+	SDL_RenderClear (sdlRenderer);
+	SDL_SetRenderDrawBlendMode (sdlRenderer, SDL_BLENDMODE_NONE);
+	SDL_StartTextInput();
+	sdlTexture = SDL_CreateTexture (sdlRenderer, SDL_GetWindowPixelFormat (sdlWindow), SDL_TEXTUREACCESS_STREAMING, screenX, screenY);
+	screen = SDL_CreateRGBSurface (0, screenX, screenY, 32, 0, 0, 0, 0);
+	glyph_col = SDL_CreateRGBSurface (0, GLW, GLH, 32, 0, 0, 0, 0);
+	SDL_SetColorKey (glyph_col, SDL_TRUE, SDL_MapRGB (glyph_col->format, 255, 255, 255));
 
 	gr_load_tiles ();
 	gr_resize (screenY, screenX);
 }
-/*
-void gr_init ()
-{
-	if (SDL_Init (SDL_INIT_VIDEO) < 0)
-	{
-		fprintf (stderr, "Error initialising SDL: %s\n", SDL_GetError ());
-		exit (1);
-	}
-	
-	screen = SDL_SetVideoMode (screenX, screenY, 32, SDL_SWSURFACE | SDL_RESIZABLE);
-	if (screen == NULL)
-	{
-		fprintf (stderr, "Error initialising video mode: %s\n", SDL_GetError ());
-		exit (1);
-	}
-
-	gr_load_tiles ();
-	SDL_SetColorKey (tiles, SDL_SRCCOLORKEY, SDL_MapRGB (tiles->format, 255, 0, 255));
-	
-	void *tmp = SDL_CreateRGBSurface (SDL_SWSURFACE, GLW, GLH, 32, rmask, gmask, bmask, amask);
-	glyph_col = SDL_DisplayFormat (tmp);
-	SDL_FreeSurface (tmp);
-	SDL_SetColorKey (glyph_col, SDL_SRCCOLORKEY, SDL_MapRGB (glyph_col->format, 255, 255, 255));
-
-	gr_resize (screenY, screenX);
-	
-	SDL_EnableUNICODE (1);
-	SDL_EnableKeyRepeat (200, 30);
-	SDL_WM_SetCaption ("Yore", "Yore");
-}*/
 
 Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
 {
