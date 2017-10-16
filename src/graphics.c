@@ -249,7 +249,7 @@ void gra_bsetbox (Graph gra, int b, gflags flags)
 }
 
 #define setpixel(y,x) {*(uint32_t*) ((uint8_t*) pixels + 4*(x) + screen->pitch*(y)) = col;}
-/*void gr_drawboxes (int y, int x, gflags f)
+void gr_drawboxes (int y, int x, gflags f)
 {
 	if (SDL_MUSTLOCK (screen)) // TODO draw all boxes under one lock
 		SDL_LockSurface (screen);
@@ -305,7 +305,7 @@ end_attacking:
 
 	if (SDL_MUSTLOCK (screen))
 		SDL_UnlockSurface (screen);
-}*/
+}
 
 #define GL_TRD ((gl&0xF0000000)>>24)
 #define GL_TGN ((gl&0x0F000000)>>20)
@@ -318,8 +318,6 @@ void blit_glyph (glyph gl, int yloc, int xloc)
 	char ch = (char) gl;
 	SDL_Rect srcrect = {GLW*(ch&15), GLH*((ch>>4)&15), GLW, GLH};
 	SDL_Rect dstrect = {GLW*xloc, GLH*yloc, GLW, GLH};
-
-//	SDL_BlitSurface (tiles, &srcrect, screen, &dstrect);
 
 	SDL_FillRect (glyph_col, NULL, SDL_MapRGB (glyph_col->format, GL_BRD, GL_BGN, GL_BBL));
 	SDL_BlitSurface (tiles, &srcrect, glyph_col, NULL);
@@ -378,9 +376,9 @@ void gr_refresh ()
 			{
 				++ drawn;
 				blit_glyph (gr_map[gr_c], y, x);
-				//gflags f = gr_flags[gr_c];
-				//if (f)
-				//	gr_drawboxes (y, x, f);
+				gflags f = gr_flags[gr_c];
+				if (f)
+					gr_drawboxes (y, x, f);
 				gr_flags[gr_c] &= ~1;
 			}
 			gr_map[gr_c] = 0;
@@ -448,7 +446,7 @@ int gr_equiv (uint32_t key1, uint32_t key2)
 	return 1;
 }
 
-#define KEY_DELAY_TIME 30
+uint32_t gr_kinitdelay = 200, gr_kdelay = 30;
 uint32_t end = 0, key_fire_ms = 0;
 char cur_key_down = 0;
 char gr_getch ()
@@ -475,7 +473,7 @@ char gr_getch ()
 				gr_onidle ();
 			if (cur_key_down && gr_getms () >= key_fire_ms)
 			{
-				key_fire_ms = gr_getms () + KEY_DELAY_TIME;
+				key_fire_ms = gr_getms () + gr_kdelay;
 				return cur_key_down;
 			}
 			gr_wait (10);
@@ -497,7 +495,6 @@ char gr_getch ()
 					//printf ("%d %d\n", event.key.keysym.sym, event.key.keysym.unicode);
 					return mod|event.key.keysym.sym;
 				}*/
-			//	return 1;
 				SDL_Keycode code = sdlEvent.key.keysym.sym;
 				if (code == SDLK_UP)
 					input_key = mod|GRK_UP;
@@ -509,6 +506,8 @@ char gr_getch ()
 					input_key = mod|GRK_RT;
 				else if (code == SDLK_RETURN)
 					input_key = mod|CH_LF;
+				else if (code == SDLK_BACKSPACE)
+					input_key = mod|CH_BS;
 				//if (event.key.keysym.unicode == 0)
 				//	break;
 				//if (mod & ((KMOD_LCTRL|KMOD_RCTRL)<<16))
@@ -517,8 +516,6 @@ char gr_getch ()
 				//		return mod|(event.key.keysym.unicode+64);
 				//	return mod|(event.key.keysym.unicode+96);
 				//}
-
-				//return mod|(event.key.keysym.sym & 0xffff);*/
 				break;
 			}
 
@@ -544,22 +541,12 @@ char gr_getch ()
 		else if (input_key)
 		{
 			cur_key_down = input_key;
-			key_fire_ms = gr_getms() + 150 + KEY_DELAY_TIME;
+			key_fire_ms = gr_getms () + gr_kinitdelay;
 			return input_key;
 		}
 	}
 	return EOF;
 }
-/*
-char gr_getch ()
-{
-	//return (char)(gr_getfullch () & 0xFF);
-	if (!gr_getkeyevent ())
-		return EOF;
-	//printf ("%d\n", sdlEvent.key.keysym.sym);
-//	return sdlEvent.key.keysym.sym;
-	return sdlEvent.text.text[0];
-}*/
 
 void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
 {

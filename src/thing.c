@@ -295,6 +295,8 @@ void draw_map (struct Monster *player)
 	glyph *sq_unseen = lvl->unseen;
 
 	int i, at;
+	// TODO: just record opacities here, then do bresenham, then draw - so
+	// graphics updates less (and nothing if nothing changes).
 	for (at = 0; at < map_graph->a; ++ at)
 	{
 		for (i = 0; i < things[at]->len; ++ i)
