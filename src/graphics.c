@@ -77,10 +77,11 @@ void gra_centcam (Graph gra, int yloc, int xloc)
 
 void gra_baddch (Graph gra, int buf, glyph gl)
 {
+	if (gl > 0 && gl < 256) gl |= gra->def;
+	gra->flags[buf] &= 1;
 	if (gra->data[buf] == gl) return;
-	if (gl > 0 && gl < 256)   gl |= gra->def;
 	gra->data[buf] = gl;
-	gra->flags[buf] |= 1;
+	gra->flags[buf] = 1;
 	if (gl == 0)
 	{
 		int gra_y = buf/gra->w, gra_x = buf%gra->w;
@@ -92,11 +93,12 @@ void gra_baddch (Graph gra, int buf, glyph gl)
 
 void gra_bgaddch (Graph gra, int buf, glyph gl)
 {
+	if (gl > 0 && gl < 256) gl |= gra->def;
+	if ((gl&COL_BG_MASK) == 0) gl |= gra->data[buf] & COL_BG_MASK;
+	gra->flags[buf] &= 1;
 	if (gra->data[buf] == gl) return;
-	if (gl > 0 && gl < 256)   gl |= gra->def;
-	if ((gl&COL_BG_MASK) == 0)     gl |= gra->data[buf] & COL_BG_MASK;
 	gra->data[buf] = gl;
-	gra->flags[buf] |= 1;
+	gra->flags[buf] = 1;
 	if (gl == 0)
 	{
 		int gra_y = buf/gra->w, gra_x = buf%gra->w;
@@ -446,7 +448,7 @@ int gr_equiv (uint32_t key1, uint32_t key2)
 	return 1;
 }
 
-uint32_t gr_kinitdelay = 200, gr_kdelay = 30;
+uint32_t gr_kinitdelay = 180, gr_kdelay = 30;
 uint32_t end = 0, key_fire_ms = 0;
 char cur_key_down = 0;
 char gr_getch ()

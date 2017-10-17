@@ -204,55 +204,60 @@ struct Monster *new_mthing (struct DLevel *lvl, uint32_t y, uint32_t x, void *ac
 	return ret;
 }
 
-#define US(w) (sq_seen[w]?(sq_attr[w]?ACS_DOT:ACS_WALL):ACS_WALL)
+#define US(w) (sq_cansee[w]?(sq_attr[w]?ACS_DOT:ACS_WALL):ACS_WALL)
 
-void set_can_see (struct Monster *player, uint8_t *sq_seen, uint8_t *sq_attr, glyph *sq_unseen)
+void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,
+                  glyph *sq_memory, glyph *sq_vis, glyph *sq_nonvis)
 {
 	int Yloc = player->yloc, Xloc = player->xloc;
 	int Y, X, w;
 
 	/* Anything you could see before you can't necessarily now */
 	for (w = 0; w < map_graph->a; ++ w)
-		if (sq_seen[w] == 2)
-			sq_seen[w] = 1;
-			
+		if (sq_cansee[w] == 2)
+			sq_cansee[w] = 1;
 
 	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
 	for (w = 0; w < gr_area; ++ w)
-		bres_draw (Yloc, Xloc, sq_seen, sq_attr, NULL, map_graph->cy + w / gr_w, map_graph->cx + w % gr_w);
-		//sq_seen[w] = 2;
-
-	/* Make everything we can't see dark */
-	for (w = 0; w < map_graph->a; ++ w)
-	{
-		if (!sq_seen[w])
-			gra_baddch (map_graph, w, ' ');
-		if (sq_seen[w] <= 1)
-			gra_bsetbox (map_graph, w, 0);
-	}
+		bres_draw (Yloc, Xloc, sq_cansee, sq_attr, NULL, map_graph->cy + w / gr_w, map_graph->cx + w % gr_w);
 
 	/* Do the drawing */
+	struct Monster *monsters = dlv_lvl(player->dlevel)->mons;
 	for (Y = 0, w = 0; Y < map_graph->h; ++Y)
 	{
 		for (X = 0; X < map_graph->w; ++X, ++w)
 		{
-			uint32_t     y = ACS_DOT, u = ACS_DOT,
-            h = ACS_DOT, j = ACS_DOT, k = ACS_DOT, l = ACS_DOT,
-                         b = ACS_DOT, n = ACS_DOT;
+			struct Monster *mons = &monsters[w];
+			if (sq_cansee[w] == 2)
+				sq_memory[w] = sq_nonvis[w];
 
-			//if (sq_seen[w] == 2 && sq_attr[w] == 0 && us[w] != ' ')
-			//	us[w] |= COL_TXT_BRIGHT; /* Brighten what you can see iff it's a wall. */
+			if (sq_cansee[w] < 2 && sq_memory[w] != ACS_WALL)
+			{
+				gra_baddch (map_graph, w, sq_memory[w]);
+				continue;
+			}
+			else if (sq_cansee[w] == 2 && mons->ID)
+			{
+				//if (can see monster TODO )
+				gra_bgaddch (map_graph, w, mons->gl);
+				map_graph->flags[w] |= 1 |
+				                       (1<<12) | ((1+mons->status.moving.ydir)*3 +
+				                                  (1+mons->status.moving.xdir)    )<<8 |
+				                       (1<<17) | ((1+mons->status.attacking.ydir)*3 +
+				                                  (1+mons->status.attacking.xdir)    )<<13;
+				continue;
+			}
+			else if (sq_memory[w] != ACS_WALL)
+			{
+				gra_baddch (map_graph, w, sq_vis[w]);
+				continue;
+			}
+			else if (!sq_cansee[w])
+				continue;
 
-			/* Replace something unseeable with what's behind it. */
-			if (sq_seen[w] == 1 && sq_attr[w] == 2)
-				gra_baddch (map_graph, w, sq_unseen[w]);
-			if (sq_seen[w] == 1 && (map_graph->data[w]&255) == ACS_BIGDOT)
-				gra_baddch (map_graph, w, ACS_DOT);
-
-			if (sq_attr[w] != 0 ||
-			    (map_graph->data[w] & 0xFF) == ' ' ||
-			    (map_graph->data[w] & 0xFF) == '+')
-				continue; /* Only keep going if it is a wall. */
+			uint32_t y, k, u,
+			         h,    l,
+					 b, j, n;
 
 			if (X)
 				h = US(w - 1);
@@ -272,7 +277,7 @@ void set_can_see (struct Monster *player, uint8_t *sq_seen, uint8_t *sq_attr, gl
 				n = US(w + map_graph->w + 1);
 
 			/* Finally, do the actual drawing of the wall. */
-			if (map_graph->data[w] & COL_TXT_BRIGHT)
+			if (sq_cansee[w] == 2)
 				gra_baddch (map_graph, w,
 				            (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n) |
 				            COL_TXT_BRIGHT);
@@ -283,68 +288,62 @@ void set_can_see (struct Monster *player, uint8_t *sq_seen, uint8_t *sq_attr, gl
 	}
 }
 
-uint32_t *type = NULL;
+uint32_t *gr_vis, *gr_novis;
+void th_init ()
+{
+	gr_vis = malloc (sizeof (*gr_vis) * map_graph->a);
+	gr_novis = malloc (sizeof (*gr_novis) * map_graph->a);
+}
+
 void draw_map (struct Monster *player)
 {
-	type = realloc (type, sizeof(*type) * map_graph->a);
-	memset (type, 0, sizeof(*type) * map_graph->a);
-
+	uint32_t curtype;
 	struct DLevel *lvl = cur_dlevel;
 	Vector *things = lvl->things;
-	uint8_t *sq_seen = lvl->seen, *sq_attr = lvl->attr;
+	uint8_t *sq_seen = lvl->seen,
+	        *sq_attr = lvl->attr;
 	glyph *sq_unseen = lvl->unseen;
 
 	int i, at;
-	// TODO: just record opacities here, then do bresenham, then draw - so
-	// graphics updates less (and nothing if nothing changes).
 	for (at = 0; at < map_graph->a; ++ at)
 	{
+		gr_vis[at] = gr_novis[at] = 0;
+		curtype = 0;
+		sq_attr[at] = 0;
 		for (i = 0; i < things[at]->len; ++ i)
 		{
 			struct Thing *th = THING(things, at, i);
-			bool changed = false;
+			sq_attr [at] = 1;
 			switch (th->type)
 			{
 			case THING_ITEM:
-				gra_bsetbox (map_graph, at, 0);
+//				gra_bsetbox (map_graph, at, 0);
+				if (0) break;
 				struct Item *t = &th->thing.item;
-				gra_bgaddch (map_graph, at, t->type.gl);
-				changed =  true;
-				sq_unseen[at] = map_graph->data[at];
-				sq_attr[at] = 1;
+				gr_vis [at] = gr_novis [at] = t->type.gl;
+				curtype = THING_ITEM;
 				break;
 			case THING_DGN:
-				gra_bsetbox (map_graph, at, 0);
-				if (type[at] == THING_NONE || type[at] == THING_DGN)
+				if (curtype == THING_ITEM)
+					break;
+				struct map_item_struct *m = &th->thing.mis;
+				if (m->gl == ACS_BIGDOT)
 				{
-					struct map_item_struct *m = &th->thing.mis;
-					gra_bgaddch (map_graph, at, m->gl);
-					sq_attr[at] = m->attr & 1;
-					changed = true;
+					gr_vis [at] = ACS_BIGDOT;
+					gr_novis [at] = ACS_DOT;
 				}
-				sq_unseen[at] = map_graph->data[at];
+				else
+					gr_vis [at] = gr_novis [at] = m->gl;
+				sq_attr[at] &= m->attr & 1;
 				break;
 			case THING_NONE:
 				printf ("%d %d %d\n", at, i, th->type);
 				getchar ();
 				panic ("default reached in draw_map()");
 			}
-			if (changed)
-			{
-				type[at] = th->type;
-			}
-		}
-		if (lvl->mons[at].ID)
-		{
-			struct Monster *m = &lvl->mons[at];
-			gra_bsetbox (map_graph, at, m->boxflags);
-			gra_bgaddch (map_graph, at, m->gl);
-			map_graph->flags[at] |= 1| (1<<12) | ((1+m->status.moving.ydir)*3    + 1+m->status.moving.xdir)   <<8;
-			map_graph->flags[at] |= 1| (1<<17) | ((1+m->status.attacking.ydir)*3 + 1+m->status.attacking.xdir)<<13;
-			sq_attr[at] = 2;
 		}
 	}
-	set_can_see (player, sq_seen, sq_attr, sq_unseen);
+	set_can_see (player, sq_seen, sq_attr, sq_unseen, gr_vis, gr_novis);
 }
 /*
 int pr_type;

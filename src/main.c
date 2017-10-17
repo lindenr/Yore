@@ -64,10 +64,10 @@ int main (int argc, char *argv[])
 	map_graph = gra_init (100, 300, 0, 0, gr_h - PANE_H, gr_w - 1);
 	map_graph->vis = 0;
 	gr_init();
-
 	ev_init ();
 	dlv_init ();
 	rng_init ();
+	th_init ();
 
 	setup_U ();
 

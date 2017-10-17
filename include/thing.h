@@ -51,6 +51,7 @@ struct Thing *new_thing      (uint32_t, struct DLevel *, uint32_t, uint32_t, voi
 struct Monster *new_mthing    (struct DLevel *, uint32_t, uint32_t, void *);
 
 void          draw_map       (struct Monster *);
+void          th_init        ();
 
 int           get_thing_type (char);
 const char *  get_thing_name (struct Thing);
