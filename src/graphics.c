@@ -237,12 +237,6 @@ void gra_show (Graph gra)
 void gra_mark (Graph gra, int yloc, int xloc)
 {
 	gra->flags[gra_buffer(gra, yloc, xloc)] |= 1;
-	/*if (!gra->vis)
-		return;
-	if (yloc < gra->cy || yloc >= gra->cy + gra->vh ||
-		xloc < gra->cx || xloc >= gra->cx + gra->vw)
-		return;
-	gr_flags[gr_buffer(gra->cy + yloc, gra->cx + xloc)] |= 1;*/
 }
 
 void gra_bsetbox (Graph gra, int b, gflags flags)
@@ -366,7 +360,7 @@ void gr_refresh ()
 		}
 	}
 
-	uint32_t asdf = gr_getms();
+	//uint32_t asdf = gr_getms();
 	//fprintf(stderr, "time: %ums\n", (asdf=gr_getms()));
 	int gr_c = 0;
 	int drawn = 0;
@@ -397,7 +391,7 @@ void gr_refresh ()
 	SDL_RenderClear (sdlRenderer);
 	SDL_RenderCopy (sdlRenderer, sdlTexture, NULL, NULL);
 	SDL_RenderPresent (sdlRenderer);
-	fprintf(stderr, "taime: %ums\n", gr_getms() - asdf);
+	//fprintf(stderr, "taime: %ums\n", gr_getms() - asdf);
 }
 
 void gr_test_ref ()
@@ -510,14 +504,8 @@ char gr_getch ()
 					input_key = mod|CH_LF;
 				else if (code == SDLK_BACKSPACE)
 					input_key = mod|CH_BS;
-				//if (event.key.keysym.unicode == 0)
-				//	break;
-				//if (mod & ((KMOD_LCTRL|KMOD_RCTRL)<<16))
-				//{
-				//	if ((!!(mod & ((KMOD_LSHIFT|KMOD_RSHIFT)<<16))) ^ (!!(mod & (KMOD_CAPS<<16))))
-				//		return mod|(event.key.keysym.unicode+64);
-				//	return mod|(event.key.keysym.unicode+96);
-				//}
+				else if (code == SDLK_ESCAPE)
+					input_key = mod|CH_ESC;
 				break;
 			}
 
