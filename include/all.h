@@ -5,6 +5,10 @@
 
 /* Player options go here */
 
+//#define DEBUG_REFRESH_TIME // print framerate info
+
+
+
 /* #define AMERICAN */
 #define USING_COL
 

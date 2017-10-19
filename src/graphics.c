@@ -360,8 +360,10 @@ void gr_refresh ()
 		}
 	}
 
-	//uint32_t asdf = gr_getms();
+#ifdef DEBUG_REFRESH_TIME
+	uint32_t asdf = gr_getms();
 	//fprintf(stderr, "time: %ums\n", (asdf=gr_getms()));
+#endif
 	int gr_c = 0;
 	int drawn = 0;
 	for (y = 0; y < gr_h; ++ y)
@@ -391,7 +393,9 @@ void gr_refresh ()
 	SDL_RenderClear (sdlRenderer);
 	SDL_RenderCopy (sdlRenderer, sdlTexture, NULL, NULL);
 	SDL_RenderPresent (sdlRenderer);
-	//fprintf(stderr, "taime: %ums\n", gr_getms() - asdf);
+#ifdef DEBUG_REFRESH_TIME
+	fprintf(stderr, "taime: %ums\n", gr_getms() - asdf);
+#endif
 }
 
 void gr_test_ref ()
@@ -442,10 +446,16 @@ int gr_equiv (uint32_t key1, uint32_t key2)
 	return 1;
 }
 
+int gr_inputcode (SDL_Keycode code)
+{
+	return (code >= 32 && code < 128);
+}
+
 uint32_t gr_kinitdelay = 180, gr_kdelay = 40;
 uint32_t end = 0, key_fire_ms = 0;
 char cur_key_down = 0;
 int num_keys_down = 0;
+
 char gr_getch ()
 {
 	gr_refresh ();
@@ -477,6 +487,7 @@ char gr_getch ()
 		}
 
 		char input_key = 0;
+		SDL_Keycode code;
 		switch (sdlEvent.type)
 		{
 			case SDL_TEXTINPUT:
@@ -486,9 +497,10 @@ char gr_getch ()
 			{
 				if (sdlEvent.key.repeat)
 					break;
-				++ num_keys_down;
+				code = sdlEvent.key.keysym.sym;
+				if (gr_inputcode(code))
+					++ num_keys_down;
 				uint32_t mod = sdlEvent.key.keysym.mod << 16;
-				SDL_Keycode code = sdlEvent.key.keysym.sym;
 				if (code == SDLK_UP)
 					input_key = mod|GRK_UP;
 				else if (code == SDLK_DOWN)
@@ -507,7 +519,9 @@ char gr_getch ()
 			}
 
 			case SDL_KEYUP:
-				-- num_keys_down;
+				code = sdlEvent.key.keysym.sym;
+				if (gr_inputcode(code))
+					-- num_keys_down;
 				if (!num_keys_down)
 					cur_key_down = 0;
 				break;
