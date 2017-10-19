@@ -442,14 +442,14 @@ int gr_equiv (uint32_t key1, uint32_t key2)
 	return 1;
 }
 
-uint32_t gr_kinitdelay = 180, gr_kdelay = 30;
+uint32_t gr_kinitdelay = 180, gr_kdelay = 40;
 uint32_t end = 0, key_fire_ms = 0;
 char cur_key_down = 0;
+int num_keys_down = 0;
 char gr_getch ()
 {
 	gr_refresh ();
 
-	//uint32_t modifier_keys = (KMOD_SHIFT | KMOD_CAPS | KMOD_NUM) << 16;
 	uint32_t ticks = gr_getms ();
 	if (tout_num && end <= ticks)
 		end = tout_num + ticks;
@@ -481,16 +481,13 @@ char gr_getch ()
 		{
 			case SDL_TEXTINPUT:
 				input_key = sdlEvent.text.text[0];
-				//fprintf (stderr, "%s\n", sdlEvent.text.text);
 				break;
 			case SDL_KEYDOWN:
 			{
+				if (sdlEvent.key.repeat)
+					break;
+				++ num_keys_down;
 				uint32_t mod = sdlEvent.key.keysym.mod << 16;
-				/*if ((mod & (~modifier_keys)) && (event.key.keysym.unicode != 0))
-				{
-					//printf ("%d %d\n", event.key.keysym.sym, event.key.keysym.unicode);
-					return mod|event.key.keysym.sym;
-				}*/
 				SDL_Keycode code = sdlEvent.key.keysym.sym;
 				if (code == SDLK_UP)
 					input_key = mod|GRK_UP;
@@ -510,7 +507,9 @@ char gr_getch ()
 			}
 
 			case SDL_KEYUP:
-				cur_key_down = 0;
+				-- num_keys_down;
+				if (!num_keys_down)
+					cur_key_down = 0;
 				break;
 
 			/*case SDL_VIDEORESIZE:
@@ -628,14 +627,11 @@ void gr_load_tiles ()
 	tiles = SDL_ConvertSurfaceFormat (temp, SDL_GetWindowPixelFormat (sdlWindow), 0);
 	SDL_FreeSurface (temp);
 	SDL_SetColorKey (tiles, SDL_TRUE, SDL_MapRGB (tiles->format, 255, 0, 255));
-	//tiles_tex = SDL_CreateTexture (sdlRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, (8*16), 12*16);//SDL_CreateTextureFromSurface (sdlRenderer, tiles);
-	//SDL_FreeSurface (tiles);
 }
 
 void gr_cleanup ()
 {
 	SDL_StopTextInput();
-//	SDL_DestroyTexture (tiles_tex);
 	SDL_DestroyRenderer (sdlRenderer);
 	SDL_DestroyWindow (sdlWindow);
 	SDL_Quit ();
