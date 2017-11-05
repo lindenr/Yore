@@ -386,7 +386,7 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 
 		struct Monster m1;
 		init_mons (&m1, MTYP_HUMAN);
-		m1.name = "Thing 1";
+		m1.name = "Player 1";
 		m1.skills = v_dinit (sizeof(struct Skill));
 		m1.exp = 0;
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
@@ -394,8 +394,22 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
 		pack_add (&m1.pack, &myhammer);
 		struct Monster *t1 = new_mthing (lvl, upsy, upsx, &m1);
+		ev_queue (1000, (union Event) { .mturn = {EV_MTURN, t1->ID}});
+		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t1->ID}});
+
+#if 0
+		init_mons (&m1, MTYP_HUMAN);
+		m1.name = "Player 2";
+		m1.skills = v_dinit (sizeof(struct Skill));
+		m1.exp = 0;
+		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
+		struct Item mysword = {items[0], 0, items[0].wt, NULL};
+		pack_add (&m1.pack, &mysword);
+		t1 = new_mthing (lvl, upsy+2, upsx+4, &m1);
 		ev_queue (1, (union Event) { .mturn = {EV_MTURN, t1->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t1->ID}});
+#endif
 		return t1;
 	}
 	else if (type == 2)
@@ -416,7 +430,7 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 			p.ai.mode = AI_TIMID;
 		p.level = 1; //mons[p.type].exp? TODO
 		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
-		ev_queue (1, (union Event) { .mturn = {EV_MTURN, th->ID}});
+		ev_queue (1000, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, th->ID}});
 		//printf ("successful generation \n");
 		return th;

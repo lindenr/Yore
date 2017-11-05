@@ -138,23 +138,35 @@ int mons_move (struct Monster *th, int y, int x, int final) /* each either -1, 0
 	/* you can and everything's fine, nothing doing */
 	else if (can == 1)
 	{
-		if (final)
-			mons_usedturn (th);
+		//if (final)
+		//	mons_usedturn (th);
+		if (mons_isplayer (th))
+		{
+			pl_queue (th, (union Event) { .mmove = {EV_MMOVE, th->ID, y, x}});
+			return pl_execute (th->speed, th, 0);
+		}
 		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, th->ID, y, x}});
+		ev_queue (th->speed+1, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		return 1;
 	}
 	/* melee attack! */
 	else if (can == 2)
 	{
-		if (final)
-			mons_usedturn (th);
+		//if (final)
+		//	mons_usedturn (th);
+		if (mons_isplayer (th))
+		{
+			pl_queue (th, (union Event) { .mattkm = {EV_MATTKM, th->ID, y, x}});
+			return pl_execute (th->speed, th, 0);
+		}
 		ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, th->ID, y, x}});
+		ev_queue (th->speed+1, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		return 2;
 	}
 	else if (can == 3)
 	{
-		if (final)
-			mons_usedturn (th);
+		//if (final)
+		//	mons_usedturn (th);
 		ev_queue (0, (union Event) { .mopendoor = {EV_MOPENDOOR, th->ID, y, x}});
 		return 3;
 	}
@@ -220,38 +232,6 @@ char escape (unsigned char a)
 		return a;
 }
 
-int player_move_gently (struct Monster *player)
-{
-	char in = gr_getch ();
-	if (in == CH_ESC)
-		return 0;
-	
-	int ymove, xmove;
-	if (!p_move (&ymove, &xmove, in))
-	{
-		p_msg ("That's not a direction!");
-		return 0;
-	}
-	ev_queue (0, (union Event) { .mmove = {EV_MMOVE, player->ID, ymove, xmove}});
-	return 1;
-}
-
-int player_move_attack (struct Monster *player)
-{
-	char in = gr_getch ();
-	if (in == CH_ESC)
-		return 0;
-	
-	int ymove, xmove;
-	if (!p_move (&ymove, &xmove, in))
-	{
-		p_msg ("That's not a direction!");
-		return 0;
-	}
-	ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, player->ID, ymove, xmove}});
-	return 1;
-}
-
 int mons_take_turn (struct Monster *th)
 {
 	if (!mons_isplayer(th))
@@ -262,53 +242,7 @@ int mons_take_turn (struct Monster *th)
 			th->ai.mode = AI_NONE;
 		return 1;
 	}
-	if (gra_nearedge (map_graph, th->yloc, th->xloc))
-		gra_centcam (map_graph, th->yloc, th->xloc);
-	while (1)
-	{
-		char in;
-	
-		draw_map (th);
-		p_pane (th);
-
-		gra_cmove (map_graph, th->yloc, th->xloc);
-
-		in = gr_getch();
-		if (in == 'm')
-		{
-			if (player_move_gently (th))
-				break;
-			continue;	
-		}
-		else if (in == 'F')
-		{
-			if (player_move_attack (th))
-				break;
-			continue;
-		}
-
-		int ymove, xmove;
-		p_move (&ymove, &xmove, in);
-		if (!(ymove == 0 && xmove == 0))
-		{
-			int mv = mons_move (th, ymove, xmove, 1);
-			if (mv)
-				break;
-			if (gra_nearedge (map_graph, th->yloc, th->xloc))
-				gra_centcam (map_graph, th->yloc, th->xloc);
-		}
-		else
-		{
-			int res = key_lookup (th, in);
-			if (res == 1)
-				break;
-			else if (res == 0)
-				continue;
-			else
-				return false;
-		}
-	}
-	return true;
+	return pl_take_turn (th);
 }
 
 /*int mons_prhit (struct Monster *from, struct Monster *to, int energy) // ACTION
@@ -510,6 +444,9 @@ struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
 
 int mons_hits (struct Monster *from, struct Monster *to, struct Item *with)
 {
+	if (to->status.defending.ydir + to->yloc == from->yloc &&
+	    to->status.defending.xdir + to->xloc == from->xloc)
+		return 0;
 	if (!with)
 		return 1; // evading?
 	return 1;
@@ -593,14 +530,13 @@ void player_dead (const char *msg, ...)
 	U.playing = PLAYER_LOSTGAME;
 }
 
-int mons_cont (struct Monster *player, MCont cont, void *data, int len)
+int mons_cont (struct Monster *player, MCont cont, union ContData *data)
 {
 	if (player->ai.mode != AI_NONE)
 		panic ("mons_cont called on non-AI_NONE monster!");
 	player->ai.cont.mode = AI_CONT;
 	player->ai.cont.cont = cont;
-	player->ai.cont.data = data;
-	player->ai.cont.len = len;
+	memcpy (&player->ai.cont.data, data, sizeof(*data));
 	return 1;
 }
 
@@ -620,7 +556,7 @@ int AI_take_turn (struct Monster *ai)
 			mons_move (ai, y, x, 1);
 		//else if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
 		else
-			ev_queue (ai->speed, (union Event) { .mturn = {EV_MTURN, aiID}});
+			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
 		return 1;
 	}
 
@@ -633,7 +569,7 @@ int AI_take_turn (struct Monster *ai)
 			mons_move (ai, y, x, 1);
 		//else if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
 		else
-			ev_queue (ai->speed, (union Event) { .mturn = {EV_MTURN, aiID}});
+			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
 		return 1;
 	}
 
@@ -650,22 +586,21 @@ int AI_take_turn (struct Monster *ai)
 	if (!bres_draw (aiy, aix, NULL, dlv_attr(ai->dlevel), NULL, toy, tox))
 	{
 		if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
-			ev_queue (ai->speed, (union Event) { .mturn = {EV_MTURN, aiID}});
+			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
 		return 1;
 	}
-	int ymove = 0, xmove = 0;
-	if      (aiy < toy)
-		ymove = 1;
-	else if (aiy > toy)
-		ymove = -1;
-	if      (aix < tox)
-		xmove = 1;
-	else if (aix > tox)
-		xmove = -1;
+	int ymove = (aiy < toy) - (aiy > toy), xmove = (aix < tox) - (aix > tox);
+	if (ai->yloc + ymove == to->yloc + to->status.moving.ydir &&
+	    ai->xloc + xmove == to->xloc + to->status.moving.xdir)
+	{
+		ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, ai->ID, ymove, xmove}});
+		ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, ai->ID}});
+		return 1;
+	}
 	if (!mons_move (ai, ymove, xmove, 1))
 		if (!mons_move (ai, ymove, 0, 1))
 			if (!mons_move (ai, 0, xmove, 1))
-				ev_queue (ai->speed, (union Event) { .mturn = {EV_MTURN, aiID}});
+				ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
 	return 1;
 }
 

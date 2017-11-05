@@ -6,10 +6,15 @@
 typedef enum
 {
 	EV_NONE = 0,
-	EV_MRESET,
+	EV_MWAIT,
 	EV_MMOVE,
 	EV_MDOMOVE,
 	EV_MEVADE,
+	EV_MUNEVADE,
+//	EV_MPARRY,
+	EV_MSHIELD,
+	EV_MDOSHIELD,
+	EV_MUNSHIELD,
 	EV_MATTKM,
 	EV_MDOATTKM,
 	EV_MKILLM,
@@ -34,7 +39,7 @@ typedef union Event
 	{
 		EV_TYPE type;
 		TID thID;
-	} mreset;
+	} mwait;
 	struct
 	{
 		EV_TYPE type;
@@ -51,6 +56,28 @@ typedef union Event
 		EV_TYPE type;
 		TID thID;
 	} mevade;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+	} munevade;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+		int ydir, xdir;
+	} mshield;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+		int ydir, xdir;
+	} mdoshield;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+	} munshield;
 	struct
 	{
 		EV_TYPE type;
@@ -147,6 +174,7 @@ void ev_init  ();
 void ev_loop  ();
 void ev_queue (Tick udelay, union Event ev);
 void ev_debug ();
+Tick ev_delay (union Event *ev);
 
 #endif /* EVENT_H_INCLUDED */
 

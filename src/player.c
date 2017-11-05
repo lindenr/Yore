@@ -6,10 +6,30 @@
 #include "include/dlevel.h"
 #include "include/save.h"
 #include "include/item.h"
-//#include "include/skills.h"
 #include "include/event.h"
 
-int cur_players;
+int pl_focus_mode = 0;
+Vector player_actions = NULL;
+void pl_queue (struct Monster *player, union Event ev)
+{
+	struct QEv qev = {ev_delay (&ev), ev};
+	v_push (player_actions, &qev);
+}
+
+int pl_execute (Tick wait, struct Monster *player, int force)
+{
+	if (force == 0 && pl_focus_mode)
+		return 0;
+	int i;
+	for (i = 0; i < player_actions->len; ++ i)
+	{
+		struct QEv *qev = v_at (player_actions, i);
+		ev_queue (qev->tick, qev->ev);
+	}
+	player_actions->len = 0;
+	ev_queue (wait+1, (union Event) {.mturn = {EV_MTURN, player->ID}});
+	return 1;
+}
 
 int Kcamup (struct Monster *player)
 {
@@ -48,8 +68,7 @@ int Kskills (struct Monster *player)
 int Kwait (struct Monster *player)
 {
 	//mons_usedturn (player);
-	ev_queue (player->speed, (union Event) { .mturn = {EV_MTURN, player->ID}});
-	return 1;
+	return pl_execute (player->speed, player, 1);
 }
 
 int Kpickup (struct Monster *player)
@@ -87,8 +106,8 @@ int Kpickup (struct Monster *player)
 		v_free (ground);
 
 	}
-	ev_queue (player->speed, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
-	return 1;
+	pl_queue (player, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
+	return pl_execute (player->speed, player, 0);
 }
 
 /*int Keat (struct Monster *player)
@@ -101,17 +120,29 @@ int Kpickup (struct Monster *player)
 	return 1;
 }*/
 
-int Kevade (struct Monster *player)
+/*int Kevade (struct Monster *player)
 {
-	ev_queue (0, (union Event) { .mevade = {EV_MEVADE, player->ID}});
-	return 1;
-}
-
-int player_try_drop (struct Monster *player)
+	pl_queue (player, (union Event) { .mevade = {EV_MEVADE, player->ID}});
+	return pl_execute (player->speed/2, player, 0);
+}*/
+/*
+int Kparry (struct Monster *player)
 {
-	// TODO check can be dropped?
-	ev_queue (0, (union Event) { .mdrop = {EV_MDROP, player->ID, player->ai.cont.data}});
+//	pl_queue (player, (union Event) { .mparry = {EV_MPARRY, player->ID}});
 	return 0;
+}*/
+
+int Kshield (struct Monster *player)
+{
+	int ymove, xmove;
+	p_msg ("Shield in which direction?");
+	p_pane (player);
+	char in = gr_getch ();
+	p_move (&ymove, &xmove, in);
+	if (ymove == 0 && xmove == 0)
+		return 0;
+	pl_queue (player, (union Event) { .mshield = {EV_MSHIELD, player->ID, ymove, xmove}});
+	return pl_execute (player->speed, player, 0);
 }
 
 int Ksdrop (struct Monster *player)
@@ -125,13 +156,9 @@ int Ksdrop (struct Monster *player)
 	v_push (vdrop, &drop);
 
 	if (drop->attr & ITEM_WIELDED)
-	{
-		ev_queue (player->speed, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
-		mons_cont (player, &player_try_drop, vdrop, sizeof(*vdrop));
-		return 1;
-	}
-	ev_queue (player->speed, (union Event) { .mdrop = {EV_MDROP, player->ID, vdrop}});
-	return 1;
+		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
+	pl_queue (player, (union Event) { .mdrop = {EV_MDROP, player->ID, vdrop}});
+	return pl_execute (player->speed, player, 0);
 }
 
 int Kmdrop (struct Monster *player)
@@ -194,12 +221,6 @@ int Kclose (struct Monster *player)
 	return 0;
 }*/
 
-int player_try_wield (struct Monster *player)
-{
-	ev_queue (0, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, player->ai.cont.data}});
-	return 0;
-}
-
 int Kwield (struct Monster *player)
 {
 	struct Item *wield = player_use_pack (player, "Wield what?", ITCAT_ALL);
@@ -210,13 +231,9 @@ int Kwield (struct Monster *player)
 
 	mons_usedturn (player);
 	if (player->wearing.weaps[0] && wield->type.type)
-	{
-		ev_queue (player->speed, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
-		mons_cont (player, &player_try_wield, wield, sizeof (*wield));
-		return 1;
-	}
-	ev_queue (player->speed, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield}});
-	return 1;
+		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
+	pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield}});
+	return pl_execute (player->speed, player, 0);
 }
 
 /*
@@ -290,7 +307,9 @@ struct KStruct Keys[] = {
 	{'.', &Kwait},
 	{',', &Kpickup},
 //	{'e', &Keat},
-	{'e', &Kevade},
+//	{'e', &Kevade},
+//	{'p', &Kparry},
+	{'p', &Kshield},
 	{'d', &Ksdrop},
 	{'D', &Kmdrop},
 	{'i', &Kinv},
@@ -320,3 +339,92 @@ int key_lookup (struct Monster *player, char key)
 	}
 	return 0;
 }
+
+int player_move_gently (struct Monster *player)
+{
+	char in = gr_getch ();
+	if (in == CH_ESC)
+		return 0;
+	
+	int ymove, xmove;
+	if (!p_move (&ymove, &xmove, in))
+	{
+		p_msg ("That's not a direction!");
+		return 0;
+	}
+	pl_queue (player, (union Event) { .mmove = {EV_MMOVE, player->ID, ymove, xmove}});
+	return pl_execute (player->speed, player, 0);
+}
+
+int player_move_attack (struct Monster *player)
+{
+	char in = gr_getch ();
+	if (in == CH_ESC)
+		return 0;
+	
+	int ymove, xmove;
+	if (!p_move (&ymove, &xmove, in))
+	{
+		p_msg ("That's not a direction!");
+		return 0;
+	}
+	pl_queue (player, (union Event) { .mattkm = {EV_MATTKM, player->ID, ymove, xmove}});
+	return pl_execute (player->speed, player, 0);
+}
+
+int pl_take_turn (struct Monster *player)
+{
+	if (gra_nearedge (map_graph, player->yloc, player->xloc))
+		gra_centcam (map_graph, player->yloc, player->xloc);
+	while (1)
+	{
+		char in;
+	
+		draw_map (player);
+		p_pane (player);
+
+		gra_cmove (map_graph, player->yloc, player->xloc);
+
+		in = gr_getch();
+		if (in == 'm')
+		{
+			if (player_move_gently (player))
+				break;
+			continue;	
+		}
+		else if (in == 'F')
+		{
+			if (player_move_attack (player))
+				break;
+			continue;
+		}
+		else if (in == 'f')
+		{
+			pl_focus_mode = !pl_focus_mode;
+			continue;
+		}
+
+		int ymove, xmove;
+		p_move (&ymove, &xmove, in);
+		if (!(ymove == 0 && xmove == 0))
+		{
+			int mv = mons_move (player, ymove, xmove, 1);
+			if (mv)
+				break;
+			if (gra_nearedge (map_graph, player->yloc, player->xloc))
+				gra_centcam (map_graph, player->yloc, player->xloc);
+		}
+		else
+		{
+			int res = key_lookup (player, in);
+			if (res == 1)
+				break;
+			else if (res == 0)
+				continue;
+			else
+				return 0;
+		}
+	}
+	return 1;
+}
+

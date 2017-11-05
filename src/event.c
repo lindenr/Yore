@@ -8,13 +8,73 @@
 #include "include/event.h"
 #include "include/generate.h"
 #include "include/rand.h"
+#include "include/player.h"
+
+Tick ev_delay (union Event *event)
+{
+	switch (event->type)
+	{
+	case EV_NONE:
+		break;
+	case EV_MWAIT:
+		return (MTHIID(event->mwait.thID))->speed;
+	case EV_MMOVE:
+		return 0;
+	case EV_MDOMOVE:
+		return (MTHIID(event->mdomove.thID))->speed;
+	case EV_MEVADE:
+		return 0;
+	case EV_MUNEVADE:
+		return (MTHIID(event->munevade.thID))->speed/2;
+	case EV_MSHIELD:
+		return 0;
+	case EV_MDOSHIELD:
+		return 0;
+	case EV_MUNSHIELD:
+		return 0;
+	case EV_MATTKM:
+		return 0;
+	case EV_MDOATTKM:
+		return (MTHIID(event->mdoattkm.thID))->speed;
+	case EV_MKILLM:
+		return 0;
+	case EV_MCORPSE:
+		return 0;
+	case EV_MTURN:
+		return 0;
+	case EV_MGEN:
+		return mons_tmgen ();
+	case EV_MREGEN:
+		return mons_tregen (MTHIID(event->mregen.thID));
+	case EV_MWIELD:
+		// TODO: should be 0 if just unwielded something
+		return (MTHIID(event->mwield.thID))->speed;
+	case EV_MPICKUP:
+		return (MTHIID(event->mpickup.thID))->speed;
+	case EV_MDROP:
+		// TODO: should be 0 if just unwielded the dropped thing
+		return (MTHIID(event->mdrop.thID))->speed;
+	case EV_MANGERM:
+		return 0;
+	case EV_MCALM:
+		return 0;
+	case EV_MCHARGE:
+		return 0;
+	case EV_MOPENDOOR:
+		return 0;
+	case EV_MCLOSEDOOR:
+		return 0;
+	}
+	panic ("ev_delay reached end");
+	return 0;
+}
 
 void ev_print (struct QEv *qe);
 Vector events = NULL;
 Tick curtick = 0;
 void ev_queue (Tick udelay, union Event ev)
 {
-	Tick when = curtick + udelay;
+	Tick when = curtick + udelay; //ev_delay (&ev);
 	//printf ("queue %d %d\n", when, ev.type);
 	struct QEv qe = {when, ev};
 	int i = 0;
@@ -56,12 +116,11 @@ void ev_do (Event ev)
 	Vector pickup, items;
 	switch (ev->type)
 	{
-	case EV_MRESET:
-		thID = ev->mevade.thID;
+	case EV_MWAIT:
+		thID = ev->mwait.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		th->status.evading = 0;
 		// Next turn
 		ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
 		return;
@@ -81,7 +140,7 @@ void ev_do (Event ev)
 		if (!th)
 			return;
 		// Next turn
-		ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
+		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
 		ydest = th->yloc + th->status.moving.ydir; xdest = th->xloc + th->status.moving.xdir;
 		can = can_amove (get_sqattr (dlv_lvl(th->dlevel), ydest, xdest));
 		th->status.moving.ydir = 0;
@@ -97,7 +156,40 @@ void ev_do (Event ev)
 			return;
 		th->status.evading = 1;
 		// Next turn
-		ev_queue (th->speed/2, (union Event) { .mreset = {EV_MRESET, thID}});
+		ev_queue (th->speed/2, (union Event) { .munevade = {EV_MUNEVADE, thID}});
+		return;
+	case EV_MUNEVADE:
+		thID = ev->mevade.thID;
+		th = MTHIID(thID);
+		if (!th)
+			return;
+		th->status.evading = 0;
+		// Next turn
+		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
+		return;
+	case EV_MSHIELD:
+		thID = ev->mshield.thID;
+		th = MTHIID(thID);
+		if (!th)
+			return;
+		ev_queue (th->speed, (union Event) { .mdoshield = {EV_MDOSHIELD, thID, ev->mshield.ydir, ev->mshield.xdir}});
+		return;
+	case EV_MDOSHIELD:
+		thID = ev->mdoshield.thID;
+		th = MTHIID(thID);
+		if (!th)
+			return;
+		ev_queue (th->speed, (union Event) { .munshield = {EV_MUNSHIELD, thID}});
+		th->status.defending.ydir = ev->mdoshield.ydir;
+		th->status.defending.xdir = ev->mdoshield.xdir;
+		return;
+	case EV_MUNSHIELD:
+		thID = ev->munshield.thID;
+		th = MTHIID(thID);
+		if (!th)
+			return;
+		th->status.defending.ydir = 0;
+		th->status.defending.xdir = 0;
 		return;
 	case EV_MATTKM:
 		thID = ev->mattkm.thID;
@@ -113,7 +205,7 @@ void ev_do (Event ev)
 		fr = MTHIID(frID); /* get from-mons */
 		if (!fr)
 			return;
-		ev_queue (0, (union Event) { .mturn = {EV_MTURN, frID}}); /* next turn of from-mons */
+		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, frID}}); /* next turn of from-mons */
 		ydest = fr->yloc + fr->status.attacking.ydir; xdest = fr->xloc + fr->status.attacking.xdir;
 		fr->status.attacking.ydir = 0;
 		fr->status.attacking.xdir = 0;
@@ -215,14 +307,14 @@ void ev_do (Event ev)
 		if (it->type.type == ITYP_NONE)
 		{
 			th->wearing.weaps[arm] = NULL;
-			ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
+			//ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 			return;
 		}
 		th->wearing.weaps[arm] = it;
 		it->attr |= ITEM_WIELDED;
 		if (mons_isplayer(th))
 			item_look (it);
-		ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
+		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
@@ -254,7 +346,7 @@ void ev_do (Event ev)
 		}
 		v_free (pickup);
 		// Next turn
-		ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
+		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
 		return;
 	case EV_MDROP:
 		th = MTHIID (ev->mdrop.thID);
@@ -273,7 +365,7 @@ void ev_do (Event ev)
 		}
 		v_free (items);
 		// Next turn
-		ev_queue (0, (union Event) { .mturn = {EV_MTURN, ev->mdrop.thID}});
+		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, ev->mdrop.thID}});
 		return;
 	case EV_MANGERM:
 		frID = ev->mangerm.frID; toID = ev->mangerm.toID;
@@ -300,21 +392,21 @@ void ev_do (Event ev)
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, thID}});
+		ev_queue (th->speed, (union Event) { .mwait = {EV_MWAIT, thID}});
 		return;
 	case EV_MOPENDOOR:
 		thID = ev->mopendoor.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, thID}});
+		ev_queue (th->speed, (union Event) { .mwait = {EV_MWAIT, thID}});
 		return;
 	case EV_MCLOSEDOOR:
 		thID = ev->mclosedoor.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->speed, (union Event) { .mturn = {EV_MTURN, thID}});
+		ev_queue (th->speed, (union Event) { .mwait = {EV_MWAIT, thID}});
 		return;
 	case EV_NONE:
 		return;
@@ -324,6 +416,7 @@ void ev_do (Event ev)
 void ev_init ()
 {
 	events = v_dinit (sizeof(struct QEv));
+	player_actions = v_dinit (sizeof(struct QEv));
 }
 
 // TODO make events a heap

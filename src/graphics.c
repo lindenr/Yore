@@ -394,13 +394,8 @@ void gr_refresh ()
 	SDL_RenderCopy (sdlRenderer, sdlTexture, NULL, NULL);
 	SDL_RenderPresent (sdlRenderer);
 #ifdef DEBUG_REFRESH_TIME
-	fprintf(stderr, "taime: %ums\n", gr_getms() - asdf);
+	fprintf(stderr, "time: %ums\n", gr_getms() - asdf);
 #endif
-}
-
-void gr_test_ref ()
-{
-	blit_glyph ('a' | COL_TXT_DEF, 0, 0);
 }
 
 void gr_frefresh ()
@@ -435,16 +430,16 @@ void gr_tout (int t)
 
 int echoing = 1;
 
-int gr_equiv (uint32_t key1, uint32_t key2)
+/*int gr_equiv (uint32_t key1, uint32_t key2)
 {
 	uint32_t mod1 = key1 >> 16, mod2 = key2 >> 16;
 
-	/* control */
+	/ * control * /
 	if (((mod1 & KMOD_CTRL) != 0) != ((mod2 & KMOD_CTRL) != 0))
 		return 0;
 
 	return 1;
-}
+}*/
 
 int gr_inputcode (SDL_Keycode code)
 {
@@ -668,7 +663,7 @@ void gr_init ()
 		exit (1);
 	}
 
-	sdlRenderer = SDL_CreateRenderer (sdlWindow, -1, SDL_RENDERER_ACCELERATED);
+	sdlRenderer = SDL_CreateRenderer (sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (sdlRenderer == NULL)
 	{
 		fprintf (stderr, "SDL error: renderer is NULL\n");

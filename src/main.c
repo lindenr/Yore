@@ -128,7 +128,7 @@ int main (int argc, char *argv[])
 	//p_pane ();
 	//draw_map ();
 
-	ev_queue (1, (union Event) { .mgen = {EV_MGEN}});
+	//ev_queue (1, (union Event) { .mgen = {EV_MGEN}});
 	ev_loop ();
 
   quit_game:

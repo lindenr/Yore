@@ -3,6 +3,7 @@
 #include "include/skills.h"
 #include "include/drawing.h"
 #include "include/panel.h"
+#include "include/event.h"
 
 const styp all_skills[] = {
 	{SK_NONE, 0, "", ""},
@@ -76,6 +77,8 @@ int chargepos (struct DLevel *dlevel, int y, int x)
 
 void sk_charge (struct Monster *th, int y, int x, Skill sk)
 {
+	ev_queue (0, (union Event) { .mcharge = {EV_MCHARGE, th->ID, y, x}});
+	return;
 	sk_exp (th, sk, 1);
 	
 	chID = th->ID;

@@ -8,6 +8,7 @@
 #include "include/drawing.h"
 #include "include/skills.h"
 #include "include/event.h"
+#include "include/player.h"
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -66,6 +67,9 @@ void p_pane (struct Monster *player)
 	gra_mvprint (gpan, 3, 1, "HP %d/%d", player->HP, player->HP_max);
 	gra_mvprint (gpan, 4, 1, "ST %d/%d", player->ST, player->ST_max);
 	gra_mvprint (gpan, 5, 1, "LV %d:%d/infinity", player->level, player->exp); // TODO?
+	if (pl_focus_mode)
+		gra_mvprint (gpan, 1, 110, "FOCUS MODE");
+	gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d", player->status.defending.ydir, player->status.defending.xdir);
 	/*char *rank = get_rank ();
 	int rlen = strlen (rank);
 	txt_mvprint (ypan + 1, xpan + p_width - 1 - rlen, rank);*/
@@ -170,9 +174,7 @@ char p_lines (Vector lines)
 	return ret;
 }
 
-// status screen stuff
-// ideally want to be able to access skills etc from the status window
-
+/* Status screen */
 Graph sc_status = NULL;
 int p_status (struct Monster *player, enum PanelType type)
 {
@@ -232,6 +234,7 @@ int p_status (struct Monster *player, enum PanelType type)
 	return 0;
 }
 
+/* Skills screen */
 Graph sc_skills = NULL;
 int p_skills (struct Monster *player, enum PanelType type)
 {
@@ -313,8 +316,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 					continue;
 				}
 				gra_free (sc_skills);
-				ev_queue (0, (union Event) { .mcharge = {EV_MCHARGE, player->ID, yloc, xloc}});
-				//sk_charge (player, yloc, xloc, v_at (pskills, selected));
+				sk_charge (player, yloc, xloc, v_at (pskills, selected));
 				return 1;
 			case SK_DODGE:
 				break;

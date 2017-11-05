@@ -164,6 +164,12 @@ typedef enum
 	AI_AGGRO     /* angry non-player monster */
 } AI_MODE;
 
+union ContData
+{
+	struct Item *item;
+	Vector vec;
+};
+
 struct Monster;
 typedef int (*MCont) (struct Monster *);
 union AIState
@@ -173,8 +179,7 @@ union AIState
 	{
 		AI_MODE mode;
 		MCont cont;
-		void *data;
-		int len;
+		union ContData data;
 	} cont;
 	struct
 	{
@@ -199,6 +204,10 @@ struct MStatus
 		TID toID;
 	} attacking;
 	int evading;
+	struct
+	{
+		int ydir, xdir;
+	} defending;
 };
 
 struct Monster
@@ -257,7 +266,7 @@ int    mons_HP_max_regen(struct Monster *);                  /* similarly for ma
 int    mons_ST_regen   (struct Monster *);                   /* stamina                                  */
 int    mons_ST_max_regen(struct Monster *);                  /* max stamina                              */
 int    mons_isplayer   (struct Monster *);                   /* is controlled by human                   */
-int    mons_cont       (struct Monster *, MCont, void *, int);/* continuation to be called next turn      */
+int    mons_cont       (struct Monster *, MCont, union ContData *);/* continuation to be called next turn      */
 
 /* player functions */
 struct Item *player_use_pack (struct Monster *, char *, uint32_t); /* ask player for an item             */

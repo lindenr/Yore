@@ -66,8 +66,6 @@ extern int forced_refresh;
 extern void (*gr_onresize)  ();
 //extern void (*gr_onrefresh) ();
 
-//extern SDL_Surface *screen;
-
 /* Initialisation */
 void gr_init      (void);
 Graph gra_init    (int, int, int, int, int, int);
