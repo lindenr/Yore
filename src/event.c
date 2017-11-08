@@ -58,7 +58,11 @@ Tick ev_delay (union Event *event)
 		return 0;
 	case EV_MCALM:
 		return 0;
-	case EV_MCHARGE:
+	case EV_MSTARTCHARGE:
+		return 0;
+	case EV_MDOCHARGE:
+		return 0;
+	case EV_MSTOPCHARGE:
 		return 0;
 	case EV_MOPENDOOR:
 		return 0;
@@ -374,10 +378,10 @@ void ev_do (Event ev)
 			return;
 		if (mons_isplayer (to))
 			return;
-		if (to->ai.mode != AI_AGGRO)
+		if (to->ctr.mode != CTR_AI_AGGRO)
 			p_msg ("The %s angers the %s!", fr->mname, to->mname);
-		to->ai.mode = AI_AGGRO;
-		to->ai.aggro.ID = frID;
+		to->ctr.mode = CTR_AI_AGGRO;
+		to->ctr.aggro.ID = frID;
 		return;
 	case EV_MCALM:
 		thID = ev->mcalm.thID;
@@ -385,14 +389,30 @@ void ev_do (Event ev)
 		if (!th)
 			return;
 		p_msg ("The %s calms.", th->mname);
-		th->ai.mode = AI_TIMID;
+		th->ctr.mode = CTR_AI_TIMID;
 		return;
-	case EV_MCHARGE:
-		thID = ev->mcharge.thID;
+	case EV_MSTARTCHARGE:
+		thID = ev->mstartcharge.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->speed, (union Event) { .mwait = {EV_MWAIT, thID}});
+		th->status.charging = 1;
+		//ev_queue (th->speed, (union Event) { .mwait = {EV_MWAIT, thID}});
+		return;
+	case EV_MDOCHARGE:
+		thID = ev->mdocharge.thID;
+		th = MTHIID(thID);
+		if (!th)
+			return;
+		//ev_queue (th->speed, (union Event) { .mwait = {EV_MWAIT, thID}});
+		return;
+	case EV_MSTOPCHARGE:
+		thID = ev->mstopcharge.thID;
+		th = MTHIID(thID);
+		if (!th)
+			return;
+		th->status.charging = 0;
+		//ev_queue (th->speed, (union Event) { .mwait = {EV_MWAIT, thID}});
 		return;
 	case EV_MOPENDOOR:
 		thID = ev->mopendoor.thID;

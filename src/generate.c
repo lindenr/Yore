@@ -389,8 +389,9 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 		m1.name = "Player 1";
 		m1.skills = v_dinit (sizeof(struct Skill));
 		m1.exp = 0;
-		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
-		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
+		m1.ctr.mode = CTR_PL;
+		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
 		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
 		pack_add (&m1.pack, &myhammer);
 		struct Monster *t1 = new_mthing (lvl, upsy, upsx, &m1);
@@ -425,9 +426,9 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 		struct Monster p;
 		init_mons (&p, player_gen_type ());
 		if (p.mflags & FL_HOSTILE)
-			p.ai.mode = AI_HOSTILE;
+			p.ctr.mode = CTR_AI_HOSTILE;
 		else
-			p.ai.mode = AI_TIMID;
+			p.ctr.mode = CTR_AI_TIMID;
 		p.level = 1; //mons[p.type].exp? TODO
 		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
 		ev_queue (1000, (union Event) { .mturn = {EV_MTURN, th->ID}});

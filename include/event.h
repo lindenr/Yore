@@ -27,7 +27,9 @@ typedef enum
 	EV_MDROP,
 	EV_MANGERM,
 	EV_MCALM,
-	EV_MCHARGE,
+	EV_MSTARTCHARGE,
+	EV_MDOCHARGE,
+	EV_MSTOPCHARGE,
 	EV_MOPENDOOR,
 	EV_MCLOSEDOOR
 } EV_TYPE;
@@ -146,8 +148,18 @@ typedef union Event
 	{
 		EV_TYPE type;
 		TID thID;
-		int ydest, xdest;
-	} mcharge;
+	} mstartcharge;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+		int ydir, xdir;
+	} mdocharge;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+	} mstopcharge;
 	struct
 	{
 		EV_TYPE type;

@@ -70,6 +70,8 @@ void p_pane (struct Monster *player)
 	if (pl_focus_mode)
 		gra_mvprint (gpan, 1, 110, "FOCUS MODE");
 	gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d", player->status.defending.ydir, player->status.defending.xdir);
+	if (player->status.charging)
+		gra_mvprint (gpan, 3, 110, "CHARGING");
 	/*char *rank = get_rank ();
 	int rlen = strlen (rank);
 	txt_mvprint (ypan + 1, xpan + p_width - 1 - rlen, rank);*/
@@ -246,7 +248,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 	sc_skills->def = COL_SKILLS;
 
 	gra_fbox (sc_skills, 0, 0, h-1, w-1, ' ');
-	gra_mvprint (sc_skills, 0, w-5, "(Esc)");
+	gra_mvprint (sc_skills, 0, w-7, "(Space)");
 	gra_cprint (sc_skills, 2, "SKILLS");
 	if (pskills->len == 0)
 		gra_cprint (sc_skills, 3, "(no skills available)");
@@ -308,6 +310,12 @@ int p_skills (struct Monster *player, enum PanelType type)
 			case SK_CHARGE:
 				gra_hide (sc_status);
 				gra_hide (sc_skills);
+				if (player->status.charging)
+				{
+					gra_free (sc_skills);
+					sk_charge (player, 0, 0, v_at (pskills, selected));
+					return 1;
+				}
 				p_mvchoose (player, &yloc, &xloc, "Charge where?", NULL, 1);
 				if (yloc == -1)
 				{
@@ -317,6 +325,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 				}
 				gra_free (sc_skills);
 				sk_charge (player, yloc, xloc, v_at (pskills, selected));
+				//mons_cont (player, &pl_charge_action, NULL);
 				return 1;
 			case SK_DODGE:
 				break;
@@ -385,49 +394,3 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc, const char *instr
 	gra_free (overlay);
 }
 
-int p_move (int *ymove, int *xmove, char key)
-{
-	switch (key)
-	{
-		case 'k':
-			*ymove = -1;
-			*xmove =  0;
-			return 1;
-		case 'j':
-			*ymove =  1;
-			*xmove =  0;
-			return 1;
-		case 'h':
-			*ymove =  0;
-			*xmove = -1;
-			return 1;
-		case 'l':
-			*ymove =  0;
-			*xmove =  1;
-			return 1;
-		case 'y':
-			*xmove = -1;
-			*ymove = -1;
-			return 1;
-		case 'u':
-			*xmove =  1;
-			*ymove = -1;
-			return 1;
-		case 'b':
-			*xmove = -1;
-			*ymove =  1;
-			return 1;
-		case 'n':
-			*xmove =  1;
-			*ymove =  1;
-			return 1;
-		case '.':
-			*xmove =  0;
-			*ymove =  0;
-			return 1;
-		default:
-			*xmove =  0;
-			*ymove =  0;
-	}
-	return 0;
-}

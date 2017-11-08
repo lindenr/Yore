@@ -65,10 +65,21 @@ int Kskills (struct Monster *player)
 	return p_status (player, P_SKILLS);
 }
 
+int Kwait_cand (struct Monster *player)
+{
+	return player->status.charging == 0;
+}
+
 int Kwait (struct Monster *player)
 {
 	//mons_usedturn (player);
+	pl_queue (player, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, player->ID}});
 	return pl_execute (player->speed, player, 1);
+}
+
+int Kpickup_cand (struct Monster *player)
+{
+	return player->status.charging == 0;
 }
 
 int Kpickup (struct Monster *player)
@@ -132,6 +143,11 @@ int Kparry (struct Monster *player)
 	return 0;
 }*/
 
+int Kshield_cand (struct Monster *player)
+{
+	return player->status.charging == 0;
+}
+
 int Kshield (struct Monster *player)
 {
 	int ymove, xmove;
@@ -143,6 +159,11 @@ int Kshield (struct Monster *player)
 		return 0;
 	pl_queue (player, (union Event) { .mshield = {EV_MSHIELD, player->ID, ymove, xmove}});
 	return pl_execute (player->speed, player, 0);
+}
+
+int Ksdrop_cand (struct Monster *player)
+{
+	return player->status.charging == 0;
 }
 
 int Ksdrop (struct Monster *player)
@@ -161,9 +182,56 @@ int Ksdrop (struct Monster *player)
 	return pl_execute (player->speed, player, 0);
 }
 
+int Kmdrop_cand (struct Monster *player)
+{
+	return player->status.charging == 0;
+}
+
 int Kmdrop (struct Monster *player)
 {
 	return 0;
+}
+
+int Kfmove_cand (struct Monster *player)
+{
+	return 1;
+}
+
+int Kfmove (struct Monster *player)
+{
+	char in = gr_getch ();
+	if (in == CH_ESC)
+		return 0;
+	
+	int ymove, xmove;
+	if (!p_move (&ymove, &xmove, in))
+	{
+		p_msg ("That's not a direction!");
+		return 0;
+	}
+	pl_queue (player, (union Event) { .mattkm = {EV_MATTKM, player->ID, ymove, xmove}});
+	return pl_execute (player->speed, player, 0);
+}
+
+int Kgmove_cand (struct Monster *player)
+{
+	return 1;
+}
+
+int Kgmove (struct Monster *player)
+{
+	char in = gr_getch ();
+	if (in == CH_ESC)
+		return 0;
+	
+	int ymove, xmove;
+	if (!p_move (&ymove, &xmove, in))
+	{
+		p_msg ("That's not a direction!");
+		return 0;
+	}
+	pl_queue (player, (union Event) { .mmove = {EV_MMOVE, player->ID, ymove, xmove}});
+	return pl_execute (player->speed, player, 0);
 }
 
 int Kinv (struct Monster *player)
@@ -220,6 +288,22 @@ int Kclose (struct Monster *player)
 	//int y, x;
 	return 0;
 }*/
+
+int Kfocus_cand (struct Monster *player)
+{
+	return player->status.charging == 0;
+}
+
+int Kfocus (struct Monster *player)
+{
+	pl_focus_mode = !pl_focus_mode;
+	return 0;
+}
+
+int Kwield_cand (struct Monster *player)
+{
+	return player->status.charging == 0;
+}
 
 int Kwield (struct Monster *player)
 {
@@ -297,34 +381,84 @@ int Kdebug (struct Monster *player)
 	return 0;
 }
 
+int p_move (int *ymove, int *xmove, char key)
+{
+	switch (key)
+	{
+		case 'k':
+			*ymove = -1;
+			*xmove =  0;
+			return 1;
+		case 'j':
+			*ymove =  1;
+			*xmove =  0;
+			return 1;
+		case 'h':
+			*ymove =  0;
+			*xmove = -1;
+			return 1;
+		case 'l':
+			*ymove =  0;
+			*xmove =  1;
+			return 1;
+		case 'y':
+			*xmove = -1;
+			*ymove = -1;
+			return 1;
+		case 'u':
+			*xmove =  1;
+			*ymove = -1;
+			return 1;
+		case 'b':
+			*xmove = -1;
+			*ymove =  1;
+			return 1;
+		case 'n':
+			*xmove =  1;
+			*ymove =  1;
+			return 1;
+		case '.':
+			*xmove =  0;
+			*ymove =  0;
+			return 1;
+		default:
+			*xmove =  0;
+			*ymove =  0;
+	}
+	return 0;
+}
+
 struct KStruct Keys[] = {
-	{GRK_UP, &Kcamup},
-	{GRK_DN, &Kcamdn},
-	{GRK_LF, &Kcamlf},
-	{GRK_RT, &Kcamrt},
-	{CH_ESC, &Kstatus},
-	{'s', &Kskills},
-	{'.', &Kwait},
-	{',', &Kpickup},
+	{GRK_UP, &Kcamup,  NULL},
+	{GRK_DN, &Kcamdn,  NULL},
+	{GRK_LF, &Kcamlf,  NULL},
+	{GRK_RT, &Kcamrt,  NULL},
+	{CH_ESC, &Kstatus, NULL},
+	{'s',    &Kskills, NULL},
+	{'.',    &Kwait,   &Kwait_cand},
+	{',',    &Kpickup, &Kpickup_cand},
 //	{'e', &Keat},
 //	{'e', &Kevade},
 //	{'p', &Kparry},
-	{'p', &Kshield},
-	{'d', &Ksdrop},
-	{'D', &Kmdrop},
-	{'i', &Kinv},
-	{':', &Knlook},
-	{';', &Kflook},
-	{'Z', &Kdebug},
+	{'p',    &Kshield, &Kshield_cand},
+	{'d',    &Ksdrop,  &Ksdrop_cand},
+	{'D',    &Kmdrop,  &Kmdrop_cand},
+	{'F',    &Kfmove,  &Kfmove_cand},
+	{'m',    &Kgmove,  &Kgmove_cand},
+	{'i',    &Kinv,    NULL},
+	{':',    &Knlook,  NULL},
+	{';',    &Kflook,  NULL},
+	{'Z',    &Kdebug,  NULL},
+	{'f',    &Kfocus,  &Kfocus_cand},
 //	{'o', &Kopen},
 //	{'c', &Kclose},
-	{'w', &Kwield},
+	{'w',    &Kwield,  &Kwield_cand},
 //	{CONTROL_(GRK_DN), &Klookdn},
 //	{CONTROL_(GRK_UP), &Klookup},
-//	{'>', &Kgodown},
-//	{'<', &Kgoup},
-	{'S', &Ksave},
-	{CONTROL_('q'), &Kquit}
+//	{'>',    &Kgodown},
+//	{'<',    &Kgoup},
+	{'S',    &Ksave,   NULL},
+	{CONTROL_('q'), &Kquit, NULL}
 };
 
 int key_lookup (struct Monster *player, char key)
@@ -335,41 +469,18 @@ int key_lookup (struct Monster *player, char key)
 	{
 		//if (ch == (char)(Keys[i].key&0xff) && gr_equiv (key, Keys[i].key))
 		if (ch == Keys[i].key)
-			return (*Keys[i].action) (player);
+		{
+			if (Keys[i].cand == NULL || (*Keys[i].cand) (player))
+				return (*Keys[i].action) (player);
+			return 0;
+		}
 	}
 	return 0;
 }
 
-int player_move_gently (struct Monster *player)
+int pl_charge_action (struct Monster *player)
 {
-	char in = gr_getch ();
-	if (in == CH_ESC)
-		return 0;
-	
-	int ymove, xmove;
-	if (!p_move (&ymove, &xmove, in))
-	{
-		p_msg ("That's not a direction!");
-		return 0;
-	}
-	pl_queue (player, (union Event) { .mmove = {EV_MMOVE, player->ID, ymove, xmove}});
-	return pl_execute (player->speed, player, 0);
-}
-
-int player_move_attack (struct Monster *player)
-{
-	char in = gr_getch ();
-	if (in == CH_ESC)
-		return 0;
-	
-	int ymove, xmove;
-	if (!p_move (&ymove, &xmove, in))
-	{
-		p_msg ("That's not a direction!");
-		return 0;
-	}
-	pl_queue (player, (union Event) { .mattkm = {EV_MATTKM, player->ID, ymove, xmove}});
-	return pl_execute (player->speed, player, 0);
+	return -1;
 }
 
 int pl_take_turn (struct Monster *player)
@@ -386,15 +497,15 @@ int pl_take_turn (struct Monster *player)
 		gra_cmove (map_graph, player->yloc, player->xloc);
 
 		in = gr_getch();
-		if (in == 'm')
+		/*if (in == 'm')
 		{
-			if (player_move_gently (player))
+			if (pl_move_gently (player))
 				break;
 			continue;	
 		}
 		else if (in == 'F')
 		{
-			if (player_move_attack (player))
+			if (pl_move_attack (player))
 				break;
 			continue;
 		}
@@ -402,7 +513,7 @@ int pl_take_turn (struct Monster *player)
 		{
 			pl_focus_mode = !pl_focus_mode;
 			continue;
-		}
+		}*/
 
 		int ymove, xmove;
 		p_move (&ymove, &xmove, in);

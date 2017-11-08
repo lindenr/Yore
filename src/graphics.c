@@ -489,7 +489,6 @@ char gr_getch ()
 				input_key = sdlEvent.text.text[0];
 				break;
 			case SDL_KEYDOWN:
-			{
 				if (sdlEvent.key.repeat)
 					break;
 				code = sdlEvent.key.keysym.sym;
@@ -511,7 +510,6 @@ char gr_getch ()
 				else if (code == SDLK_ESCAPE)
 					input_key = mod|CH_ESC;
 				break;
-			}
 
 			case SDL_KEYUP:
 				code = sdlEvent.key.keysym.sym;
@@ -527,6 +525,11 @@ char gr_getch ()
 				gr_resize (event.resize.h, event.resize.w);
 				break;
 			}*/
+
+			case SDL_WINDOWEVENT:
+				if (sdlEvent.window.event == SDL_WINDOWEVENT_EXPOSED)
+					gr_frefresh ();
+				break;
 			
 			case SDL_QUIT:
 				exit(0);

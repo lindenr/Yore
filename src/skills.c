@@ -42,7 +42,7 @@ int sk_lvl (struct Monster *th, enum SK_TYPE type)
 	}
 	return 0;
 }
-
+#if 0
 void sk_exp (struct Monster *th, Skill sk, int xp)
 {
 	sk->exp += xp;
@@ -74,16 +74,22 @@ int chargepos (struct DLevel *dlevel, int y, int x)
 	charger->ST -= SK_CHARGE_COST;
 	return mons_move (charger, dy, dx, 0)==1;
 }
-
+#endif
 void sk_charge (struct Monster *th, int y, int x, Skill sk)
 {
-	ev_queue (0, (union Event) { .mcharge = {EV_MCHARGE, th->ID, y, x}});
-	return;
-	sk_exp (th, sk, 1);
+	if (!th->status.charging)
+	{
+		ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
+		ev_queue (0, (union Event) { .mstartcharge = {EV_MSTARTCHARGE, th->ID /*, y, x*/ }});
+		return;
+	}
+	ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
+	ev_queue (0, (union Event) { .mstartcharge = {EV_MSTOPCHARGE, th->ID /*, y, x*/ }});
+//	sk_exp (th, sk, 1);
 	
-	chID = th->ID;
-	mons_usedturn (th);
+//	chID = th->ID;
+//	mons_usedturn (th);
 //	th.status |= M_CHARGE;
-	bres_draw (th->yloc, th->xloc, NULL, dlv_attr(th->dlevel), &chargepos, y, x);
+//	bres_draw (th->yloc, th->xloc, NULL, dlv_attr(th->dlevel), &chargepos, y, x);
 }
 

@@ -157,12 +157,14 @@ typedef int TID;
 
 typedef enum
 {
-	AI_NONE = 0, /* player control */
-	AI_CONT,     /* player control using continuation */
-	AI_TIMID,    /* neutral non-player monster */
-	AI_HOSTILE,  /* will anger on sight */
-	AI_AGGRO     /* angry non-player monster */
-} AI_MODE;
+	CTR_NONE = 0,   /* placeholder */
+	CTR_PL,         /* player control (standard) */
+	CTR_PL_CONT,    /* player control (continuation) */
+	CTR_PL_FOCUS,   /* player control (focus mode) */
+	CTR_AI_TIMID,   /* neutral non-player monster */
+	CTR_AI_HOSTILE, /* will anger on sight */
+	CTR_AI_AGGRO    /* angry non-player monster */
+} CTR_MODE;
 
 union ContData
 {
@@ -172,22 +174,22 @@ union ContData
 
 struct Monster;
 typedef int (*MCont) (struct Monster *);
-union AIState
+union CTRState
 {
-	AI_MODE mode;
+	CTR_MODE mode;
 	struct
 	{
-		AI_MODE mode;
+		CTR_MODE mode;
 		MCont cont;
 		union ContData data;
 	} cont;
 	struct
 	{
-		AI_MODE mode;
+		CTR_MODE mode;
 	} timid;
 	struct
 	{
-		AI_MODE mode;
+		CTR_MODE mode;
 		TID ID;
 	} aggro;
 };
@@ -208,6 +210,7 @@ struct MStatus
 	{
 		int ydir, xdir;
 	} defending;
+	int charging;
 };
 
 struct Monster
@@ -217,7 +220,7 @@ struct Monster
 	int yloc, xloc;             /* location in dungeon          */
 	const char *mname;          /* name of monster type         */
 	glyph gl;                   /* display glyph                */
-	union AIState ai;           /* state of the AI (if used)    */
+	union CTRState ctr;         /* state of the control method  */
 	int32_t level;              /* experience level             */
 	int32_t exp;                /* experience points            */
 	char *name;                 /* monster name                 */

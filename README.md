@@ -15,8 +15,7 @@ Yore should run on any machine which is supported by SDL. It has only been teste
 ####To build for Windows:
 
 1.  you must have MinGW and SDL installed, with SDL.dll in your bin/ folder;
-2.  you must have the [function](http://github.com/lindenr/function) executable in the top folder;
-3.  run
+2.  run
 <pre>&gt; PATH &lt;your mingw install path&gt;\bin
 &gt; build-win</pre>
 If that doesn't work then try
@@ -27,8 +26,6 @@ The binary "Yore" (or "Yore.exe") is in the bin/ directory.
 ###Yore runs (tested) on the following platforms:
 
  *  Arch Linux
- *  Ubuntu (11.10 and 12.10)
- *  Windows (XP, 7, and 8)
 
 Feel free to add to the list if you have a different operating system handy.
 
@@ -38,19 +35,25 @@ Gameplay in Yore is largely similar to NetHack.
 
 ###Movement
 
-Movement with the hjkl set (yubn for diagonals) is supported; running using a capital letter (HJKLYUBN) is not implemented yet.
+Movement with the hjkl set (yubn for diagonals) is supported.
 The arrow keys move the view around (the map is probably too large to fit all on to the screen at once).
 
 ###Miscellaneous
 
 Various other commands are (in no particular order):
-<pre>e      eat
-,      pick up
+<pre>,      pick up
 :      look down
-i      check your inventory
-m      cast a magic rune
+;      look around
+i      view inventory
 w      wield a weapon
 d      drop an item from your inventory
+
+F      force attack in a direction
+m      force movement in a direction
+&lt;Esc&gt;  view status screen
+s      view skills menu
+f      enter/exit focus mode
+p      shield (protect) in a direction
 
 S      save and quit
 Q      quit permanently</pre>

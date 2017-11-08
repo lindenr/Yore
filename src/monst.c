@@ -236,11 +236,13 @@ int mons_take_turn (struct Monster *th)
 {
 	if (!mons_isplayer(th))
 		return AI_take_turn (th);
-	if (th->ai.mode == AI_CONT)
+	if (th->ctr.mode == CTR_PL_CONT)
 	{
-		if (!((th->ai.cont.cont) (th)))
-			th->ai.mode = AI_NONE;
-		return 1;
+		int res = ((th->ctr.cont.cont) (th));
+		if (res <= 0)
+			th->ctr.mode = CTR_PL;
+		if (res != -1)
+			return 1;
 	}
 	return pl_take_turn (th);
 }
@@ -465,7 +467,7 @@ int mons_ST_hit (struct Monster *from, struct Item *with)
 {
 	if (!with)
 		return 3;
-	return 1 + (with->cur_weight)/500;
+	return 3 + (with->cur_weight)/500;
 }
 
 int mons_HP_regen (struct Monster *th)
@@ -532,23 +534,38 @@ void player_dead (const char *msg, ...)
 
 int mons_cont (struct Monster *player, MCont cont, union ContData *data)
 {
-	if (player->ai.mode != AI_NONE)
-		panic ("mons_cont called on non-AI_NONE monster!");
-	player->ai.cont.mode = AI_CONT;
-	player->ai.cont.cont = cont;
-	memcpy (&player->ai.cont.data, data, sizeof(*data));
+	if (player->ctr.mode != CTR_PL)
+		panic ("mons_cont called on non-CTR_PL monster!");
+	player->ctr.cont.mode = CTR_PL_CONT;
+	player->ctr.cont.cont = cont;
+	if (data)
+		memcpy (&player->ctr.cont.data, data, sizeof(*data));
 	return 1;
 }
 
 int mons_isplayer (struct Monster *th)
 {
-	return th->ai.mode == AI_NONE || th->ai.mode == AI_CONT;
+	switch (th->ctr.mode)
+	{
+	case CTR_NONE:
+		panic ("CTR_NONE player\n");
+		return 0;
+	case CTR_PL:
+	case CTR_PL_CONT:
+	case CTR_PL_FOCUS:
+		return 1;
+	case CTR_AI_TIMID:
+	case CTR_AI_HOSTILE:
+	case CTR_AI_AGGRO:
+	default:
+		return 0;
+	}
 }
 
 int AI_take_turn (struct Monster *ai)
 {
 	TID aiID = ai->ID;
-	if (ai->ai.mode == AI_TIMID)
+	if (ai->ctr.mode == CTR_AI_TIMID)
 	{
 		int y = rn(3)-1, x = rn(3)-1;
 		int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
@@ -560,7 +577,7 @@ int AI_take_turn (struct Monster *ai)
 		return 1;
 	}
 
-	if (ai->ai.mode == AI_HOSTILE)
+	if (ai->ctr.mode == CTR_AI_HOSTILE)
 	{
 		// TODO attack player on sight
 		int y = rn(3)-1, x = rn(3)-1;
@@ -573,7 +590,7 @@ int AI_take_turn (struct Monster *ai)
 		return 1;
 	}
 
-	struct Monster *to = MTHIID (ai->ai.aggro.ID);
+	struct Monster *to = MTHIID (ai->ctr.aggro.ID);
 	if (!to)
 	{
 		ev_queue (0, (union Event) { .mturn = {EV_MTURN, aiID}});
