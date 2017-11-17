@@ -122,7 +122,7 @@ void p_msg (const char *str, ...)
 	va_list args;
 	char out[100];
 
-	snprintf(out, 10, "(%llu) ", curtick);
+	snprintf(out, 10, "(%llu) ", curtick/1000);
 
 	va_start (args, str);
 	vsnprintf (out + strlen(out), 90, str, args);

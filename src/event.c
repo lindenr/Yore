@@ -316,8 +316,9 @@ void ev_do (Event ev)
 		}
 		th->wearing.weaps[arm] = it;
 		it->attr |= ITEM_WIELDED;
-		if (mons_isplayer(th))
-			item_look (it);
+		p_msg ("The %s wields %s.", th->mname, get_inv_line (NULL, it)); /* notify */
+		//if (mons_isplayer(th))
+		//	item_look (it);
 		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		return;
 	case EV_MPICKUP:

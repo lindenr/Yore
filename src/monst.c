@@ -234,17 +234,38 @@ char escape (unsigned char a)
 
 int mons_take_turn (struct Monster *th)
 {
-	if (!mons_isplayer(th))
-		return AI_take_turn (th);
-	if (th->ctr.mode == CTR_PL_CONT)
+	switch (th->ctr.mode)
 	{
+	case CTR_NONE:
+		/* should never happen */
+		break;
+	case CTR_PL:
+		/* player in normal mode */
+		return pl_take_turn (th);
+	case CTR_PL_CONT:
+	{
+		/* player in continuation mode - attempt to call the continuation */
 		int res = ((th->ctr.cont.cont) (th));
 		if (res <= 0)
 			th->ctr.mode = CTR_PL;
 		if (res != -1)
 			return 1;
 	}
-	return pl_take_turn (th);
+	case CTR_PL_FOCUS:
+		/* player in focus mode */
+		return pl_take_turn (th);
+	case CTR_AI_TIMID:
+		/* calm non-player monster */
+		return AI_TIMID_take_turn (th);
+	case CTR_AI_HOSTILE:
+		/* hostile monster */
+		return AI_HOSTILE_take_turn (th);
+	case CTR_AI_AGGRO:
+		/* aggravated monster */
+		return AI_AGGRO_take_turn (th);
+	}
+	panic ("End of mons_take_turn reached.");
+	return -1;
 }
 
 /*int mons_prhit (struct Monster *from, struct Monster *to, int energy) // ACTION
@@ -314,7 +335,7 @@ Tick mons_tmgen ()
 
 Tick mons_tregen (struct Monster *th)
 {
-	return 10000;
+	return 1000;
 }
 
 /*inline void *mons_get_weap (struct Monster *th)
@@ -446,7 +467,8 @@ struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
 
 int mons_hits (struct Monster *from, struct Monster *to, struct Item *with)
 {
-	if (to->status.defending.ydir + to->yloc == from->yloc &&
+	if ((to->status.defending.ydir || to->status.defending.xdir) &&
+	    to->status.defending.ydir + to->yloc == from->yloc &&
 	    to->status.defending.xdir + to->xloc == from->xloc)
 		return 0;
 	if (!with)
@@ -474,7 +496,7 @@ int mons_HP_regen (struct Monster *th)
 {
 	if (th->HP >= th->HP_max)
 		return 0;
-	return !rn(5);
+	return !rn(50);
 }
 
 int mons_HP_max_regen (struct Monster *th)
@@ -493,7 +515,7 @@ int mons_ST_max_regen (struct Monster *th)
 {
 	if (th->ST >= th->ST_max)
 		return 0;
-	return !rn(10);
+	return !rn(10*th->ST_max);
 }
 
 //void mons_init_stats (struct MStats *stats, const struct MType *type)
@@ -562,34 +584,32 @@ int mons_isplayer (struct Monster *th)
 	}
 }
 
-int AI_take_turn (struct Monster *ai)
+int AI_TIMID_take_turn (struct Monster *ai)
+{
+	int y = rn(3)-1, x = rn(3)-1;
+	int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
+	if (can == 1)
+		mons_move (ai, y, x, 1);
+	else
+		ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
+	return 1;
+}
+
+int AI_HOSTILE_take_turn (struct Monster *ai)
+{
+	// TODO attack player on sight
+	int y = rn(3)-1, x = rn(3)-1;
+	int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
+	if (can == 1)
+		mons_move (ai, y, x, 1);
+	else
+		ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
+	return 1;
+}
+
+int AI_AGGRO_take_turn (struct Monster *ai)
 {
 	TID aiID = ai->ID;
-	if (ai->ctr.mode == CTR_AI_TIMID)
-	{
-		int y = rn(3)-1, x = rn(3)-1;
-		int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
-		if (can == 1)
-			mons_move (ai, y, x, 1);
-		//else if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
-		else
-			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
-		return 1;
-	}
-
-	if (ai->ctr.mode == CTR_AI_HOSTILE)
-	{
-		// TODO attack player on sight
-		int y = rn(3)-1, x = rn(3)-1;
-		int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
-		if (can == 1)
-			mons_move (ai, y, x, 1);
-		//else if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
-		else
-			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
-		return 1;
-	}
-
 	struct Monster *to = MTHIID (ai->ctr.aggro.ID);
 	if (!to)
 	{
@@ -598,26 +618,43 @@ int AI_take_turn (struct Monster *ai)
 		return 1;
 	}
 
+	/* where you are */
 	int aiy = ai->yloc, aix = ai->xloc;
-	int toy = to->yloc, tox = to->xloc;
-	if (!bres_draw (aiy, aix, NULL, dlv_attr(ai->dlevel), NULL, toy, tox))
+
+	/* move randomly if you can't see your target */
+	if (!bres_draw (aiy, aix, NULL, dlv_attr(ai->dlevel), NULL, to->yloc, to->xloc))
 	{
 		if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
 			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
 		return 1;
 	}
-	int ymove = (aiy < toy) - (aiy > toy), xmove = (aix < tox) - (aix > tox);
-	if (ai->yloc + ymove == to->yloc + to->status.moving.ydir &&
-	    ai->xloc + xmove == to->xloc + to->status.moving.xdir)
+
+	/* otherwise you can see your target; this is where you aim to travel */
+	int toy = to->yloc + to->status.moving.ydir;
+	int tox = to->xloc + to->status.moving.xdir;
+
+	/* don't aim at yourself; TODO better movement prediction */
+	if (toy == aiy && tox == aix)
 	{
-		ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, ai->ID, ymove, xmove}});
-		ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, ai->ID}});
+		toy = to->yloc;
+		tox = to->xloc;
+	}
+
+	/* the direction you should go in */
+	int ymove = (aiy < toy) - (aiy > toy);
+	int xmove = (aix < tox) - (aix > tox);
+
+	/* attack if that is where your target will be */
+	if (aiy + ymove == toy && aix + xmove == tox)
+	{
+		ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, aiID, ymove, xmove}});
+		ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
 		return 1;
 	}
-	if (!mons_move (ai, ymove, xmove, 1))
-		if (!mons_move (ai, ymove, 0, 1))
-			if (!mons_move (ai, 0, xmove, 1))
-				ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
+
+	/* otherwise move towards your target */
+	ev_queue (0, (union Event) { .mmove = {EV_MMOVE, aiID, ymove, xmove}});
+	ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
 	return 1;
 }
 

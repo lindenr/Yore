@@ -264,8 +264,8 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 
 		total_rooms = 0;
 		attempt_room (lvl, map_graph->h/2 - 2 - rn(3), map_graph->w/2 - 3 - rn(5), 15, 20);
-		do add_another_room (lvl);
-		while (total_rooms < 100);
+		//do add_another_room (lvl);
+		//while (total_rooms < 100);
 
 		start = map_buffer (map_graph->h/2, map_graph->w/2);
 		/* Down-stair */
@@ -294,11 +294,12 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 			}
 			while (!is_safe_gen (lvl, y, x));
 
-			struct Item *item = gen_item ();
+//			struct Item *item = gen_item ();
 			//new_thing (THING_ITEM, lvl, y, x, item);
-			free (item);
-			mons_gen (cur_dlevel, 2, U.luck-30);
+//			free (item);
+//			mons_gen (cur_dlevel, 2, U.luck-30);
 		}
+		mons_gen (cur_dlevel, 3, 0);
 	}
 	else if (type == LEVEL_TOWN)
 	{
@@ -390,8 +391,8 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 		m1.skills = v_dinit (sizeof(struct Skill));
 		m1.exp = 0;
 		m1.ctr.mode = CTR_PL;
-		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
-		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
+//		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+//		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
 		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
 		pack_add (&m1.pack, &myhammer);
 		struct Monster *t1 = new_mthing (lvl, upsy, upsx, &m1);
@@ -430,6 +431,24 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 		else
 			p.ctr.mode = CTR_AI_TIMID;
 		p.level = 1; //mons[p.type].exp? TODO
+		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
+		ev_queue (1000, (union Event) { .mturn = {EV_MTURN, th->ID}});
+		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, th->ID}});
+		//printf ("successful generation \n");
+		return th;
+	}
+	else if (type == 3)
+	{
+		uint32_t yloc = 57, xloc = 160;
+		struct Monster p;
+		init_mons (&p, 5);
+		if (p.mflags & FL_HOSTILE)
+			p.ctr.mode = CTR_AI_HOSTILE;
+		else
+			p.ctr.mode = CTR_AI_TIMID;
+		p.level = 1; //mons[p.type].exp? TODO
+		struct Item mysword = {items[0], 0, items[0].wt, NULL};
+		pack_add (&p.pack, &mysword);
 		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
 		ev_queue (1000, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, th->ID}});

@@ -23,10 +23,10 @@ bool game_intro ()
 	gra_dbox (ibox, 0, 0, bh, bw);
 	gra_mvprint (ibox, 2, 2, "Back in the days of Yore, in a land far removed");
 	gra_mvprint (ibox, 3, 2, "from our current understanding of the universe,");
-	gra_mvprint (ibox, 4, 3,  "when magic flowed throughout the air as water");
-	gra_mvprint (ibox, 5, 3,  "flowed through the sea, and the Gods lived in");
-	gra_mvprint (ibox, 6, 4,   "harmony with the people; it was a time when");
-	gra_mvprint (ibox, 7, 6,     "anything and everything was possible...");
+	gra_mvprint (ibox, 4, 2, " when magic flowed throughout the air as water ");
+	gra_mvprint (ibox, 5, 2, " flowed through the sea, and the Gods lived in ");
+	gra_mvprint (ibox, 6, 2, "  harmony with the people; it was a time when  ");
+	gra_mvprint (ibox, 7, 2, "    anything and everything was possible...    ");
 	gr_tout (666);
 
 	while (1)
@@ -125,21 +125,18 @@ int main (int argc, char *argv[])
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 
-	//p_pane ();
-	//draw_map ();
-
 	//ev_queue (1, (union Event) { .mgen = {EV_MGEN}});
 	ev_loop ();
 
   quit_game:
 	if (U.playing == PLAYER_LOSTGAME)
-		printf("Goodbye %s...\n", "Bertha");
+		printf("Goodbye %s...\n", pl->name);
 	else if (U.playing == PLAYER_SAVEGAME)
 		printf("See you soon...\n");
 	else if (U.playing == PLAYER_STARTING)
 		printf("Give it a try next time...\n");
 	else if (U.playing == PLAYER_WONGAME)
-		printf("Congratulations %s...\n", "Wertha");
+		printf("Congratulations %s...\n", pl->name);
 
 	exit(0);
 }

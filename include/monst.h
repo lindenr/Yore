@@ -286,7 +286,9 @@ int    can_amove       (int);                              /* returns if a squar
 char   escape          (unsigned char);                    /* escapes a character                      */
 
 /* AI functions */
-int    AI_take_turn    (struct Monster *);                   /* decide what to do                        */
+int    AI_TIMID_take_turn    (struct Monster *);             /* decide what to do if not attacking       */
+int    AI_HOSTILE_take_turn  (struct Monster *);             /* if hostile TODO                          */
+int    AI_AGGRO_take_turn    (struct Monster *);             /* if attacking                             */
 
 #endif /* MONST_H_INCLUDED */
 
