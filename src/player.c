@@ -72,7 +72,6 @@ int Kwait_cand (struct Monster *player)
 
 int Kwait (struct Monster *player)
 {
-	//mons_usedturn (player);
 	pl_queue (player, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, player->ID}});
 	return pl_execute (player->speed, player, 1);
 }
@@ -102,13 +101,11 @@ int Kpickup (struct Monster *player)
 	Vector pickup = NULL;
 	if (ground->len == 1)
 	{
-		mons_usedturn (player);
 		/* One item on ground -- pick up immediately. */
 		pickup = ground;
 	}
 	else if (ground->len > 1)
 	{
-		mons_usedturn (player); // TODO
 		/* Multiple items - ask which to pick up. */
 		pickup = v_init (sizeof(TID), 20);
 
@@ -126,7 +123,6 @@ int Kpickup (struct Monster *player)
 	struct Item *food = player_use_pack ("Eat what?", ITCAT_FOOD);
 	if (food == NULL)
 		return 0;
-	mons_usedturn (player);
 	mons_eat (player, food);
 	return 1;
 }*/
@@ -171,9 +167,8 @@ int Ksdrop (struct Monster *player)
 	struct Item *drop = player_use_pack (player, "Drop what?", ITCAT_ALL);
 	if (drop == NULL)
 		return 0;
-	mons_usedturn (player);
 
-	Vector vdrop = v_dinit (sizeof(struct Item *));
+	Vector vdrop = v_dinit (sizeof(TID));
 	v_push (vdrop, &drop);
 
 	if (drop->attr & ITEM_WIELDED)
@@ -313,7 +308,6 @@ int Kwield (struct Monster *player)
 	if (items_equal (wield, player->wearing.weaps[0]))
 		return 0;
 
-	mons_usedturn (player);
 	if (player->wearing.weaps[0] && wield->type.type)
 		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
 	pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield}});
@@ -341,7 +335,6 @@ int Kgodown (struct Monster *player)
 	if (level == 0)
 		return 0;
 
-	mons_usedturn (player);
 	dlv_set (level);
 	thing_move (player, level, player->yloc, player->xloc);
 	return 1;
@@ -353,17 +346,16 @@ int Kgoup (struct Monster *player)
 	if (level == 0)
 		return 0;
 
-	mons_usedturn (player);
 	dlv_set (level);
 	thing_move (player, level, player->yloc, player->xloc);
 	return 1;
 }*/
 
-int Ksave (struct Monster *player)
+/*int Ksave (struct Monster *player)
 {
 	U.playing = PLAYER_SAVEGAME;
 	return -1;
-}
+}*/
 
 int Kquit (struct Monster *player)
 {
@@ -434,6 +426,7 @@ struct KStruct Keys[] = {
 	{GRK_LF, &Kcamlf,  NULL},
 	{GRK_RT, &Kcamrt,  NULL},
 	{CH_ESC, &Kstatus, NULL},
+	{' ',    &Kstatus, NULL},
 	{'s',    &Kskills, NULL},
 	{'.',    &Kwait,   &Kwait_cand},
 	{',',    &Kpickup, &Kpickup_cand},
@@ -457,17 +450,16 @@ struct KStruct Keys[] = {
 //	{CONTROL_(GRK_UP), &Klookup},
 //	{'>',    &Kgodown},
 //	{'<',    &Kgoup},
-	{'S',    &Ksave,   NULL},
+//	{'S',    &Ksave,   NULL},
 	{CONTROL_('q'), &Kquit, NULL}
 };
 
 int key_lookup (struct Monster *player, char key)
 {
 	int i;
-	char ch = (char) key;
+	char ch = key;
 	for (i = 0; i < NUM_KEYS; ++ i)
 	{
-		//if (ch == (char)(Keys[i].key&0xff) && gr_equiv (key, Keys[i].key))
 		if (ch == Keys[i].key)
 		{
 			if (Keys[i].cand == NULL || (*Keys[i].cand) (player))
@@ -489,37 +481,18 @@ int pl_take_turn (struct Monster *player)
 		gra_centcam (map_graph, player->yloc, player->xloc);
 	while (1)
 	{
-		char in;
-	
 		draw_map (player);
 		p_pane (player);
 
 		gra_cmove (map_graph, player->yloc, player->xloc);
 
-		in = gr_getch();
-		/*if (in == 'm')
-		{
-			if (pl_move_gently (player))
-				break;
-			continue;	
-		}
-		else if (in == 'F')
-		{
-			if (pl_move_attack (player))
-				break;
-			continue;
-		}
-		else if (in == 'f')
-		{
-			pl_focus_mode = !pl_focus_mode;
-			continue;
-		}*/
+		char in = gr_getch();
 
 		int ymove, xmove;
 		p_move (&ymove, &xmove, in);
-		if (!(ymove == 0 && xmove == 0))
+		if (ymove != 0 || xmove != 0)
 		{
-			int mv = mons_move (player, ymove, xmove, 1);
+			int mv = mons_move (player, ymove, xmove);
 			if (mv)
 				break;
 			if (gra_nearedge (map_graph, player->yloc, player->xloc))

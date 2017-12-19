@@ -9,6 +9,7 @@
 #include "include/generate.h"
 #include "include/rand.h"
 #include "include/player.h"
+#include "include/skills.h"
 
 Tick ev_delay (union Event *event)
 {
@@ -64,6 +65,8 @@ Tick ev_delay (union Event *event)
 		return 0;
 	case EV_MSTOPCHARGE:
 		return 0;
+	case EV_CIRCLEOFFLAME:
+		return 0;
 	case EV_MOPENDOOR:
 		return 0;
 	case EV_MCLOSEDOOR:
@@ -117,6 +120,7 @@ void ev_do (Event ev)
 	struct Thing *item;
 	TID thID, frID, toID;
 	int can, ydest, xdest;
+	int i;
 	Vector pickup, items;
 	switch (ev->type)
 	{
@@ -234,8 +238,8 @@ void ev_do (Event ev)
 			p_msg ("The %s misses the %s!", fr->mname, to->mname); /* notify */
 			return;
 		}
-		p_msg ("The %s hits the %s!", fr->mname, to->mname); /* notify */
 		int damage = mons_hitdmg (fr, to, with);
+		p_msg ("The %s hits the %s for %d!", fr->mname, to->mname, damage); /* notify */
 		to->HP -= damage;
 		if (to->HP <= 0)
 		{
@@ -272,6 +276,17 @@ void ev_do (Event ev)
 		corpse.cur_weight = 0;
 		new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, &corpse);
 
+		if (!th->pack)
+			goto mcorpse_done;
+		for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
+		{
+			if (!th->pack->items[i])
+				continue;
+			new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, th->pack->items[i]);
+			free (th->pack->items[i]);
+		}
+
+	mcorpse_done:
 		/* remove dead monster */
 		rem_mid (th->ID);
 		return;
@@ -294,11 +309,15 @@ void ev_do (Event ev)
 		int HP_regen = mons_HP_regen (th), HP_max_regen = mons_HP_max_regen (th);
 		th->HP += HP_regen;
 		th->HP_max += HP_max_regen;
+		if (th->HP > th->HP_max)
+			th->HP = th->HP_max;
 
 		/* ST */
 		int ST_regen = mons_ST_regen (th), ST_max_regen = mons_ST_max_regen (th);
 		th->ST += ST_regen;
 		th->ST_max += ST_max_regen;
+		if (th->ST > th->ST_max)
+			th->ST = th->ST_max;
 		return;
 	case EV_MWIELD:
 		th = MTHIID(ev->mwield.thID);
@@ -414,6 +433,13 @@ void ev_do (Event ev)
 			return;
 		th->status.charging = 0;
 		//ev_queue (th->speed, (union Event) { .mwait = {EV_MWAIT, thID}});
+		return;
+	case EV_CIRCLEOFFLAME:
+		thID = ev->circleofflame.thID;
+		th = MTHIID(thID);
+		if (!th)
+			return;
+		sk_flames_overlay (th);
 		return;
 	case EV_MOPENDOOR:
 		thID = ev->mopendoor.thID;

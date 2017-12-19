@@ -136,6 +136,7 @@ void gr_resize    (int, int);
 
 #define ACS_DOT      0xFA
 #define ACS_BIGDOT   0xF9
+#define ACS_PILLAR   0x07
 
 /* line graphics */
 #define ACS_VLINE    0xB3
@@ -149,6 +150,10 @@ void gr_resize    (int, int);
 #define ACS_TTEE     0xC2
 #define ACS_BTEE     0xC1
 #define ACS_PLUS     0xC5
+#define ACS_TSTUB    0xA9
+#define ACS_BSTUB    0xAA
+#define ACS_LSTUB    0xAB
+#define ACS_RSTUB    0xAC
 
 /* double-line graphics */
 #define DCS_VLINE    0xBA
@@ -182,3 +187,4 @@ void gr_resize    (int, int);
 #define COL_BG_MASK    0x000FFF00
 
 #endif /* GRAPHICS_H_INCLUDED */
+

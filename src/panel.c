@@ -89,7 +89,7 @@ void p_pane (struct Monster *player)
 skip1:
 	if (messages == NULL)
 		goto skip2;
-	for (i = 0; i < 5 && i < messages->len; ++ i)
+	for (i = 0; i < 8 && i < messages->len; ++ i)
 	{
 		struct P_msg *msg = v_at (messages, messages->len - i - 1);
 		int len = strlen (msg->msg);
@@ -190,7 +190,12 @@ int p_status (struct Monster *player, enum PanelType type)
 	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", player->name, ACS_VLINE, "Human");
 	gra_cprint (sc_status, 5, "  HP: %d/%d  %c  ST:    %d/%d",
 				player->HP, player->HP_max, ACS_VLINE, player->ST, player->ST_max);
-	gra_cprint (sc_status, 6, "LV %d:%d/infinity  %c  Speed: %d       ", player->level, player->exp, ACS_VLINE, player->speed);
+	gra_cprint (sc_status, 6, "LV %d:%d/infinity   %c  Speed: %d       ", player->level, player->exp, ACS_VLINE, player->speed);
+	gra_cprint (sc_status, 7, "Str: %d", player->str);
+	gra_cprint (sc_status, 8, "Con: %d", player->con);
+	gra_cprint (sc_status, 9, "Agi: %d", player->agi);
+	gra_cprint (sc_status, 10, "Dex: %d", player->dex);
+	gra_cprint (sc_status, 11, "Press 'S' to save.");
 
 	switch (type)
 	{
@@ -217,7 +222,7 @@ int p_status (struct Monster *player, enum PanelType type)
 		char in = gr_getch ();
 		if (in == CH_ESC || in == ' ')
 			break;
-		if (in == 's')
+		else if (in == 's')
 		{
 			int ret = p_skills (player, type);
 			if (ret > 0)
@@ -230,6 +235,11 @@ int p_status (struct Monster *player, enum PanelType type)
 				gra_free (sc_status);
 				return 0;
 			}
+		}
+		else if (in == 'S')
+		{
+			U.playing = PLAYER_SAVEGAME;
+			return -1;
 		}
 	}
 	gra_free (sc_status);
@@ -329,6 +339,10 @@ int p_skills (struct Monster *player, enum PanelType type)
 				return 1;
 			case SK_DODGE:
 				break;
+			case SK_FLAMES:
+				gra_free (sc_skills);
+				sk_flames (player);
+				return 1;
 			case SK_NUM:
 				break;
 			}

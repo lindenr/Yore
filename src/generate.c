@@ -264,8 +264,8 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 
 		total_rooms = 0;
 		attempt_room (lvl, map_graph->h/2 - 2 - rn(3), map_graph->w/2 - 3 - rn(5), 15, 20);
-		//do add_another_room (lvl);
-		//while (total_rooms < 100);
+		do add_another_room (lvl);
+		while (total_rooms < 100);
 
 		start = map_buffer (map_graph->h/2, map_graph->w/2);
 		/* Down-stair */
@@ -391,13 +391,13 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 		m1.skills = v_dinit (sizeof(struct Skill));
 		m1.exp = 0;
 		m1.ctr.mode = CTR_PL;
-//		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
 //		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
 		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
 		pack_add (&m1.pack, &myhammer);
+		m1.ST = m1.ST_max = 100;
 		struct Monster *t1 = new_mthing (lvl, upsy, upsx, &m1);
-		ev_queue (1000, (union Event) { .mturn = {EV_MTURN, t1->ID}});
-		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t1->ID}});
 
 #if 0
 		init_mons (&m1, MTYP_HUMAN);
@@ -409,8 +409,6 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 		struct Item mysword = {items[0], 0, items[0].wt, NULL};
 		pack_add (&m1.pack, &mysword);
 		t1 = new_mthing (lvl, upsy+2, upsx+4, &m1);
-		ev_queue (1, (union Event) { .mturn = {EV_MTURN, t1->ID}});
-		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, t1->ID}});
 #endif
 		return t1;
 	}
@@ -432,8 +430,6 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 			p.ctr.mode = CTR_AI_TIMID;
 		p.level = 1; //mons[p.type].exp? TODO
 		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
-		ev_queue (1000, (union Event) { .mturn = {EV_MTURN, th->ID}});
-		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, th->ID}});
 		//printf ("successful generation \n");
 		return th;
 	}
@@ -450,9 +446,6 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 		struct Item mysword = {items[0], 0, items[0].wt, NULL};
 		pack_add (&p.pack, &mysword);
 		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
-		ev_queue (1000, (union Event) { .mturn = {EV_MTURN, th->ID}});
-		ev_queue (1, (union Event) { .mregen = {EV_MREGEN, th->ID}});
-		//printf ("successful generation \n");
 		return th;
 	}
 	return NULL;;

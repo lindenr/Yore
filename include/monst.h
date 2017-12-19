@@ -20,12 +20,14 @@
 #define FL_NEUTRAL 0x00000000   /* starts neutral */
 
 /* Size flags with _rough_ approximations         */
+#define FL_SIZ0 0x00000000      /* placeholder    */
 #define FL_SIZ1 0x20000000      /* tiny (bee)     */
 #define FL_SIZ2 0x40000000      /* small (cat)    */
 #define FL_SIZ3 0x60000000      /* m-small (dog)  */
 #define FL_SIZ4 0x80000000      /* medium (human) */
 #define FL_SIZ5 0xA0000000      /* large (horse)  */
 #define FL_SIZ6 0xC0000000      /* huge (giant)   */
+#define FL_SIZE(n) (n << 29)
 extern const int CORPSE_WEIGHTS[];
 
 #define FL_BLOB (FL_FLSH | FL_ACID)
@@ -230,8 +232,8 @@ struct Monster
 	int32_t ST, ST_max;         /* current/max stamina          */
 	//int32_t MP, MP_max;       /* current/max mana TODO        */
 	/* fixed stats (may be trained?) */
-	uint32_t con;               /* constitution (HP regen)      */
-	uint32_t str;               /* strength (ST regen)          */
+	uint32_t str;               /* strength (HP regen)          */
+	uint32_t con;               /* constitution (ST regen)      */
 	//uint32_t wis;             /* wisdom (MP regen) TODO       */
 	uint32_t agi;               /* agility (chance to dodge)    */
 	uint32_t dex;               /* dexterity (chance to hit)    */
@@ -250,7 +252,7 @@ extern const struct Monster all_mons[];
 
 struct Monster;
 /* general monster functions */
-int    mons_move       (struct Monster *, int, int, int);    /* move in given directions                 */
+int    mons_move       (struct Monster *, int, int);         /* move in given directions                 */
 int    mons_take_turn  (struct Monster *);                   /* give a move (AI or player)               */
 //void   mons_init_stats (struct MStats *, const struct MType *); /* generate monster stats              */
 void   mons_box        (struct Monster *, BoxType);          /* boxy flags for this turn                 */

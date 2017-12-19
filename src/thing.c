@@ -9,6 +9,7 @@
 #include "include/drawing.h"
 #include "include/graphics.h"
 #include "include/dlevel.h"
+#include "include/event.h"
 
 TID curID = 0;
 TID getID ()
@@ -16,55 +17,60 @@ TID getID ()
 	return (++curID);
 }
 
-char ACS_ARRAY[] = {
-	' ',
-	ACS_VLINE,
-	ACS_HLINE,
-	ACS_URCORNER,
-	ACS_ULCORNER,
-	ACS_LRCORNER,
+/* these are in binary order, clockwise from top */
+unsigned char ACS_ARRAY[17] = {
+	ACS_DOT,
+	ACS_TSTUB,
+	ACS_RSTUB,
 	ACS_LLCORNER,
-	ACS_RTEE,
+	ACS_BSTUB,
+	ACS_VLINE,
+	ACS_ULCORNER,
 	ACS_LTEE,
-	ACS_TTEE,
+	ACS_LSTUB,
+	ACS_LRCORNER,
+	ACS_HLINE,
 	ACS_BTEE,
-	ACS_PLUS
+	ACS_URCORNER,
+	ACS_RTEE,
+	ACS_TTEE,
+	ACS_PLUS,
+	' '
 };
 
+/* unused */
 int wall_output[256] = {
 /* 0 */
-0, 1, 0, 1, 2, 6, 2, 6, 0, 1, 0, 1, 2, 6, 2, 6,
-1, 1, 1, 1, 4, 8, 4, 8, 1, 1, 1, 1, 4, 8, 4, 1,
-0, 1, 0, 1, 2, 6, 2, 6, 0, 1, 0, 1, 2, 6, 2, 6,
-1, 1, 1, 1, 4, 8, 4, 8, 1, 1, 1, 1, 4, 8, 4, 1,
+0, 1, 0, 1, 2, 3, 2, 3, 0, 1, 0, 1, 2, 3, 2, 3,
+4, 5, 4, 5, 6, 7, 6, 7, 4, 5, 4, 5, 6, 7, 6, 5,
+0, 1, 0, 1, 2, 3, 2, 3, 0, 1, 0, 1, 2, 3, 2, 3,
+4, 5, 4, 5, 6, 7, 6, 7, 4, 5, 4, 5, 6, 7, 6, 5,
 /* 64 */
-2, 5, 2, 5, 2, 10, 2, 10, 2, 5, 2, 5, 2, 10, 2, 10,
-3, 7, 3, 7, 9, 11, 9, 11, 3, 7, 3, 7, 9, 11, 9, 7,
-2, 5, 2, 5, 2, 10, 2, 10, 2, 5, 2, 5, 2, 10, 2, 10,
-3, 7, 3, 7, 9, 11, 9, 11, 3, 7, 3, 7, 2, 10, 2, 5,
+8, 9, 8, 9, 10, 11, 10, 11, 8, 9, 8, 9, 10, 11, 10, 11,
+12, 13, 12, 13, 14, 15, 14, 15, 12, 13, 12, 13, 14, 15, 14, 13,
+8, 9, 8, 9, 10, 11, 10, 11, 8, 9, 8, 9, 10, 11, 10, 11,
+12, 13, 12, 13, 14, 15, 14, 15, 12, 13, 12, 13, 10, 11, 10, 9,
 /* 128 */
-0, 1, 0, 1, 2, 6, 2, 6, 0, 1, 0, 1, 2, 6, 2, 6,
-1, 1, 1, 1, 4, 8, 4, 8, 1, 1, 1, 1, 4, 8, 4, 1,
-0, 1, 0, 1, 2, 6, 2, 6, 0, 1, 0, 1, 2, 6, 2, 6,
-1, 1, 1, 1, 4, 8, 4, 8, 1, 1, 1, 1, 4, 8, 4, 1,
+0, 1, 0, 1, 2, 3, 2, 3, 0, 1, 0, 1, 2, 3, 2, 3,
+4, 5, 4, 5, 6, 7, 6, 7, 4, 5, 4, 5, 6, 7, 6, 5,
+0, 1, 0, 1, 2, 3, 2, 3, 0, 1, 0, 1, 2, 3, 2, 3,
+4, 5, 4, 5, 6, 7, 6, 7, 4, 5, 4, 5, 6, 7, 6, 5,
 /* 192 */
-2, 5, 2, 5, 2, 10, 2, 2, 2, 5, 2, 5, 2, 10, 2, 2,
-3, 7, 3, 7, 9, 11, 9, 9, 3, 7, 3, 7, 9, 11, 9, 3,
-2, 5, 2, 5, 2, 10, 2, 2, 2, 5, 2, 5, 2, 10, 2, 2,
-3, 1, 3, 1, 9, 8, 9, 4, 3, 1, 3, 1, 2, 6, 2, 0
-/* 256 */
+8, 9, 8, 9, 10, 11, 10, 10, 8, 9, 8, 9, 10, 11, 10, 10,
+12, 13, 12, 13, 14, 15, 14, 14, 12, 13, 12, 13, 14, 15, 14, 12,
+8, 9, 8, 9, 10, 11, 10, 10, 8, 9, 8, 9, 10, 11, 10, 10,
+12, 5, 12, 5, 14, 7, 14, 6, 12, 5, 12, 5, 10, 3, 10, 16
+/*256 */
 };
 
 /* What this function does is purely cosmetic - given whether or not
  * the squares surrounding are walls or spaces, this function returns what
  * character should be displayed (corner, straight line, tee, etc). */
-glyph WALL_TYPE (glyph y, glyph u,
-        glyph h, glyph j, glyph k, glyph l,
-                 glyph b, glyph n)
+glyph WALL_TYPE (int y, int u, int h, int j, int k, int l, int b, int n)
 {
-	int H = !(h == ACS_DOT), J = !(j == ACS_DOT), K = !(k == ACS_DOT), L = !(l == ACS_DOT),
-        Y = !(y == ACS_DOT), U = !(u == ACS_DOT), B = !(b == ACS_DOT), N = !(n == ACS_DOT);
-	return ACS_ARRAY[wall_output[(((((((((((((Y<<1)+H)<<1)+B)<<1)+J)<<1)+N)<<1)+L)<<1)+U)<<1)+K]];
+	int i = ((k==1) + (l==1)*2 + (j==1)*4 + (h==1)*8) &
+		(~((h&&y&&u&&l)<<0)) & (~((j&&n&&u&&k)<<1)) & (~((l&&n&&b&&h)<<2)) & (~((k&&y&&b&&j)<<3));
+	return ACS_ARRAY[i];
 }
 /*
 void walls_test ()
@@ -80,16 +86,16 @@ void walls_test ()
 		    L = (i&4) > 0,
 		    U = (i&2) > 0,
 		    K = (i&1) > 0;
-		txt_mvaddch (0, 0, Y?'#':' ');
-		txt_mvaddch (1, 0, H?'#':' ');
-		txt_mvaddch (2, 0, B?'#':' ');
-		txt_mvaddch (2, 1, J?'#':' ');
-		txt_mvaddch (2, 2, N?'#':' ');
-		txt_mvaddch (1, 2, L?'#':' ');
-		txt_mvaddch (0, 2, U?'#':' ');
-		txt_mvaddch (0, 1, K?'#':' ');
-		txt_mvaddch (1, 1, ACS_ARRAY[wall_output[i]]);
-		txt_mvprint (3, 0, "Number %d", i);
+		gra_mvaddch (map_graph, 0, 0, Y?'#':' ');
+		gra_mvaddch (map_graph, 1, 0, H?'#':' ');
+		gra_mvaddch (map_graph, 2, 0, B?'#':' ');
+		gra_mvaddch (map_graph, 2, 1, J?'#':' ');
+		gra_mvaddch (map_graph, 2, 2, N?'#':' ');
+		gra_mvaddch (map_graph, 1, 2, L?'#':' ');
+		gra_mvaddch (map_graph, 0, 2, U?'#':' ');
+		gra_mvaddch (map_graph, 0, 1, K?'#':' ');
+		gra_mvaddch (map_graph, 1, 1, ACS_ARRAY[wall_output[i]]);
+		gra_mvprint (map_graph, 3, 0, "Number %d", i);
 		gr_getch ();
 	}
 }*/
@@ -201,10 +207,15 @@ struct Monster *new_mthing (struct DLevel *lvl, uint32_t y, uint32_t x, void *ac
 	if (ret->ID) panic ("monster already there!");
 	memcpy (ret, &t, sizeof(t));
 	v_push (all_ids, &ret);
+	ev_queue (1000, (union Event) { .mturn = {EV_MTURN, ret->ID}});
+	ev_queue (1, (union Event) { .mregen = {EV_MREGEN, ret->ID}});
 	return ret;
 }
 
-#define US(w) (sq_cansee[w]?(sq_attr[w]?ACS_DOT:ACS_WALL):ACS_WALL)
+// more restrictive; gives less away
+//#define US(w) ((!sq_cansee[w])*2 + (!sq_attr[w]))
+// better-looking but leaks (inconsequential) info about layout
+#define US(w) (sq_attr[w]?(!sq_cansee[w])*2:1)
 
 void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,
                   glyph *sq_memory, glyph *sq_vis, glyph *sq_nonvis)
@@ -218,6 +229,12 @@ void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,
 			sq_cansee[w] = 1;
 
 	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
+	// TODO draw more lines (not just starting at player) so that "tile A visible to tile B"
+	// is symmetric in A and B; also want that if the player moves between two adjacent squares,
+	// then the player can see (from one or other of the squares) anything they plausibly could
+	// have seen while moving between them. This doesn't currently hold (exercise); would it
+	// hold if we drew every line through the player, not just those starting there?
+	// TODO maybe add a range limit
 	for (w = 0; w < gr_area; ++ w)
 		bres_draw (Yloc, Xloc, sq_cansee, sq_attr, NULL, map_graph->cy + w / gr_w, map_graph->cx + w % gr_w);
 
@@ -255,9 +272,7 @@ void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,
 			else if (!sq_cansee[w])
 				continue;
 
-			uint32_t y, k, u,
-			         h,    l,
-					 b, j, n;
+			int h, j, k, l, y, u, b, n;
 
 			if (X)
 				h = US(w - 1);
@@ -277,13 +292,10 @@ void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,
 				n = US(w + map_graph->w + 1);
 
 			/* Finally, do the actual drawing of the wall. */
+			glyph output = WALL_TYPE (y, u, h, j, k, l, b, n);
 			if (sq_cansee[w] == 2)
-				gra_baddch (map_graph, w,
-				            (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n) |
-				            COL_TXT_BRIGHT);
-			else
-				gra_baddch (map_graph, w,
-				            (unsigned char) WALL_TYPE(y, u, h, j, k, l, b, n));
+				output |= COL_TXT_BRIGHT;
+			gra_baddch (map_graph, w, output);
 		}
 	}
 }

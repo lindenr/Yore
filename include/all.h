@@ -50,7 +50,7 @@
 //#error operating system not defined
 #endif /* WINDOWS, FOONIX */
 
-#define YORE_VERSION "0.0.6 pre-alpha"
+#define YORE_VERSION "0.0.7 pre-alpha"
 
 #endif /* ALL_H_INCLUDED */
 

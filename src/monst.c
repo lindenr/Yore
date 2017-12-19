@@ -127,7 +127,7 @@ void mons_corpse (struct Monster *mons, Ityp *itype)
 /* Return values:
  * 0 = failed to move; 1 = moved as desired;
  * 2, 3, 4 = did not move as desired but used turn */
-int mons_move (struct Monster *th, int y, int x, int final) /* each either -1, 0 or 1 */
+int mons_move (struct Monster *th, int y, int x) /* each either -1, 0 or 1 */
 {
 	if (!(x || y))
 		return 0;
@@ -138,8 +138,6 @@ int mons_move (struct Monster *th, int y, int x, int final) /* each either -1, 0
 	/* you can and everything's fine, nothing doing */
 	else if (can == 1)
 	{
-		//if (final)
-		//	mons_usedturn (th);
 		if (mons_isplayer (th))
 		{
 			pl_queue (th, (union Event) { .mmove = {EV_MMOVE, th->ID, y, x}});
@@ -152,8 +150,6 @@ int mons_move (struct Monster *th, int y, int x, int final) /* each either -1, 0
 	/* melee attack! */
 	else if (can == 2)
 	{
-		//if (final)
-		//	mons_usedturn (th);
 		if (mons_isplayer (th))
 		{
 			pl_queue (th, (union Event) { .mattkm = {EV_MATTKM, th->ID, y, x}});
@@ -165,15 +161,11 @@ int mons_move (struct Monster *th, int y, int x, int final) /* each either -1, 0
 	}
 	else if (can == 3)
 	{
-		//if (final)
-		//	mons_usedturn (th);
 		ev_queue (0, (union Event) { .mopendoor = {EV_MOPENDOOR, th->ID, y, x}});
 		return 3;
 	}
 	else if (can == 4)
 	{
-		if (final)
-			mons_usedturn (th);
 		ev_queue (0, (union Event) { .mclosedoor = {EV_MCLOSEDOOR, th->ID, y, x}});
 		return 4;
 	}
@@ -188,18 +180,6 @@ int mons_move (struct Monster *th, int y, int x, int final) /* each either -1, 0
 	return 0;
 }
 
-void mons_usedturn (struct Monster *th)
-{
-//	if (!mons_isplayer(th))
-//		return;
-	//th->status &= ~M_CHARGE;
-//	int i;
-//	for (i = 0; i < cur_dlevel->mons->len; ++ i)
-//	{
-//		int *id = v_at (cur_dlevel->mons, i);
-//		THIID(*id)->mons.boxflags = 0;
-//	}
-}
 #if 0
 void thing_move_level (struct Monster *th, int32_t where)
 {
@@ -494,8 +474,6 @@ int mons_ST_hit (struct Monster *from, struct Item *with)
 
 int mons_HP_regen (struct Monster *th)
 {
-	if (th->HP >= th->HP_max)
-		return 0;
 	return !rn(50);
 }
 
@@ -506,9 +484,7 @@ int mons_HP_max_regen (struct Monster *th)
 
 int mons_ST_regen (struct Monster *th)
 {
-	if (th->ST >= th->ST_max)
-		return 0;
-	return rn(2);
+	return rn(th->con/2);
 }
 
 int mons_ST_max_regen (struct Monster *th)
@@ -589,7 +565,7 @@ int AI_TIMID_take_turn (struct Monster *ai)
 	int y = rn(3)-1, x = rn(3)-1;
 	int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
 	if (can == 1)
-		mons_move (ai, y, x, 1);
+		mons_move (ai, y, x);
 	else
 		ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
 	return 1;
@@ -601,7 +577,7 @@ int AI_HOSTILE_take_turn (struct Monster *ai)
 	int y = rn(3)-1, x = rn(3)-1;
 	int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
 	if (can == 1)
-		mons_move (ai, y, x, 1);
+		mons_move (ai, y, x);
 	else
 		ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
 	return 1;
@@ -624,7 +600,7 @@ int AI_AGGRO_take_turn (struct Monster *ai)
 	/* move randomly if you can't see your target */
 	if (!bres_draw (aiy, aix, NULL, dlv_attr(ai->dlevel), NULL, to->yloc, to->xloc))
 	{
-		if (!mons_move (ai, rn(3) - 1, rn(3) - 1, 1))
+		if (!mons_move (ai, rn(3) - 1, rn(3) - 1))
 			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
 		return 1;
 	}
@@ -652,8 +628,27 @@ int AI_AGGRO_take_turn (struct Monster *ai)
 		return 1;
 	}
 
-	/* otherwise move towards your target */
-	ev_queue (0, (union Event) { .mmove = {EV_MMOVE, aiID, ymove, xmove}});
+	/* move towards your target if you can */
+	if (can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + ymove, ai->xloc + xmove)))
+	{
+		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, aiID, ymove, xmove}});
+		ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
+		return 1;
+	}
+
+	/* otherwise try similar directions */
+	if (can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc, ai->xloc + xmove)))
+	{
+		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, aiID, 0, xmove}});
+		ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
+		return 1;
+	}
+	if (can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + ymove, ai->xloc)))
+	{
+		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, aiID, ymove, 0}});
+		ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
+		return 1;
+	}
 	ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
 	return 1;
 }

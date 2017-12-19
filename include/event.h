@@ -30,6 +30,7 @@ typedef enum
 	EV_MSTARTCHARGE,
 	EV_MDOCHARGE,
 	EV_MSTOPCHARGE,
+	EV_CIRCLEOFFLAME,
 	EV_MOPENDOOR,
 	EV_MCLOSEDOOR
 } EV_TYPE;
@@ -160,6 +161,13 @@ typedef union Event
 		EV_TYPE type;
 		TID thID;
 	} mstopcharge;
+	struct
+	{
+		EV_TYPE type;
+		//int yloc, xloc;
+		//int power, radius;
+		TID thID;
+	} circleofflame;
 	struct
 	{
 		EV_TYPE type;

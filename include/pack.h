@@ -33,3 +33,4 @@ struct Item *get_Itemc  (const Pack *, char);
 char get_Itref          (const Pack *, const struct Item *);
 
 #endif /* PACK_H_INCLUDED */
+

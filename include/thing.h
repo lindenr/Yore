@@ -63,6 +63,7 @@ TID  getID                   ();
 
 //void projectile            (struct Thing *, char *, int, int);
 //int  pr_at                 (struct DLevel *, int, int);
+void walls_test ();
 
 #endif /* THING_H_INCLUDED */
 

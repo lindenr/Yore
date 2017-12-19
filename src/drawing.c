@@ -5,14 +5,12 @@
 #include <math.h>
 
 /* adapted from wikipedia */
-bool bres_draw (int fromy, int fromx, uint8_t *grid, uint8_t *grid_t,
+bool bres_draw (int fy, int fx, uint8_t *grid, uint8_t *grid_t,
                 int (*callback) (struct DLevel *, int, int), int ty, int tx)
 {
 	if ((!callback) && grid && grid[map_buffer(ty, tx)] == 2)
 		return true;
-	int dy, dx, sy, sx, err, e2, fy, fx;
-	fy = fromy;
-	fx = fromx;
+	int dy, dx, sy, sx, err, e2;
 	dy = abs(ty - fy);
 	dx = abs(tx - fx);
 	if (fx < tx)
@@ -46,10 +44,10 @@ bool bres_draw (int fromy, int fromx, uint8_t *grid, uint8_t *grid_t,
 		}
 		if (fy == ty && fx == tx)
 			break;
-		if (grid_t[map_buffer(fy, fx)] == 0)
-			return false;
 		if (grid)
 			grid[map_buffer(fy, fx)] = 2;
+		if (grid_t[map_buffer(fy, fx)] == 0)
+			return false;
 	}
 	if (grid)
 		grid[map_buffer(fy, fx)] = 2;

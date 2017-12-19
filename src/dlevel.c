@@ -28,7 +28,7 @@ void dlv_make (int level, int uplevel, int dnlevel)
 	struct DLevel new_level = {
 		level,
 		malloc (sizeof(Vector) * map_graph->a),
-		malloc (sizeof(struct Monster)*map_graph->a),//v_dinit (sizeof(int)),
+		malloc (sizeof(struct Monster)*map_graph->a),
 		malloc (sizeof(uint8_t)*map_graph->a),
 		malloc (sizeof(uint8_t)*map_graph->a),
 		malloc (sizeof(glyph)*map_graph->a),
