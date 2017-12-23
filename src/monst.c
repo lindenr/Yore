@@ -318,42 +318,7 @@ Tick mons_tregen (struct Monster *th)
 	return 1000;
 }
 
-/*inline void *mons_get_weap (struct Monster *th)
-{
-	return &th->wearing.rweap;
-}
-
-bool mons_unwield (struct Monster *th)
-{
-	struct Item **pweap = mons_get_weap (th);
-	struct Item *weap = *pweap;
-	if (weap == NULL)
-		return true;
-	if (weap->attr & ITEM_CURS)
-	{
-		if (mons_isplayer(th))
-		{
-			p_msg ("You can't. It's cursed.");
-		}
-		return false;
-	}
-	weap->attr ^= ITEM_WIELDED;
-	*pweap = NULL;
-	return true;
-}
-
-bool mons_wield (struct Monster *th, struct Item *it)
-{
-	th->wearing.rweap = it;
-	it->attr ^= ITEM_WIELDED;
-	if (mons_isplayer(th))
-	{
-		item_look (it);
-	}
-	return true;
-}
-
-bool mons_wear (struct Monster *th, struct Item *it)
+/*bool mons_wear (struct Monster *th, struct Item *it)
 {
 	if (it->type.ch != ITCH_ARMOUR)
 	{
@@ -494,11 +459,6 @@ int mons_ST_max_regen (struct Monster *th)
 	return !rn(10*th->ST_max);
 }
 
-//void mons_init_stats (struct MStats *stats, const struct MType *type)
-//{
-//	memcpy (stats, &type->stats, sizeof (*stats));
-//}
-
 /*int player_sense (int yloc, int xloc, int senses)
 {
 	if (senses&SENSE_VISION)
@@ -512,23 +472,6 @@ int mons_ST_max_regen (struct Monster *th)
 	}
 	return 0;
 }*/
-
-void player_dead (const char *msg, ...)
-{
-	va_list args;
-	char *actual = malloc(80);
-
-	va_start (args, msg);
-	if (msg[0] == '\0')
-		msg = "You die...";
-	vsnprintf (actual, 80, msg, args);
-	p_msg (actual);
-	free (actual);
-	gr_getch ();
-	va_end (args);
-
-	U.playing = PLAYER_LOSTGAME;
-}
 
 int mons_cont (struct Monster *player, MCont cont, union ContData *data)
 {
@@ -558,6 +501,15 @@ int mons_isplayer (struct Monster *th)
 	default:
 		return 0;
 	}
+}
+
+int AI_weapcmp (struct Monster *ai, struct Item *w1, struct Item *w2)
+{
+	if (NO_ITEM(w2))
+		return !NO_ITEM(w1);
+	if (NO_ITEM(w1))
+		return -1;
+	return ((uintptr_t)w1) > ((uintptr_t)w2);
 }
 
 int AI_TIMID_take_turn (struct Monster *ai)
@@ -594,6 +546,27 @@ int AI_AGGRO_take_turn (struct Monster *ai)
 		return 1;
 	}
 
+	if (!ai->pack)
+		goto skip_weapon;
+	/* if you have a better weapon then wield it */
+	struct Item *curweap = ai->wearing.weaps[0];
+	struct Item *bestweap = curweap;
+	int i;
+	/* find the best weapon in the monster's inventory, defaulting to the
+	 * currently wielded weapon */
+	for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
+	{
+		struct Item *item = ai->pack->items[i];
+		if (!item)
+			continue;
+		if (AI_weapcmp (ai, item, bestweap) > 0)
+			bestweap = item;
+	}
+	if (bestweap == curweap)
+		goto skip_weapon;
+	ev_queue (0, (union Event) { .mwield = {EV_MWIELD, ai->ID, 0, bestweap}});
+
+skip_weapon: ;
 	/* where you are */
 	int aiy = ai->yloc, aix = ai->xloc;
 

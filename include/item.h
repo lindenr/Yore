@@ -57,8 +57,8 @@ enum ITYP
 
 #define ITCAT_ALL     (-1)
 
-#define ITEM_INIT = {0,0,""}
 #define ITEM_NAME_LENGTH 20
+#define NO_ITEM(item) ((!(item)) || ((item)->type.type == ITYP_NONE))
 
 /* type of item */
 typedef struct

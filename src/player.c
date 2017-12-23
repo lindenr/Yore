@@ -308,8 +308,10 @@ int Kwield (struct Monster *player)
 	if (items_equal (wield, player->wearing.weaps[0]))
 		return 0;
 
-	if (player->wearing.weaps[0] && wield->type.type)
-		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
+	if (NO_ITEM(wield))
+		wield = NULL;
+	if (player->wearing.weaps[0] && wield)
+		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, NULL}});
 	pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield}});
 	return pl_execute (player->speed, player, 0);
 }
@@ -451,13 +453,12 @@ struct KStruct Keys[] = {
 //	{'>',    &Kgodown},
 //	{'<',    &Kgoup},
 //	{'S',    &Ksave,   NULL},
-	{CONTROL_('q'), &Kquit, NULL}
+	{GR_CTRL('q'), &Kquit, NULL}
 };
 
-int key_lookup (struct Monster *player, char key)
+int key_lookup (struct Monster *player, char ch)
 {
 	int i;
-	char ch = key;
 	for (i = 0; i < NUM_KEYS; ++ i)
 	{
 		if (ch == Keys[i].key)

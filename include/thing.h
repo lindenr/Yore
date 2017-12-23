@@ -15,8 +15,6 @@
 #define MTHIID(id)         (*(struct Monster **) v_at (all_ids, (id)))
 #define THING(t,n,i)       ((struct Thing*)((t)[n]->data + (i)*sizeof(struct Thing)))
 
-#define CONTROL_(c) ((KMOD_CTRL << 16) | (c))
-
 typedef int TID;
 
 enum THING_TYPE

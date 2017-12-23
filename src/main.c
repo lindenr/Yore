@@ -8,6 +8,7 @@
 #include "include/generate.h"
 #include "include/graphics.h"
 #include "include/event.h"
+#include "include/save.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -56,12 +57,25 @@ bool game_intro ()
 	return ret;
 }
 
+void on_quit ()
+{
+	if (U.playing == PLAYER_STARTING)
+		printf("Give it a try next time...\n");
+	else
+	{
+		U.playing = PLAYER_SAVEGAME;
+		save (NULL);
+	}
+	exit (0);
+}
+
 int main (int argc, char *argv[])
 {
 	int i;
 
 	gr_onresize = p_init;
 	map_graph = gra_init (100, 300, 0, 0, gr_h - PANE_H, gr_w - 1);
+	gr_quit = &on_quit;
 	map_graph->vis = 0;
 	gr_init();
 	ev_init ();
@@ -85,18 +99,24 @@ int main (int argc, char *argv[])
 	Graph introbox = gra_init (ih, iw, ix, iy, ih, iw);
 	gra_dbox (introbox, 0, 0, ih-1, iw-1);
 	gra_mvprint (introbox, 2,  2, "Welcome to Yore v"YORE_VERSION);
-	gra_mvprint (introbox, 3, 10, "* A game guide is not yet in place.");
-	gra_mvprint (introbox, 4, 10, "* A wiki is not yet in place.");
+	introbox->def = COL_TXT(15, 0, 0);
+	gra_mvprint (introbox, 4, 2, "\07 A game guide is not yet in place.");
+	introbox->def = COL_TXT(0, 15, 0);
+	gra_mvprint (introbox, 5, 2, "\07 A wiki is not yet in place.");
+	introbox->def = COL_TXT_DEF;
 
 	gra_mvprint (introbox, 8, 6, "Who are you? ");
+	introbox->def = COL_TXT_BRIGHT;
 	char player_name[41] = {0,};
 
 	for (i = 0;
 		 i < 10 && player_name[0] == '\0';
 		 ++i)
 	{
-		if (i)
+		if (0 < i && i <= 5)
 			gra_mvprint (introbox, 10, 6, "Please type in your name.");
+		else if (i)
+			gra_mvprint (introbox, 10, 6, "Please type in your name!");
 		gra_getstr (introbox, 8, 19, player_name, 40);
 	}
 	gra_free(introbox);
@@ -118,6 +138,7 @@ int main (int argc, char *argv[])
 	pl->name = malloc(41);
 	strncpy (pl->name, player_name, 40);
 	pl->name[40] = 0;
+	char *pl_name = pl->name;
 	//generate_map (dlv_lvl (2), LEVEL_NORMAL);
 
 	//gra_centcam (map_graph, player->yloc, player->xloc);
@@ -125,18 +146,18 @@ int main (int argc, char *argv[])
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 
-	//ev_queue (1, (union Event) { .mgen = {EV_MGEN}});
+	ev_queue (1, (union Event) { .mgen = {EV_MGEN}});
 	ev_loop ();
 
   quit_game:
 	if (U.playing == PLAYER_LOSTGAME)
-		printf("Goodbye %s...\n", pl->name);
+		printf("Goodbye %s...\n", pl_name);
 	else if (U.playing == PLAYER_SAVEGAME)
-		printf("See you soon...\n");
+		save (NULL);
 	else if (U.playing == PLAYER_STARTING)
 		printf("Give it a try next time...\n");
 	else if (U.playing == PLAYER_WONGAME)
-		printf("Congratulations %s...\n", pl->name);
+		printf("Congratulations %s...\n", pl_name);
 
 	exit(0);
 }

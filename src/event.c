@@ -256,7 +256,7 @@ void ev_do (Event ev)
 		{
 			p_msg ("You die...");
 			p_pane (to);
-			gr_getch ();
+			gr_wait (500);
 			U.playing = PLAYER_LOSTGAME;
 			return;
 		}
@@ -268,6 +268,18 @@ void ev_do (Event ev)
 		if (!th)
 			return;
 
+		if (!th->pack)
+			goto mcorpse;
+		for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
+		{
+			if (!th->pack->items[i])
+				continue;
+			th->pack->items[i]->attr &= ~ITEM_WIELDED;
+			new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, th->pack->items[i]);
+			free (th->pack->items[i]);
+		}
+
+	mcorpse: ;
 		/* add corpse */
 		struct Item corpse;
 		mons_corpse (th, &corpse.type);
@@ -276,17 +288,6 @@ void ev_do (Event ev)
 		corpse.cur_weight = 0;
 		new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, &corpse);
 
-		if (!th->pack)
-			goto mcorpse_done;
-		for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
-		{
-			if (!th->pack->items[i])
-				continue;
-			new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, th->pack->items[i]);
-			free (th->pack->items[i]);
-		}
-
-	mcorpse_done:
 		/* remove dead monster */
 		rem_mid (th->ID);
 		return;
@@ -327,10 +328,9 @@ void ev_do (Event ev)
 		struct Item *it = ev->mwield.it;
 		if (th->wearing.weaps[arm])
 			th->wearing.weaps[arm]->attr &= ~ITEM_WIELDED;
-		if (it->type.type == ITYP_NONE)
+		if (NO_ITEM(it))
 		{
 			th->wearing.weaps[arm] = NULL;
-			//ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 			return;
 		}
 		th->wearing.weaps[arm] = it;
@@ -338,7 +338,6 @@ void ev_do (Event ev)
 		p_msg ("The %s wields %s.", th->mname, get_inv_line (NULL, it)); /* notify */
 		//if (mons_isplayer(th))
 		//	item_look (it);
-		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
@@ -482,3 +481,4 @@ void ev_loop ()
 		ev_do (&qe.ev);
 	}
 }
+

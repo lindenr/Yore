@@ -14,8 +14,6 @@
 #include <stdarg.h>
 
 int p_height, p_width;
-int sb_width;
-//glyph *sidebar = NULL;
 
 Vector messages = NULL;
 
@@ -30,9 +28,6 @@ void p_pane (struct Monster *player)
 		gpan = gra_init (p_height, p_width, ypan, xpan, p_height, p_width);
 		gpan->def = COL_PANEL;
 	}
-	/*for (i = 0; i < p_height; ++ i)
-		for (j = 0; j < p_width; ++ j)
-			txt_mvaddch (ypan + i, xpan + j, ' ');*/
 	gra_fbox (gpan, 0, 0, p_height-1, p_width-1, ' ');
 
 	//int max = gr_h;
@@ -63,30 +58,20 @@ void p_pane (struct Monster *player)
 
 	gra_mvprint (gpan, 1, 1, "T %llu", curtick/1000);
 
-	gra_mvprint (gpan, 2, 1, "%s the Player", w_short (player->name, 20));
-	gra_mvprint (gpan, 3, 1, "HP %d/%d", player->HP, player->HP_max);
-	gra_mvprint (gpan, 4, 1, "ST %d/%d", player->ST, player->ST_max);
-	gra_mvprint (gpan, 5, 1, "LV %d:%d/infinity", player->level, player->exp); // TODO?
+	if (player)
+	{
+		gra_mvprint (gpan, 2, 1, "%s the Player", w_short (player->name, 20));
+		gra_mvprint (gpan, 3, 1, "HP %d/%d", player->HP, player->HP_max);
+		gra_mvprint (gpan, 4, 1, "ST %d/%d", player->ST, player->ST_max);
+		gra_mvprint (gpan, 5, 1, "LV %d:%d/infinity", player->level, player->exp); // TODO?
+		gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d", player->status.defending.ydir, player->status.defending.xdir);
+		if (player->status.charging)
+			gra_mvprint (gpan, 3, 110, "CHARGING");
+	}
+
 	if (pl_focus_mode)
 		gra_mvprint (gpan, 1, 110, "FOCUS MODE");
-	gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d", player->status.defending.ydir, player->status.defending.xdir);
-	if (player->status.charging)
-		gra_mvprint (gpan, 3, 110, "CHARGING");
-	/*char *rank = get_rank ();
-	int rlen = strlen (rank);
-	txt_mvprint (ypan + 1, xpan + p_width - 1 - rlen, rank);*/
 
-	if (sb_width == 0)
-		goto skip1;
-	/*for (i = 0; i < map_graph->vh; ++ i)
-	{
-		txt_mvaddch (i, map_graph->vw, ACS_VLINE);
-		for (j = map_graph->vw + 1; j < txt_w - 1; ++ j)
-		{
-			txt_mvaddch (i, j, sidebar[sb_buffer(i, j-map_graph->vw)]);
-		}
-	}*/
-skip1:
 	if (messages == NULL)
 		goto skip2;
 	for (i = 0; i < 8 && i < messages->len; ++ i)
@@ -134,8 +119,7 @@ void p_msg (const char *str, ...)
 char p_ask (struct Monster *player, const char *results, const char *question)
 {
 	p_amsg (question);
-	if (player)
-		p_pane (player);
+	p_pane (player);
 	char in;
 	do
 		in = (char)gr_getch();

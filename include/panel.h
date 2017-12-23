@@ -46,5 +46,7 @@ extern int p_width, p_height
 //, p_open
 ;
 
+extern Graph gpan;
+
 #endif /* PANEL_H_INCLUDED */
 

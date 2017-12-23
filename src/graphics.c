@@ -47,6 +47,7 @@ Vector graphs = NULL;
 void (*gr_onidle) () = NULL;
 void (*gr_onresize) () = NULL;
 void (*gr_onrefresh) () = NULL;
+void (*gr_quit) () = NULL;
 
 int gra_buffer (Graph gra, int yloc, int xloc)
 {
@@ -345,13 +346,10 @@ void gr_refresh ()
 					if ((gra->flags[gra_c]&1) || forced_refresh || gr_flags[gr_c])
 					{
 						glyph gl = gra->data[gra_c];
-						if (gl)
-						{
-							if (gra->csr_state && gra->csr_y == gra_y && gra->csr_x == gra_x)
-								gr_map[gr_c] = ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
-							else
-								gr_map[gr_c] = gl;
-						}
+						if (gra->csr_state && gra->csr_y == gra_y && gra->csr_x == gra_x)
+							gr_map[gr_c] = gra_glinvert (gra, gl);
+						else if (gl)
+							gr_map[gr_c] = gl;
 						gr_flags[gr_c] = 1|gra->flags[gra_c];
 					}
 				}
@@ -414,11 +412,17 @@ void gra_clear (Graph gra)
 		gra_baddch (gra, i, 0);
 }
 
+glyph gra_glinvert (Graph gra, glyph gl)
+{
+	if (gl == 0)
+		gl = gra->def;
+	return ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
+}
+
 void gra_invert (Graph gra, int yloc, int xloc)
 {
 	int b = gra_buffer(gra, yloc, xloc);
-	glyph *gl = &gra->data[b];
-	*gl = (((*gl) << 12)&0xFFF00000) ^ (((*gl) >> 12)&0x000FFF00) ^ ((*gl)&0xFF);
+	gra->data[b] = gra_glinvert (gra, gra->data[b]);
 	gra->flags[b] |= 1;
 }
 
@@ -451,7 +455,7 @@ uint32_t end = 0, key_fire_ms = 0;
 char cur_key_down = 0;
 int num_keys_down = 0;
 
-char gr_getch ()
+char gr_getch_aux (int text)
 {
 	gr_refresh ();
 
@@ -493,22 +497,29 @@ char gr_getch ()
 					break;
 				code = sdlEvent.key.keysym.sym;
 				if (gr_inputcode(code))
+				{
 					++ num_keys_down;
-				uint32_t mod = sdlEvent.key.keysym.mod << 16;
+					if (num_keys_down == 1 && (!text) &&
+					    (sdlEvent.key.keysym.mod & (KMOD_LCTRL | KMOD_RCTRL)))
+					{
+						input_key = GR_CTRL(code);
+						break;
+					}
+				}
 				if (code == SDLK_UP)
-					input_key = mod|GRK_UP;
+					input_key = GRK_UP;
 				else if (code == SDLK_DOWN)
-					input_key = mod|GRK_DN;
+					input_key = GRK_DN;
 				else if (code == SDLK_LEFT)
-					input_key = mod|GRK_LF;
+					input_key = GRK_LF;
 				else if (code == SDLK_RIGHT)
-					input_key = mod|GRK_RT;
+					input_key = GRK_RT;
 				else if (code == SDLK_RETURN)
-					input_key = mod|CH_LF;
+					input_key = CH_LF;
 				else if (code == SDLK_BACKSPACE)
-					input_key = mod|CH_BS;
+					input_key = CH_BS;
 				else if (code == SDLK_ESCAPE)
-					input_key = mod|CH_ESC;
+					input_key = CH_ESC;
 				break;
 
 			case SDL_KEYUP:
@@ -532,7 +543,12 @@ char gr_getch ()
 				break;
 			
 			case SDL_QUIT:
-				exit(0);
+				if (!gr_quit)
+					exit(0);
+				/* this is allowed to return - can be interpreted as a hint
+				 * to quit soon */
+				gr_quit (); 
+				break;
 			
 			default:
 				break;
@@ -549,6 +565,16 @@ char gr_getch ()
 	return EOF;
 }
 
+char gr_getch ()
+{
+	return gr_getch_aux (0);
+}
+
+char gr_getch_text ()
+{
+	return gr_getch_aux (1);
+}
+
 void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
 {
 	int i = 0;
@@ -556,7 +582,7 @@ void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
 	while (1)
 	{
 		gra_cmove (gra, yloc, xloc);
-		char in = gr_getch ();
+		unsigned char in = gr_getch_text ();
 		if (in == CH_LF || in == CH_CR) break;
 		if (in == CH_BS)
 		{
@@ -693,9 +719,7 @@ Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
 	glyph *data = malloc (sizeof(glyph) * a);
 	gflags *flags = malloc (sizeof(gflags) * a);
 
-	int i;
-	for (i = 0; i < a; ++ i)
-		data[i] = COL_TXT_DEF;
+	memset (data, 0, sizeof(glyph) * a);
 	memset (flags, 0, sizeof(gflags) * a);
 	
 	gra = malloc (sizeof(struct Graph));

@@ -72,6 +72,7 @@ void save_item (struct Item *item)
  * This function saves in the following order: Time; U; all_things; sq_attr. */
 bool save (char *filename)
 {
+	printf("See you soon...\n");
 	/*int i;
 	if (p_ask ("yn", "Save and quit?") == 'y')
 	{

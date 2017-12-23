@@ -65,6 +65,7 @@ extern int forced_refresh;
 //extern void (*gr_onidle)    ();
 extern void (*gr_onresize)  ();
 //extern void (*gr_onrefresh) ();
+extern void (*gr_quit) ();
 
 /* Initialisation */
 void gr_init      (void);
@@ -77,6 +78,7 @@ void gra_centcam  (Graph, int, int);
 
 void gra_clear    (Graph);
 void gra_invert   (Graph, int, int);
+glyph gra_glinvert(Graph, glyph);
 
 void gra_addch    (Graph, glyph);
 void gra_mvaddch  (Graph, int, int, glyph);
@@ -106,12 +108,14 @@ void gra_hide     (Graph);
 void gra_mark     (Graph, int, int);
 
 /* Input */
-char     gr_getch     ();
-//SDL_Keysym gr_getkey ();
-void     gra_getstr   (Graph, int, int, char *, int);
-int      gr_equiv     (uint32_t, uint32_t);
+char gr_getch     ();
+char gr_getch_text();
+void gra_getstr   (Graph, int, int, char *, int);
 
 void gr_tout      (int);
+
+/* control-key of a lower-case character */
+#define GR_CTRL(ch) ((ch)-96)
 
 /* Misc */
 int  gra_buffer   (Graph, int, int);
@@ -131,8 +135,8 @@ void gr_resize    (int, int);
 
 #define GRK_UP       0x1E
 #define GRK_DN       0x1F
-#define GRK_LF       0x11
-#define GRK_RT       0x10
+#define GRK_LF       0xAE
+#define GRK_RT       0xAF
 
 #define ACS_DOT      0xFA
 #define ACS_BIGDOT   0xF9

@@ -214,7 +214,7 @@ struct Monster *new_mthing (struct DLevel *lvl, uint32_t y, uint32_t x, void *ac
 
 // more restrictive; gives less away
 //#define US(w) ((!sq_cansee[w])*2 + (!sq_attr[w]))
-// better-looking but leaks (inconsequential) info about layout
+// better-looking but leaks some info about layout
 #define US(w) (sq_attr[w]?(!sq_cansee[w])*2:1)
 
 void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,

@@ -394,9 +394,9 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
 		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
 //		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
-		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
-		pack_add (&m1.pack, &myhammer);
-		m1.ST = m1.ST_max = 100;
+//		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
+//		pack_add (&m1.pack, &myhammer);
+//		m1.ST = m1.ST_max = 100;
 		struct Monster *t1 = new_mthing (lvl, upsy, upsx, &m1);
 
 #if 0
@@ -443,8 +443,8 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 		else
 			p.ctr.mode = CTR_AI_TIMID;
 		p.level = 1; //mons[p.type].exp? TODO
-		struct Item mysword = {items[0], 0, items[0].wt, NULL};
-		pack_add (&p.pack, &mysword);
+		struct Item myaxe = {items[3], 0, items[0].wt, NULL};
+		pack_add (&p.pack, &myaxe);
 		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
 		return th;
 	}

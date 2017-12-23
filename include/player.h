@@ -10,7 +10,7 @@
 
 struct KStruct
 {
-	uint32_t key;
+	char key;
 	int (*action) (struct Monster *);
 	int (*cand) (struct Monster *);
 };

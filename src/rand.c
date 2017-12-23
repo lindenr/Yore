@@ -12,7 +12,7 @@ uint32_t dice_roll (uint32_t a, uint32_t b)
 	for (i = 0; i < a; ++i)
 	{
 		/* roll it and add to the final result */
-		ret += rn (b);
+		ret += rn (b) + 1;
 	}
 	return ret;
 }
