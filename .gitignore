@@ -1,5 +1,5 @@
-# Executables
-bin/Yore
+# Executable
+Yore
 # Save files (testing)
 *.sav
 .*.swp
