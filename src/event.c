@@ -81,12 +81,9 @@ Vector events = NULL;
 Tick curtick = 0;
 void ev_queue (Tick udelay, union Event ev)
 {
-	Tick when = curtick + udelay; //ev_delay (&ev);
-	//printf ("queue %d %d\n", when, ev.type);
+	Tick when = curtick + udelay;
 	struct QEv qe = {when, ev};
 	int i = 0;
-	//for (i = 0; i < events->len; ++ i)
-	//	ev_print (v_at (events, i));
 	if (udelay)
 	for (i = 0; i < events->len && ((struct QEv*)v_at(events, i))->tick <= when; ++ i)
 		{}
@@ -180,14 +177,14 @@ void ev_do (Event ev)
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->speed, (union Event) { .mdoshield = {EV_MDOSHIELD, thID, ev->mshield.ydir, ev->mshield.xdir}});
+		ev_queue (th->speed/2 + 1, (union Event) { .mdoshield = {EV_MDOSHIELD, thID, ev->mshield.ydir, ev->mshield.xdir}});
 		return;
 	case EV_MDOSHIELD:
 		thID = ev->mdoshield.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->speed, (union Event) { .munshield = {EV_MUNSHIELD, thID}});
+		ev_queue (th->speed/2 + 1, (union Event) { .munshield = {EV_MUNSHIELD, thID}});
 		th->status.defending.ydir = ev->mdoshield.ydir;
 		th->status.defending.xdir = ev->mdoshield.xdir;
 		return;
@@ -207,6 +204,7 @@ void ev_do (Event ev)
 		ev_queue (th->speed, (union Event) { .mdoattkm = {EV_MDOATTKM, thID}});
 		th->status.attacking.ydir = ev->mattkm.ydir;
 		th->status.attacking.xdir = ev->mattkm.xdir;
+		p_msg ("The %s swings, to hit in %dms!", th->mname, th->speed);
 		break;
 	case EV_MDOATTKM:
 		frID = ev->mdoattkm.thID;

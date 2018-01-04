@@ -10,6 +10,7 @@
 #include "include/graphics.h"
 #include "include/dlevel.h"
 #include "include/event.h"
+#include "include/rand.h"
 
 TID curID = 0;
 TID getID ()
@@ -18,7 +19,7 @@ TID getID ()
 }
 
 /* these are in binary order, clockwise from top */
-unsigned char ACS_ARRAY[17] = {
+char ACS_ARRAY[17] = {
 	ACS_DOT,
 	ACS_TSTUB,
 	ACS_RSTUB,
@@ -207,7 +208,7 @@ struct Monster *new_mthing (struct DLevel *lvl, uint32_t y, uint32_t x, void *ac
 	if (ret->ID) panic ("monster already there!");
 	memcpy (ret, &t, sizeof(t));
 	v_push (all_ids, &ret);
-	ev_queue (1000, (union Event) { .mturn = {EV_MTURN, ret->ID}});
+	ev_queue (1000 + rn(1000), (union Event) { .mturn = {EV_MTURN, ret->ID}});
 	ev_queue (1, (union Event) { .mregen = {EV_MREGEN, ret->ID}});
 	return ret;
 }

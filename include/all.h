@@ -6,7 +6,7 @@
 /* Player options go here */
 
 //#define DEBUG_REFRESH_TIME // print framerate info
-
+//#define TWOPLAYER          // two player characters
 
 
 /* #define AMERICAN */
@@ -15,17 +15,8 @@
 #define MAX_BOX_LENGTH 40
 
 #define COL_STATUS     0x00055A00
-#define COL_PANEL      0xBBF00000
+#define COL_PANEL      0xBBB00000
 #define COL_SKILLS     0x000A5500
-
-/* Int sizes (do not change) */
-#if UINT_MAX>>32 == 0
-#  define INT_SIZE 32
-#elif UINT_MAX>>64 == 0
-#  define INT_SIZE 64
-#else
-#  error unknown int size
-#endif
 
 /* These crazy spellings... */
 #if !defined(AMERICAN)

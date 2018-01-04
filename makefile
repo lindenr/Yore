@@ -2,7 +2,7 @@ C_FILES := $(wildcard src/*.c)
 H_FILES := $(wildcard include/*.h)
 #OBJ_FILES := $(patsubst src/%.c,obj/%.o,$(C_FILES))
 LD_FLAGS := -lm -Wall -Werror
-CC_FLAGS := -I$(CURDIR) -Wall -Werror -O0 -g
+CC_FLAGS := -I$(CURDIR) -Wall -Werror -funsigned-char -O0 -g
 SDL_FLAGS = $$(sdl2-config --cflags --libs)
 
 ALL: bin/Yore

@@ -11,6 +11,16 @@ This is a disorganised set of thoughts on Yore.
         anything and everything was possible...
 </pre>
 
+Monsters noticing things should be their own events, so we can keep track of what each monster knows. Probably don't need to keep much persistent knowledge for monsters, this would just be for instantaneous things like angering.
+
+Text input: non-text mode should not use SDL's thingo except for punctuation. Capitals can be rendered in-house. Then normal keys will correspond with control-keys and things like hjklyubn will be consistently located across-platoform. Also add key-rebinding capabilities in like an options menu.
+
+Turn events into a heap.
+
+Monsters should turn hostile if near to an altercation with the player. Use area maps for monster AI?
+
+Ability to wait for a set number of ticks
+
 ##How spellcasting works (will work)
 
 You have belt studded with jewels (maybe 5? maybe longer belts exist but are exponentially rarer/more expensive) in a row. Each jewel has an 'effect'.

@@ -121,7 +121,7 @@ void gra_mvaprint (Graph gra, int yloc, int xloc, const char *str)
 	int i, buf = gra_buffer (gra, yloc, xloc), len = strlen(str);
 
 	for (i = 0; i < len && i+buf > 0 && i+buf < gra->a; ++ i)
-		gra_baddch (gra, i+buf, (unsigned char)str[i]);
+		gra_baddch (gra, i+buf, str[i]);
 }
 
 void gra_mvprint (Graph gra, int yloc, int xloc, const char *str, ...)
@@ -434,20 +434,14 @@ void gr_tout (int t)
 
 int echoing = 1;
 
-/*int gr_equiv (uint32_t key1, uint32_t key2)
-{
-	uint32_t mod1 = key1 >> 16, mod2 = key2 >> 16;
-
-	/ * control * /
-	if (((mod1 & KMOD_CTRL) != 0) != ((mod2 & KMOD_CTRL) != 0))
-		return 0;
-
-	return 1;
-}*/
-
 int gr_inputcode (SDL_Keycode code)
 {
 	return (code >= 32 && code < 128);
+}
+
+int gr_inputch (char in)
+{
+	return (in >= 32 && in < 128);
 }
 
 uint32_t gr_kinitdelay = 180, gr_kdelay = 40;
@@ -455,6 +449,7 @@ uint32_t end = 0, key_fire_ms = 0;
 char cur_key_down = 0;
 int num_keys_down = 0;
 
+// TODO: is text parameter necessary? Could just check if it is an input code
 char gr_getch_aux (int text)
 {
 	gr_refresh ();
@@ -462,7 +457,7 @@ char gr_getch_aux (int text)
 	uint32_t ticks = gr_getms ();
 	if (tout_num && end <= ticks)
 		end = tout_num + ticks;
-	if (tout_num == 0)
+	else if (tout_num == 0)
 		end = 0;
 	SDL_Event sdlEvent;
 	while (1)
@@ -539,7 +534,7 @@ char gr_getch_aux (int text)
 
 			case SDL_WINDOWEVENT:
 				if (sdlEvent.window.event == SDL_WINDOWEVENT_EXPOSED)
-					gr_frefresh ();
+					gr_refresh ();
 				break;
 			
 			case SDL_QUIT:
@@ -562,7 +557,7 @@ char gr_getch_aux (int text)
 			return input_key;
 		}
 	}
-	return EOF;
+	return GRK_EOF;
 }
 
 char gr_getch ()
@@ -582,9 +577,9 @@ void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
 	while (1)
 	{
 		gra_cmove (gra, yloc, xloc);
-		unsigned char in = gr_getch_text ();
+		char in = gr_getch_text ();
 		if (in == CH_LF || in == CH_CR) break;
-		if (in == CH_BS)
+		else if (in == CH_BS)
 		{
 			if (i)
 			{
@@ -595,7 +590,9 @@ void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
 			gra_mvaddch (gra, yloc, xloc, ' ');
 			continue;
 		}
-		if (i < len-1)
+		/* watershed - put non-input-char handling above here */
+		else if (!gr_inputch (in)) continue;
+		else if (i < len-1)
 		{
 			gra_mvaddch (gra, yloc, xloc, in);
 			out[i] = in;

@@ -16,7 +16,8 @@
 bool game_intro ()
 {
 	bool ret = false;
-	int c, by, bx, bh = 9, bw = 50;
+	int by, bx, bh = 9, bw = 50;
+	char c;
 	by = (gr_h - bh - 10)/2;
 	bx = (gr_w - bw)/2;
 
@@ -35,7 +36,7 @@ bool game_intro ()
 		gra_mvprint (ibox, 11, (bw - 30)/2, "[hit the spacebar to continue]");
 		do
 			c = gr_getch();
-		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
+		while (c != ' ' && c != GRK_EOF && c != 'q' && c != 'Q');
 		if (c == ' ')
 			break;
 		if (c == 'q' || c == 'Q')
@@ -43,7 +44,7 @@ bool game_intro ()
 		gra_mvprint (ibox, 11, (bw - 30)/2, "                              ");
 		do
 			c = gr_getch();
-		while (c != ' ' && c != EOF && c != 'q' && c != 'Q');
+		while (c != ' ' && c != GRK_EOF && c != 'q' && c != 'Q');
 		if (c == ' ')
 			break;
 		if (c == 'q' || c == 'Q')

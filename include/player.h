@@ -10,9 +10,10 @@
 
 struct KStruct
 {
-	char key;
+	char key;                         /* TODO make rebindable */
 	int (*action) (struct Monster *);
 	int (*cand) (struct Monster *);
+	//const char *description;        /* for key-rebinding */
 };
 
 extern struct KStruct Keys[];

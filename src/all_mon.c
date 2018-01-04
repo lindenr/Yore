@@ -56,7 +56,7 @@ const struct Monster all_mons[] = {
 		  ATTK(A(1, 3, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_HMND,
 		  COL_TXT_RED(11),
-		  25, 10, 10),
+		  25, 14, 20),
 	MONST("hobbit", 'h', 1000, SIZE(3), 7,
 		  ATTK(A(1, 3, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_HMND,

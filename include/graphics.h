@@ -117,6 +117,15 @@ void gr_tout      (int);
 /* control-key of a lower-case character */
 #define GR_CTRL(ch) ((ch)-96)
 
+/* end-of-input reached */
+#define GRK_EOF      0xFF
+
+/* arrow keys */
+#define GRK_UP       0x1E
+#define GRK_DN       0x1F
+#define GRK_LF       0xAE
+#define GRK_RT       0xAF
+
 /* Misc */
 int  gra_buffer   (Graph, int, int);
 int  gr_buffer    (int, int);
@@ -132,11 +141,6 @@ void gr_resize    (int, int);
 #define CH_LF        0x0A
 #define CH_CR        0x0D
 #define CH_ESC       0x1B
-
-#define GRK_UP       0x1E
-#define GRK_DN       0x1F
-#define GRK_LF       0xAE
-#define GRK_RT       0xAF
 
 #define ACS_DOT      0xFA
 #define ACS_BIGDOT   0xF9

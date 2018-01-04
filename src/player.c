@@ -73,7 +73,7 @@ int Kwait_cand (struct Monster *player)
 int Kwait (struct Monster *player)
 {
 	pl_queue (player, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, player->ID}});
-	return pl_execute (player->speed, player, 1);
+	return pl_execute (player->speed/5, player, 1);
 }
 
 int Kpickup_cand (struct Monster *player)
@@ -444,7 +444,7 @@ struct KStruct Keys[] = {
 	{':',    &Knlook,  NULL},
 	{';',    &Kflook,  NULL},
 	{'Z',    &Kdebug,  NULL},
-	{'f',    &Kfocus,  &Kfocus_cand},
+//	{'f',    &Kfocus,  &Kfocus_cand},
 //	{'o', &Kopen},
 //	{'c', &Kclose},
 	{'w',    &Kwield,  &Kwield_cand},

@@ -56,7 +56,7 @@ void p_pane (struct Monster *player)
 			txt_mvaddch (max - i - 1, txt_w - 2, COL_BG_BLUE(10) | ' ');
 	}*/
 
-	gra_mvprint (gpan, 1, 1, "T %llu", curtick/1000);
+	gra_mvprint (gpan, 1, 1, "T %llu", curtick);
 
 	if (player)
 	{
@@ -107,7 +107,7 @@ void p_msg (const char *str, ...)
 	va_list args;
 	char out[100];
 
-	snprintf(out, 10, "(%llu) ", curtick/1000);
+	snprintf(out, 10, "(%llu) ", curtick);
 
 	va_start (args, str);
 	vsnprintf (out + strlen(out), 90, str, args);
@@ -171,7 +171,7 @@ int p_status (struct Monster *player, enum PanelType type)
 	gra_fbox (sc_status, 0, 0, h-1, w-1, ' ');
 	gra_cprint (sc_status, 2, "STATUS SCREEN");
 	gra_mvprint (sc_status, 0, w-5, "(Esc)");
-	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", player->name, ACS_VLINE, "Human");
+	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", player->name, ACS_VLINE, player->mname);
 	gra_cprint (sc_status, 5, "  HP: %d/%d  %c  ST:    %d/%d",
 				player->HP, player->HP_max, ACS_VLINE, player->ST, player->ST_max);
 	gra_cprint (sc_status, 6, "LV %d:%d/infinity   %c  Speed: %d       ", player->level, player->exp, ACS_VLINE, player->speed);

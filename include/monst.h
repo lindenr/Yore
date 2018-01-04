@@ -281,11 +281,11 @@ int    player_gen_type (void);                               /* get a valid mons
 /* player_status functions */
 //char  *get_hungerstr   (void);                             /* gets player's hunger ("Starved" etc)     */
 //bool   digesting       (void);                             /* is the player digesting?                 */
-void   setup_U         (void);                             /* populate the U struct                    */
-void   get_cinfo       (void);                             /* called at start, gets input from player  */
+void   setup_U         (void);                               /* populate the U struct                    */
+void   get_cinfo       (void);                               /* called at start, gets input from player  */
 
-int    can_amove       (int);                              /* returns if a square can be moved on to   */
-char   escape          (unsigned char);                    /* escapes a character                      */
+int    can_amove       (int);                                /* returns if a square can be moved on to   */
+char   escape          (char);                               /* escapes a character                      */
 
 /* AI functions */
 int    AI_TIMID_take_turn    (struct Monster *);             /* decide what to do if not attacking       */

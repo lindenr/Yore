@@ -204,7 +204,7 @@ void thing_move_level (struct Monster *th, int32_t where)
 	}
 }
 #endif
-char escape (unsigned char a)
+char escape (char a)
 {
 	if (a < 0x20)
 		return a + 0x40;

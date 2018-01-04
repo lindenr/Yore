@@ -13,6 +13,16 @@ void panic (const char *reason)
 	fprintf (fp, "Error: %s\n", reason);
 	fclose (fp);
 
+	fprintf (stderr, "YORE panic. See error log for details.\n");
 	exit (1);
 	abort ();
 }
+
+void TODO (const char *msg)
+{
+	fprintf (stderr, "TODO: %s\n", msg);
+
+	exit (2);
+	abort ();
+}
+

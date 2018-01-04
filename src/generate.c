@@ -399,11 +399,12 @@ struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
 //		m1.ST = m1.ST_max = 100;
 		struct Monster *t1 = new_mthing (lvl, upsy, upsx, &m1);
 
-#if 0
+#ifdef TWOPLAYER
 		init_mons (&m1, MTYP_HUMAN);
 		m1.name = "Player 2";
 		m1.skills = v_dinit (sizeof(struct Skill));
 		m1.exp = 0;
+		m1.ctr.mode = CTR_PL;
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
 		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
 		struct Item mysword = {items[0], 0, items[0].wt, NULL};
