@@ -4,10 +4,12 @@
 #include "include/thing.h"
 #include "include/graphics.h"
 
+// TODO: make this all non-global in a nice struct somewhere
 Vector all_ids;
 Vector all_dlevels;
 int    cur_level;
 struct DLevel *cur_dlevel;
+char *player_name;
 
 void dlv_init ()
 {
@@ -28,6 +30,7 @@ void dlv_make (int level, int uplevel, int dnlevel)
 	struct DLevel new_level = {
 		level,
 		malloc (sizeof(Vector) * map_graph->a),
+		malloc (sizeof(Vector) * map_graph->a),
 		malloc (sizeof(struct Monster)*map_graph->a),
 		malloc (sizeof(uint8_t)*map_graph->a),
 		malloc (sizeof(uint8_t)*map_graph->a),
@@ -42,7 +45,10 @@ void dlv_make (int level, int uplevel, int dnlevel)
 	if (lvl)
 		lvl->uplevel = level;
 	for (i = 0; i < map_graph->a; ++ i)
+	{
 		new_level.things[i] = v_dinit (sizeof(struct Thing));
+		new_level.items[i] = v_dinit (sizeof(struct Item));
+	}
 	memset (new_level.mons, 0, sizeof(struct Monster)*map_graph->a);
 	memset (new_level.seen, 0, sizeof(uint8_t)*map_graph->a);
 	memset (new_level.attr, 0, sizeof(uint8_t)*map_graph->a);
@@ -78,10 +84,10 @@ Vector *dlv_things (int level)
 	return dlv_lvl (level)->things;
 }
 
-//Vector dlv_mons (int level)
-//{
-//	return dlv_lvl (level)->mons;
-//}
+Vector *dlv_items (int level)
+{
+	return dlv_lvl (level)->items;
+}
 
 uint8_t *dlv_attr (int level)
 {

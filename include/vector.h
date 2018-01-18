@@ -36,3 +36,4 @@ bool   v_isin  (Vector, void *);
 void    v_print (Vector);
 
 #endif /* VECTOR_H_INCLUDED */
+

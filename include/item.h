@@ -60,6 +60,8 @@ enum ITYP
 #define ITEM_NAME_LENGTH 20
 #define NO_ITEM(item) ((!(item)) || ((item)->type.type == ITYP_NONE))
 
+typedef int TID;
+
 /* type of item */
 typedef struct
 {
@@ -70,9 +72,39 @@ typedef struct
 	glyph gl;					/* for the display */
 } Ityp;
 
+enum ITEM_LOC
+{
+	LOC_NONE = 0, /* placeholder */
+	LOC_DLVL,     /* on the ground */
+	LOC_INV       /* in a monster inventory (or chest?) */
+};
+
+struct ItemInDlvl
+{
+	enum ITEM_LOC loc;
+	int dlevel;
+	uint32_t yloc, xloc;
+};
+
+struct ItemInInv
+{
+	enum ITEM_LOC loc;
+	TID monsID;
+	int invnum;
+};
+
+union ItemLoc
+{
+	enum ITEM_LOC loc;
+	struct ItemInDlvl dlvl;
+	struct ItemInInv inv;
+};
+
 /* an actual physical item */
 struct Item
 {
+	TID ID;
+	union ItemLoc loc;
 	Ityp type;
 	uint32_t attr;
 	uint32_t cur_weight;

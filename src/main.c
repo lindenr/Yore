@@ -9,6 +9,7 @@
 #include "include/graphics.h"
 #include "include/event.h"
 #include "include/save.h"
+#include "include/dlevel.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -108,7 +109,8 @@ int main (int argc, char *argv[])
 
 	gra_mvprint (introbox, 8, 6, "Who are you? ");
 	introbox->def = COL_TXT_BRIGHT;
-	char player_name[41] = {0,};
+	player_name = malloc(41);
+	player_name[0] = '\0';
 
 	for (i = 0;
 		 i < 10 && player_name[0] == '\0';
@@ -125,7 +127,6 @@ int main (int argc, char *argv[])
 	if (!player_name[0])
 		goto quit_game;
 
-
 	/* So you really want to play? */
 	gra_cshow (map_graph);
 	get_cinfo ();
@@ -134,12 +135,6 @@ int main (int argc, char *argv[])
 	if (U.playing != PLAYER_PLAYING)
 		goto quit_game;
 
-	generate_map (dlv_lvl (1), LEVEL_NORMAL);
-	struct Monster *pl = mons_gen (cur_dlevel, 0, 15150);
-	pl->name = malloc(41);
-	strncpy (pl->name, player_name, 40);
-	pl->name[40] = 0;
-	char *pl_name = pl->name;
 	//generate_map (dlv_lvl (2), LEVEL_NORMAL);
 
 	//gra_centcam (map_graph, player->yloc, player->xloc);
@@ -147,18 +142,17 @@ int main (int argc, char *argv[])
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 
-	ev_queue (1, (union Event) { .mgen = {EV_MGEN}});
 	ev_loop ();
 
   quit_game:
 	if (U.playing == PLAYER_LOSTGAME)
-		printf("Goodbye %s...\n", pl_name);
+		printf("Goodbye %s...\n", player_name);
 	else if (U.playing == PLAYER_SAVEGAME)
 		save (NULL);
 	else if (U.playing == PLAYER_STARTING)
 		printf("Give it a try next time...\n");
 	else if (U.playing == PLAYER_WONGAME)
-		printf("Congratulations %s...\n", pl_name);
+		printf("Congratulations %s...\n", player_name);
 
 	exit(0);
 }

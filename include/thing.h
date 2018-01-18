@@ -13,6 +13,7 @@
 
 #define THIID(id)          (*(struct Thing **)  v_at (all_ids, (id)))
 #define MTHIID(id)         (*(struct Monster **) v_at (all_ids, (id)))
+#define ITEMID(id)         (*(struct Item **) v_at (all_ids, (id)))
 #define THING(t,n,i)       ((struct Thing*)((t)[n]->data + (i)*sizeof(struct Thing)))
 
 typedef int TID;
@@ -20,7 +21,7 @@ typedef int TID;
 enum THING_TYPE
 {
 	THING_NONE = 0,   /* not used */
-	THING_ITEM,       /* an item */
+//	THING_ITEM,       /* an item */
 	THING_DGN         /* a dungeon feature (wall, floor, trap etc) */
 };
 
@@ -32,7 +33,7 @@ struct Thing
 	uint32_t yloc, xloc;
 	union
 	{
-		struct Item item;
+//		struct Item item;
 		struct map_item_struct mis;
 	}
 	thing;
@@ -46,7 +47,8 @@ void          rem_id         (TID);
 void          rem_mid        (TID);
 
 struct Thing *new_thing      (uint32_t, struct DLevel *, uint32_t, uint32_t, void *);
-struct Monster *new_mthing    (struct DLevel *, uint32_t, uint32_t, void *);
+struct Monster *new_mons     (struct DLevel *, uint32_t, uint32_t, void *);
+struct Item *new_item        (union ItemLoc, void *);
 
 void          draw_map       (struct Monster *);
 void          th_init        ();
@@ -55,6 +57,7 @@ int           get_thing_type (char);
 const char *  get_thing_name (struct Thing);
 
 void          monsthing_move (struct Monster *, int, int, int);
+struct Item * item_move      (struct Item *, union ItemLoc loc);
 //void          thing_bmove    (struct Thing *, int, int);
 
 TID  getID                   ();

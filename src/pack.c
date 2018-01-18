@@ -119,25 +119,25 @@ void pack_free (Pack **pack)
 	free (pack);
 }
 
-bool pack_add (Pack **ppack, struct Item *it)
+Pack *pack_init ()
 {
-	uint32_t u;
+	Pack *pack = malloc(sizeof(Pack));
+	memset (pack, 0, sizeof(Pack));
+	return pack;
+}
+
+bool pack_add (Pack **ppack, struct Item *it, int u)
+{
 	if ((*ppack) == 0)
-	{
-		*ppack = malloc (sizeof(Pack));
-		memset (*ppack, 0, sizeof(Pack));
-	}
+		*ppack = pack_init ();
 	Pack *pack = *ppack;
 
-	for (u = 0; u < MAX_ITEMS_IN_PACK; ++u)
+	if (!pack->items[u])
 	{
-		if (!pack->items[u])
-		{
-			/* Put in pack */
-			pack->items[u] = malloc (sizeof(*it));
-			memcpy (pack->items[u], it, sizeof(*it));
-			return true;
-		}
+		/* Put in pack */
+		pack->items[u] = malloc (sizeof(*it));
+		memcpy (pack->items[u], it, sizeof(*it));
+		return true;
 	}
 	return false;
 }

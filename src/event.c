@@ -17,6 +17,10 @@ Tick ev_delay (union Event *event)
 	{
 	case EV_NONE:
 		break;
+	case EV_WORLD_INIT:
+	case EV_PLAYER_INIT:
+	case EV_WORLD_HEARTBEAT:
+		return 0;
 	case EV_MWAIT:
 		return (MTHIID(event->mwait.thID))->speed;
 	case EV_MMOVE:
@@ -111,16 +115,46 @@ void ev_print (struct QEv *qe)
 	//printf ("list %d %d\n", qe->tick, qe->ev.type);
 }
 
+void ev_mons_start (struct Monster *th)
+{
+	ev_queue (1000 + rn(1000), (union Event) { .mturn = {EV_MTURN, th->ID}});
+	ev_queue (1, (union Event) { .mregen = {EV_MREGEN, th->ID}});
+}
+
 void ev_do (Event ev)
 {
 	struct Monster *th, *fr, *to;
-	struct Thing *item;
+	struct Item *item;
 	TID thID, frID, toID;
 	int can, ydest, xdest;
-	int i;
+	int i, j;
 	Vector pickup, items;
 	switch (ev->type)
 	{
+	case EV_WORLD_INIT:
+		ev_queue (0, (union Event) { .world_heartbeat = {EV_WORLD_HEARTBEAT}});
+		ev_queue (0, (union Event) { .player_init = {EV_PLAYER_INIT}});
+		generate_map (dlv_lvl (1), LEVEL_NORMAL);
+		return;
+	case EV_PLAYER_INIT:
+		th = gen_player (50, 150, player_name);
+		ev_mons_start (th);
+
+#ifdef TWOPLAYER
+		th = gen_player (52, 153, "Player 2");
+		ev_mons_start (th);
+#endif
+		
+		th = gen_boss (57, 160);
+		ev_mons_start (th);
+		return;
+	case EV_WORLD_HEARTBEAT:
+		// monster generation
+		if (!rn(10))
+			ev_queue (0, (union Event) { .mgen = {EV_MGEN}});
+		// next heartbeat
+		ev_queue (1000, (union Event) { .world_heartbeat = {EV_WORLD_HEARTBEAT}});
+		return;
 	case EV_MWAIT:
 		thID = ev->mwait.thID;
 		th = MTHIID(thID);
@@ -254,7 +288,6 @@ void ev_do (Event ev)
 		{
 			p_msg ("You die...");
 			p_pane (to);
-			gr_wait (500);
 			U.playing = PLAYER_LOSTGAME;
 			return;
 		}
@@ -273,18 +306,23 @@ void ev_do (Event ev)
 			if (!th->pack->items[i])
 				continue;
 			th->pack->items[i]->attr &= ~ITEM_WIELDED;
-			new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, th->pack->items[i]);
+			//new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, th->pack->items[i]);
+			new_item ((union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}}, th->pack->items[i]);
 			free (th->pack->items[i]);
 		}
+		free(th->pack);
 
 	mcorpse: ;
 		/* add corpse */
 		struct Item corpse;
 		mons_corpse (th, &corpse.type);
+		corpse.ID = 0;
+		corpse.loc.loc = LOC_NONE;
 		corpse.attr = 0;
 		corpse.name = NULL;
 		corpse.cur_weight = 0;
-		new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, &corpse);
+		//new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, &corpse);
+		new_item ((union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}}, &corpse);
 
 		/* remove dead monster */
 		rem_mid (th->ID);
@@ -296,8 +334,10 @@ void ev_do (Event ev)
 		mons_take_turn (th);
 		return;
 	case EV_MGEN:
-		mons_gen (cur_dlevel, 2, U.luck-30);
-		ev_queue (mons_tmgen (), (union Event) { .mgen = {EV_MGEN}}); /* Next monster gen */
+		th = gen_mons_in_level ();
+		if (!th)
+			return;
+		ev_mons_start (th);
 		return;
 	case EV_MREGEN:
 		th = MTHIID(ev->mregen.thID);
@@ -333,7 +373,9 @@ void ev_do (Event ev)
 		}
 		th->wearing.weaps[arm] = it;
 		it->attr |= ITEM_WIELDED;
-		p_msg ("The %s wields %s.", th->mname, get_inv_line (NULL, it)); /* notify */
+		char *msg = get_inv_line (NULL, it);
+		p_msg ("The %s wields %s.", th->mname, msg); /* notify */
+		free(msg);
 		//if (mons_isplayer(th))
 		//	item_look (it);
 		return;
@@ -345,25 +387,27 @@ void ev_do (Event ev)
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		int i;
-		for (i = 0; i < pickup->len; ++ i)
+		if (!th->pack)
+			th->pack = pack_init ();
+		for (i = 0, j = 0; j < MAX_ITEMS_IN_PACK && i < pickup->len; ++ j)
 		{
-			/* Pick up the item; quit if the bag is full */
-			item = THIID(*(int*)v_at (pickup, i));
-			if (pack_add (&th->pack, &item->thing.item))
-			{
-				/* Say so */
-				char *msg = get_inv_line (th->pack, &item->thing.item);
-				p_msg ("%s", msg);
-				free (msg);
-			}
-			else
-			{
-				p_msg ("No more space. :/");
-				break;
-			}
-			/* Remove item from main play */
-			rem_id (item->ID);
+			if (th->pack->items[j])
+				continue;
+			TID itemID = *(int*)v_at (pickup, i);
+			/* Pick up the item */
+			item = ITEMID(itemID);
+			item_move (item, (union ItemLoc){ .inv = {LOC_INV, thID, j}});
+			/* Say so */
+			char *msg = get_inv_line (th->pack, ITEMID(itemID));
+			p_msg ("%s", msg);
+			free (msg);
+			/* Next item */
+			++ i;
+		}
+		if (i < pickup->len)
+		{
+			p_msg ("No more space. :/");
+			break;
 		}
 		v_free (pickup);
 		// Next turn
@@ -381,7 +425,8 @@ void ev_do (Event ev)
 				continue;
 			unsigned u = PACK_AT (get_Itref (th->pack, *drop));
 			pack_rem (th->pack, u);
-			new_thing (THING_ITEM, cur_dlevel, th->yloc, th->xloc, *drop);
+			//new_thing (THING_ITEM, cur_dlevel, th->yloc, th->xloc, *drop);
+			new_item ((union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}}, *drop);
 			free(*drop);
 		}
 		v_free (items);
@@ -461,6 +506,7 @@ void ev_init ()
 {
 	events = v_dinit (sizeof(struct QEv));
 	player_actions = v_dinit (sizeof(struct QEv));
+	ev_queue (0, (union Event) { .world_init = {EV_WORLD_INIT}});
 }
 
 // TODO make events a heap

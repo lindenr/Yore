@@ -6,6 +6,9 @@
 typedef enum
 {
 	EV_NONE = 0,
+	EV_WORLD_INIT,
+	EV_PLAYER_INIT,
+	EV_WORLD_HEARTBEAT,
 	EV_MWAIT,
 	EV_MMOVE,
 	EV_MDOMOVE,
@@ -38,6 +41,18 @@ typedef enum
 typedef union Event
 {
 	EV_TYPE type;
+	struct
+	{
+		EV_TYPE type;
+	} world_init;
+	struct
+	{
+		EV_TYPE type;
+	} player_init;
+	struct
+	{
+		EV_TYPE type;
+	} world_heartbeat;
 	struct
 	{
 		EV_TYPE type;

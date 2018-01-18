@@ -10,6 +10,7 @@ struct DLevel
 {
 	int level;
 	Vector *things;
+	Vector *items;
 	struct Monster *mons;
 
 /* Output of the bresenham algorithm (drawing.c): 0 if we can't see it (outside 
@@ -34,6 +35,7 @@ void dlv_set  (int);
 
 struct DLevel *dlv_lvl (int);
 Vector  *dlv_things (int);
+Vector  *dlv_items  (int);
 Vector   dlv_mons   (int);
 uint8_t *dlv_attr   (int);
 int      dlv_dn     (int);
@@ -43,6 +45,7 @@ extern Vector all_dlevels;
 extern Vector all_ids;
 extern int    cur_level;
 extern struct DLevel *cur_dlevel;
+extern char *player_name;
 
 #endif /* DLEVEL_H_INCLUDED */
 

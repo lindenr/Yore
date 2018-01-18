@@ -245,7 +245,7 @@ struct Item *gen_item ()
 {
 	Ityp is;
 	memcpy (&is, &(items[rn(NUM_ITEMS)]), sizeof(is));
-	struct Item it = {is, 0, is.wt, NULL};
+	struct Item it = {0, {.loc = LOC_NONE}, is, 0, is.wt, NULL};
 	//if (is.type == ITYP_JEWEL)
 	//	it.attr |= rn(NUM_JEWELS) << 16;
 	struct Item *ret = malloc(sizeof(it));
@@ -299,7 +299,7 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 //			free (item);
 //			mons_gen (cur_dlevel, 2, U.luck-30);
 		}
-		mons_gen (cur_dlevel, 3, 0);
+		//mons_gen (cur_dlevel, 3, 0);
 	}
 	else if (type == LEVEL_TOWN)
 	{
@@ -370,85 +370,57 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 	return true;
 }
 
-/* type:
- * 0 : initialised at start of game
- * 1 : generated at start of level
- * 2 : randomly throughout level */
 #define init_mons(mons,TYP) (memcpy ((mons), &all_mons[TYP], sizeof(struct Monster)))
-struct Monster *mons_gen (struct DLevel *lvl, int type, int32_t param)
-{
-	int32_t luck, start;
-	uint32_t upsy, upsx;
-	if (type == 0)
-	{
-		start = param;
-		upsy = start / map_graph->w;
-		upsx = start % map_graph->w;
 
-		struct Monster m1;
-		init_mons (&m1, MTYP_HUMAN);
-		m1.name = "Player 1";
-		m1.skills = v_dinit (sizeof(struct Skill));
-		m1.exp = 0;
-		m1.ctr.mode = CTR_PL;
-		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
-		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
+/* initialised at start of game */
+struct Monster *gen_player (int upsy, int upsx, char *name)
+{
+	struct Monster m1;
+	init_mons (&m1, MTYP_HUMAN);
+	m1.name = name;
+	m1.skills = v_dinit (sizeof(struct Skill));
+	m1.exp = 0;
+	m1.ctr.mode = CTR_PL;
+	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
+	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
 //		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
 //		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
 //		pack_add (&m1.pack, &myhammer);
 //		m1.ST = m1.ST_max = 100;
-		struct Monster *t1 = new_mthing (lvl, upsy, upsx, &m1);
+	return new_mons (cur_dlevel, upsy, upsx, &m1);
+}
 
-#ifdef TWOPLAYER
-		init_mons (&m1, MTYP_HUMAN);
-		m1.name = "Player 2";
-		m1.skills = v_dinit (sizeof(struct Skill));
-		m1.exp = 0;
-		m1.ctr.mode = CTR_PL;
-		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
-		//v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
-		struct Item mysword = {items[0], 0, items[0].wt, NULL};
-		pack_add (&m1.pack, &mysword);
-		t1 = new_mthing (lvl, upsy+2, upsx+4, &m1);
-#endif
-		return t1;
-	}
-	else if (type == 2)
-	{
-		luck = param;
-		if (rn(100) >= 15 - 2*luck)
-			return 0;
+/* start of and during level */
+struct Monster *gen_mons_in_level ()
+{
+	uint32_t xloc = rn(map_graph->w), yloc = rn(map_graph->h);
+	if (!is_safe_gen (cur_dlevel, yloc, xloc))
+		return 0;
 
-		uint32_t xloc = rn(map_graph->w), yloc = rn(map_graph->h);
-		if (!is_safe_gen (lvl, yloc, xloc))
-			return 0;
+	struct Monster p;
+	init_mons (&p, player_gen_type ());
+	if (p.mflags & FL_HOSTILE)
+		p.ctr.mode = CTR_AI_HOSTILE;
+	else
+		p.ctr.mode = CTR_AI_TIMID;
+	p.level = 1; //mons[p.type].exp? TODO
+	struct Monster *th = new_mons (cur_dlevel, yloc, xloc, &p);
+	//printf ("successful generation \n");
+	return th;
+}
 
-		struct Monster p;
-		init_mons (&p, player_gen_type ());
-		if (p.mflags & FL_HOSTILE)
-			p.ctr.mode = CTR_AI_HOSTILE;
-		else
-			p.ctr.mode = CTR_AI_TIMID;
-		p.level = 1; //mons[p.type].exp? TODO
-		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
-		//printf ("successful generation \n");
-		return th;
-	}
-	else if (type == 3)
-	{
-		uint32_t yloc = 57, xloc = 160;
-		struct Monster p;
-		init_mons (&p, 5);
-		if (p.mflags & FL_HOSTILE)
-			p.ctr.mode = CTR_AI_HOSTILE;
-		else
-			p.ctr.mode = CTR_AI_TIMID;
-		p.level = 1; //mons[p.type].exp? TODO
-		struct Item myaxe = {items[3], 0, items[0].wt, NULL};
-		pack_add (&p.pack, &myaxe);
-		struct Monster *th = new_mthing (lvl, yloc, xloc, &p);
-		return th;
-	}
-	return NULL;;
+struct Monster *gen_boss (int yloc, int xloc)
+{
+	struct Monster p;
+	init_mons (&p, 5);
+	if (p.mflags & FL_HOSTILE)
+		p.ctr.mode = CTR_AI_HOSTILE;
+	else
+		p.ctr.mode = CTR_AI_TIMID;
+	p.level = 1; //mons[p.type].exp? TODO
+	struct Item myaxe = {0, { .loc = LOC_NONE}, items[3], 0, items[0].wt, NULL};
+	struct Monster *th = new_mons (cur_dlevel, yloc, xloc, &p);
+	new_item ((union ItemLoc){ .inv = {LOC_INV, th->ID, 0}}, &myaxe);
+	return th;
 }
 

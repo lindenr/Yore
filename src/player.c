@@ -83,26 +83,18 @@ int Kpickup_cand (struct Monster *player)
 
 int Kpickup (struct Monster *player)
 {
-	Vector ground = v_init (sizeof (int), 20);
 	int n = map_buffer (player->yloc, player->xloc);
-	Vector *things = dlv_things (player->dlevel);
-	struct Thing *th;
+	Vector ground = dlv_items (player->dlevel)[n];
 
-	LOOP_THING(things, n, i)
-	{
-		th = THING(things, n, i);
-		if (th->type == THING_ITEM)
-			v_push (ground, &th->ID);
-	}
-
-	if (ground->len < 1)
+	if (ground->len <= 0)
 		return 0;
 
 	Vector pickup = NULL;
 	if (ground->len == 1)
 	{
 		/* One item on ground -- pick up immediately. */
-		pickup = ground;
+		pickup = v_init (sizeof(TID), 1);
+		v_push (pickup, &(((struct Item *)v_at (ground, 0))->ID));
 	}
 	else if (ground->len > 1)
 	{
@@ -111,7 +103,6 @@ int Kpickup (struct Monster *player)
 
 		/* Do the asking */
 		ask_items (pickup, ground, "Pick up what?");
-		v_free (ground);
 
 	}
 	pl_queue (player, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
@@ -239,16 +230,14 @@ int Knlook (struct Monster *player)
 {
 	int k = 0;
 	int n = map_buffer (player->yloc, player->xloc);
-	Vector *things = cur_dlevel->things;
+	Vector items = cur_dlevel->items[n];
 	Vector list = v_dinit (256);
 
-	LOOP_THING(things, n, i)
+	int i;
+	for (i = 0; i < items->len; ++ i)
 	{
-		struct Thing *th = THING(things, n, i);
-		if (th->type != THING_ITEM)
-			continue;
-
-		char *line = get_inv_line (NULL, &THING(things, n, i)->thing.item);
+		struct Item *it = v_at(items, i);
+		char *line = get_inv_line (NULL, it);
 		char out[256];
 		snprintf (out, 256, "You%s see here %s.", (k ? " also" : ""), line);
 		v_pstr (list, out);

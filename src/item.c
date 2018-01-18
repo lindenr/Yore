@@ -26,7 +26,7 @@ Ityp items[] = {
 	ITEM("long sword",     ITYP_LONGSWORD,  2000,  DMG(1, 5),  ITCH_WEAPON | COL_TXT(11,11, 0)),
 	ITEM("fencing sword",  ITYP_LONGSWORD,  1500,  DMG(1, 5),  ITCH_WEAPON | COL_TXT(11, 0,11)),
 	ITEM("axe",            ITYP_AXE,        3000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT(11,11, 0)),
-	ITEM("battle-axe",     ITYP_AXE,        1000,  DMG(2, 4),  ITCH_WEAPON | COL_TXT(11,11, 0)),
+	ITEM("battle-axe",     ITYP_AXE,        1000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT(11,11, 0)),
 	ITEM("war hammer",     ITYP_HAMMER,     5000,  DMG(2, 4),  ITCH_WEAPON | COL_TXT(15,11, 0)),
 	ITEM("dagger",         ITYP_DAGGER,     100,   DMG(1, 3),  ITCH_WEAPON | COL_TXT( 0,11, 0)),
 	ITEM("short sword",    ITYP_SHORTSWORD, 2000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT(11, 8, 0)),
@@ -48,7 +48,7 @@ void ask_items (Vector it_out, Vector it_in, const char *msg)
 	for (i = 0; i < it_in->len; ++ i)
 	{
 		v_push (it_out, v_at (it_in, i));
-		char *asdf = get_item_desc ((THIID (*(TID*)v_at(it_in, i)))->thing.item);
+		char *asdf = get_item_desc (*(ITEMID (*(TID*)v_at(it_in, i))));
 		v_pstrf (list, "  (*)   %s", asdf);
 		free (asdf);
 	}
