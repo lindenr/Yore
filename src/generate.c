@@ -387,7 +387,10 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 //		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
 //		pack_add (&m1.pack, &myhammer);
 //		m1.ST = m1.ST_max = 100;
-	return new_mons (cur_dlevel, upsy, upsx, &m1);
+	struct Monster *pl = new_mons (cur_dlevel, upsy, upsx, &m1);
+	struct Item myaxe = {0, { .loc = LOC_NONE}, items[3], 0, items[0].wt, NULL};
+	new_item ((union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}}, &myaxe);
+	return pl;
 }
 
 /* start of and during level */
@@ -418,8 +421,8 @@ struct Monster *gen_boss (int yloc, int xloc)
 	else
 		p.ctr.mode = CTR_AI_TIMID;
 	p.level = 1; //mons[p.type].exp? TODO
-	struct Item myaxe = {0, { .loc = LOC_NONE}, items[3], 0, items[0].wt, NULL};
 	struct Monster *th = new_mons (cur_dlevel, yloc, xloc, &p);
+	struct Item myaxe = {0, { .loc = LOC_NONE}, items[3], 0, items[0].wt, NULL};
 	new_item ((union ItemLoc){ .inv = {LOC_INV, th->ID, 0}}, &myaxe);
 	return th;
 }

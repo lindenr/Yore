@@ -106,7 +106,8 @@ void rem_itemid (TID ID)
 		update_item_pointers (items);
 		return;
 	case LOC_INV:
-		//ITEMID(item->ID) = NULL;
+		ITEMID(item->ID) = NULL;
+		pack_rem (MTHIID(item->loc.inv.monsID)->pack, item->loc.inv.invnum);
 		return;
 	}
 	panic("End of rem_itemid reached");
@@ -139,7 +140,7 @@ void item_makeID (struct Item *item)
 		ITEMID(item->ID) = item;
 }
 
-struct Item *new_item (union ItemLoc loc, void *actual_thing)
+struct Item *new_item (union ItemLoc loc, struct Item *from)
 {
 	struct Item it;
 	struct Item *ret;
@@ -161,14 +162,14 @@ struct Item *new_item (union ItemLoc loc, void *actual_thing)
 		break;
 	case LOC_DLVL:
 	case LOC_FLIGHT:
-		memcpy (&it, actual_thing, sizeof(struct Item));
+		memcpy (&it, from, sizeof(struct Item));
 		memcpy (&it.loc, &loc, sizeof(loc));
 		ret = v_push (items, &it);
 		item_makeID (ret);
 		update_item_pointers (items);
 		return ret;
 	case LOC_INV:
-		memcpy (&it, actual_thing, sizeof(struct Item));
+		memcpy (&it, from, sizeof(struct Item));
 		memcpy (&it.loc, &loc, sizeof(loc));
 		struct Monster *th = MTHIID (loc.inv.monsID);
 		if (!pack_add (&th->pack, &it, loc.inv.invnum))

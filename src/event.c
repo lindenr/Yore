@@ -20,6 +20,8 @@ Tick ev_delay (union Event *event)
 	case EV_WORLD_INIT:
 	case EV_PLAYER_INIT:
 	case EV_WORLD_HEARTBEAT:
+	case EV_MTHROW:
+	case EV_PROJ_MOVE:
 		return 0;
 	case EV_MWAIT:
 		return (MTHIID(event->mwait.thID))->speed;
@@ -125,10 +127,11 @@ void ev_do (Event ev)
 {
 	struct Monster *th, *fr, *to;
 	struct Item *item;
-	TID thID, frID, toID;
+	TID thID, frID, toID, itemID;
 	int can, ydest, xdest;
 	int i, j;
 	Vector pickup, items;
+	union ItemLoc loc;
 	switch (ev->type)
 	{
 	case EV_WORLD_INIT:
@@ -149,11 +152,50 @@ void ev_do (Event ev)
 		ev_mons_start (th);
 		return;
 	case EV_WORLD_HEARTBEAT:
-		// monster generation
+		/* monster generation */
 		if (!rn(10))
 			ev_queue (0, (union Event) { .mgen = {EV_MGEN}});
-		// next heartbeat
+		/* next heartbeat */
 		ev_queue (1000, (union Event) { .world_heartbeat = {EV_WORLD_HEARTBEAT}});
+		return;
+	case EV_MTHROW:
+		thID = ev->mthrow.thID;
+		th = MTHIID (thID);
+		if (!th)
+			return;
+		itemID = ev->mthrow.itemID;
+		item = ITEMID (itemID);
+		if ((!item) || item->loc.loc != LOC_INV)
+			return;
+		loc = (union ItemLoc) { .fl = {LOC_FLIGHT, th->dlevel, th->yloc, th->xloc, {0,}, th->str}};
+		bres_init (&loc.fl.bres, th->yloc, th->xloc, ev->mthrow.ydest, ev->mthrow.xdest);
+		item_move (item, loc);
+		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, itemID}});
+		return;
+	case EV_PROJ_MOVE:
+		itemID = ev->proj_move.itemID;
+		item = ITEMID(itemID);
+		if ((!item) || item->loc.loc != LOC_FLIGHT)
+			return;
+		if (item->loc.fl.speed <= 0)
+		{
+			item_move (item, (union ItemLoc) { .dlvl =
+				{LOC_DLVL,item->loc.fl.dlevel, item->loc.fl.yloc, item->loc.fl.xloc}});
+			return;
+		}
+		memcpy (&loc, &item->loc, sizeof(loc));
+		bres_iter (&loc.fl.bres);
+		if (!get_sqattr (dlv_lvl(loc.fl.dlevel), loc.fl.bres.cy, loc.fl.bres.cx))
+		{
+			item_move (item, (union ItemLoc) { .dlvl =
+				{LOC_DLVL, item->loc.fl.dlevel, item->loc.fl.yloc, item->loc.fl.xloc}});
+			return;
+		}
+		loc.fl.yloc = loc.fl.bres.cy;
+		loc.fl.xloc = loc.fl.bres.cx;
+		loc.fl.speed -= 1;
+		item_move (item, loc);
+		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, itemID}});
 		return;
 	case EV_MWAIT:
 		thID = ev->mwait.thID;
@@ -173,13 +215,10 @@ void ev_do (Event ev)
 		th->status.moving.xdir = ev->mmove.xdir;
 		return;
 	case EV_MDOMOVE:
-		//printf("mdomove\n");
 		thID = ev->mdomove.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		// Next turn
-		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
 		ydest = th->yloc + th->status.moving.ydir; xdest = th->xloc + th->status.moving.xdir;
 		can = can_amove (get_sqattr (dlv_lvl(th->dlevel), ydest, xdest));
 		th->status.moving.ydir = 0;
@@ -194,7 +233,6 @@ void ev_do (Event ev)
 		if (!th)
 			return;
 		th->status.evading = 1;
-		// Next turn
 		ev_queue (th->speed/2, (union Event) { .munevade = {EV_MUNEVADE, thID}});
 		return;
 	case EV_MUNEVADE:
@@ -209,7 +247,8 @@ void ev_do (Event ev)
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		ev_queue (th->speed/2 + 1, (union Event) { .mdoshield = {EV_MDOSHIELD, thID, ev->mshield.ydir, ev->mshield.xdir}});
+		ev_queue (th->speed/2 + 1, (union Event) { .mdoshield =
+			{EV_MDOSHIELD, thID, ev->mshield.ydir, ev->mshield.xdir}});
 		return;
 	case EV_MDOSHIELD:
 		thID = ev->mdoshield.thID;
@@ -303,7 +342,8 @@ void ev_do (Event ev)
 			if (!th->pack->items[i])
 				continue;
 			th->pack->items[i]->attr &= ~ITEM_WIELDED;
-			new_item ((union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}}, th->pack->items[i]);
+			new_item ((union ItemLoc) { .dlvl =
+				{LOC_DLVL, th->dlevel, th->yloc, th->xloc}}, th->pack->items[i]);
 			free (th->pack->items[i]);
 		}
 		free(th->pack);
@@ -338,7 +378,8 @@ void ev_do (Event ev)
 		th = MTHIID(ev->mregen.thID);
 		if (!th)
 			return;
-		ev_queue (mons_tregen (th), (union Event) { .mregen = {EV_MREGEN, ev->mregen.thID}}); /* Next regen */
+		ev_queue (mons_tregen (th), (union Event) { .mregen =
+			{EV_MREGEN, ev->mregen.thID}}); /* Next regen */
 		/* HP */
 		int HP_regen = mons_HP_regen (th), HP_max_regen = mons_HP_max_regen (th);
 		th->HP += HP_regen;
@@ -386,7 +427,7 @@ void ev_do (Event ev)
 		{
 			if (th->pack->items[j])
 				continue;
-			TID itemID = *(int*)v_at (pickup, i);
+			itemID = *(int*)v_at (pickup, i);
 			/* Pick up the item */
 			item = ITEMID(itemID);
 			item_move (item, (union ItemLoc){ .inv = {LOC_INV, thID, j}});
@@ -411,13 +452,13 @@ void ev_do (Event ev)
 		items = ev->mdrop.items;
 		for (i = 0; i < items->len; ++ i)
 		{
-			struct Item **drop = v_at (items, i);
-			if ((*drop)->attr & ITEM_WIELDED)
+			struct Item *drop = ITEMID(*(TID*)v_at (items, i));
+			if (drop->loc.loc != LOC_INV || drop->loc.inv.monsID != ev->mdrop.thID)
 				continue;
-			unsigned u = PACK_AT (get_Itref (th->pack, *drop));
-			pack_rem (th->pack, u);
-			new_item ((union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}}, *drop);
-			free(*drop);
+			if (drop->attr & ITEM_WIELDED)
+				continue;
+			item_move (drop, (union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}});
+			free(drop);
 		}
 		v_free (items);
 		return;

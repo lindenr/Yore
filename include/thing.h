@@ -21,7 +21,6 @@ typedef int TID;
 enum THING_TYPE
 {
 	THING_NONE = 0,   /* not used */
-//	THING_ITEM,       /* an item */
 	THING_DGN         /* a dungeon feature (wall, floor, trap etc) */
 };
 
@@ -33,7 +32,6 @@ struct Thing
 	uint32_t yloc, xloc;
 	union
 	{
-//		struct Item item;
 		struct map_item_struct mis;
 	}
 	thing;
@@ -48,7 +46,7 @@ void          rem_mid        (TID);
 
 struct Thing *new_thing      (uint32_t, struct DLevel *, uint32_t, uint32_t, void *);
 struct Monster *new_mons     (struct DLevel *, uint32_t, uint32_t, void *);
-struct Item *new_item        (union ItemLoc, void *);
+struct Item *new_item        (union ItemLoc, struct Item *);
 
 void          draw_map       (struct Monster *);
 void          th_init        ();
@@ -58,12 +56,9 @@ const char *  get_thing_name (struct Thing);
 
 void          monsthing_move (struct Monster *, int, int, int);
 struct Item * item_move      (struct Item *, union ItemLoc loc);
-//void          thing_bmove    (struct Thing *, int, int);
 
 TID  getID                   ();
 
-//void projectile            (struct Thing *, char *, int, int);
-//int  pr_at                 (struct DLevel *, int, int);
 void walls_test ();
 
 #endif /* THING_H_INCLUDED */

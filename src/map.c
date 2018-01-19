@@ -13,19 +13,6 @@
 
 Graph map_graph = NULL;
 
-/* remember -- ONLY ONE MONSTER PER SQUARE *//*
-void *get_sqmons (struct DLevel *lvl, int yloc, int xloc)
-{
-	int n = map_buffer (yloc, xloc);
-	LOOP_THING(things, n, i)
-	{
-		struct Thing *th = THING(things, n, i);
-		if (th->type == THING_MONS)
-			return th;
-	}
-	return NULL;
-}*/
-
 uint32_t get_sqattr (struct DLevel *lvl, int yloc, int xloc)
 {
 	uint32_t mvbl = 1;
@@ -41,11 +28,6 @@ uint32_t get_sqattr (struct DLevel *lvl, int yloc, int xloc)
 	LOOP_THING(things, n, i)
 	{
 		struct Thing *th = THING(things, n, i);
-		//if (th->type == THING_MONS)
-		//{
-		//	mvbl = 2; /* attack */
-		//	break;
-		//}
 		if (th->type == THING_DGN)
 		{
 			if ((th->thing.mis.attr & 1) == 0)

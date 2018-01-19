@@ -9,6 +9,8 @@ typedef enum
 	EV_WORLD_INIT,
 	EV_PLAYER_INIT,
 	EV_WORLD_HEARTBEAT,
+	EV_MTHROW,
+	EV_PROJ_MOVE,
 	EV_MWAIT,
 	EV_MMOVE,
 	EV_MDOMOVE,
@@ -53,6 +55,18 @@ typedef union Event
 	{
 		EV_TYPE type;
 	} world_heartbeat;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+		TID itemID;
+		int ydest, xdest;
+	} mthrow;
+	struct
+	{
+		EV_TYPE type;
+		TID itemID;
+	} proj_move;
 	struct
 	{
 		EV_TYPE type;

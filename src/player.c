@@ -160,7 +160,7 @@ int Ksdrop (struct Monster *player)
 		return 0;
 
 	Vector vdrop = v_dinit (sizeof(TID));
-	v_push (vdrop, &drop);
+	v_push (vdrop, &drop->ID);
 
 	if (drop->attr & ITEM_WIELDED)
 		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
@@ -217,6 +217,28 @@ int Kgmove (struct Monster *player)
 		return 0;
 	}
 	pl_queue (player, (union Event) { .mmove = {EV_MMOVE, player->ID, ymove, xmove}});
+	return pl_execute (player->speed, player, 0);
+}
+
+int Kthrow_cand (struct Monster *player)
+{
+	return 1;
+}
+
+int Kthrow (struct Monster *player)
+{
+	struct Item *throw = player_use_pack (player, "Throw what?", ITCAT_ALL);
+	if (throw == NULL)
+		return 0;
+
+	int yloc, xloc;
+	p_mvchoose (player, &yloc, &xloc, "Throw where?", NULL, 1);
+	if (yloc == -1)
+		return 0;
+
+	if (throw->attr & ITEM_WIELDED)
+		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
+	pl_queue (player, (union Event) { .mthrow = {EV_MTHROW, player->ID, throw->ID, yloc, xloc}});
 	return pl_execute (player->speed, player, 0);
 }
 
@@ -429,6 +451,7 @@ struct KStruct Keys[] = {
 	{'D',    &Kmdrop,  &Kmdrop_cand},
 	{'F',    &Kfmove,  &Kfmove_cand},
 	{'m',    &Kgmove,  &Kgmove_cand},
+	{'t',    &Kthrow,  &Kthrow_cand},
 	{'i',    &Kinv,    NULL},
 	{':',    &Knlook,  NULL},
 	{';',    &Kflook,  NULL},
