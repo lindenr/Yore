@@ -84,13 +84,23 @@ void rem_itemid (TID ID)
 {
 	struct Item *item = ITEMID(ID);
 	int n;
+	Vector items;
+	if (item->loc.loc == LOC_DLVL)
+	{
+		n = map_buffer (item->loc.dlvl.yloc, item->loc.dlvl.xloc);
+		items = dlv_lvl(item->loc.dlvl.dlevel)->items[n];
+	}
+	else if (item->loc.loc == LOC_FLIGHT)
+	{
+		n = map_buffer (item->loc.fl.yloc, item->loc.fl.xloc);
+		items = dlv_lvl(item->loc.fl.dlevel)->items[n];
+	}
 	switch (item->loc.loc)
 	{
 	case LOC_NONE:
 		break;
 	case LOC_DLVL:
-		n = map_buffer (item->loc.dlvl.yloc, item->loc.dlvl.xloc);
-		Vector items = dlv_lvl(item->loc.dlvl.dlevel)->items[n];
+	case LOC_FLIGHT:
 		ITEMID(ID) = NULL;
 		v_rem (items, ((uintptr_t)item - (uintptr_t)items->data)/sizeof(*item));
 		update_item_pointers (items);
@@ -135,15 +145,24 @@ struct Item *new_item (union ItemLoc loc, void *actual_thing)
 	struct Item *ret;
 	int n;
 	Vector items;
+	if (loc.loc == LOC_DLVL)
+	{
+		n = map_buffer (loc.dlvl.yloc, loc.dlvl.xloc);
+		items = dlv_lvl(loc.dlvl.dlevel)->items[n];
+	}
+	else if (loc.loc == LOC_FLIGHT)
+	{
+		n = map_buffer (loc.fl.yloc, loc.fl.xloc);
+		items = dlv_lvl(loc.fl.dlevel)->items[n];
+	}
 	switch (loc.loc)
 	{
 	case LOC_NONE:
 		break;
 	case LOC_DLVL:
-		n = map_buffer (loc.dlvl.yloc, loc.dlvl.xloc);
+	case LOC_FLIGHT:
 		memcpy (&it, actual_thing, sizeof(struct Item));
 		memcpy (&it.loc, &loc, sizeof(loc));
-		items = dlv_lvl(loc.dlvl.dlevel)->items[n];
 		ret = v_push (items, &it);
 		item_makeID (ret);
 		update_item_pointers (items);
@@ -437,46 +456,4 @@ void draw_map (struct Monster *player)
 	}
 	set_can_see (player, sq_seen, sq_attr, sq_unseen, gr_vis, gr_novis);
 }
-/*
-int pr_type;
-int pr_energy;
-char *pr_name;
-struct Thing *pr_from;
-
-void projectile (struct Thing *from, char *name, int type, int strength)
-{
-	pr_from = from;
-	pr_type = type;
-	if (type)
-		pr_energy = type*(strength+10-type)/3;
-	if (!type)
-		pr_energy = strength*2;
-	pr_name = name;
-}
-
-int pr_at (struct DLevel *dlevel, int yloc, int xloc)
-{
-	int n = map_buffer (yloc, xloc);
-	LOOP_THING(dlevel->things, n, i)
-	{
-		struct Thing *th = THING(dlevel->things, n, i);
-		if (th->type == THING_MONS)
-		{
-			if (mons_prhit (pr_from, th, pr_energy))
-			{
-				pr_energy -= 5;
-				p_msg ("The %s hits the %s!", pr_name, mons[th.type].name);
-			}
-			break;
-		}
-		if (th->type == THING_DGN && th->thing.mis.attr == M_OPQ)
-		{
-			pr_energy = 0;
-			break;
-		}
-	}
-	if (pr_type)
-		-- pr_energy;
-	return (pr_energy > 0);
-}*/
 

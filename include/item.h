@@ -2,6 +2,7 @@
 #define ITEM_H_INCLUDED
 
 #include "include/thing.h"
+#include "include/drawing.h"
 
 enum ITYP
 {
@@ -76,7 +77,8 @@ enum ITEM_LOC
 {
 	LOC_NONE = 0, /* placeholder */
 	LOC_DLVL,     /* on the ground */
-	LOC_INV       /* in a monster inventory (or chest?) */
+	LOC_INV,      /* in a monster inventory (or chest?) */
+	LOC_FLIGHT    /* in flight in the dungeon */
 };
 
 struct ItemInDlvl
@@ -93,11 +95,21 @@ struct ItemInInv
 	int invnum;
 };
 
+struct ItemInFlight
+{
+	enum ITEM_LOC loc;
+	int dlevel;
+	uint32_t yloc, xloc;
+	struct BresState bres;
+	int speed;
+};
+
 union ItemLoc
 {
 	enum ITEM_LOC loc;
 	struct ItemInDlvl dlvl;
 	struct ItemInInv inv;
+	struct ItemInFlight fl;
 };
 
 /* an actual physical item */

@@ -203,8 +203,6 @@ void ev_do (Event ev)
 		if (!th)
 			return;
 		th->status.evading = 0;
-		// Next turn
-		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
 		return;
 	case EV_MSHIELD:
 		thID = ev->mshield.thID;
@@ -245,7 +243,6 @@ void ev_do (Event ev)
 		fr = MTHIID(frID); /* get from-mons */
 		if (!fr)
 			return;
-		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, frID}}); /* next turn of from-mons */
 		ydest = fr->yloc + fr->status.attacking.ydir; xdest = fr->xloc + fr->status.attacking.xdir;
 		fr->status.attacking.ydir = 0;
 		fr->status.attacking.xdir = 0;
@@ -306,7 +303,6 @@ void ev_do (Event ev)
 			if (!th->pack->items[i])
 				continue;
 			th->pack->items[i]->attr &= ~ITEM_WIELDED;
-			//new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, th->pack->items[i]);
 			new_item ((union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}}, th->pack->items[i]);
 			free (th->pack->items[i]);
 		}
@@ -321,7 +317,6 @@ void ev_do (Event ev)
 		corpse.attr = 0;
 		corpse.name = NULL;
 		corpse.cur_weight = 0;
-		//new_thing (THING_ITEM, dlv_lvl (th->dlevel), th->yloc, th->xloc, &corpse);
 		new_item ((union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}}, &corpse);
 
 		/* remove dead monster */
@@ -376,8 +371,6 @@ void ev_do (Event ev)
 		char *msg = get_inv_line (NULL, it);
 		p_msg ("The %s wields %s.", th->mname, msg); /* notify */
 		free(msg);
-		//if (mons_isplayer(th))
-		//	item_look (it);
 		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
@@ -410,8 +403,6 @@ void ev_do (Event ev)
 			break;
 		}
 		v_free (pickup);
-		// Next turn
-		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
 		return;
 	case EV_MDROP:
 		th = MTHIID (ev->mdrop.thID);
@@ -425,13 +416,10 @@ void ev_do (Event ev)
 				continue;
 			unsigned u = PACK_AT (get_Itref (th->pack, *drop));
 			pack_rem (th->pack, u);
-			//new_thing (THING_ITEM, cur_dlevel, th->yloc, th->xloc, *drop);
 			new_item ((union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}}, *drop);
 			free(*drop);
 		}
 		v_free (items);
-		// Next turn
-		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, ev->mdrop.thID}});
 		return;
 	case EV_MANGERM:
 		frID = ev->mangerm.frID; toID = ev->mangerm.toID;
@@ -459,14 +447,12 @@ void ev_do (Event ev)
 		if (!th)
 			return;
 		th->status.charging = 1;
-		//ev_queue (th->speed, (union Event) { .mwait = {EV_MWAIT, thID}});
 		return;
 	case EV_MDOCHARGE:
 		thID = ev->mdocharge.thID;
 		th = MTHIID(thID);
 		if (!th)
 			return;
-		//ev_queue (th->speed, (union Event) { .mwait = {EV_MWAIT, thID}});
 		return;
 	case EV_MSTOPCHARGE:
 		thID = ev->mstopcharge.thID;
@@ -474,7 +460,6 @@ void ev_do (Event ev)
 		if (!th)
 			return;
 		th->status.charging = 0;
-		//ev_queue (th->speed, (union Event) { .mwait = {EV_MWAIT, thID}});
 		return;
 	case EV_CIRCLEOFFLAME:
 		thID = ev->circleofflame.thID;
