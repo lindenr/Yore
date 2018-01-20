@@ -6,7 +6,7 @@
 
 enum ITYP
 {
-	ITYP_NONE = 0,				/* placeholder - always useful */
+	ITYP_NONE = 0,  /* placeholder - always useful */
 	ITYP_LONGSWORD,
 	ITYP_AXE,
 	ITYP_HAMMER,
@@ -15,10 +15,8 @@ enum ITYP
 	ITYP_CHEST,
 	ITYP_GLOVES,
 	ITYP_CORPSE,
-	ITYP_EGG,
 	ITYP_MONEY,
-	ITYP_CHARM,
-	ITYP_JEWEL
+	ITYP_ARCANE
 };
 
 /* BUC status */
@@ -56,7 +54,7 @@ enum ITYP
 #define ITCAT_CHARM   0x0040
 #define ITCAT_JEWEL   0x0080
 
-#define ITCAT_ALL     (-1)
+#define ITCAT_ALL     0xFFFF
 
 #define ITEM_NAME_LENGTH 20
 #define NO_ITEM(item) ((!(item)) || ((item)->type.type == ITYP_NONE))
@@ -125,10 +123,15 @@ struct Item
 
 struct Pack;
 
-extern Ityp items[];
+extern Ityp all_items[];
 extern int NUM_ITEMS;
+extern Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword;
+
+#define new_item(ityp) ((struct Item) {0, { .loc = LOC_NONE}, (ityp), 0, (ityp).wt, NULL})
 
 extern struct Item no_item;
+
+void ityp_init      ();
 
 void item_piles     (int, Vector, Vector);
 void ask_items      (Vector, Vector, const char *);

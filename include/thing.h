@@ -40,13 +40,13 @@ struct Thing
 /* see dlevel.h */
 struct DLevel;
 
+struct Thing *new_thing      (uint32_t, struct DLevel *, uint32_t, uint32_t, void *);
 void          thing_free     (struct Thing *);
 void          rem_id         (TID);
-void          rem_mid        (TID);
 
-struct Thing *new_thing      (uint32_t, struct DLevel *, uint32_t, uint32_t, void *);
 struct Monster *new_mons     (struct DLevel *, uint32_t, uint32_t, void *);
-struct Item *new_item        (union ItemLoc, struct Item *);
+void          monsthing_move (struct Monster *, int, int, int);
+void          rem_mid        (TID);
 
 void          draw_map       (struct Monster *);
 void          th_init        ();
@@ -54,8 +54,8 @@ void          th_init        ();
 int           get_thing_type (char);
 const char *  get_thing_name (struct Thing);
 
-void          monsthing_move (struct Monster *, int, int, int);
-struct Item * item_move      (struct Item *, union ItemLoc loc);
+struct Item * item_put       (struct Item *, union ItemLoc loc);
+void          item_free      (struct Item *);
 
 TID  getID                   ();
 

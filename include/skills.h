@@ -15,6 +15,7 @@ enum SK_TYPE
 	SK_NONE = 0,
 	SK_CHARGE,
 	SK_DODGE,
+	SK_FIREBALL,
 	SK_FLAMES,
 	SK_NUM
 };
@@ -45,6 +46,7 @@ int  sk_lvl    (struct Monster *, enum SK_TYPE);
 void sk_charge (struct Monster *, int, int, Skill);
 void sk_flames (struct Monster *);
 void sk_flames_overlay (struct Monster *);
+void sk_fireball (struct Monster *mons, int yloc, int xloc, Skill skill);
 
 #endif /* SKILL_H_INCLUDED */
 

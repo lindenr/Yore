@@ -17,11 +17,12 @@
 
 int NUM_ITEMS;
 struct Item no_item;
+Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword;
 #define ITEM(nm,tp,wt,attr,gl) {nm,tp,wt,attr,gl}
 #define DMG(a,b) (((a)<<4)+(b))
 
 /* No corpse -- they are a custom item (see src/monst.c). */
-Ityp items[] = {
+Ityp all_items[] = {
 /*  item name              type            weight  attributes  display                             */
 	ITEM("long sword",     ITYP_LONGSWORD,  2000,  DMG(1, 5),  ITCH_WEAPON | COL_TXT(11,11, 0)),
 	ITEM("fencing sword",  ITYP_LONGSWORD,  1500,  DMG(1, 5),  ITCH_WEAPON | COL_TXT(11, 0,11)),
@@ -32,9 +33,25 @@ Ityp items[] = {
 	ITEM("short sword",    ITYP_SHORTSWORD, 2000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT(11, 8, 0)),
 	ITEM("gloves",         ITYP_GLOVES,     70,    0,          ITCH_ARMOUR | COL_TXT( 0,11, 0)),
 	ITEM("gold piece",     ITYP_MONEY,      1,     0,          ITCH_DOSH   | COL_TXT(15,15, 0)),
+	ITEM("fireball",       ITYP_ARCANE,     0,     0,          0x09        | COL_TXT(15, 4, 0)),
 	ITEM("",               ITYP_NONE,       0,     0,          0                                  )
 /*  item name              type            weight  attributes  display                             */
 };
+
+void ityp_init ()
+{
+	int i;
+	for (i = 0; all_items[i].name[0]; ++ i)
+	{
+		if (!strcmp(all_items[i].name, "long sword"))
+			ityp_long_sword = all_items[i];
+		else if (!strcmp(all_items[i].name, "fireball"))
+			ityp_fireball = all_items[i];
+		else if (!strcmp(all_items[i].name, "battle-axe"))
+			ityp_battle_axe = all_items[i];
+	}
+	NUM_ITEMS = i;
+}
 
 void ask_items (Vector it_out, Vector it_in, const char *msg)
 {

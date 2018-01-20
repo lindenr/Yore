@@ -11,6 +11,9 @@ typedef enum
 	EV_WORLD_HEARTBEAT,
 	EV_MTHROW,
 	EV_PROJ_MOVE,
+	EV_PROJ_DONE,
+	EV_PROJ_HIT_BARRIER,
+	EV_PROJ_HIT_MONSTER,
 	EV_MWAIT,
 	EV_MMOVE,
 	EV_MDOMOVE,
@@ -35,6 +38,7 @@ typedef enum
 	EV_MSTARTCHARGE,
 	EV_MDOCHARGE,
 	EV_MSTOPCHARGE,
+	EV_MFIREBALL,
 	EV_CIRCLEOFFLAME,
 	EV_MOPENDOOR,
 	EV_MCLOSEDOOR
@@ -67,6 +71,21 @@ typedef union Event
 		EV_TYPE type;
 		TID itemID;
 	} proj_move;
+	struct
+	{
+		EV_TYPE type;
+		TID itemID;
+	} proj_done;
+	struct
+	{
+		EV_TYPE type;
+		TID itemID;
+	} proj_hit_barrier;
+	struct
+	{
+		EV_TYPE type;
+		TID itemID;
+	} proj_hit_monster;
 	struct
 	{
 		EV_TYPE type;
@@ -190,6 +209,12 @@ typedef union Event
 		EV_TYPE type;
 		TID thID;
 	} mstopcharge;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+		int ydest, xdest;
+	} mfireball;
 	struct
 	{
 		EV_TYPE type;

@@ -22,6 +22,9 @@ Tick ev_delay (union Event *event)
 	case EV_WORLD_HEARTBEAT:
 	case EV_MTHROW:
 	case EV_PROJ_MOVE:
+	case EV_PROJ_DONE:
+	case EV_PROJ_HIT_BARRIER:
+	case EV_PROJ_HIT_MONSTER:
 		return 0;
 	case EV_MWAIT:
 		return (MTHIID(event->mwait.thID))->speed;
@@ -71,6 +74,7 @@ Tick ev_delay (union Event *event)
 		return 0;
 	case EV_MSTOPCHARGE:
 		return 0;
+	case EV_MFIREBALL:
 	case EV_CIRCLEOFFLAME:
 		return 0;
 	case EV_MOPENDOOR:
@@ -126,7 +130,7 @@ void ev_mons_start (struct Monster *th)
 void ev_do (Event ev)
 {
 	struct Monster *th, *fr, *to;
-	struct Item *item;
+	struct Item newitem, *item;
 	TID thID, frID, toID, itemID;
 	int can, ydest, xdest;
 	int i, j;
@@ -169,7 +173,7 @@ void ev_do (Event ev)
 			return;
 		loc = (union ItemLoc) { .fl = {LOC_FLIGHT, th->dlevel, th->yloc, th->xloc, {0,}, th->str}};
 		bres_init (&loc.fl.bres, th->yloc, th->xloc, ev->mthrow.ydest, ev->mthrow.xdest);
-		item_move (item, loc);
+		item_put (item, loc);
 		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, itemID}});
 		return;
 	case EV_PROJ_MOVE:
@@ -179,23 +183,45 @@ void ev_do (Event ev)
 			return;
 		if (item->loc.fl.speed <= 0)
 		{
-			item_move (item, (union ItemLoc) { .dlvl =
-				{LOC_DLVL,item->loc.fl.dlevel, item->loc.fl.yloc, item->loc.fl.xloc}});
+			ev_queue (0, (union Event) { .proj_done = {EV_PROJ_DONE, itemID}});
 			return;
 		}
 		memcpy (&loc, &item->loc, sizeof(loc));
 		bres_iter (&loc.fl.bres);
 		if (!get_sqattr (dlv_lvl(loc.fl.dlevel), loc.fl.bres.cy, loc.fl.bres.cx))
 		{
-			item_move (item, (union ItemLoc) { .dlvl =
-				{LOC_DLVL, item->loc.fl.dlevel, item->loc.fl.yloc, item->loc.fl.xloc}});
+			ev_queue (0, (union Event) { .proj_hit_barrier = {EV_PROJ_HIT_BARRIER, itemID}});
 			return;
 		}
 		loc.fl.yloc = loc.fl.bres.cy;
 		loc.fl.xloc = loc.fl.bres.cx;
 		loc.fl.speed -= 1;
-		item_move (item, loc);
+		item_put (item, loc);
 		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, itemID}});
+		return;
+	case EV_PROJ_DONE:
+		itemID = ev->proj_done.itemID;
+		item = ITEMID(itemID);
+		if (item->type.type == ITYP_ARCANE)
+		{
+			item_free (item);
+			return;
+		}
+		item_put (item, (union ItemLoc) { .dlvl =
+			{LOC_DLVL, item->loc.fl.dlevel, item->loc.fl.yloc, item->loc.fl.xloc}});
+		return;
+	case EV_PROJ_HIT_BARRIER:
+		itemID = ev->proj_hit_barrier.itemID;
+		item = ITEMID(itemID);
+		if (item->type.type == ITYP_ARCANE)
+		{
+			item_free (item);
+			return;
+		}
+		item_put (item, (union ItemLoc) { .dlvl =
+			{LOC_DLVL, item->loc.fl.dlevel, item->loc.fl.yloc, item->loc.fl.xloc}});
+		return;
+	case EV_PROJ_HIT_MONSTER:
 		return;
 	case EV_MWAIT:
 		thID = ev->mwait.thID;
@@ -342,8 +368,8 @@ void ev_do (Event ev)
 			if (!th->pack->items[i])
 				continue;
 			th->pack->items[i]->attr &= ~ITEM_WIELDED;
-			new_item ((union ItemLoc) { .dlvl =
-				{LOC_DLVL, th->dlevel, th->yloc, th->xloc}}, th->pack->items[i]);
+			item_put (th->pack->items[i], (union ItemLoc) { .dlvl =
+				{LOC_DLVL, th->dlevel, th->yloc, th->xloc}});
 			free (th->pack->items[i]);
 		}
 		free(th->pack);
@@ -357,7 +383,8 @@ void ev_do (Event ev)
 		corpse.attr = 0;
 		corpse.name = NULL;
 		corpse.cur_weight = 0;
-		new_item ((union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}}, &corpse);
+		item_put (&corpse, (union ItemLoc) { .dlvl =
+			{LOC_DLVL, th->dlevel, th->yloc, th->xloc}});
 
 		/* remove dead monster */
 		rem_mid (th->ID);
@@ -430,7 +457,7 @@ void ev_do (Event ev)
 			itemID = *(int*)v_at (pickup, i);
 			/* Pick up the item */
 			item = ITEMID(itemID);
-			item_move (item, (union ItemLoc){ .inv = {LOC_INV, thID, j}});
+			item_put (item, (union ItemLoc) { .inv = {LOC_INV, thID, j}});
 			/* Say so */
 			char *msg = get_inv_line (th->pack, ITEMID(itemID));
 			p_msg ("%s", msg);
@@ -457,7 +484,7 @@ void ev_do (Event ev)
 				continue;
 			if (drop->attr & ITEM_WIELDED)
 				continue;
-			item_move (drop, (union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}});
+			item_put (drop, (union ItemLoc) { .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}});
 		}
 		v_free (items);
 		return;
@@ -500,6 +527,17 @@ void ev_do (Event ev)
 		if (!th)
 			return;
 		th->status.charging = 0;
+		return;
+	case EV_MFIREBALL:
+		thID = ev->mfireball.thID;
+		th = MTHIID (thID);
+		if (!th)
+			return;
+		newitem = new_item (ityp_fireball);
+		loc = (union ItemLoc) { .fl = {LOC_FLIGHT, th->dlevel, th->yloc, th->xloc, {0,}, th->str}};
+		bres_init (&loc.fl.bres, th->yloc, th->xloc, ev->mfireball.ydest, ev->mfireball.xdest);
+		item = item_put (&newitem, loc);
+		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, item->ID}});
 		return;
 	case EV_CIRCLEOFFLAME:
 		thID = ev->circleofflame.thID;

@@ -84,6 +84,7 @@ int main (int argc, char *argv[])
 	dlv_init ();
 	rng_init ();
 	th_init ();
+	ityp_init ();
 
 	setup_U ();
 

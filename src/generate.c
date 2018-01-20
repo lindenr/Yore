@@ -244,7 +244,7 @@ void add_another_room (struct DLevel *lvl)
 struct Item *gen_item ()
 {
 	Ityp is;
-	memcpy (&is, &(items[rn(NUM_ITEMS)]), sizeof(is));
+	memcpy (&is, &(all_items[rn(NUM_ITEMS)]), sizeof(is));
 	struct Item it = {0, {.loc = LOC_NONE}, is, 0, is.wt, NULL};
 	//if (is.type == ITYP_JEWEL)
 	//	it.attr |= rn(NUM_JEWELS) << 16;
@@ -382,14 +382,11 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	m1.exp = 0;
 	m1.ctr.mode = CTR_PL;
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_CHARGE, 0, 1}));
-	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
+	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FIREBALL, 0, 1}));
 //		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
-//		struct Item myhammer = {items[4], 0, items[4].wt, NULL};
-//		pack_add (&m1.pack, &myhammer);
-//		m1.ST = m1.ST_max = 100;
 	struct Monster *pl = new_mons (cur_dlevel, upsy, upsx, &m1);
-	struct Item myaxe = {0, { .loc = LOC_NONE}, items[3], 0, items[0].wt, NULL};
-	new_item ((union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}}, &myaxe);
+	struct Item myaxe = new_item (ityp_battle_axe);
+	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}});
 	return pl;
 }
 
@@ -422,8 +419,8 @@ struct Monster *gen_boss (int yloc, int xloc)
 		p.ctr.mode = CTR_AI_TIMID;
 	p.level = 1; //mons[p.type].exp? TODO
 	struct Monster *th = new_mons (cur_dlevel, yloc, xloc, &p);
-	struct Item myaxe = {0, { .loc = LOC_NONE}, items[3], 0, items[0].wt, NULL};
-	new_item ((union ItemLoc){ .inv = {LOC_INV, th->ID, 0}}, &myaxe);
+	struct Item myaxe = new_item (ityp_battle_axe);
+	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, th->ID, 0}});
 	return th;
 }
 

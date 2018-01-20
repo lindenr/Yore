@@ -9,7 +9,7 @@ void panic (const char *reason)
 {
 	FILE *fp;
 
-	fp = fopen ("Yore-errorlog", "w");
+	fp = fopen ("errorlog", "w");
 	fprintf (fp, "Error: %s\n", reason);
 	fclose (fp);
 

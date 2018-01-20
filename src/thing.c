@@ -83,6 +83,8 @@ void update_item_pointers (Vector vec)
 void rem_itemid (TID ID)
 {
 	struct Item *item = ITEMID(ID);
+	if (!item)
+		return;
 	int n;
 	Vector items;
 	if (item->loc.loc == LOC_DLVL)
@@ -98,7 +100,7 @@ void rem_itemid (TID ID)
 	switch (item->loc.loc)
 	{
 	case LOC_NONE:
-		break;
+		return;
 	case LOC_DLVL:
 	case LOC_FLIGHT:
 		ITEMID(ID) = NULL;
@@ -114,20 +116,11 @@ void rem_itemid (TID ID)
 	panic("End of rem_itemid reached");
 }
 
-void free_item (struct Item *item)
+void item_free (struct Item *item)
 {
 	rem_itemid (item->ID);
 	if (item->name)
 		free(item->name);
-	free(item);
-}
-
-struct Item *item_move (struct Item *item, union ItemLoc loc)
-{
-	struct Item temp;
-	memcpy (&temp, item, sizeof(temp));
-	rem_itemid (item->ID);
-	return new_item (loc, &temp);
 }
 
 void item_makeID (struct Item *item)
@@ -141,7 +134,7 @@ void item_makeID (struct Item *item)
 		ITEMID(item->ID) = item;
 }
 
-struct Item *new_item (union ItemLoc loc, struct Item *from)
+struct Item *instantiate_item (union ItemLoc loc, struct Item *from)
 {
 	struct Item it;
 	struct Item *ret;
@@ -181,6 +174,14 @@ struct Item *new_item (union ItemLoc loc, struct Item *from)
 	}
 	panic("end of new_item reached");
 	return 0;
+}
+
+struct Item *item_put (struct Item *item, union ItemLoc loc)
+{
+	struct Item temp;
+	memcpy (&temp, item, sizeof(temp));
+	rem_itemid (item->ID);
+	return instantiate_item (loc, &temp);
 }
 
 void thing_free (struct Thing *thing)
