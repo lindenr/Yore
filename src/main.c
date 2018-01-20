@@ -86,8 +86,6 @@ int main (int argc, char *argv[])
 	th_init ();
 	ityp_init ();
 
-	setup_U ();
-
 	if (argc > 1)
 	{
 		generate_map (dlv_lvl(1), LEVEL_TOWN);
@@ -130,7 +128,6 @@ int main (int argc, char *argv[])
 
 	/* So you really want to play? */
 	gra_cshow (map_graph);
-	get_cinfo ();
 
 	/* If the player entered info correctly, then they should be PLAYER_PLAYING: */
 	if (U.playing != PLAYER_PLAYING)

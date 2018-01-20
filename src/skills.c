@@ -47,8 +47,8 @@ int sk_lvl (struct Monster *th, enum SK_TYPE type)
 
 void sk_fireball (struct Monster *mons, int yloc, int xloc, Skill sk)
 {
-	ev_queue (0, (union Event) { .mfireball = {EV_MFIREBALL, mons->ID, yloc, xloc}});
-	ev_queue (100, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+	ev_queue (mons->speed, (union Event) { .mfireball = {EV_MFIREBALL, mons->ID, yloc, xloc}});
+	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 }
 
 #if 0

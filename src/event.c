@@ -20,7 +20,9 @@ Tick ev_delay (union Event *event)
 	case EV_WORLD_INIT:
 	case EV_PLAYER_INIT:
 	case EV_WORLD_HEARTBEAT:
+		return 0;
 	case EV_MTHROW:
+		return (MTHIID(event->mdrop.thID))->speed;
 	case EV_PROJ_MOVE:
 	case EV_PROJ_DONE:
 	case EV_PROJ_HIT_BARRIER:
@@ -436,7 +438,7 @@ void ev_do (Event ev)
 		}
 		th->wearing.weaps[arm] = it;
 		it->attr |= ITEM_WIELDED;
-		char *msg = get_inv_line (NULL, it);
+		char *msg = get_inv_line (it);
 		p_msg ("The %s wields %s.", th->mname, msg); /* notify */
 		free(msg);
 		return;
@@ -459,7 +461,7 @@ void ev_do (Event ev)
 			item = ITEMID(itemID);
 			item_put (item, (union ItemLoc) { .inv = {LOC_INV, thID, j}});
 			/* Say so */
-			char *msg = get_inv_line (th->pack, ITEMID(itemID));
+			char *msg = get_inv_line (ITEMID(itemID));
 			p_msg ("%s", msg);
 			free (msg);
 			/* Next item */

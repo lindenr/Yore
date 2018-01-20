@@ -102,7 +102,7 @@ int Kpickup (struct Monster *player)
 		pickup = v_init (sizeof(TID), 20);
 
 		/* Do the asking */
-		ask_items (pickup, ground, "Pick up what?");
+		ask_items (player, pickup, ground, "Pick up what?");
 
 	}
 	pl_queue (player, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
@@ -259,7 +259,7 @@ int Knlook (struct Monster *player)
 	for (i = 0; i < items->len; ++ i)
 	{
 		struct Item *it = v_at(items, i);
-		char *line = get_inv_line (NULL, it);
+		char *line = get_near_desc (player, it);
 		char out[256];
 		snprintf (out, 256, "You%s see here %s.", (k ? " also" : ""), line);
 		v_pstr (list, out);
@@ -523,5 +523,27 @@ int pl_take_turn (struct Monster *player)
 		}
 	}
 	return 1;
+}
+
+void ask_items (const struct Monster *player, Vector it_out, Vector it_in, const char *msg)
+{
+	int i;
+	// TODO fix
+	Vector list = v_init (128, it_in->len);
+	char first[256];
+	snprintf (first, 128, " ## %s ##",  msg);
+	v_pstr (list, first);
+	v_pstr (list, "");
+	for (i = 0; i < it_in->len; ++ i)
+	{
+		v_push (it_out, v_at (it_in, i));
+		TID itemID = *(TID *) v_at (it_in, i);
+		char *asdf = get_near_desc (player, ITEMID (itemID));
+		v_pstrf (list, "  (*)   %s", asdf);
+		free (asdf);
+	}
+	v_pstr (list, "");
+	p_lines (list);
+	v_free (list);
 }
 

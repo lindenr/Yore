@@ -108,25 +108,11 @@ extern char *s_hun[];
 #define PLAYER_CHEATER  4
 #define PLAYER_ERROR    5
 
-enum ABLTY /* attribute */
-{
-	AB_ST = 0,
-	AB_CO,
-	AB_DX,
-	AB_WI,
-	AB_IN,
-	AB_CH
-};
-
 typedef uint32_t player_attr[6];
 
 struct player_status
 {
-	struct Monster *pl;
-	int role;
 	int playing;
-	player_attr attr; /* st, co, ch, etc */
-	int32_t luck;
 	uint64_t m_glflags;
 };
 extern struct player_status U;
@@ -242,9 +228,8 @@ struct Monster
 	struct Pack *pack;          /* inventory                    */
 	struct WoW wearing;         /* stuff wielding/wearing/using */
 	struct MStatus status;      /* eating, positioning info etc */
-	//struct Item *eating;      /* eating something (0 if not)  */
 	uint32_t mflags;            /* physical flags               */
-	uint8_t boxflags;           /* boxes appearing              */
+	//uint8_t boxflags;           /* boxes appearing              */
 	Vector skills;              /* available skills             */
 };
 
@@ -253,7 +238,6 @@ extern const struct Monster all_mons[];
 /* general monster functions */
 int    mons_move       (struct Monster *, int, int);         /* move in given directions                 */
 int    mons_take_turn  (struct Monster *);                   /* give a move (AI or player)               */
-void   mons_box        (struct Monster *, BoxType);          /* boxy flags for this turn                 */
 void   mons_usedturn   (struct Monster *);                   /* turn is irretrievably used               */
 void   mons_corpse     (struct Monster *, Ityp *);           /* make itype corpse type of the monster    */
 Tick   mons_tmgen      ();                                   /* time until next monster generation       */

@@ -53,74 +53,41 @@ void ityp_init ()
 	NUM_ITEMS = i;
 }
 
-void ask_items (Vector it_out, Vector it_in, const char *msg)
-{
-	int i;
-	// TODO fix
-	Vector list = v_init (128, it_in->len);
-	char first[256];
-	snprintf (first, 128, " ## %s ##",  msg);
-	v_pstr (list, first);
-	v_pstr (list, "");
-	for (i = 0; i < it_in->len; ++ i)
-	{
-		v_push (it_out, v_at (it_in, i));
-		char *asdf = get_item_desc (*(ITEMID (*(TID*)v_at(it_in, i))));
-		v_pstrf (list, "  (*)   %s", asdf);
-		free (asdf);
-	}
-	v_pstr (list, "");
-	p_lines (list);
-	v_free (list);
-}
-
-char *get_item_desc (const struct Item item)
+char *get_near_desc (const struct Monster *mons, const struct Item *item)
 {
 	char *ret = malloc(128);
 	char temp[128];
-	if (item.name != NULL && item.name[0] != '\0')
+	if (item->name != NULL && item->name[0] != '\0')
 	{
 		p_msg ("NULULULULUL");
 	}
 	else
 	{
-		// const char *str = itoa((item.attr&ITEM_PLUS(3)>>3))
+		// const char *str = itoa((item->attr&ITEM_PLUS(3)>>3))
 		snprintf (temp, 128, "%s%s%s%s",
 		         /* beatitude */
-		         (!(item.attr & ITEM_KBUC)) ? "" :
-		           (item.attr & ITEM_BLES)  ? "blessed " :
-		           (item.attr & ITEM_CURS)  ? "cursed "  : "uncursed ",
+		         (!(item->attr & ITEM_KBUC)) ? "" :
+		           (item->attr & ITEM_BLES)  ? "blessed " :
+		           (item->attr & ITEM_CURS)  ? "cursed "  : "uncursed ",
 		         /* greasedness */
-		         (item.attr & ITEM_GREASED) ? "greased " : "",
+		         (item->attr & ITEM_GREASED) ? "greased " : "",
 		         /* enchantment value */
-		         //((item.attr & (ITEM_MINS(3))) | 1 ? ((item.attr & (ITEM_MINS(0))) ? "-" : "+") : ""),
-		         //((item.attr & (ITEM_MINS(3))) | 1 ? (item.attr & ((ITEM_PLUS(3)) >> 3)) : 0),
+		         //((item->attr & (ITEM_MINS(3))) | 1 ? ((item->attr & (ITEM_MINS(0))) ? "-" : "+") : ""),
+		         //((item->attr & (ITEM_MINS(3))) | 1 ? (item->attr & ((ITEM_PLUS(3)) >> 3)) : 0),
 		         /* name */
-		         item.type.name,
+		         item->type.name,
 		         /* wielded */
-		         item.attr & ITEM_WIELDED ? " (wielded)" : "");
+		         item->attr & ITEM_WIELDED ? " (wielded)" : "");
 		w_a (ret, temp, 128);
 	}
 	return ret;
 }
 
-void item_look (const struct Item *item)
+char *get_inv_line (const struct Item *item)
 {
-	char *str = get_inv_line (NULL, item);
-	p_msg ("%s", str);
-	free (str);
-}
-
-char *get_inv_line (Pack *pack, const struct Item *item)
-{
-	char ch = 0;
-	if (pack)
-		ch = get_Itref (pack, item);
-	char *ret = malloc (80), *orig = get_item_desc(*item);
-	if (!ch)
-		snprintf (ret, 80, "%s", orig);
-	else
-		snprintf (ret, 80, "%c - %s", ch, orig);
+	char ch = get_Itref (item);
+	char *ret = malloc (80), *orig = get_near_desc (MTHIID(item->loc.inv.monsID), item);
+	snprintf (ret, 80, "%c - %s", ch, orig);
 	free (orig);
 	return ret;
 }

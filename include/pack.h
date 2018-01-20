@@ -30,7 +30,7 @@ unsigned PACK_AT        (char);
 char show_contents      (Pack *, uint32_t, char *);
 struct Item *get_Item   (const Pack *, unsigned);
 struct Item *get_Itemc  (const Pack *, char);
-char get_Itref          (const Pack *, const struct Item *);
+char get_Itref          (const struct Item *item);
 Pack *pack_init         ();
 
 #endif /* PACK_H_INCLUDED */

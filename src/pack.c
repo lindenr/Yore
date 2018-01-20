@@ -66,7 +66,7 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 		{
 			if (pack->items[i] && item_type_flags (pack->items[i], accepted))
 			{
-				char *line = get_inv_line (pack, pack->items[i]);
+				char *line = get_inv_line (pack->items[i]);
 				v_pstr (inv, line);
 				free (line);
 				++ num_items;
@@ -161,17 +161,10 @@ struct Item *get_Itemc (const Pack *pack, char itch)
 	return pack->items[where];
 }
 
-char get_Itref (const Pack *pack, const struct Item *item)
+char get_Itref (const struct Item *item)
 {
-	unsigned i;
-	if (!pack)
-		return 0;
-
-	for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
-	{
-		if (pack->items[i] == item)
-			return LETTER_AT(i);
-	}
-	return 0;
+	if (item->loc.loc != LOC_INV)
+		panic ("get_Itref called on a non-inventory item");
+	return LETTER_AT (item->loc.inv.invnum);
 }
 

@@ -14,54 +14,6 @@
 #include <stdbool.h>
 
 struct player_status U;
-char *s_hun[] = {
-	"Full",
-	"",
-	"Hungry",
-	"Hungry!",
-	"Starved",
-	"Dead"
-};
-/*
-char *get_hungerstr()
-{
-	if (U.hunger < HN_LIMIT_1)
-		return s_hun[0];
-	if (U.hunger < HN_LIMIT_2)
-		return s_hun[1];
-	if (U.hunger < HN_LIMIT_3)
-		return s_hun[2];
-	if (U.hunger < HN_LIMIT_4)
-		return s_hun[3];
-	if (U.hunger < HN_LIMIT_5)
-		return s_hun[4];
-	return s_hun[5];
-}
-
-bool digesting()
-{
-	return true;
-}*/
-
-void setup_U ()
-{
-	int i;
-
-	U.playing = PLAYER_ERROR;	/* If this function returns early */
-//	U.hunger = 100;
-	U.luck = 0;
-
-	for (i = 0; i < 6; ++i)
-		U.attr[i] = 10;
-
-	U.playing = PLAYER_STARTING;
-}
-
-void get_cinfo ()
-{
-	U.role = 1;
-	U.playing = PLAYER_PLAYING;
-}
 
 int expcmp (int p_exp, int m_exp)
 {
@@ -262,10 +214,6 @@ void mons_passive_attack (struct Monster *from, struct Monster *to) // ACTION
 	}*/
 }
 
-void mons_box (struct Monster *mons, BoxType type)
-{
-	mons->boxflags |= 1<<type;
-}
 struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
 {
 	struct Item *It = NULL;

@@ -134,11 +134,11 @@ extern struct Item no_item;
 void ityp_init      ();
 
 void item_piles     (int, Vector, Vector);
-void ask_items      (Vector, Vector, const char *);
 
+char *get_near_desc (const struct Monster *mons, const struct Item *item);
 char *get_item_desc (const struct Item);
 void item_look      (const struct Item *);
-char *get_inv_line  (struct Pack *, const struct Item *);
+char *get_inv_line  (const struct Item *);
 int  items_equal    (struct Item *, struct Item *);
 
 #endif /* ITEM_H_INCLUDED */
