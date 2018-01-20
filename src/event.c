@@ -458,7 +458,6 @@ void ev_do (Event ev)
 			if (drop->attr & ITEM_WIELDED)
 				continue;
 			item_move (drop, (union ItemLoc){ .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}});
-			free(drop);
 		}
 		v_free (items);
 		return;

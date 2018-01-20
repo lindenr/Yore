@@ -250,16 +250,11 @@ struct Monster
 
 extern const struct Monster all_mons[];
 
-struct Monster;
 /* general monster functions */
 int    mons_move       (struct Monster *, int, int);         /* move in given directions                 */
 int    mons_take_turn  (struct Monster *);                   /* give a move (AI or player)               */
-//void   mons_init_stats (struct MStats *, const struct MType *); /* generate monster stats              */
 void   mons_box        (struct Monster *, BoxType);          /* boxy flags for this turn                 */
 void   mons_usedturn   (struct Monster *);                   /* turn is irretrievably used               */
-//void   mons_eat        (struct Monster *, struct Item *);    /* eat something                            */
-//bool   mons_eating     (struct Monster *);                   /* continue eating something                */
-//bool   mons_can_hear   (struct Monster *);                   /* has ears? no?                            */
 void   mons_corpse     (struct Monster *, Ityp *);           /* make itype corpse type of the monster    */
 Tick   mons_tmgen      ();                                   /* time until next monster generation       */
 Tick   mons_tregen     (struct Monster *);                   /* time between regen events                */
@@ -276,11 +271,8 @@ int    mons_cont       (struct Monster *, MCont, union ContData *);/* continuati
 /* player functions */
 struct Item *player_use_pack (struct Monster *, char *, uint32_t); /* ask player for an item             */
 int    player_gen_type (void);                               /* get a valid monster type for fighting    */
-//int    player_sense    (int, int, int);                    /* can the player sense a square            */
 
 /* player_status functions */
-//char  *get_hungerstr   (void);                             /* gets player's hunger ("Starved" etc)     */
-//bool   digesting       (void);                             /* is the player digesting?                 */
 void   setup_U         (void);                               /* populate the U struct                    */
 void   get_cinfo       (void);                               /* called at start, gets input from player  */
 

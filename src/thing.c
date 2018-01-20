@@ -108,6 +108,7 @@ void rem_itemid (TID ID)
 	case LOC_INV:
 		ITEMID(item->ID) = NULL;
 		pack_rem (MTHIID(item->loc.inv.monsID)->pack, item->loc.inv.invnum);
+		free(item);
 		return;
 	}
 	panic("End of rem_itemid reached");

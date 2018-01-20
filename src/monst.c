@@ -180,30 +180,6 @@ int mons_move (struct Monster *th, int y, int x) /* each either -1, 0 or 1 */
 	return 0;
 }
 
-#if 0
-void thing_move_level (struct Monster *th, int32_t where)
-{
-	uint32_t wh;
-	if (where == 0) /* Uncontrolled teleport within level */
-	{
-		do
-			wh = rn(map_graph->a);
-		while (!is_safe_gen (cur_dlevel, wh / map_graph->w, wh % map_graph->w));
-		th->yloc = wh / map_graph->w;
-		th->xloc = wh % map_graph->w;
-	}
-	else if (where == 1) /* go up stairs */
-	{
-	}
-	else if (where == -1) /* go down stairs */
-	{
-	}
-	else
-	{
-		where >>= 1;
-	}
-}
-#endif
 char escape (char a)
 {
 	if (a < 0x20)
@@ -248,65 +224,11 @@ int mons_take_turn (struct Monster *th)
 	return -1;
 }
 
-/*int mons_prhit (struct Monster *from, struct Monster *to, int energy) // ACTION
-{
-	to.HP -= energy/2;
-	if (to.HP <= 0)
-		mons_dead (from, to);
-	return 1;
-}*/
-
 /* TODO is it polymorphed? */
 bool mons_edible (struct Monster *th, struct Item *item)
 {
 	return ((item->type.gl & 0xFF) == ITCH_FOOD);
 }
-/*
-bool mons_eating (struct Monster *th) // ACTION
-{
-	int hunger_loss;
-	struct Item *item = th->eating;
-	if (!item)
-		return false;
-	if (item->cur_weight <= 1200)
-	{
-		if (mons_isplayer(th))
-		{
-			U.hunger -= (item->cur_weight) >> 4;
-			p_msg ("You finish eating.");
-		}
-		th->status &= ~M_EATING;
-		th->eating = NULL;
-		th->pack.items[PACK_AT(get_Itref(th->pack, item))] = NULL;
-		return false;
-	}
-	hunger_loss = rn(25) + 50;
-	item->cur_weight -= hunger_loss << 4;
-	if (mons_isplayer(th))
-		U.hunger -= hunger_loss;
-	return true;
-}
-
-void mons_eat (struct Monster *th, struct Item *item) // ACTION
-{
-	if (!mons_edible (th, item))
-	{
-		if (mons_isplayer(th))
-			p_msg("You can't eat that!");
-		return;
-	}
-
-	if ((th->status) & M_EATING)
-	{
-		if (mons_isplayer(th))
-			p_msg("You're already eating!");
-		return;
-	}
-	th->status |= M_EATING;
-	th->eating = item;
-	if (!item->cur_weight)
-		item->cur_weight = item->type.wt;
-}*/
 
 Tick mons_tmgen ()
 {
@@ -317,32 +239,6 @@ Tick mons_tregen (struct Monster *th)
 {
 	return 1000;
 }
-
-/*bool mons_wear (struct Monster *th, struct Item *it)
-{
-	if (it->type.ch != ITCH_ARMOUR)
-	{
-		if (mons_isplayer(th))
-		{
-			p_msg ("You can't wear that!");
-		}
-		return false;
-	}
-
-	switch (it->type.type)
-	{
-		case ITYP_GLOVES:
-		{
-			th->wearing.hands = it;
-			break;
-		}
-		default:
-		{
-			panic ("Armour not recognised");
-		}
-	}
-	return true;
-}*/
 
 void mons_passive_attack (struct Monster *from, struct Monster *to) // ACTION
 {
@@ -458,20 +354,6 @@ int mons_ST_max_regen (struct Monster *th)
 		return 0;
 	return !rn(10*th->ST_max);
 }
-
-/*int player_sense (int yloc, int xloc, int senses)
-{
-	if (senses&SENSE_VISION)
-	{
-		if (bres_draw (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel), NULL, yloc, xloc))
-			return 1;
-	}
-	if (senses&SENSE_HEARING)
-	{
-		return 1;
-	}
-	return 0;
-}*/
 
 int mons_cont (struct Monster *player, MCont cont, union ContData *data)
 {
