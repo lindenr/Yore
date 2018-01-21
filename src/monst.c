@@ -130,12 +130,14 @@ int mons_move (struct Monster *th, int y, int x) /* each either -1, 0 or 1 */
 	return 0;
 }
 
-char escape (char a)
+void mons_wield (struct Monster *mons, int arm, struct Item *it)
 {
-	if (a < 0x20)
-		return a + 0x40;
-	else
-		return a;
+	item_put (it, (union ItemLoc) { .wield = {LOC_WIELDED, mons->ID, it->loc.inv.invnum, arm}});
+}
+
+void mons_unwield (struct Monster *mons, struct Item *it)
+{
+	item_put (it, (union ItemLoc) { .inv = {LOC_INV, mons->ID, it->loc.wield.invnum}});
 }
 
 int mons_take_turn (struct Monster *th)
@@ -174,44 +176,9 @@ int mons_take_turn (struct Monster *th)
 	return -1;
 }
 
-/* TODO is it polymorphed? */
-bool mons_edible (struct Monster *th, struct Item *item)
-{
-	return ((item->type.gl & 0xFF) == ITCH_FOOD);
-}
-
-Tick mons_tmgen ()
-{
-	return 10000 + rn (500);
-}
-
 Tick mons_tregen (struct Monster *th)
 {
 	return 1000;
-}
-
-void mons_passive_attack (struct Monster *from, struct Monster *to) // ACTION
-{
-/*	uint32_t t;
-	int type = from.type;
-	char posv[30];
-	for (t = 0; t < A_NUM; ++t)
-		if ((mons[type].attacks[t][2] & 0xFFFF) == ATTK_PASS)
-			break;
-	if (t >= A_NUM)
-		return;
-
-	switch (mons[type].attacks[t][2] >> 16)
-	{
-		case ATYP_ACID:
-		{
-			w_pos (posv, (char *)mons[type].name, 30);
-			if (from == player)
-				p_msg ("You splash the %s with acid!", mons[type].name);
-			else if (to == player)
-				p_msg ("You are splashed by the %s acid!", posv);
-		}
-	}*/
 }
 
 struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)

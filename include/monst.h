@@ -229,7 +229,6 @@ struct Monster
 	struct WoW wearing;         /* stuff wielding/wearing/using */
 	struct MStatus status;      /* eating, positioning info etc */
 	uint32_t mflags;            /* physical flags               */
-	//uint8_t boxflags;           /* boxes appearing              */
 	Vector skills;              /* available skills             */
 };
 
@@ -237,10 +236,11 @@ extern const struct Monster all_mons[];
 
 /* general monster functions */
 int    mons_move       (struct Monster *, int, int);         /* move in given directions                 */
+void   mons_wield      (struct Monster *, int, struct Item *); /* wield an item in an arm                */
+void   mons_unwield    (struct Monster *, struct Item *);    /* unwield an item */
 int    mons_take_turn  (struct Monster *);                   /* give a move (AI or player)               */
 void   mons_usedturn   (struct Monster *);                   /* turn is irretrievably used               */
 void   mons_corpse     (struct Monster *, Ityp *);           /* make itype corpse type of the monster    */
-Tick   mons_tmgen      ();                                   /* time until next monster generation       */
 Tick   mons_tregen     (struct Monster *);                   /* time between regen events                */
 int    mons_hits       (struct Monster *, struct Monster *, struct Item *); /* will it hit               */
 int    mons_hitdmg     (struct Monster *, struct Monster *, struct Item *); /* how much damage           */
@@ -256,12 +256,8 @@ int    mons_cont       (struct Monster *, MCont, union ContData *);/* continuati
 struct Item *player_use_pack (struct Monster *, char *, uint32_t); /* ask player for an item             */
 int    player_gen_type (void);                               /* get a valid monster type for fighting    */
 
-/* player_status functions */
-void   setup_U         (void);                               /* populate the U struct                    */
-void   get_cinfo       (void);                               /* called at start, gets input from player  */
-
+/* map function? */
 int    can_amove       (int);                                /* returns if a square can be moved on to   */
-char   escape          (char);                               /* escapes a character                      */
 
 /* AI functions */
 int    AI_TIMID_take_turn    (struct Monster *);             /* decide what to do if not attacking       */

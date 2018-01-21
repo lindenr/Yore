@@ -17,7 +17,7 @@
 
 int NUM_ITEMS;
 struct Item no_item;
-Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword;
+Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt;
 #define ITEM(nm,tp,wt,attr,gl) {nm,tp,wt,attr,gl}
 #define DMG(a,b) (((a)<<4)+(b))
 
@@ -34,6 +34,7 @@ Ityp all_items[] = {
 	ITEM("gloves",         ITYP_GLOVES,     70,    0,          ITCH_ARMOUR | COL_TXT( 0,11, 0)),
 	ITEM("gold piece",     ITYP_MONEY,      1,     0,          ITCH_DOSH   | COL_TXT(15,15, 0)),
 	ITEM("fireball",       ITYP_ARCANE,     0,     0,          0x09        | COL_TXT(15, 4, 0)),
+	ITEM("water bolt",     ITYP_ARCANE,     0,     0,          0x07        | COL_TXT( 0, 4,15)),
 	ITEM("",               ITYP_NONE,       0,     0,          0                                  )
 /*  item name              type            weight  attributes  display                             */
 };
@@ -49,6 +50,8 @@ void ityp_init ()
 			ityp_fireball = all_items[i];
 		else if (!strcmp(all_items[i].name, "battle-axe"))
 			ityp_battle_axe = all_items[i];
+		else if (!strcmp(all_items[i].name, "water bolt"))
+			ityp_water_bolt = all_items[i];
 	}
 	NUM_ITEMS = i;
 }
@@ -77,7 +80,8 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 		         /* name */
 		         item->type.name,
 		         /* wielded */
-		         item->attr & ITEM_WIELDED ? " (wielded)" : "");
+		         (item->loc.loc == LOC_WIELDED) ? " (wielded)" : ""
+				 );
 		w_a (ret, temp, 128);
 	}
 	return ret;

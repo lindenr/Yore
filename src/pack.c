@@ -163,7 +163,7 @@ struct Item *get_Itemc (const Pack *pack, char itch)
 
 char get_Itref (const struct Item *item)
 {
-	if (item->loc.loc != LOC_INV)
+	if (item->loc.loc != LOC_INV && item->loc.loc != LOC_WIELDED)
 		panic ("get_Itref called on a non-inventory item");
 	return LETTER_AT (item->loc.inv.invnum);
 }

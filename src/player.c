@@ -162,8 +162,6 @@ int Ksdrop (struct Monster *player)
 	Vector vdrop = v_dinit (sizeof(TID));
 	v_push (vdrop, &drop->ID);
 
-	if (drop->attr & ITEM_WIELDED)
-		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
 	pl_queue (player, (union Event) { .mdrop = {EV_MDROP, player->ID, vdrop}});
 	return pl_execute (player->speed, player, 0);
 }
@@ -236,8 +234,6 @@ int Kthrow (struct Monster *player)
 	if (yloc == -1)
 		return 0;
 
-	if (throw->attr & ITEM_WIELDED)
-		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, &no_item}});
 	pl_queue (player, (union Event) { .mthrow = {EV_MTHROW, player->ID, throw->ID, yloc, xloc}});
 	return pl_execute (player->speed, player, 0);
 }

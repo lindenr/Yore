@@ -97,6 +97,7 @@ void rem_itemid (TID ID)
 		n = map_buffer (item->loc.fl.yloc, item->loc.fl.xloc);
 		items = dlv_lvl(item->loc.fl.dlevel)->items[n];
 	}
+	struct Monster *mons;
 	switch (item->loc.loc)
 	{
 	case LOC_NONE:
@@ -110,6 +111,13 @@ void rem_itemid (TID ID)
 	case LOC_INV:
 		ITEMID(item->ID) = NULL;
 		pack_rem (MTHIID(item->loc.inv.monsID)->pack, item->loc.inv.invnum);
+		free(item);
+		return;
+	case LOC_WIELDED:
+		ITEMID(item->ID) = NULL;
+		mons = MTHIID(item->loc.wield.monsID);
+		mons->wearing.weaps[item->loc.wield.arm] = NULL;
+		pack_rem (mons->pack, item->loc.wield.invnum);
 		free(item);
 		return;
 	}
@@ -150,6 +158,7 @@ struct Item *instantiate_item (union ItemLoc loc, struct Item *from)
 		n = map_buffer (loc.fl.yloc, loc.fl.xloc);
 		items = dlv_lvl(loc.fl.dlevel)->items[n];
 	}
+	struct Monster *th;
 	switch (loc.loc)
 	{
 	case LOC_NONE:
@@ -165,11 +174,23 @@ struct Item *instantiate_item (union ItemLoc loc, struct Item *from)
 	case LOC_INV:
 		memcpy (&it, from, sizeof(struct Item));
 		memcpy (&it.loc, &loc, sizeof(loc));
-		struct Monster *th = MTHIID (loc.inv.monsID);
+		th = MTHIID (loc.inv.monsID);
 		if (!pack_add (&th->pack, &it, loc.inv.invnum))
 			panic("item already in inventory location in new_item");
 		ret = th->pack->items[loc.inv.invnum];
 		item_makeID (ret);
+		return ret;
+	case LOC_WIELDED:
+		memcpy (&it, from, sizeof(struct Item));
+		memcpy (&it.loc, &loc, sizeof(loc));
+		th = MTHIID (loc.wield.monsID);
+		if (!pack_add (&th->pack, &it, loc.wield.invnum))
+			panic("item already in inventory location in new_item");
+		ret = th->pack->items[loc.wield.invnum];
+		item_makeID (ret);
+		if (th->wearing.weaps[loc.wield.arm])
+			panic("already wielding an item in new_item");
+		th->wearing.weaps[loc.wield.arm] = ret;
 		return ret;
 	}
 	panic("end of new_item reached");

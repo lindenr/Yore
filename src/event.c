@@ -55,7 +55,7 @@ Tick ev_delay (union Event *event)
 	case EV_MTURN:
 		return 0;
 	case EV_MGEN:
-		return mons_tmgen ();
+		return 0;
 	case EV_MREGEN:
 		return mons_tregen (MTHIID(event->mregen.thID));
 	case EV_MWIELD:
@@ -77,6 +77,7 @@ Tick ev_delay (union Event *event)
 	case EV_MSTOPCHARGE:
 		return 0;
 	case EV_MFIREBALL:
+	case EV_MWATER_BOLT:
 	case EV_CIRCLEOFFLAME:
 		return 0;
 	case EV_MOPENDOOR:
@@ -171,7 +172,7 @@ void ev_do (Event ev)
 			return;
 		itemID = ev->mthrow.itemID;
 		item = ITEMID (itemID);
-		if ((!item) || item->loc.loc != LOC_INV)
+		if (!item)
 			return;
 		loc = (union ItemLoc) { .fl = {LOC_FLIGHT, th->dlevel, th->yloc, th->xloc, {0,}, th->str}};
 		bres_init (&loc.fl.bres, th->yloc, th->xloc, ev->mthrow.ydest, ev->mthrow.xdest);
@@ -206,9 +207,11 @@ void ev_do (Event ev)
 		item = ITEMID(itemID);
 		if (item->type.type == ITYP_ARCANE)
 		{
+			p_msg ("The %s dissipates.", item->type.name);
 			item_free (item);
 			return;
 		}
+		p_msg ("The %s falls to the ground.", item->type.name);
 		item_put (item, (union ItemLoc) { .dlvl =
 			{LOC_DLVL, item->loc.fl.dlevel, item->loc.fl.yloc, item->loc.fl.xloc}});
 		return;
@@ -217,9 +220,11 @@ void ev_do (Event ev)
 		item = ITEMID(itemID);
 		if (item->type.type == ITYP_ARCANE)
 		{
+			p_msg ("The %s is absorbed.", item->type.name);
 			item_free (item);
 			return;
 		}
+		p_msg ("The %s hits the wall.", item->type.name);
 		item_put (item, (union ItemLoc) { .dlvl =
 			{LOC_DLVL, item->loc.fl.dlevel, item->loc.fl.yloc, item->loc.fl.xloc}});
 		return;
@@ -369,7 +374,6 @@ void ev_do (Event ev)
 		{
 			if (!th->pack->items[i])
 				continue;
-			th->pack->items[i]->attr &= ~ITEM_WIELDED;
 			item_put (th->pack->items[i], (union ItemLoc) { .dlvl =
 				{LOC_DLVL, th->dlevel, th->yloc, th->xloc}});
 			free (th->pack->items[i]);
@@ -430,17 +434,14 @@ void ev_do (Event ev)
 		int arm = ev->mwield.arm;
 		struct Item *it = ev->mwield.it;
 		if (th->wearing.weaps[arm])
-			th->wearing.weaps[arm]->attr &= ~ITEM_WIELDED;
+			mons_unwield (th, th->wearing.weaps[arm]);
 		if (NO_ITEM(it))
-		{
-			th->wearing.weaps[arm] = NULL;
 			return;
-		}
+		mons_wield (th, arm, it);
 		th->wearing.weaps[arm] = it;
-		it->attr |= ITEM_WIELDED;
 		char *msg = get_inv_line (it);
 		p_msg ("The %s wields %s.", th->mname, msg); /* notify */
-		free(msg);
+		free (msg);
 		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
@@ -482,10 +483,6 @@ void ev_do (Event ev)
 		for (i = 0; i < items->len; ++ i)
 		{
 			struct Item *drop = ITEMID(*(TID*)v_at (items, i));
-			if (drop->loc.loc != LOC_INV || drop->loc.inv.monsID != ev->mdrop.thID)
-				continue;
-			if (drop->attr & ITEM_WIELDED)
-				continue;
 			item_put (drop, (union ItemLoc) { .dlvl = {LOC_DLVL, th->dlevel, th->yloc, th->xloc}});
 		}
 		v_free (items);
@@ -538,6 +535,17 @@ void ev_do (Event ev)
 		newitem = new_item (ityp_fireball);
 		loc = (union ItemLoc) { .fl = {LOC_FLIGHT, th->dlevel, th->yloc, th->xloc, {0,}, th->str}};
 		bres_init (&loc.fl.bres, th->yloc, th->xloc, ev->mfireball.ydest, ev->mfireball.xdest);
+		item = item_put (&newitem, loc);
+		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, item->ID}});
+		return;
+	case EV_MWATER_BOLT:
+		thID = ev->mwater_bolt.thID;
+		th = MTHIID (thID);
+		if (!th)
+			return;
+		newitem = new_item (ityp_water_bolt);
+		loc = (union ItemLoc) { .fl = {LOC_FLIGHT, th->dlevel, th->yloc, th->xloc, {0,}, th->str}};
+		bres_init (&loc.fl.bres, th->yloc, th->xloc, ev->mwater_bolt.ydest, ev->mwater_bolt.xdest);
 		item = item_put (&newitem, loc);
 		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, item->ID}});
 		return;

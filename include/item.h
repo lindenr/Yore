@@ -32,7 +32,7 @@ enum ITYP
 /* being worn or applied */
 #define ITEM_USED    0x00000080
 /* wielded */
-#define ITEM_WIELDED 0x00000100
+//#define ITEM_WIELDED 0x00000100
 
 #define ITCH_WEAPON  ')'
 #define ITCH_TOOL    '('
@@ -76,6 +76,7 @@ enum ITEM_LOC
 	LOC_NONE = 0, /* placeholder */
 	LOC_DLVL,     /* on the ground */
 	LOC_INV,      /* in a monster inventory (or chest?) */
+	LOC_WIELDED,  /* wielded by a monster */
 	LOC_FLIGHT    /* in flight in the dungeon */
 };
 
@@ -93,6 +94,14 @@ struct ItemInInv
 	int invnum;
 };
 
+struct ItemWielded
+{
+	enum ITEM_LOC loc;
+	TID monsID;
+	int invnum;
+	int arm;
+};
+
 struct ItemInFlight
 {
 	enum ITEM_LOC loc;
@@ -107,6 +116,7 @@ union ItemLoc
 	enum ITEM_LOC loc;
 	struct ItemInDlvl dlvl;
 	struct ItemInInv inv;
+	struct ItemWielded wield;
 	struct ItemInFlight fl;
 };
 
@@ -125,7 +135,7 @@ struct Pack;
 
 extern Ityp all_items[];
 extern int NUM_ITEMS;
-extern Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword;
+extern Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt;
 
 #define new_item(ityp) ((struct Item) {0, { .loc = LOC_NONE}, (ityp), 0, (ityp).wt, NULL})
 
