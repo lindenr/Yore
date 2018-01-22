@@ -236,13 +236,13 @@ extern const struct Monster all_mons[];
 
 /* general monster functions */
 int    mons_move       (struct Monster *, int, int);         /* move in given directions                 */
-void   mons_wield      (struct Monster *, int, struct Item *); /* wield an item in an arm                */
-void   mons_unwield    (struct Monster *, struct Item *);    /* unwield an item */
 int    mons_take_turn  (struct Monster *);                   /* give a move (AI or player)               */
-void   mons_usedturn   (struct Monster *);                   /* turn is irretrievably used               */
 void   mons_corpse     (struct Monster *, Ityp *);           /* make itype corpse type of the monster    */
 Tick   mons_tregen     (struct Monster *);                   /* time between regen events                */
-int    mons_hits       (struct Monster *, struct Monster *, struct Item *); /* will it hit               */
+int    mons_throwspeed (struct Monster *, struct Item *);    /* how fast the item can be thrown          */
+int    proj_hitm       (struct Item *, struct Monster *);    /* will the projectile hit                  */
+int    proj_hitdmg     (struct Item *, struct Monster *);    /* how much damage                          */
+int    mons_hitm       (struct Monster *, struct Monster *, struct Item *); /* will it hit               */
 int    mons_hitdmg     (struct Monster *, struct Monster *, struct Item *); /* how much damage           */
 int    mons_ST_hit     (struct Monster *, struct Item *);    /* how much stamina will it consume         */
 int    mons_HP_regen   (struct Monster *);                   /* how much HP will regen                   */
@@ -251,6 +251,11 @@ int    mons_ST_regen   (struct Monster *);                   /* stamina         
 int    mons_ST_max_regen(struct Monster *);                  /* max stamina                              */
 int    mons_isplayer   (struct Monster *);                   /* is controlled by human                   */
 int    mons_cont       (struct Monster *, MCont, union ContData *);/* continuation to be called next turn      */
+
+/* effects */
+void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */
+void   mons_wield      (struct Monster *, int, struct Item *); /* wield an item in an arm                */
+void   mons_unwield    (struct Monster *, struct Item *);    /* unwield an item */
 
 /* player functions */
 struct Item *player_use_pack (struct Monster *, char *, uint32_t); /* ask player for an item             */

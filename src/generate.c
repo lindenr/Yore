@@ -383,7 +383,7 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	m1.ctr.mode = CTR_PL;
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_WATER_BOLT, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FIREBALL, 0, 1}));
-//		v_push (m1.skills, (const void *)(&(const struct Skill) {SK_DODGE, 0, 1}));
+	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FROST, 0, 1}));
 	struct Monster *pl = new_mons (cur_dlevel, upsy, upsx, &m1);
 	struct Item myaxe = new_item (ityp_battle_axe);
 	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}});

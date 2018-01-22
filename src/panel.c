@@ -348,6 +348,19 @@ int p_skills (struct Monster *player, enum PanelType type)
 				gra_free (sc_skills);
 				sk_water_bolt (player, yloc, xloc, v_at (pskills, selected));
 				return 1;
+			case SK_FROST:
+				gra_hide (sc_status);
+				gra_hide (sc_skills);
+				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, 1);
+				if (yloc == -1)
+				{
+					gra_show (sc_status);
+					gra_show (sc_skills);
+					continue;
+				}
+				gra_free (sc_skills);
+				sk_frost (player, yloc, xloc, v_at (pskills, selected));
+				return 1;
 			case SK_FLAMES:
 				gra_free (sc_skills);
 				sk_flames (player);

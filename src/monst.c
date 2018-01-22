@@ -130,6 +130,36 @@ int mons_move (struct Monster *th, int y, int x) /* each either -1, 0 or 1 */
 	return 0;
 }
 
+void mons_tilefrost (struct Monster *mons, int yloc, int xloc)
+{
+	int n = map_buffer (yloc, xloc);
+	struct DLevel *lvl = dlv_lvl (mons->dlevel);
+	if (lvl->mons[n].ID)
+	{//TODO anger monster
+	}
+	int i;
+	Vector items = lvl->items[n];
+	for (i = 0; i < items->len; ++ i)
+	{
+		struct Item *it = (struct Item *) (items->data + i);
+		if (it->type.type != ITYP_ARCANE)
+			continue;
+		if (!strcmp (it->type.name, "fireball"))
+		{
+			item_free (it);
+			-- i;
+			p_msg ("The fire goes out!");
+			continue;
+		}
+		if (!strcmp (it->type.name, "water bolt"))
+		{
+			memcpy (&it->type, &ityp_ice_bolt, sizeof(Ityp));
+			p_msg ("The water freezes into an ice bolt!");
+			continue;
+		}
+	}
+}
+
 void mons_wield (struct Monster *mons, int arm, struct Item *it)
 {
 	item_put (it, (union ItemLoc) { .wield = {LOC_WIELDED, mons->ID, it->loc.inv.invnum, arm}});
@@ -219,7 +249,23 @@ struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
 	return It;
 }
 
-int mons_hits (struct Monster *from, struct Monster *to, struct Item *with)
+int mons_throwspeed (struct Monster *mons, struct Item *it)
+{
+	return rn(3) + mons->str/2 - it->cur_weight/500;
+}
+
+int proj_hitm (struct Item *proj, struct Monster *to)
+{
+	return 1;
+}
+
+int proj_hitdmg (struct Item *proj, struct Monster *to)
+{
+	int speed = proj->loc.fl.speed;
+	return 2 + rn(3) + (speed >= 2) + (speed >= 4) + (speed >= 8);
+}
+
+int mons_hitm (struct Monster *from, struct Monster *to, struct Item *with)
 {
 	if ((to->status.defending.ydir || to->status.defending.xdir) &&
 	    to->status.defending.ydir + to->yloc == from->yloc &&
@@ -351,8 +397,8 @@ int AI_AGGRO_take_turn (struct Monster *ai)
 	 * currently wielded weapon */
 	for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
 	{
-		struct Item *item = ai->pack->items[i];
-		if (!item)
+		struct Item *item = &ai->pack->items[i];
+		if (NO_ITEM(item))
 			continue;
 		if (AI_weapcmp (ai, item, bestweap) > 0)
 			bestweap = item;

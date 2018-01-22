@@ -31,8 +31,6 @@ enum ITYP
 #define ITEM_GREASED 0x00000040
 /* being worn or applied */
 #define ITEM_USED    0x00000080
-/* wielded */
-//#define ITEM_WIELDED 0x00000100
 
 #define ITCH_WEAPON  ')'
 #define ITCH_TOOL    '('
@@ -109,6 +107,7 @@ struct ItemInFlight
 	uint32_t yloc, xloc;
 	struct BresState bres;
 	int speed;
+	TID frID;
 };
 
 union ItemLoc
@@ -135,7 +134,7 @@ struct Pack;
 
 extern Ityp all_items[];
 extern int NUM_ITEMS;
-extern Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt;
+extern Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt, ityp_ice_bolt;
 
 #define new_item(ityp) ((struct Item) {0, { .loc = LOC_NONE}, (ityp), 0, (ityp).wt, NULL})
 

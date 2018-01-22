@@ -40,6 +40,7 @@ typedef enum
 	EV_MSTOPCHARGE,
 	EV_MFIREBALL,
 	EV_MWATER_BOLT,
+	EV_MFROST,
 	EV_CIRCLEOFFLAME,
 	EV_MOPENDOOR,
 	EV_MCLOSEDOOR
@@ -86,6 +87,7 @@ typedef union Event
 	{
 		EV_TYPE type;
 		TID itemID;
+		TID monsID;
 	} proj_hit_monster;
 	struct
 	{
@@ -222,6 +224,13 @@ typedef union Event
 		TID thID;
 		int ydest, xdest;
 	} mwater_bolt;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+		int ydest, xdest;
+		int radius;
+	} mfrost;
 	struct
 	{
 		EV_TYPE type;

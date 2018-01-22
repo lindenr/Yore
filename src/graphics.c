@@ -449,12 +449,20 @@ uint32_t end = 0, key_fire_ms = 0;
 char cur_key_down = 0;
 int num_keys_down = 0;
 
+#ifdef DEBUG_REFRESH_TIME
+uint32_t lastref = 0;
+#endif
+
 // TODO: is text parameter necessary? Could just check if it is an input code
 char gr_getch_aux (int text)
 {
+	uint32_t ticks = gr_getms ();
+#ifdef DEBUG_REFRESH_TIME
+	fprintf(stderr, "Time since last getch: %d\n", ticks - lastref);
+	lastref = ticks;
+#endif
 	gr_refresh ();
 
-	uint32_t ticks = gr_getms ();
 	if (tout_num && end <= ticks)
 		end = tout_num + ticks;
 	else if (tout_num == 0)
@@ -462,20 +470,21 @@ char gr_getch_aux (int text)
 	SDL_Event sdlEvent;
 	while (1)
 	{
-		if (end && gr_getms () >= end)
+		ticks = gr_getms ();
+		if (end && ticks >= end)
 		{
 			end = 0;
 			break;
+		}
+		if (cur_key_down && ticks >= key_fire_ms)
+		{
+			key_fire_ms = ticks + gr_kdelay;
+			return cur_key_down;
 		}
 		if (!SDL_PollEvent (&sdlEvent))
 		{
 			if (gr_onidle)
 				gr_onidle ();
-			if (cur_key_down && gr_getms () >= key_fire_ms)
-			{
-				key_fire_ms = gr_getms () + gr_kdelay;
-				return cur_key_down;
-			}
 			gr_wait (10);
 			continue;
 		}

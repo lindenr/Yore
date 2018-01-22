@@ -55,7 +55,6 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 	Vector inv;
 
 	inv = v_init (256, MAX_ITEMS_IN_PACK);
-	//int len = strlen(msg);
 	char first[256];
 	snprintf (first, 256, "#%s", msg);
 	v_pstr (inv, first);
@@ -64,9 +63,12 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 	{
 		for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
 		{
-			if (pack->items[i] && item_type_flags (pack->items[i], accepted))
+			struct Item *packitem = &pack->items[i];
+			if (NO_ITEM(packitem))
+				continue;
+			if (item_type_flags (packitem, accepted))
 			{
-				char *line = get_inv_line (pack->items[i]);
+				char *line = get_inv_line (packitem);
 				v_pstr (inv, line);
 				free (line);
 				++ num_items;
@@ -89,7 +91,7 @@ void pack_get_letters (Pack pack, char *ret)
 	unsigned k, u;
 	for (u = 0, k = 0; u < MAX_ITEMS_IN_PACK; ++u)
 	{
-		if (pack.items[u])
+		if (!NO_ITEM(&pack.items[u]))
 		{
 			ret[k] = LETTER_AT(u);
 			++k;
@@ -100,23 +102,9 @@ void pack_get_letters (Pack pack, char *ret)
 
 struct Item *pack_rem (Pack *pack, unsigned u)
 {
-	struct Item *ret = pack->items[u];
-	pack->items[u] = NULL;
+	struct Item *ret = &pack->items[u];
+	ret->type.type = ITYP_NONE;
 	return ret;
-}
-
-void pack_free (Pack **pack)
-{
-	int i;
-	if ((!pack) || (!(*pack)))
-		return;
-	for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
-	{
-		struct Item *item = (*pack)->items[i];
-		if (item)
-			free (item);
-	}
-	free (pack);
 }
 
 Pack *pack_init ()
@@ -132,24 +120,16 @@ bool pack_add (Pack **ppack, struct Item *it, int u)
 		*ppack = pack_init ();
 	Pack *pack = *ppack;
 
-	if (!pack->items[u])
+	if (NO_ITEM(&pack->items[u]))
 	{
 		/* Put in pack */
-		pack->items[u] = malloc (sizeof(*it));
-		memcpy (pack->items[u], it, sizeof(*it));
+		memcpy (&pack->items[u], it, sizeof(*it));
 		return true;
 	}
 	return false;
 }
 
-struct Item *get_Item (const Pack *pack, unsigned itnum)
-{
-	if (!pack)
-		return NULL;
-	return pack->items[itnum];
-}
-
-struct Item *get_Itemc (const Pack *pack, char itch)
+struct Item *get_Itemc (Pack *pack, char itch)
 {
 	if (itch == '-')
 		return &no_item;
@@ -158,7 +138,7 @@ struct Item *get_Itemc (const Pack *pack, char itch)
 		return NULL;
 	if (!pack)
 		return NULL;
-	return pack->items[where];
+	return &pack->items[where];
 }
 
 char get_Itref (const struct Item *item)

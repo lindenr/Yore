@@ -17,7 +17,7 @@
 
 int NUM_ITEMS;
 struct Item no_item;
-Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt;
+Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt, ityp_ice_bolt;
 #define ITEM(nm,tp,wt,attr,gl) {nm,tp,wt,attr,gl}
 #define DMG(a,b) (((a)<<4)+(b))
 
@@ -35,6 +35,7 @@ Ityp all_items[] = {
 	ITEM("gold piece",     ITYP_MONEY,      1,     0,          ITCH_DOSH   | COL_TXT(15,15, 0)),
 	ITEM("fireball",       ITYP_ARCANE,     0,     0,          0x09        | COL_TXT(15, 4, 0)),
 	ITEM("water bolt",     ITYP_ARCANE,     0,     0,          0x07        | COL_TXT( 0, 4,15)),
+	ITEM("ice bolt",       ITYP_ARCANE,     0,     0,          0x07        | COL_TXT( 0, 8,15)),
 	ITEM("",               ITYP_NONE,       0,     0,          0                                  )
 /*  item name              type            weight  attributes  display                             */
 };
@@ -52,6 +53,8 @@ void ityp_init ()
 			ityp_battle_axe = all_items[i];
 		else if (!strcmp(all_items[i].name, "water bolt"))
 			ityp_water_bolt = all_items[i];
+		else if (!strcmp(all_items[i].name, "ice bolt"))
+			ityp_ice_bolt = all_items[i];
 	}
 	NUM_ITEMS = i;
 }

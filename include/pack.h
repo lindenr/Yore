@@ -13,13 +13,13 @@
 /* max 52 items (bounded by weight) possibly extend this to # (53) as well? */
 typedef struct Pack
 {
-	struct Item *items[MAX_ITEMS_IN_PACK];
+	struct Item items[MAX_ITEMS_IN_PACK];
 } Pack;
 
 /* max 52 items (bounded by weight) */
 struct Bag
 {
-	struct Item *items[MAX_ITEMS_IN_BAG];
+	struct Item items[MAX_ITEMS_IN_BAG];
 };
 
 void pack_get_letters   (Pack, char *);
@@ -28,8 +28,7 @@ void pack_free          (Pack **);
 bool pack_add           (Pack **, struct Item *, int);
 unsigned PACK_AT        (char);
 char show_contents      (Pack *, uint32_t, char *);
-struct Item *get_Item   (const Pack *, unsigned);
-struct Item *get_Itemc  (const Pack *, char);
+struct Item *get_Itemc  (Pack *, char);
 char get_Itref          (const struct Item *item);
 Pack *pack_init         ();
 
