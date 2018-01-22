@@ -34,7 +34,7 @@ bool nogen (int mons_id)
 	return false;
 }
 
-int player_gen_type ()
+int mons_gen_type ()
 {
 	int i, array[NUM_MONS];
 	uint32_t p_exp = 20; // TODO
@@ -209,44 +209,6 @@ int mons_take_turn (struct Monster *th)
 Tick mons_tregen (struct Monster *th)
 {
 	return 1000;
-}
-
-struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
-{
-	struct Item *It = NULL;
-	char in = show_contents (th->pack, accepted, msg);
-	//char in, cs[100];
-	//bool tried = false;
-/*
-	do
-	{
-		if (tried)
-			p_msg ("No such item.");
-		tried = false;
-
-		pack_get_letters (pmons.pack, cs);
-		in = p_ask (cs, msg);
-		if (in == '?')
-		{
-			gr_getch ();
-			continue;
-		}
-		if (in == ' ' || in == 0x1B)
-			break;
-		if (in == '*')
-		{
-			show_contents (pmons.pack, ITCAT_ALL, "Inventory");
-			gr_getch ();
-			continue;
-		}
-
-		It = get_Itemc (pmons.pack, in);
-		tried = true;
-	}
-	while (It == NULL);*/
-	It = get_Itemc (th->pack, in);
-
-	return It;
 }
 
 int mons_throwspeed (struct Monster *mons, struct Item *it)

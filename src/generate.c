@@ -398,7 +398,7 @@ struct Monster *gen_mons_in_level ()
 		return 0;
 
 	struct Monster p;
-	init_mons (&p, player_gen_type ());
+	init_mons (&p, mons_gen_type ());
 	if (p.mflags & FL_HOSTILE)
 		p.ctr.mode = CTR_AI_HOSTILE;
 	else

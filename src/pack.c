@@ -138,6 +138,8 @@ struct Item *get_Itemc (Pack *pack, char itch)
 		return NULL;
 	if (!pack)
 		return NULL;
+	if (NO_ITEM(&pack->items[where]))
+		return NULL;
 	return &pack->items[where];
 }
 

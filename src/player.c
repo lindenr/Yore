@@ -543,3 +543,38 @@ void ask_items (const struct Monster *player, Vector it_out, Vector it_in, const
 	v_free (list);
 }
 
+struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
+{
+	char in = show_contents (th->pack, accepted, msg);
+	//char in, cs[100];
+	//bool tried = false;
+/*
+	do
+	{
+		if (tried)
+			p_msg ("No such item.");
+		tried = false;
+
+		pack_get_letters (pmons.pack, cs);
+		in = p_ask (cs, msg);
+		if (in == '?')
+		{
+			gr_getch ();
+			continue;
+		}
+		if (in == ' ' || in == 0x1B)
+			break;
+		if (in == '*')
+		{
+			show_contents (pmons.pack, ITCAT_ALL, "Inventory");
+			gr_getch ();
+			continue;
+		}
+
+		It = get_Itemc (pmons.pack, in);
+		tried = true;
+	}
+	while (It == NULL);*/
+	return get_Itemc (th->pack, in);
+}
+

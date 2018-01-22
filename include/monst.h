@@ -108,8 +108,6 @@ extern char *s_hun[];
 #define PLAYER_CHEATER  4
 #define PLAYER_ERROR    5
 
-typedef uint32_t player_attr[6];
-
 struct player_status
 {
 	int playing;
@@ -250,7 +248,7 @@ int    mons_HP_max_regen(struct Monster *);                  /* similarly for ma
 int    mons_ST_regen   (struct Monster *);                   /* stamina                                  */
 int    mons_ST_max_regen(struct Monster *);                  /* max stamina                              */
 int    mons_isplayer   (struct Monster *);                   /* is controlled by human                   */
-int    mons_cont       (struct Monster *, MCont, union ContData *);/* continuation to be called next turn      */
+int    mons_cont       (struct Monster *, MCont, union ContData *);/* continuation to be called next turn*/
 
 /* effects */
 void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */
@@ -258,8 +256,7 @@ void   mons_wield      (struct Monster *, int, struct Item *); /* wield an item 
 void   mons_unwield    (struct Monster *, struct Item *);    /* unwield an item */
 
 /* player functions */
-struct Item *player_use_pack (struct Monster *, char *, uint32_t); /* ask player for an item             */
-int    player_gen_type (void);                               /* get a valid monster type for fighting    */
+int    mons_gen_type (void);                                 /* get a valid monster type for fighting    */
 
 /* map function? */
 int    can_amove       (int);                                /* returns if a square can be moved on to   */

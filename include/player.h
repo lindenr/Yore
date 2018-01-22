@@ -18,6 +18,7 @@ struct KStruct
 
 extern struct KStruct Keys[];
 
+struct Item *player_use_pack (struct Monster *, char *, uint32_t); /* ask player for an item             */
 void ask_items    (const struct Monster *player, Vector, Vector, const char *);
 
 int  p_move       (int *, int *, char);
