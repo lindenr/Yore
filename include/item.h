@@ -1,7 +1,6 @@
 #ifndef ITEM_H_INCLUDED
 #define ITEM_H_INCLUDED
 
-#include "include/thing.h"
 #include "include/drawing.h"
 
 enum ITYP
@@ -58,6 +57,8 @@ enum ITYP
 #define NO_ITEM(item) ((!(item)) || ((item)->type.type == ITYP_NONE))
 
 typedef int TID;
+struct Pack;
+struct Monster;
 
 /* type of item */
 typedef struct
@@ -129,8 +130,6 @@ struct Item
 	uint32_t cur_weight;
 	char *name;
 };
-
-struct Pack;
 
 extern Ityp all_items[];
 extern int NUM_ITEMS;

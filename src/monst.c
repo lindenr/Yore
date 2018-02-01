@@ -374,7 +374,7 @@ skip_weapon: ;
 	int aiy = ai->yloc, aix = ai->xloc;
 
 	/* move randomly if you can't see your target */
-	if (!bres_draw (aiy, aix, NULL, dlv_attr(ai->dlevel), NULL, to->yloc, to->xloc))
+	if (!bres_draw (aiy, aix, to->yloc, to->xloc, map_graph->w, NULL, dlv_attr(ai->dlevel), NULL))
 	{
 		if (!mons_move (ai, rn(3) - 1, rn(3) - 1))
 			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});

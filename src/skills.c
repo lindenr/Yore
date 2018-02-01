@@ -61,7 +61,7 @@ void sk_water_bolt (struct Monster *mons, int yloc, int xloc, Skill sk)
 
 void sk_frost (struct Monster *mons, int yloc, int xloc, Skill sk)
 {
-	ev_queue (0, (union Event) { .mfrost = {EV_MFROST, mons->ID, yloc, xloc, 5}});
+	ev_queue (0, (union Event) { .mfrost = {EV_MFROST, mons->ID, yloc, xloc, 3}});
 	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 }
 

@@ -5,10 +5,10 @@
 #include <math.h>
 
 /* adapted from wikipedia */
-bool bres_draw (int fy, int fx, uint8_t *grid, uint8_t *grid_t,
-                int (*callback) (struct DLevel *, int, int), int ty, int tx)
+bool bres_draw (int fy, int fx, int ty, int tx, int width,
+				uint8_t *grid, uint8_t *grid_t, int (*callback) (int, int))
 {
-	if ((!callback) && grid && grid[map_buffer(ty, tx)] == 2)
+	if ((!callback) && grid && grid[ty*width + tx] == 2)
 		return true;
 	int dy, dx, sy, sx, err, e2;
 	dy = abs(ty - fy);
@@ -38,19 +38,19 @@ bool bres_draw (int fy, int fx, uint8_t *grid, uint8_t *grid_t,
 		}
 		if (callback)
 		{
-			if (!callback (cur_dlevel, fy, fx))
+			if (!callback (fy, fx))
 				return false;
 			continue;
 		}
 		if (fy == ty && fx == tx)
 			break;
 		if (grid)
-			grid[map_buffer(fy, fx)] = 2;
-		if (grid_t[map_buffer(fy, fx)] == 0)
+			grid[fy*width + fx] = 2;
+		if (grid_t[fy*width + fx] == 0)
 			return false;
 	}
 	if (grid)
-		grid[map_buffer(fy, fx)] = 2;
+		grid[fy*width + fx] = 2;
 	return true;
 }
 
@@ -71,6 +71,7 @@ void bres_init (struct BresState *st, int fy, int fx, int ty, int tx)
 	st->cx = fx;
 	st->ty = ty;
 	st->tx = tx;
+	st->done = (st->cy == st->ty) && (st->cx == st->tx);
 }
 
 void bres_iter (struct BresState *st)
@@ -86,5 +87,6 @@ void bres_iter (struct BresState *st)
 		st->err += st->dx;
 		st->cy += st->sy;
 	}
+	st->done = (st->cy == st->ty) && (st->cx == st->tx);
 }
 

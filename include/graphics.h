@@ -37,7 +37,7 @@ typedef struct Graph
 	int vis;            /* whether the graph is currently being shown */
 	int csr_y, csr_x;   /* location of the (visible) cursor */
 	int csr_state;      /* off, blinking, or steady */
-	glyph def;          /* default output colour */
+	glyph def;          /* default output glyph */
 } *Graph;
 
 /* Boxes */
@@ -92,6 +92,9 @@ void gra_fbox     (Graph, int, int, int, int, glyph);
 void gra_mvaprint (Graph, int, int, const char *);
 void gra_mvprint  (Graph, int, int, const char *, ...);
 void gra_cprint   (Graph, int, const char *, ...);
+
+void gra_drawline (Graph, int, int, int, int, glyph);
+void gra_drawdisc (Graph, int, int, int, glyph);
 
 void gr_refresh   ();
 void gr_frefresh  ();

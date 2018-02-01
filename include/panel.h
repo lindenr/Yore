@@ -24,9 +24,6 @@ struct P_msg
 
 void p_init    ();
 void p_pane    (struct Monster *);
-//void p_panel   (int);
-//void p_update  ();
-//void p_tab     (int);
 void p_amsg    (const char *);
 void p_msg     (const char *, ...);
 char p_ask     (struct Monster *, const char *, const char *);
@@ -38,9 +35,20 @@ enum PanelType
 	P_SKILLS
 };
 
+enum P_MV
+{
+	P_MV_START = 0,
+	P_MV_CHOOSING,
+	P_MV_END
+};
+
 int  p_status   (struct Monster *, enum PanelType);
 int  p_skills   (struct Monster *, enum PanelType);
-void p_mvchoose (struct Monster *, int *, int *, const char *, const char *, int);
+void p_mvchoose (struct Monster *, int *, int *, const char *, const char *,
+	void (*) (enum P_MV, int, int, int, int));
+
+void show_path_on_overlay (enum P_MV, int, int, int, int);
+void show_disc_on_overlay (enum P_MV, int, int, int, int);
 
 extern int p_width, p_height
 //, p_open

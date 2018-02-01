@@ -9,6 +9,7 @@
 #include "include/skills.h"
 #include "include/event.h"
 #include "include/player.h"
+#include "include/drawing.h"
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -310,7 +311,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 					sk_charge (player, 0, 0, v_at (pskills, selected));
 					return 1;
 				}
-				p_mvchoose (player, &yloc, &xloc, "Charge where?", NULL, 1);
+				p_mvchoose (player, &yloc, &xloc, "Charge where?", NULL, &show_path_on_overlay);
 				if (yloc == -1)
 				{
 					gra_show (sc_status);
@@ -325,7 +326,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 			case SK_FIREBALL:
 				gra_hide (sc_status);
 				gra_hide (sc_skills);
-				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, 1);
+				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
 				if (yloc == -1)
 				{
 					gra_show (sc_status);
@@ -338,7 +339,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 			case SK_WATER_BOLT:
 				gra_hide (sc_status);
 				gra_hide (sc_skills);
-				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, 1);
+				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
 				if (yloc == -1)
 				{
 					gra_show (sc_status);
@@ -351,7 +352,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 			case SK_FROST:
 				gra_hide (sc_status);
 				gra_hide (sc_skills);
-				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, 1);
+				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_disc_on_overlay);
 				if (yloc == -1)
 				{
 					gra_show (sc_status);
@@ -375,24 +376,54 @@ int p_skills (struct Monster *player, enum PanelType type)
 }
 
 Graph overlay = NULL;
-int path_hit (struct DLevel *dlevel, int y, int x)
+
+void show_disc_on_overlay (enum P_MV action, int fy, int fx, int ty, int tx)
 {
-	gra_mvaddch (overlay, y-map_graph->cy, x-map_graph->cx, ' '|COL_BG_RED(8));
-	//gra_highlight (map_graph, y, x);
-	return 1;
+	if (action == P_MV_END)
+	{
+		gra_hide (overlay);
+		return;
+	}
+	else if (action == P_MV_START)
+	{
+		if (!overlay)
+			overlay = gra_init (map_graph->h, map_graph->w, 0, 0, map_graph->vh, map_graph->vw);
+		gra_show (overlay);
+		gra_movecam (overlay, map_graph->cy, map_graph->cx);
+	}
+	gra_clear (overlay);
+	gra_drawdisc (overlay, ty, tx, 3, ' ');
+	//gra_mvaddch (overlay, fy, fx, 0);
 }
 
-void p_mvchoose (struct Monster *player, int *yloc, int *xloc, const char *instruct, const char *confirm, int showpath)
+void show_path_on_overlay (enum P_MV action, int fy, int fx, int ty, int tx)
+{
+	if (action == P_MV_END)
+	{
+		gra_hide (overlay);
+		return;
+	}
+	else if (action == P_MV_START)
+	{
+		if (!overlay)
+			overlay = gra_init (map_graph->h, map_graph->w, 0, 0, map_graph->vh, map_graph->vw);
+		gra_show (overlay);
+		gra_movecam (overlay, map_graph->cy, map_graph->cx);
+	}
+	gra_clear (overlay);
+	gra_drawline (overlay, fy, fx, ty, tx, ' '|COL_BG_RED(8));
+	gra_mvaddch (overlay, fy, fx, 0);
+}
+
+void p_mvchoose (struct Monster *player, int *yloc, int *xloc,
+	const char *instruct, const char *confirm, void (*update_output) (enum P_MV, int, int, int, int))
 {
 	int orig_y = map_graph->csr_y, orig_x = map_graph->csr_x;
-	if (showpath)
-	{
-		overlay = gra_init (gr_h, gr_w, 0, 0, gr_h, gr_w);
-		gra_clear (overlay);
-	}
 	if (instruct)
 		p_msg (instruct);
 	p_pane (player);
+	if (update_output)
+		update_output (P_MV_START, orig_y, orig_x, orig_y, orig_x);
 	gr_refresh ();
 	int xmove, ymove;
 	char key = gr_getch ();
@@ -401,32 +432,33 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc, const char *instr
 	{
 		if (key == CH_ESC)
 		{
+			if (update_output)
+				update_output (P_MV_END, player->yloc, player->xloc, map_graph->csr_y, map_graph->csr_x);
 			*yloc = -1;
 			gra_cmove (map_graph, orig_y, orig_x);
-			gra_free (overlay);
 			return;
 		}
 		if (ymove == -1 && map_graph->csr_y > 0 && map_graph->csr_y - map_graph->cy > 0)
 			gra_cmove (map_graph, map_graph->csr_y-1, map_graph->csr_x);
-		else if (ymove == 1 && map_graph->csr_y < map_graph->h-1 && map_graph->csr_y - map_graph->cy < map_graph->vh-1)
+		else if (ymove == 1 && map_graph->csr_y < map_graph->h-1 &&
+			map_graph->csr_y - map_graph->cy < map_graph->vh-1)
 			gra_cmove (map_graph, map_graph->csr_y+1, map_graph->csr_x);
 		if (xmove == -1 && map_graph->csr_x > 0 && map_graph->csr_x - map_graph->cx > 0)
 			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x-1);
-		else if (xmove == 1 && map_graph->csr_x < map_graph->w-1 && map_graph->csr_x - map_graph->cx < map_graph->vw-1)
+		else if (xmove == 1 && map_graph->csr_x < map_graph->w-1 &&
+			map_graph->csr_x - map_graph->cx < map_graph->vw-1)
 			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x+1);
 		//if (gra_nearedge (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x))
 		//	gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);
-		if (showpath)
-		{
-			gra_clear (overlay);
-			bres_draw (player->yloc, player->xloc, NULL, dlv_attr(player->dlevel), &path_hit, map_graph->csr_y, map_graph->csr_x);
-		}
+		if (update_output)
+			update_output (P_MV_CHOOSING, player->yloc, player->xloc, map_graph->csr_y, map_graph->csr_x);
 		key = gr_getch ();
 		p_move (&ymove, &xmove, key);
 	}
 	*yloc = map_graph->csr_y;
 	*xloc = map_graph->csr_x;
 	gra_cmove (map_graph, orig_y, orig_x);
-	gra_free (overlay);
+	if (update_output)
+		update_output (P_MV_END, player->yloc, player->xloc, map_graph->csr_y, map_graph->csr_x);
 }
 

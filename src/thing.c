@@ -359,8 +359,8 @@ void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,
 	// have seen while moving between them. This doesn't currently hold (exercise); would it
 	// hold if we drew every line through the player, not just those starting there?
 	// TODO maybe add a range limit
-	for (w = 0; w < gr_area; ++ w)
-		bres_draw (Yloc, Xloc, sq_cansee, sq_attr, NULL, map_graph->cy + w / gr_w, map_graph->cx + w % gr_w);
+	for (Y = 0, w = 0; Y < map_graph->h; ++Y) for (X = 0; X < map_graph->w; ++X, ++w)
+		bres_draw (Yloc, Xloc, Y, X, map_graph->w, sq_cansee, sq_attr, NULL);
 
 	/* Do the drawing */
 	struct Monster *monsters = dlv_lvl(player->dlevel)->mons;
@@ -396,7 +396,8 @@ void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,
 			else if (!sq_cansee[w])
 				continue;
 
-			int h, j, k, l, y, u, b, n;
+			int h = 0, j = 0, k = 0, l = 0,
+				y = 0, u = 0, b = 0, n = 0;
 
 			if (X)
 				h = US(w - 1);

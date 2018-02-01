@@ -2,6 +2,7 @@
 
 #include "include/graphics.h"
 #include "include/vector.h"
+#include "include/drawing.h"
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -78,7 +79,7 @@ void gra_centcam (Graph gra, int yloc, int xloc)
 
 void gra_baddch (Graph gra, int buf, glyph gl)
 {
-	if (gl > 0 && gl < 256) gl |= gra->def;
+	if (gl > 0 && gl < 256) gl |= gra->def & 0xFFFFFF00;
 	gra->flags[buf] &= 1;
 	if (gra->data[buf] == gl) return;
 	gra->data[buf] = gl;
@@ -94,7 +95,7 @@ void gra_baddch (Graph gra, int buf, glyph gl)
 
 void gra_bgaddch (Graph gra, int buf, glyph gl)
 {
-	if (gl > 0 && gl < 256) gl |= gra->def;
+	if (gl > 0 && gl < 256) gl |= gra->def & 0xFFFFFF00;
 	if ((gl&COL_BG_MASK) == 0) gl |= gra->data[buf] & COL_BG_MASK;
 	gra->flags[buf] &= 1;
 	if (gra->data[buf] == gl) return;
@@ -147,6 +148,33 @@ void gra_cprint (Graph gra, int yloc, const char *str, ...)
 
 	int xloc = (gra->w - len)/2;
 	gra_mvaprint (gra, yloc, xloc, out);
+}
+
+#include "include/rand.h"
+void gra_drawline (Graph gra, int fy, int fx, int ty, int tx, glyph gl)
+{
+	struct BresState st;
+	bres_init (&st, fy, fx, ty, tx);
+	do
+	{
+		gra_mvaddch (gra, st.cy, st.cx, gl);
+		bres_iter (&st);
+	}
+	while (!st.done);
+}
+
+void gra_drawdisc (Graph gra, int x, int y, int rad, glyph gl)
+{
+	int i, j;
+	int weight = rad * (rad + 1);
+	for (i = -rad; i <= rad; ++ i) for (j = -rad; j <= rad; ++ j)
+	{
+		if (i*i + j*j > weight)
+			continue;
+		int sat = i*i + j*j;
+		int drop = (sat*4) / weight;
+		gra_mvaddch (gra, i + x, j + y, gl | COL_BG_BLUE (10 + rn(2) + rn(2) + rn(2) - drop));
+	}
 }
 
 void glyph_box (Graph gra, int yloc, int xloc, int height, int width,
@@ -272,14 +300,18 @@ void gr_drawboxes (int y, int x, gflags f)
 	code = (f>>8)&15;
 	switch (code)
 	{
-	case 1: for (i = 0;       i < GLW;   ++ i) setpixel(0,    i);                                                        break;
-	case 2: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(0,    i); for (i = 0;       i < GLH/2; ++ i) setpixel(i, GLW-1); break;
-	case 5:                                                       for (i = 0;       i < GLH;   ++ i) setpixel(i, GLW-1); break;
-	case 8: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(GLH-1,i); for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i, GLW-1); break;
-	case 7: for (i = 0;       i < GLW;   ++ i) setpixel(GLH-1,i);                                                        break;
-	case 6: for (i = 0;       i < GLW/2; ++ i) setpixel(GLH-1,i); for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i,     0); break;
-	case 3:                                                       for (i = 0;       i < GLH;   ++ i) setpixel(i,     0); break;
-	case 0: for (i = 0;       i < GLW/2; ++ i) setpixel(0,    i); for (i = 0;       i < GLH/2; ++ i) setpixel(i,     0); break;
+	case 1: for (i = 0;       i < GLW;   ++ i) setpixel(0,     i); break;
+	case 2: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(0,     i);
+			for (i = 0;       i < GLH/2; ++ i) setpixel(i, GLW-1); break;
+	case 5: for (i = 0;       i < GLH;   ++ i) setpixel(i, GLW-1); break;
+	case 8: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(GLH-1, i);
+			for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i, GLW-1); break;
+	case 7: for (i = 0;       i < GLW;   ++ i) setpixel(GLH-1, i); break;
+	case 6: for (i = 0;       i < GLW/2; ++ i) setpixel(GLH-1, i);
+			for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i,     0); break;
+	case 3: for (i = 0;       i < GLH;   ++ i) setpixel(i,     0); break;
+	case 0: for (i = 0;       i < GLW/2; ++ i) setpixel(0,     i);
+			for (i = 0;       i < GLH/2; ++ i) setpixel(i,     0); break;
 	}
 end_moving:
 
@@ -289,14 +321,18 @@ end_moving:
 	code = (f>>13)&15;
 	switch (code)
 	{
-	case 1: for (i = 0;       i < GLW;   ++ i) setpixel(0,    i);                                                        break;
-	case 2: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(0,    i); for (i = 0;       i < GLH/2; ++ i) setpixel(i, GLW-1); break;
-	case 5:                                                       for (i = 0;       i < GLH;   ++ i) setpixel(i, GLW-1); break;
-	case 8: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(GLH-1,i); for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i, GLW-1); break;
-	case 7: for (i = 0;       i < GLW;   ++ i) setpixel(GLH-1,i);                                                        break;
-	case 6: for (i = 0;       i < GLW/2; ++ i) setpixel(GLH-1,i); for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i,     0); break;
-	case 3:                                                       for (i = 0;       i < GLH;   ++ i) setpixel(i,     0); break;
-	case 0: for (i = 0;       i < GLW/2; ++ i) setpixel(0,    i); for (i = 0;       i < GLH/2; ++ i) setpixel(i,     0); break;
+	case 1: for (i = 0;       i < GLW;   ++ i) setpixel(0,     i); break;
+	case 2: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(0,     i);
+			for (i = 0;       i < GLH/2; ++ i) setpixel(i, GLW-1); break;
+	case 5: for (i = 0;       i < GLH;   ++ i) setpixel(i, GLW-1); break;
+	case 8: for (i = 1+GLW/2; i < GLW;   ++ i) setpixel(GLH-1, i);
+			for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i, GLW-1); break;
+	case 7: for (i = 0;       i < GLW;   ++ i) setpixel(GLH-1, i); break;
+	case 6: for (i = 0;       i < GLW/2; ++ i) setpixel(GLH-1, i);
+			for (i = 1+GLH/2; i < GLH;   ++ i) setpixel(i,     0); break;
+	case 3: for (i = 0;       i < GLH;   ++ i) setpixel(i,     0); break;
+	case 0: for (i = 0;       i < GLW/2; ++ i) setpixel(0,     i);
+			for (i = 0;       i < GLH/2; ++ i) setpixel(i,     0); break;
 	}
 end_attacking:
 
@@ -347,10 +383,15 @@ void gr_refresh ()
 					{
 						glyph gl = gra->data[gra_c];
 						if (gra->csr_state && gra->csr_y == gra_y && gra->csr_x == gra_x)
+						{
 							gr_map[gr_c] = gra_glinvert (gra, gl);
+							gr_flags[gr_c] = 1|gra->flags[gra_c];
+						}
 						else if (gl)
+						{
 							gr_map[gr_c] = gl;
-						gr_flags[gr_c] = 1|gra->flags[gra_c];
+							gr_flags[gr_c] = 1|gra->flags[gra_c];
+						}
 					}
 				}
 				gra->flags[gra_c] &= (~1);
@@ -415,7 +456,7 @@ void gra_clear (Graph gra)
 glyph gra_glinvert (Graph gra, glyph gl)
 {
 	if (gl == 0)
-		gl = gra->def;
+		gl = gra->def & 0xFFFFFF00;
 	return ((gl << 12)&0xFFF00000) ^ ((gl >> 12)&0x000FFF00) ^ (gl&0xFF);
 }
 

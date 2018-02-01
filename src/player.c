@@ -230,7 +230,7 @@ int Kthrow (struct Monster *player)
 		return 0;
 
 	int yloc, xloc;
-	p_mvchoose (player, &yloc, &xloc, "Throw where?", NULL, 1);
+	p_mvchoose (player, &yloc, &xloc, "Throw where?", NULL, &show_path_on_overlay);
 	if (yloc == -1)
 		return 0;
 
@@ -275,7 +275,7 @@ int Knlook (struct Monster *player)
 int Kflook (struct Monster *player)
 {
 	int y, x;
-	p_mvchoose (player, &y, &x, "What are you looking for?", NULL, 0);
+	p_mvchoose (player, &y, &x, "What are you looking for?", NULL, NULL);
 	return 0;
 }
 
