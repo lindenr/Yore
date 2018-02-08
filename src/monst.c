@@ -74,6 +74,39 @@ void mons_corpse (struct Monster *mons, Ityp *itype)
 	itype->gl   = ITCH_CORPSE | (mons->gl & ~0xff);
 }
 
+int mons_try_wear (struct Monster *mons, struct Item *it)
+{
+	switch (it->type.type)
+	{
+	case ITYP_GLOVE:
+		if (!mons->wearing.narms)
+			return 0;
+		if (mons->wearing.hands[0])
+			return 0;
+		ev_queue (0, (union Event) { .mwear_glove = {EV_MWEAR_GLOVE, mons->ID, it->ID}});
+		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+		return 1;
+	case ITYP_MAIL:
+		if (!mons->wearing.ntorsos)
+			return 0;
+		if (mons->wearing.torso[0])
+			return 0;
+		ev_queue (0, (union Event) { .mwear_body_armour = {EV_MWEAR_BODY_ARMOUR, mons->ID, it->ID}});
+		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+		return 1;
+	default:
+		break;
+	}
+	return 0;
+}
+
+int mons_try_attack (struct Monster *mons, int y, int x)
+{
+	ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, mons->ID, y, x}});
+	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+	return 1;
+}
+
 /* Return values:
  * 0 = failed to move; 1 = moved as desired;
  * 2, 3, 4 = did not move as desired but used turn */
@@ -100,13 +133,14 @@ int mons_move (struct Monster *th, int y, int x) /* each either -1, 0 or 1 */
 	/* melee attack! */
 	else if (can == 2)
 	{
-		if (mons_isplayer (th))
+		/*if (mons_isplayer (th))
 		{
 			pl_queue (th, (union Event) { .mattkm = {EV_MATTKM, th->ID, y, x}});
 			return pl_execute (th->speed, th, 0);
 		}
 		ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, th->ID, y, x}});
-		ev_queue (th->speed+1, (union Event) { .mturn = {EV_MTURN, th->ID}});
+		ev_queue (th->speed+1, (union Event) { .mturn = {EV_MTURN, th->ID}}); */
+		mons_try_attack (th, y, x);
 		return 2;
 	}
 	else if (can == 3)

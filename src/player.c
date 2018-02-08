@@ -156,8 +156,14 @@ int Ksdrop_cand (struct Monster *player)
 int Ksdrop (struct Monster *player)
 {
 	struct Item *drop = player_use_pack (player, "Drop what?", ITCAT_ALL);
-	if (drop == NULL)
+	if (NO_ITEM(drop))
 		return 0;
+
+	if (drop->attr & ITEM_WORN)
+	{
+		p_msg ("You're wearing that!");
+		return 0;
+	}
 
 	Vector vdrop = v_dinit (sizeof(TID));
 	v_push (vdrop, &drop->ID);
@@ -193,8 +199,9 @@ int Kfmove (struct Monster *player)
 		p_msg ("That's not a direction!");
 		return 0;
 	}
-	pl_queue (player, (union Event) { .mattkm = {EV_MATTKM, player->ID, ymove, xmove}});
-	return pl_execute (player->speed, player, 0);
+	//pl_queue (player, (union Event) { .mattkm = {EV_MATTKM, player->ID, ymove, xmove}});
+	//return pl_execute (player->speed, player, 0);
+	return mons_try_attack (player, ymove, xmove);
 }
 
 int Kgmove_cand (struct Monster *player)
@@ -321,6 +328,19 @@ int Kwield (struct Monster *player)
 		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, NULL}});
 	pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield}});
 	return pl_execute (player->speed, player, 0);
+}
+
+int Kwear_cand (struct Monster *player)
+{
+	return player->status.charging == 0;
+}
+
+int Kwear (struct Monster *player)
+{
+	struct Item *wear = player_use_pack (player, "Wear what?", ITCAT_ALL);
+	if (NO_ITEM(wear))
+		return 0;
+	return mons_try_wear (player, wear);
 }
 
 /*
@@ -456,6 +476,7 @@ struct KStruct Keys[] = {
 //	{'o', &Kopen},
 //	{'c', &Kclose},
 	{'w',    &Kwield,  &Kwield_cand},
+	{'W',    &Kwear,   &Kwear_cand},
 //	{CONTROL_(GRK_DN), &Klookdn},
 //	{CONTROL_(GRK_UP), &Klookup},
 //	{'>',    &Kgodown},

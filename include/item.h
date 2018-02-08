@@ -12,7 +12,8 @@ enum ITYP
 	ITYP_DAGGER,
 	ITYP_SHORTSWORD,
 	ITYP_CHEST,
-	ITYP_GLOVES,
+	ITYP_GLOVE,
+	ITYP_MAIL,
 	ITYP_CORPSE,
 	ITYP_MONEY,
 	ITYP_ARCANE
@@ -29,7 +30,7 @@ enum ITYP
 /* greased */
 #define ITEM_GREASED 0x00000040
 /* being worn or applied */
-#define ITEM_USED    0x00000080
+#define ITEM_WORN    0x00000080
 
 #define ITCH_WEAPON  ')'
 #define ITCH_TOOL    '('
@@ -133,7 +134,8 @@ struct Item
 
 extern Ityp all_items[];
 extern int NUM_ITEMS;
-extern Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt, ityp_ice_bolt;
+extern Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt, ityp_ice_bolt,
+	ityp_glove, ityp_chain_mail;
 
 #define new_item(ityp) ((struct Item) {0, { .loc = LOC_NONE}, (ityp), 0, (ityp).wt, NULL})
 

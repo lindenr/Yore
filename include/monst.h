@@ -69,35 +69,12 @@ enum MTYPES
 
 struct WoW /* Wielded or Worn */
 {
+	int nheads, ntorsos, nlegs, narms;
 	struct Item *head[MMAX_HEADS], *torso[MMAX_TORSOS],
 	            *legs[MMAX_LEGS], *feet[MMAX_LEGS],
-				*hands[MMAX_ARMS], *arms[MMAX_ARMS]; /* armour */
+				*hands[MMAX_ARMS]; /* armour */
 	struct Item *weaps[MMAX_ARMS]; /* weapon(s) */
 };
-
-#define SENSE_NONE    0
-#define SENSE_VISION  1
-#define SENSE_HEARING 2
-
-#define M_EATING 1
-#define M_POLY   2
-#define M_CHARGE 4
-
-enum S_HUN
-{
-	S_HUN_FULL = 0,
-	S_HUN_NOT,
-	S_HUN_GRY,
-	S_HUN_VERY,
-	S_HUN_STA
-};
-
-#define HN_LIMIT_1 100
-#define HN_LIMIT_2 500
-#define HN_LIMIT_3 900
-#define HN_LIMIT_4 1400
-#define HN_LIMIT_5 2000
-extern char *s_hun[];
 
 /* For U.playing: */
 #define PLAYER_STARTING (-1)
@@ -190,6 +167,7 @@ struct MStatus
 	{
 		int ydir, xdir;
 		TID toID;
+		int arm;
 	} attacking;
 	int evading;
 	struct
@@ -234,6 +212,8 @@ extern const struct Monster all_mons[];
 
 /* general monster functions */
 int    mons_move       (struct Monster *, int, int);         /* move in given directions                 */
+int    mons_try_attack (struct Monster *, int, int);         /* attack in given directions               */
+int    mons_try_wear   (struct Monster *, struct Item *);    /* wear some armour                         */
 int    mons_take_turn  (struct Monster *);                   /* give a move (AI or player)               */
 void   mons_corpse     (struct Monster *, Ityp *);           /* make itype corpse type of the monster    */
 Tick   mons_tregen     (struct Monster *);                   /* time between regen events                */

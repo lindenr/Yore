@@ -31,6 +31,8 @@ typedef enum
 	EV_MGEN,
 	EV_MREGEN,
 	EV_MWIELD,
+	EV_MWEAR_GLOVE,
+	EV_MWEAR_BODY_ARMOUR,
 	EV_MPICKUP,
 	EV_MDROP,
 	EV_MANGERM,
@@ -174,6 +176,19 @@ typedef union Event
 		int arm;
 		struct Item *it;
 	} mwield;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+		TID itemID;
+		int hand;
+	} mwear_glove;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+		TID itemID;
+	} mwear_body_armour;
 	struct
 	{
 		EV_TYPE type;

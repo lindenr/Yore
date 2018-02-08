@@ -387,6 +387,10 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	struct Monster *pl = new_mons (cur_dlevel, upsy, upsx, &m1);
 	struct Item myaxe = new_item (ityp_battle_axe);
 	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}});
+	struct Item myitem = new_item (ityp_glove);
+	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 1}});
+	myitem = new_item (ityp_chain_mail);
+	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 2}});
 	return pl;
 }
 

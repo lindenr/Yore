@@ -14,7 +14,7 @@
 
 #define MONST(nm,ch,sp,size,diff,at,fl,cl,ex,hp,st) \
 {0,0,-1,-1,nm,ch|COL(cl),{.mode=CTR_NONE},0,ex,NULL, \
-hp, hp, st, st, (hp)/10+diff+(size)*2, (st)/10+diff, 0, 0, sp, NULL, {{0,},{0,},{0,},{0,},{0,},{0,},{0,}},\
+hp, hp, st, st, (hp)/10+diff+(size)*2, (st)/10+diff, 0, 0, sp, NULL, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
 {{0,0},{0,0,0},0,{0,0},0},(fl)|(FL_SIZE(size)),NULL}
 
 #define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}

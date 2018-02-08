@@ -61,6 +61,9 @@ Tick ev_delay (union Event *event)
 	case EV_MWIELD:
 		// TODO: should be 0 if just unwielded something
 		return (MTHIID(event->mwield.thID))->speed;
+	case EV_MWEAR_GLOVE:
+	case EV_MWEAR_BODY_ARMOUR:
+		return 0;
 	case EV_MPICKUP:
 		return (MTHIID(event->mpickup.thID))->speed;
 	case EV_MDROP:
@@ -341,6 +344,7 @@ void ev_do (Event ev)
 		ev_queue (mons->speed, (union Event) { .mdoattkm = {EV_MDOATTKM, thID}});
 		mons->status.attacking.ydir = ev->mattkm.ydir;
 		mons->status.attacking.xdir = ev->mattkm.xdir;
+		mons->status.attacking.arm = 0;
 		p_msg ("The %s swings, to hit in %dms!", mons->mname, mons->speed);
 		break;
 	case EV_MDOATTKM:
@@ -359,7 +363,7 @@ void ev_do (Event ev)
 			return;
 		toID = to->ID;
 		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}}); /* anger to-mons */
-		struct Item *with = fr->wearing.weaps[0];
+		struct Item *with = fr->wearing.weaps[fr->status.attacking.arm];
 		int stamina_cost = mons_ST_hit (fr, with);
 		if (fr->ST < stamina_cost)
 		{
@@ -473,6 +477,36 @@ void ev_do (Event ev)
 		mons_wield (mons, arm, it);
 		mons->wearing.weaps[arm] = it;
 		return;
+	case EV_MWEAR_GLOVE:
+		mons = MTHIID(ev->mwear_glove.thID);
+		if (!mons)
+			return;
+		item = ITEMID (ev->mwear_glove.itemID); 
+		if (mons->wearing.narms <= ev->mwear_glove.hand)
+			return;
+		if (mons->wearing.hands[ev->mwear_glove.hand])
+			return;
+		msg = get_inv_line (item);
+		p_msg ("The %s wears %s.", mons->mname, msg); /* notify */
+		free (msg);
+		mons->wearing.hands[ev->mwear_glove.hand] = item;
+		item->attr |= ITEM_WORN;
+		return;
+	case EV_MWEAR_BODY_ARMOUR:
+		mons = MTHIID(ev->mwear_body_armour.thID);
+		if (!mons)
+			return;
+		item = ITEMID (ev->mwear_body_armour.itemID); 
+		if (!mons->wearing.ntorsos)
+			return;
+		if (mons->wearing.torso[0])
+			return;
+		msg = get_inv_line (item);
+		p_msg ("The %s wears %s.", mons->mname, msg); /* notify */
+		free (msg);
+		mons->wearing.torso[0] = item;
+		item->attr |= ITEM_WORN;
+		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
 		 * continues until ret_list is done or the pack is full. */
@@ -514,6 +548,8 @@ void ev_do (Event ev)
 		for (i = 0; i < items->len; ++ i)
 		{
 			struct Item *drop = ITEMID(*(TID*)v_at (items, i));
+			if (drop->attr & ITEM_WORN)
+				continue;
 			item_put (drop, (union ItemLoc) { .dlvl = {LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
 		}
 		v_free (items);

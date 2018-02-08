@@ -17,7 +17,8 @@
 
 int NUM_ITEMS;
 struct Item no_item;
-Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt, ityp_ice_bolt;
+Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt, ityp_ice_bolt,
+	ityp_glove, ityp_chain_mail;
 #define ITEM(nm,tp,wt,attr,gl) {nm,tp,wt,attr,gl}
 #define DMG(a,b) (((a)<<4)+(b))
 
@@ -31,7 +32,8 @@ Ityp all_items[] = {
 	ITEM("war hammer",     ITYP_HAMMER,     5000,  DMG(2, 4),  ITCH_WEAPON | COL_TXT(15,11, 0)),
 	ITEM("dagger",         ITYP_DAGGER,     100,   DMG(1, 3),  ITCH_WEAPON | COL_TXT( 0,11, 0)),
 	ITEM("short sword",    ITYP_SHORTSWORD, 2000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT(11, 8, 0)),
-	ITEM("gloves",         ITYP_GLOVES,     70,    0,          ITCH_ARMOUR | COL_TXT( 0,11, 0)),
+	ITEM("glove",          ITYP_GLOVE,      70,    0,          ITCH_ARMOUR | COL_TXT( 0,11, 0)),
+	ITEM("chain mail",     ITYP_MAIL,       3000,  0,          ITCH_ARMOUR | COL_TXT( 8, 8, 8)),
 	ITEM("gold piece",     ITYP_MONEY,      1,     0,          ITCH_DOSH   | COL_TXT(15,15, 0)),
 	ITEM("fireball",       ITYP_ARCANE,     0,     0,          0x09        | COL_TXT(15, 4, 0)),
 	ITEM("water bolt",     ITYP_ARCANE,     0,     0,          0x07        | COL_TXT( 0, 4,15)),
@@ -55,6 +57,10 @@ void ityp_init ()
 			ityp_water_bolt = all_items[i];
 		else if (!strcmp(all_items[i].name, "ice bolt"))
 			ityp_ice_bolt = all_items[i];
+		else if (!strcmp(all_items[i].name, "glove"))
+			ityp_glove = all_items[i];
+		else if (!strcmp(all_items[i].name, "chain mail"))
+			ityp_chain_mail = all_items[i];
 	}
 	NUM_ITEMS = i;
 }
@@ -70,7 +76,7 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 	else
 	{
 		// const char *str = itoa((item->attr&ITEM_PLUS(3)>>3))
-		snprintf (temp, 128, "%s%s%s%s",
+		snprintf (temp, 128, "%s%s%s%s%s",
 		         /* beatitude */
 		         (!(item->attr & ITEM_KBUC)) ? "" :
 		           (item->attr & ITEM_BLES)  ? "blessed " :
@@ -83,7 +89,8 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 		         /* name */
 		         item->type.name,
 		         /* wielded */
-		         (item->loc.loc == LOC_WIELDED) ? " (wielded)" : ""
+		         (item->loc.loc == LOC_WIELDED) ? " (wielded)" : "",
+				 (item->attr & ITEM_WORN) ? " (being worn)" : ""
 				 );
 		w_a (ret, temp, 128);
 	}

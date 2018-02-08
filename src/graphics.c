@@ -517,13 +517,14 @@ char gr_getch_aux (int text)
 			end = 0;
 			break;
 		}
-		if (cur_key_down && ticks >= key_fire_ms)
-		{
-			key_fire_ms = ticks + gr_kdelay;
-			return cur_key_down;
-		}
+
 		if (!SDL_PollEvent (&sdlEvent))
 		{
+			if (cur_key_down && ticks >= key_fire_ms)
+			{
+				key_fire_ms = ticks + gr_kdelay;
+				return cur_key_down;
+			}
 			if (gr_onidle)
 				gr_onidle ();
 			gr_wait (10);
