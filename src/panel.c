@@ -62,9 +62,10 @@ void p_pane (struct Monster *player)
 	if (player)
 	{
 		gra_mvprint (gpan, 2, 1, "%s the Player", w_short (player->name, 20));
-		gra_mvprint (gpan, 3, 1, "HP %d/%d", player->HP, player->HP_max);
-		gra_mvprint (gpan, 4, 1, "ST %d/%d", player->ST, player->ST_max);
-		gra_mvprint (gpan, 5, 1, "LV %d:%d/infinity", player->level, player->exp); // TODO?
+		gra_mvprint (gpan, 3, 1, "HP   %d/%d", player->HP, player->HP_max);
+		gra_mvprint (gpan, 4, 1, "ST   %d/%d", player->ST, player->ST_max);
+		gra_mvprint (gpan, 5, 1, "LV   %d:%d/infinity", player->level, player->exp); // TODO?
+		gra_mvprint (gpan, 6, 1, "DEF  %d", player->def);
 		gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d", player->status.defending.ydir, player->status.defending.xdir);
 		if (player->status.charging)
 			gra_mvprint (gpan, 3, 110, "CHARGING");

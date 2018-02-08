@@ -70,7 +70,7 @@ enum MTYPES
 struct WoW /* Wielded or Worn */
 {
 	int nheads, ntorsos, nlegs, narms;
-	struct Item *head[MMAX_HEADS], *torso[MMAX_TORSOS],
+	struct Item *heads[MMAX_HEADS], *torsos[MMAX_TORSOS],
 	            *legs[MMAX_LEGS], *feet[MMAX_LEGS],
 				*hands[MMAX_ARMS]; /* armour */
 	struct Item *weaps[MMAX_ARMS]; /* weapon(s) */
@@ -200,6 +200,7 @@ struct Monster
 	uint32_t agi;               /* agility (chance to dodge)    */
 	uint32_t dex;               /* dexterity (chance to hit)    */
 	uint32_t speed;             /* speed (movement delay) */
+	int def;
 
 	struct Pack *pack;          /* inventory                    */
 	struct WoW wearing;         /* stuff wielding/wearing/using */
@@ -214,6 +215,9 @@ extern const struct Monster all_mons[];
 int    mons_move       (struct Monster *, int, int);         /* move in given directions                 */
 int    mons_try_attack (struct Monster *, int, int);         /* attack in given directions               */
 int    mons_try_wear   (struct Monster *, struct Item *);    /* wear some armour                         */
+int    mons_can_wear   (struct Monster *, struct Item *, size_t); /* can it be worn                      */
+int    mons_try_takeoff(struct Monster *, struct Item *);    /* wear some armour                         */
+int    mons_can_takeoff(struct Monster *, struct Item *);    /* can it be taken off                      */
 int    mons_take_turn  (struct Monster *);                   /* give a move (AI or player)               */
 void   mons_corpse     (struct Monster *, Ityp *);           /* make itype corpse type of the monster    */
 Tick   mons_tregen     (struct Monster *);                   /* time between regen events                */

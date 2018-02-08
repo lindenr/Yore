@@ -159,7 +159,7 @@ int Ksdrop (struct Monster *player)
 	if (NO_ITEM(drop))
 		return 0;
 
-	if (drop->attr & ITEM_WORN)
+	if (item_worn (drop))
 	{
 		p_msg ("You're wearing that!");
 		return 0;
@@ -233,8 +233,14 @@ int Kthrow_cand (struct Monster *player)
 int Kthrow (struct Monster *player)
 {
 	struct Item *throw = player_use_pack (player, "Throw what?", ITCAT_ALL);
-	if (throw == NULL)
+	if (NO_ITEM(throw))
 		return 0;
+
+	if (item_worn (throw))
+	{
+		p_msg ("You're wearing that!");
+		return 0;
+	}
 
 	int yloc, xloc;
 	p_mvchoose (player, &yloc, &xloc, "Throw where?", NULL, &show_path_on_overlay);
@@ -341,6 +347,27 @@ int Kwear (struct Monster *player)
 	if (NO_ITEM(wear))
 		return 0;
 	return mons_try_wear (player, wear);
+}
+
+int Ktakeoff_cand (struct Monster *player)
+{
+	return player->status.charging == 0;
+}
+
+int Ktakeoff (struct Monster *player)
+{
+	struct Item *item = player_use_pack (player, "Take off what?", ITCAT_ALL);
+	if (NO_ITEM(item))
+	{
+		p_msg ("Not an item.");
+		return 0;
+	}
+	if (!item_worn (item))
+	{
+		p_msg ("You're not wearing that!");
+		return 0;
+	}
+	return mons_try_takeoff (player, item);
 }
 
 /*
@@ -477,6 +504,7 @@ struct KStruct Keys[] = {
 //	{'c', &Kclose},
 	{'w',    &Kwield,  &Kwield_cand},
 	{'W',    &Kwear,   &Kwear_cand},
+	{'T',    &Ktakeoff,&Ktakeoff_cand},
 //	{CONTROL_(GRK_DN), &Klookdn},
 //	{CONTROL_(GRK_UP), &Klookup},
 //	{'>',    &Kgodown},

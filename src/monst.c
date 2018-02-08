@@ -68,36 +68,86 @@ void mons_corpse (struct Monster *mons, Ityp *itype)
 {
 	/* fill in the data */
 	snprintf (itype->name, ITEM_NAME_LENGTH, "%s corpse", mons->mname);
-	itype->type = ITYP_CORPSE;
+	itype->type = ITSORT_CORPSE;
 	itype->wt   = mons_get_wt(mons);
-	itype->attr = 0;
+	itype->attk = itype->def = 0;
 	itype->gl   = ITCH_CORPSE | (mons->gl & ~0xff);
+}
+
+int mons_can_wear (struct Monster *mons, struct Item *it, size_t offset)
+{
+	switch (it->type.type)
+	{
+	case ITSORT_GLOVE:
+		if (offset < offsetof (struct WoW, hands[0]) ||
+			offset >= offsetof (struct WoW, hands[mons->wearing.narms]))
+			return 0;
+		return 1;
+	case ITSORT_MAIL:
+		if (offset < offsetof (struct WoW, torsos[0]) ||
+			offset >= offsetof (struct WoW, torsos[mons->wearing.ntorsos]))
+			return 0;
+		return 1;
+	case ITSORT_HELM:
+		if (offset < offsetof (struct WoW, heads[0]) ||
+			offset >= offsetof (struct WoW, heads[mons->wearing.nheads]))
+			return 0;
+		return 1;
+	default:
+		break;
+	}
+	return 0;
 }
 
 int mons_try_wear (struct Monster *mons, struct Item *it)
 {
 	switch (it->type.type)
 	{
-	case ITYP_GLOVE:
+	case ITSORT_GLOVE:
 		if (!mons->wearing.narms)
 			return 0;
 		if (mons->wearing.hands[0])
 			return 0;
-		ev_queue (0, (union Event) { .mwear_glove = {EV_MWEAR_GLOVE, mons->ID, it->ID}});
+		ev_queue (0, (union Event) { .mwear_armour =
+			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, hands[0])}});
 		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
-	case ITYP_MAIL:
+	case ITSORT_MAIL:
 		if (!mons->wearing.ntorsos)
 			return 0;
-		if (mons->wearing.torso[0])
+		if (mons->wearing.torsos[0])
 			return 0;
-		ev_queue (0, (union Event) { .mwear_body_armour = {EV_MWEAR_BODY_ARMOUR, mons->ID, it->ID}});
+		ev_queue (0, (union Event) { .mwear_armour =
+			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, torsos[0])}});
+		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+		return 1;
+	case ITSORT_HELM:
+		if (!mons->wearing.nheads)
+			return 0;
+		if (mons->wearing.heads[0])
+			return 0;
+		ev_queue (0, (union Event) { .mwear_armour =
+			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, heads[0])}});
 		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
 	default:
 		break;
 	}
 	return 0;
+}
+
+int mons_can_takeoff (struct Monster *mons, struct Item *it)
+{
+	return 1;
+}
+
+int mons_try_takeoff (struct Monster *mons, struct Item *it)
+{
+	if (NO_ITEM(it))
+		return 0;
+	ev_queue (0, (union Event) { .mtakeoff_armour = {EV_MTAKEOFF_ARMOUR, mons->ID, it->ID}});
+	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+	return 1;
 }
 
 int mons_try_attack (struct Monster *mons, int y, int x)
@@ -176,7 +226,7 @@ void mons_tilefrost (struct Monster *mons, int yloc, int xloc)
 	for (i = 0; i < items->len; ++ i)
 	{
 		struct Item *it = (struct Item *) (items->data + i);
-		if (it->type.type != ITYP_ARCANE)
+		if (it->type.type != ITSORT_ARCANE)
 			continue;
 		if (!strcmp (it->type.name, "fireball"))
 		{
@@ -187,7 +237,7 @@ void mons_tilefrost (struct Monster *mons, int yloc, int xloc)
 		}
 		if (!strcmp (it->type.name, "water bolt"))
 		{
-			memcpy (&it->type, &ityp_ice_bolt, sizeof(Ityp));
+			memcpy (&it->type, &ityps[ITYP_ICE_BOLT], sizeof(Ityp));
 			p_msg ("The water freezes into an ice bolt!");
 			continue;
 		}
@@ -267,17 +317,15 @@ int mons_hitm (struct Monster *from, struct Monster *to, struct Item *with)
 	    to->status.defending.ydir + to->yloc == from->yloc &&
 	    to->status.defending.xdir + to->xloc == from->xloc)
 		return 0;
-	if (!with)
-		return 1; // evading?
-	return 1;
+	return rn(20) && ((!rn(20)) || (10 >= rn(to->def + 10)));
 }
 
 int mons_hitdmg (struct Monster *from, struct Monster *to, struct Item *with)
 {
 	if (!with)
-		return 1 + rn(2);
-	uint32_t attr = with->type.attr;
-	int ret = rnd((attr>>4)&15, attr&15);
+		return rn(from->str/8 + 1);
+	int attk = with->type.attk;
+	int ret = rn(1 + attk/2) + rn(1 + (attk+1)/2);
 	return ret;
 }
 

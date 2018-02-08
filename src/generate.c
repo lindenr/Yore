@@ -243,14 +243,15 @@ void add_another_room (struct DLevel *lvl)
 
 struct Item *gen_item ()
 {
-	Ityp is;
+	/*Ityp is;
 	memcpy (&is, &(all_items[rn(NUM_ITEMS)]), sizeof(is));
 	struct Item it = {0, {.loc = LOC_NONE}, is, 0, is.wt, NULL};
 	//if (is.type == ITYP_JEWEL)
 	//	it.attr |= rn(NUM_JEWELS) << 16;
 	struct Item *ret = malloc(sizeof(it));
 	memcpy (ret, &it, sizeof(it));
-	return ret;
+	return ret;*/
+	return NULL;
 }
 
 void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
@@ -384,13 +385,21 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_WATER_BOLT, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FIREBALL, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FROST, 0, 1}));
+	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
 	struct Monster *pl = new_mons (cur_dlevel, upsy, upsx, &m1);
-	struct Item myaxe = new_item (ityp_battle_axe);
-	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}});
-	struct Item myitem = new_item (ityp_glove);
-	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 1}});
-	myitem = new_item (ityp_chain_mail);
+	struct Item myitem = new_item (ityps[ITYP_GOLD_PIECE]);
+	myitem.stacksize = 100;
+	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}});
+	struct Item myaxe = new_item (ityps[ITYP_BATTLE_AXE]);
+	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 1}});
+	myitem = new_item (ityps[ITYP_GLOVE]);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 2}});
+	myitem = new_item (ityps[ITYP_GLOVE]);
+	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 3}});
+	myitem = new_item (ityps[ITYP_CHAIN_MAIL]);
+	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 4}});
+	myitem = new_item (ityps[ITYP_HELM]);
+	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 5}});
 	return pl;
 }
 
@@ -423,7 +432,7 @@ struct Monster *gen_boss (int yloc, int xloc)
 		p.ctr.mode = CTR_AI_TIMID;
 	p.level = 1; //mons[p.type].exp? TODO
 	struct Monster *th = new_mons (cur_dlevel, yloc, xloc, &p);
-	struct Item myaxe = new_item (ityp_battle_axe);
+	struct Item myaxe = new_item (ityps[ITYP_BATTLE_AXE]);
 	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, th->ID, 0}});
 	return th;
 }

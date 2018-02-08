@@ -3,20 +3,42 @@
 
 #include "include/drawing.h"
 
-enum ITYP
+enum ITSORT
 {
-	ITYP_NONE = 0,  /* placeholder - always useful */
-	ITYP_LONGSWORD,
+	ITSORT_NONE = 0,  /* placeholder - always useful */
+	ITSORT_LONGSWORD,
+	ITSORT_AXE,
+	ITSORT_HAMMER,
+	ITSORT_DAGGER,
+	ITSORT_SHORTSWORD,
+	ITSORT_CHEST,
+	ITSORT_GLOVE,
+	ITSORT_MAIL,
+	ITSORT_HELM,
+	ITSORT_CORPSE,
+	ITSORT_MONEY,
+	ITSORT_ARCANE
+};
+
+enum ITEM_TYPE
+{
+	ITYP_NONE = -1,
+	ITYP_LONG_SWORD = 0,
+	ITYP_FENCING_SWORD,
 	ITYP_AXE,
-	ITYP_HAMMER,
+	ITYP_BATTLE_AXE,
+	ITYP_WAR_HAMMER,
 	ITYP_DAGGER,
-	ITYP_SHORTSWORD,
-	ITYP_CHEST,
+	ITYP_SHORT_SWORD,
 	ITYP_GLOVE,
-	ITYP_MAIL,
-	ITYP_CORPSE,
-	ITYP_MONEY,
-	ITYP_ARCANE
+	ITYP_CHAIN_MAIL,
+	ITYP_PLATE_MAIL,
+	ITYP_HELMET,
+	ITYP_GOLD_PIECE,
+	ITYP_FIREBALL,
+	ITYP_WATER_BOLT,
+	ITYP_ICE_BOLT,
+	NUM_ITYPS
 };
 
 /* BUC status */
@@ -29,8 +51,6 @@ enum ITYP
 #define ITEM_MINS(n) 0x00000020+(n<<3)
 /* greased */
 #define ITEM_GREASED 0x00000040
-/* being worn or applied */
-#define ITEM_WORN    0x00000080
 
 #define ITCH_WEAPON  ')'
 #define ITCH_TOOL    '('
@@ -55,7 +75,7 @@ enum ITYP
 #define ITCAT_ALL     0xFFFF
 
 #define ITEM_NAME_LENGTH 20
-#define NO_ITEM(item) ((!(item)) || ((item)->type.type == ITYP_NONE))
+#define NO_ITEM(item) ((!(item)) || ((item)->type.type == ITSORT_NONE))
 
 typedef int TID;
 struct Pack;
@@ -65,10 +85,11 @@ struct Monster;
 typedef struct
 {
 	char name[ITEM_NAME_LENGTH];/* name of that type of item */
-	enum ITYP type;             /* type */
+	enum ITSORT type;           /* type */
 	uint32_t wt;				/* weight */
-	uint32_t attr;				/* can be used for damage (weapons) (8 bits) */
+	int attk, def;              /* attack, defense stats */
 	glyph gl;					/* for the display */
+	int stackable;              /* does it stack */
 } Ityp;
 
 enum ITEM_LOC
@@ -127,23 +148,26 @@ struct Item
 	TID ID;
 	union ItemLoc loc;
 	Ityp type;
-	uint32_t attr;
 	uint32_t cur_weight;
 	char *name;
+	uint32_t attr;
+	int attk, def;
+	int worn_offset;
+	int stacksize;
 };
 
-extern Ityp all_items[];
-extern int NUM_ITEMS;
-extern Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt, ityp_ice_bolt,
-	ityp_glove, ityp_chain_mail;
+extern Ityp ityps[];
 
-#define new_item(ityp) ((struct Item) {0, { .loc = LOC_NONE}, (ityp), 0, (ityp).wt, NULL})
+#define new_item(ityp) ((struct Item)\
+	{0, { .loc = LOC_NONE}, (ityp), (ityp).wt, NULL, 0, (ityp).attk, (ityp).def, -1, 1})
 
 extern struct Item no_item;
 
 void ityp_init      ();
 
 void item_piles     (int, Vector, Vector);
+
+#define item_worn(item) ((item)->worn_offset != -1)
 
 char *get_near_desc (const struct Monster *mons, const struct Item *item);
 char *get_item_desc (const struct Item);

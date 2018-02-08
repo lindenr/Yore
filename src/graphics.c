@@ -392,6 +392,8 @@ void gr_refresh ()
 							gr_map[gr_c] = gl;
 							gr_flags[gr_c] = 1|gra->flags[gra_c];
 						}
+						else
+							gr_flags[gr_c] |= 1;
 					}
 				}
 				gra->flags[gra_c] &= (~1);

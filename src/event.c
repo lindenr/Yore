@@ -61,8 +61,8 @@ Tick ev_delay (union Event *event)
 	case EV_MWIELD:
 		// TODO: should be 0 if just unwielded something
 		return (MTHIID(event->mwield.thID))->speed;
-	case EV_MWEAR_GLOVE:
-	case EV_MWEAR_BODY_ARMOUR:
+	case EV_MWEAR_ARMOUR:
+	case EV_MTAKEOFF_ARMOUR:
 		return 0;
 	case EV_MPICKUP:
 		return (MTHIID(event->mpickup.thID))->speed;
@@ -219,7 +219,7 @@ void ev_do (Event ev)
 	case EV_PROJ_DONE:
 		itemID = ev->proj_done.itemID;
 		item = ITEMID(itemID);
-		if (item->type.type == ITYP_ARCANE)
+		if (item->type.type == ITSORT_ARCANE)
 		{
 			p_msg ("The %s dissipates.", item->type.name);
 			item_free (item);
@@ -232,7 +232,7 @@ void ev_do (Event ev)
 	case EV_PROJ_HIT_BARRIER:
 		itemID = ev->proj_hit_barrier.itemID;
 		item = ITEMID(itemID);
-		if (item->type.type == ITYP_ARCANE)
+		if (item->type.type == ITSORT_ARCANE)
 		{
 			p_msg ("The %s is absorbed.", item->type.name);
 			item_free (item);
@@ -377,6 +377,11 @@ void ev_do (Event ev)
 			return;
 		}
 		damage = mons_hitdmg (fr, to, with);
+		if (damage == 0)
+		{
+			p_msg ("The %s just misses the %s!", fr->mname, to->mname); /* notify */
+			return;
+		}
 		p_msg ("The %s hits the %s for %d!", fr->mname, to->mname, damage); /* notify */
 		to->HP -= damage;
 		if (to->HP <= 0)
@@ -477,35 +482,41 @@ void ev_do (Event ev)
 		mons_wield (mons, arm, it);
 		mons->wearing.weaps[arm] = it;
 		return;
-	case EV_MWEAR_GLOVE:
-		mons = MTHIID(ev->mwear_glove.thID);
+	case EV_MWEAR_ARMOUR:
+		mons = MTHIID(ev->mwear_armour.thID);
 		if (!mons)
 			return;
-		item = ITEMID (ev->mwear_glove.itemID); 
-		if (mons->wearing.narms <= ev->mwear_glove.hand)
+		item = ITEMID (ev->mwear_armour.itemID); 
+		if ((!item) || item->loc.loc != LOC_INV ||
+			item->loc.inv.monsID != ev->mwear_armour.thID ||
+			item_worn(item))
 			return;
-		if (mons->wearing.hands[ev->mwear_glove.hand])
+		if (!mons_can_wear (mons, item, ev->mwear_armour.offset))
 			return;
 		msg = get_inv_line (item);
 		p_msg ("The %s wears %s.", mons->mname, msg); /* notify */
 		free (msg);
-		mons->wearing.hands[ev->mwear_glove.hand] = item;
-		item->attr |= ITEM_WORN;
+		*(struct Item **)((char*)&mons->wearing + ev->mwear_armour.offset) = item;
+		item->worn_offset = ev->mwear_armour.offset;
+		mons->def += item->def;
 		return;
-	case EV_MWEAR_BODY_ARMOUR:
-		mons = MTHIID(ev->mwear_body_armour.thID);
+	case EV_MTAKEOFF_ARMOUR:
+		mons = MTHIID(ev->mtakeoff_armour.thID);
 		if (!mons)
 			return;
-		item = ITEMID (ev->mwear_body_armour.itemID); 
-		if (!mons->wearing.ntorsos)
+		item = ITEMID (ev->mtakeoff_armour.itemID); 
+		if ((!item) || item->loc.loc != LOC_INV ||
+			item->loc.inv.monsID != ev->mtakeoff_armour.thID ||
+			(!item_worn(item)))
 			return;
-		if (mons->wearing.torso[0])
+		if (!mons_can_takeoff (mons, item))
 			return;
+		*(struct Item **)((char*)&mons->wearing + item->worn_offset) = 0;
+		item->worn_offset = -1;
 		msg = get_inv_line (item);
-		p_msg ("The %s wears %s.", mons->mname, msg); /* notify */
+		p_msg ("The %s takes off %s.", mons->mname, msg); /* notify */
 		free (msg);
-		mons->wearing.torso[0] = item;
-		item->attr |= ITEM_WORN;
+		mons->def -= item->def;
 		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
@@ -548,7 +559,7 @@ void ev_do (Event ev)
 		for (i = 0; i < items->len; ++ i)
 		{
 			struct Item *drop = ITEMID(*(TID*)v_at (items, i));
-			if (drop->attr & ITEM_WORN)
+			if (item_worn(drop))
 				continue;
 			item_put (drop, (union ItemLoc) { .dlvl = {LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
 		}
@@ -599,7 +610,7 @@ void ev_do (Event ev)
 		mons = MTHIID (thID);
 		if (!mons)
 			return;
-		newitem = new_item (ityp_fireball);
+		newitem = new_item (ityps[ITYP_FIREBALL]);
 		loc = (union ItemLoc) { .fl =
 			{LOC_FLIGHT, mons->dlevel, mons->yloc, mons->xloc, {0,}, mons->str, thID}};
 		bres_init (&loc.fl.bres, mons->yloc, mons->xloc, ev->mfireball.ydest, ev->mfireball.xdest);
@@ -611,7 +622,7 @@ void ev_do (Event ev)
 		mons = MTHIID (thID);
 		if (!mons)
 			return;
-		newitem = new_item (ityp_water_bolt);
+		newitem = new_item (ityps[ITYP_WATER_BOLT]);
 		loc = (union ItemLoc) { .fl =
 			{LOC_FLIGHT, mons->dlevel, mons->yloc, mons->xloc, {0,}, mons->str, thID}};
 		bres_init (&loc.fl.bres, mons->yloc, mons->xloc, ev->mwater_bolt.ydest, ev->mwater_bolt.xdest);

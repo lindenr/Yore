@@ -103,7 +103,7 @@ void pack_get_letters (Pack pack, char *ret)
 struct Item *pack_rem (Pack *pack, unsigned u)
 {
 	struct Item *ret = &pack->items[u];
-	ret->type.type = ITYP_NONE;
+	ret->type.type = ITSORT_NONE;
 	return ret;
 }
 

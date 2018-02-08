@@ -14,7 +14,7 @@
 
 #define MONST(nm,ch,sp,size,diff,at,fl,cl,ex,hp,st) \
 {0,0,-1,-1,nm,ch|COL(cl),{.mode=CTR_NONE},0,ex,NULL, \
-hp, hp, st, st, (hp)/10+diff+(size)*2, (st)/10+diff, 0, 0, sp, NULL, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
+hp, hp, st, st, (hp)/10+diff+(size)*2, (st)/10+diff, 0, 0, sp, 0, NULL, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
 {{0,0},{0,0,0},0,{0,0},0},(fl)|(FL_SIZE(size)),NULL}
 
 #define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}
@@ -52,10 +52,10 @@ const struct Monster all_mons[] = {
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_HMND,
 		  COL_TXT_BLUE(11) | COL_TXT_RED(11) | COL_TXT_GREEN(11),
 		  5, 20, 15),
-	MONST("dwarf", 'h', 1000, SIZE(3), 7,
+	MONST("dwarf", 1, 1000, SIZE(3), 7,
 		  ATTK(A(1, 3, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_HMND,
-		  COL_TXT_RED(11),
+		  COL_TXT_RED(15),
 		  25, 14, 20),
 	MONST("hobbit", 'h', 1000, SIZE(3), 7,
 		  ATTK(A(1, 3, ATTK_HIT), AT_NONE, AT_NONE,

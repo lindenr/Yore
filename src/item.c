@@ -15,54 +15,35 @@
    be able to carry 30000g before getting burdened, and weak would be just
    5000g or so */
 
-int NUM_ITEMS;
 struct Item no_item;
-Ityp ityp_fireball, ityp_battle_axe, ityp_long_sword, ityp_water_bolt, ityp_ice_bolt,
-	ityp_glove, ityp_chain_mail;
-#define ITEM(nm,tp,wt,attr,gl) {nm,tp,wt,attr,gl}
+#define ITYP(nm,tp,wt,attk,def,gl) {nm,tp,wt,attk,def,gl,1}
 #define DMG(a,b) (((a)<<4)+(b))
 
 /* No corpse -- they are a custom item (see src/monst.c). */
-Ityp all_items[] = {
-/*  item name              type            weight  attributes  display                             */
-	ITEM("long sword",     ITYP_LONGSWORD,  2000,  DMG(1, 5),  ITCH_WEAPON | COL_TXT(11,11, 0)),
-	ITEM("fencing sword",  ITYP_LONGSWORD,  1500,  DMG(1, 5),  ITCH_WEAPON | COL_TXT(11, 0,11)),
-	ITEM("axe",            ITYP_AXE,        3000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT(11,11, 0)),
-	ITEM("battle-axe",     ITYP_AXE,        1000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT(11,11, 0)),
-	ITEM("war hammer",     ITYP_HAMMER,     5000,  DMG(2, 4),  ITCH_WEAPON | COL_TXT(15,11, 0)),
-	ITEM("dagger",         ITYP_DAGGER,     100,   DMG(1, 3),  ITCH_WEAPON | COL_TXT( 0,11, 0)),
-	ITEM("short sword",    ITYP_SHORTSWORD, 2000,  DMG(1, 4),  ITCH_WEAPON | COL_TXT(11, 8, 0)),
-	ITEM("glove",          ITYP_GLOVE,      70,    0,          ITCH_ARMOUR | COL_TXT( 0,11, 0)),
-	ITEM("chain mail",     ITYP_MAIL,       3000,  0,          ITCH_ARMOUR | COL_TXT( 8, 8, 8)),
-	ITEM("gold piece",     ITYP_MONEY,      1,     0,          ITCH_DOSH   | COL_TXT(15,15, 0)),
-	ITEM("fireball",       ITYP_ARCANE,     0,     0,          0x09        | COL_TXT(15, 4, 0)),
-	ITEM("water bolt",     ITYP_ARCANE,     0,     0,          0x07        | COL_TXT( 0, 4,15)),
-	ITEM("ice bolt",       ITYP_ARCANE,     0,     0,          0x07        | COL_TXT( 0, 8,15)),
-	ITEM("",               ITYP_NONE,       0,     0,          0                                  )
-/*  item name              type            weight  attributes  display                             */
+Ityp ityps[] = {
+/*  item name              type              weight attributes     display                      */
+	ITYP("long sword",     ITSORT_LONGSWORD,  2000,  5,  0,      ITCH_WEAPON | COL_TXT(11,11, 0)),
+	ITYP("fencing sword",  ITSORT_LONGSWORD,  1500,  5,  0,      ITCH_WEAPON | COL_TXT(11, 0,11)),
+	ITYP("axe",            ITSORT_AXE,        3000,  4,  0,      ITCH_WEAPON | COL_TXT(11,11, 0)),
+	ITYP("battle-axe",     ITSORT_AXE,        1000,  8,  0,      ITCH_WEAPON | COL_TXT(11,11, 0)),
+	ITYP("war hammer",     ITSORT_HAMMER,     5000,  8,  0,      ITCH_WEAPON | COL_TXT(15,11, 0)),
+	ITYP("dagger",         ITSORT_DAGGER,     100,   3,  0,      ITCH_WEAPON | COL_TXT( 0,11, 0)),
+	ITYP("short sword",    ITSORT_SHORTSWORD, 2000,  4,  0,      ITCH_WEAPON | COL_TXT(11, 8, 0)),
+	ITYP("glove",          ITSORT_GLOVE,      70,    0,  1,      ITCH_ARMOUR | COL_TXT( 0,11, 0)),
+	ITYP("chain mail",     ITSORT_MAIL,       5000,  0,  8,      ITCH_ARMOUR | COL_TXT( 8, 8, 8)),
+	ITYP("plate mail",     ITSORT_MAIL,       8000,  0,  9,      ITCH_ARMOUR | COL_TXT( 8,11, 0)),
+	ITYP("helmet",         ITSORT_HELM,       2000,  0,  3,      ITCH_ARMOUR | COL_TXT(11,11, 2)),
+	ITYP("gold piece",     ITSORT_MONEY,      1,     0,  0,      ITCH_DOSH   | COL_TXT(15,15, 0)),
+	ITYP("fireball",       ITSORT_ARCANE,     0,     0,  0,      0x09        | COL_TXT(15, 4, 0)),
+	ITYP("water bolt",     ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 4,15)),
+	ITYP("ice bolt",       ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 8,15)),
+	ITYP("",               ITSORT_NONE,       0,     0,  0,      0                              )
+/*  item name              type              weight attributes     display                      */
 };
 
 void ityp_init ()
 {
-	int i;
-	for (i = 0; all_items[i].name[0]; ++ i)
-	{
-		if (!strcmp(all_items[i].name, "long sword"))
-			ityp_long_sword = all_items[i];
-		else if (!strcmp(all_items[i].name, "fireball"))
-			ityp_fireball = all_items[i];
-		else if (!strcmp(all_items[i].name, "battle-axe"))
-			ityp_battle_axe = all_items[i];
-		else if (!strcmp(all_items[i].name, "water bolt"))
-			ityp_water_bolt = all_items[i];
-		else if (!strcmp(all_items[i].name, "ice bolt"))
-			ityp_ice_bolt = all_items[i];
-		else if (!strcmp(all_items[i].name, "glove"))
-			ityp_glove = all_items[i];
-		else if (!strcmp(all_items[i].name, "chain mail"))
-			ityp_chain_mail = all_items[i];
-	}
-	NUM_ITEMS = i;
+	return;
 }
 
 char *get_near_desc (const struct Monster *mons, const struct Item *item)
@@ -76,7 +57,7 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 	else
 	{
 		// const char *str = itoa((item->attr&ITEM_PLUS(3)>>3))
-		snprintf (temp, 128, "%s%s%s%s%s",
+		snprintf (temp, 128, "%s%s%s%s%s%s",
 		         /* beatitude */
 		         (!(item->attr & ITEM_KBUC)) ? "" :
 		           (item->attr & ITEM_BLES)  ? "blessed " :
@@ -87,12 +68,13 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 		         //((item->attr & (ITEM_MINS(3))) | 1 ? ((item->attr & (ITEM_MINS(0))) ? "-" : "+") : ""),
 		         //((item->attr & (ITEM_MINS(3))) | 1 ? (item->attr & ((ITEM_PLUS(3)) >> 3)) : 0),
 		         /* name */
-		         item->type.name,
+				 item->type.name,
+		         item->stacksize == 1 ? "" : "s",
 		         /* wielded */
 		         (item->loc.loc == LOC_WIELDED) ? " (wielded)" : "",
-				 (item->attr & ITEM_WORN) ? " (being worn)" : ""
+				 item_worn(item) ? " (being worn)" : ""
 				 );
-		w_a (ret, temp, 128);
+		w_some (ret, temp, item->stacksize, 128);
 	}
 	return ret;
 }

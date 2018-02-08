@@ -17,6 +17,20 @@ int w_a (char *ret, char *c, size_t num)
 		return snprintf (ret, num, "a %s", c);
 }
 
+int w_some (char *ret, char *c, int stacksize, size_t num)
+{
+	if (stacksize <= 0)
+	{
+		panic("stack size <= 0 in w_come");
+		return 0;
+	}
+
+	if (stacksize == 1)
+		return w_a (ret, c, num);
+
+	return snprintf (ret, num, "%d %s", stacksize, c);
+}
+
 void w_the (char *end, char *c, size_t num)
 {
 	strncpy (end, "the ", num);

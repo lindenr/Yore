@@ -31,8 +31,8 @@ typedef enum
 	EV_MGEN,
 	EV_MREGEN,
 	EV_MWIELD,
-	EV_MWEAR_GLOVE,
-	EV_MWEAR_BODY_ARMOUR,
+	EV_MWEAR_ARMOUR,
+	EV_MTAKEOFF_ARMOUR,
 	EV_MPICKUP,
 	EV_MDROP,
 	EV_MANGERM,
@@ -181,14 +181,14 @@ typedef union Event
 		EV_TYPE type;
 		TID thID;
 		TID itemID;
-		int hand;
-	} mwear_glove;
+		size_t offset;
+	} mwear_armour;
 	struct
 	{
 		EV_TYPE type;
 		TID thID;
 		TID itemID;
-	} mwear_body_armour;
+	} mtakeoff_armour;
 	struct
 	{
 		EV_TYPE type;
