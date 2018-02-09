@@ -101,33 +101,52 @@ int mons_can_wear (struct Monster *mons, struct Item *it, size_t offset)
 
 int mons_try_wear (struct Monster *mons, struct Item *it)
 {
+	int i;
 	switch (it->type.type)
 	{
 	case ITSORT_GLOVE:
-		if (!mons->wearing.narms)
+		for (i = 0; i < mons->wearing.narms; ++ i)
+		{
+			if (!mons->wearing.hands[i])
+				break;
+		}
+		if (i >= mons->wearing.narms)
+		{
+			p_msg ("You don't have enough hands!");
 			return 0;
-		if (mons->wearing.hands[0])
-			return 0;
+		}
 		ev_queue (0, (union Event) { .mwear_armour =
-			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, hands[0])}});
+			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, hands[i])}});
 		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
 	case ITSORT_MAIL:
-		if (!mons->wearing.ntorsos)
+		for (i = 0; i < mons->wearing.ntorsos; ++ i)
+		{
+			if (!mons->wearing.torsos[i])
+				break;
+		}
+		if (i >= mons->wearing.ntorsos)
+		{
+			p_msg ("You don't have enough torsos!");
 			return 0;
-		if (mons->wearing.torsos[0])
-			return 0;
+		}
 		ev_queue (0, (union Event) { .mwear_armour =
-			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, torsos[0])}});
+			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, torsos[i])}});
 		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
 	case ITSORT_HELM:
-		if (!mons->wearing.nheads)
+		for (i = 0; i < mons->wearing.nheads; ++ i)
+		{
+			if (!mons->wearing.heads[i])
+				break;
+		}
+		if (i >= mons->wearing.nheads)
+		{
+			p_msg ("You don't have enough heads!");
 			return 0;
-		if (mons->wearing.heads[0])
-			return 0;
+		}
 		ev_queue (0, (union Event) { .mwear_armour =
-			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, heads[0])}});
+			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, heads[i])}});
 		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
 	default:
