@@ -14,7 +14,7 @@
 
 //#define MONST(nm,ch,sp,size,diff,at,fl,cl,ex,hp,st) 
 #define MONST(nm,ch,size,at,fl,cl,str,con,wis,agi,spd,ex) \
-{0,0,-1,-1,nm,ch|COL(cl),{.mode=CTR_NONE},0,ex,0,NULL, \
+{0,0,-1,-1,MTYP_##nm,#nm,ch|COL(cl),{.mode=CTR_NONE},0,ex,0,NULL, \
 0, 0, 0, 0, 0, 0, str, con, wis, agi, spd, NULL, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
 {{0,0},{0,0,0},0,{0,0},0},(fl)|(FL_SIZE(size)),NULL}
 
@@ -28,42 +28,42 @@
 const int CORPSE_WEIGHTS[7] = {0, 100, 1000, 3000, 20000, 50000, 300000};
 
 const struct Monster all_mons[] = {
-	MONST("chicken", 'c', SIZE(2),
+	MONST(chicken, 'c', SIZE(2),
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_NEUTRAL | FL_FLSH | FL_WING,
 		  COL_TXT_RED(15) | COL_TXT_GREEN(15),
 		  2, 0, 0, 3, 1000, 5),
-	MONST("rabbit", 'g', SIZE(2),
+	MONST(rabbit, 'g', SIZE(2),
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_NEUTRAL | FL_FLSH,
 		  COL_TXT_RED(11) | COL_TXT_GREEN(15),
 		  2, 1, 0, 3, 400, 6),
-	MONST("crab", 'c', SIZE(2),
+	MONST(crab, 'c', SIZE(2),
 		  ATTK(A(2, 5, ATTK_CLAW), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_FLSH | FL_ARMS | FL_LEGS,
 		  COL_TXT_RED(11) | COL_TXT_GREEN(11),
 		  2, 2, 0, 3, 1000, 5),
-	MONST("gnome", 'G', SIZE(3),
+	MONST(gnome, 'G', SIZE(3),
 		  ATTK(A(1, 3, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_HMND,
 		  COL_TXT_RED(11) | COL_TXT_GREEN(11),
 		  5, 5, 1, 2, 800, 15),
-	MONST("human", '@', SIZE(4),
+	MONST(human, '@', SIZE(4),
 		  ATTK(A(1, 4, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_HMND,
 		  COL_TXT_BLUE(11) | COL_TXT_RED(11) | COL_TXT_GREEN(11),
 		  10, 10, 5, 10, 1000, 50),
-	MONST("dwarf", 'h', SIZE(3),
+	MONST(dwarf, 'h', SIZE(3),
 		  ATTK(A(1, 3, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_HMND,
-		  COL_TXT_RED(15),
+		  COL_TXT_RED(11),
 		  15, 12, 5, 5, 1000, 60),
-	MONST("hobbit", 'h', SIZE(3),
+	MONST(hobbit, 'h', SIZE(3),
 		  ATTK(A(1, 3, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_HMND,
 		  COL_TXT_GREEN(11),
 		  8, 8, 5, 12, 1000, 40),
-	MONST("lich", 'L', SIZE(4),
+	MONST(lich, 'L', SIZE(4),
 		  ATTK(A(2, 4, ATTK_HIT), A(2, 2, AM(ATTK_MAGIC, ATYP_CURS)), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_SKEL,
 		  COL_TXT_RED(11) | COL_TXT_BLUE(11),
@@ -72,12 +72,12 @@ const struct Monster all_mons[] = {
 		  ATTK(A(2, 4, ATTK_TOUCH), A(3, 2, AM(ATTK_PASS, ATYP_ACID)), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_BLOB,
 		  COL_TXT_GREEN(11),
-		  30, 10, 3),
-	MONST("Satan", 'D', 2000, SIZE(5), 80,
+		  30, 10, 3)*/,
+	MONST(Satan, 'D', SIZE(5),
 		  ATTK(A(3, 5, ATTK_HIT), A(4, 5, AM(ATTK_MAGIC, ATYP_BEAM)), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_UNIQ, COL_TXT_RED(11),
-		  1024, 99, 99)*/,
-	MONST(NULL, 0, SIZE(0),
+		  300, 300, 300, 300, 1200, 12000),
+	MONST(NUM_MONS, 0, SIZE(0),
 		  ATTK(AT_NONE, AT_NONE, AT_NONE, AT_NONE, AT_NONE, AT_NONE), 0, 0, 0, 0, 0, 0, 0, 0)
 };
 

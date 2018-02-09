@@ -27,6 +27,7 @@ typedef enum
 	EV_MDOATTKM,
 	EV_MKILLM,
 	EV_MCORPSE,
+	EV_MLEVEL,
 	EV_MTURN,
 	EV_MGEN,
 	EV_MREGEN,
@@ -155,6 +156,11 @@ typedef union Event
 		EV_TYPE type;
 		TID thID;
 	} mcorpse;
+	struct
+	{
+		EV_TYPE type;
+		TID thID;
+	} mlevel;
 	struct
 	{
 		EV_TYPE type;

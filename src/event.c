@@ -51,6 +51,7 @@ Tick ev_delay (union Event *event)
 	case EV_MKILLM:
 		return 0;
 	case EV_MCORPSE:
+	case EV_MLEVEL:
 		return 0;
 	case EV_MTURN:
 		return 0;
@@ -164,7 +165,7 @@ void ev_do (Event ev)
 		return;
 	case EV_WORLD_HEARTBEAT:
 		/* monster generation */
-		if (!rn(10))
+		if (!rn(3))
 			ev_queue (0, (union Event) { .mgen = {EV_MGEN}});
 		/* next heartbeat */
 		ev_queue (1000, (union Event) { .world_heartbeat = {EV_WORLD_HEARTBEAT}});
@@ -385,7 +386,10 @@ void ev_do (Event ev)
 		p_msg ("The %s hits the %s for %d!", fr->mname, to->mname, damage); /* notify */
 		to->HP -= damage;
 		if (to->HP <= 0)
+		{
+			to->HP = 0;
 			ev_queue (0, (union Event) { .mkillm = {EV_MKILLM, frID, toID}}); /* kill to-mons */
+		}
 		return;
 	case EV_MKILLM:
 		fr = MTHIID(ev->mkillm.frID); to = MTHIID(ev->mkillm.toID);
@@ -399,8 +403,10 @@ void ev_do (Event ev)
 			U.playing = PLAYER_LOSTGAME;
 			return;
 		}
+		ev_queue (0, (union Event) { .mcorpse = {EV_MCORPSE, ev->mkillm.toID}}); /* dead drop */
 		fr->exp += to->exp;
-		ev_queue (0, (union Event) { .mcorpse = {EV_MCORPSE, ev->mkillm.toID}});
+		if (mons_level (fr->exp) != fr->level)
+			ev_queue (0, (union Event) { .mlevel = {EV_MLEVEL, fr->ID}});
 		return;
 	case EV_MCORPSE:
 		mons = MTHIID(ev->mcorpse.thID);
@@ -429,6 +435,14 @@ void ev_do (Event ev)
 
 		/* remove dead monster */
 		rem_mid (mons->ID);
+		return;
+	case EV_MLEVEL:
+		mons = MTHIID(ev->mlevel.thID);
+		if (!mons)
+			return;
+		mons->level = mons_level (mons->exp);
+		p_msg ("Level up! The %s is now level %d.", mons->mname, mons->level);
+		mons_level_stats (mons);
 		return;
 	case EV_MTURN:
 		mons = MTHIID(ev->mturn.thID);

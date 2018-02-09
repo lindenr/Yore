@@ -46,17 +46,17 @@ typedef long long unsigned Tick;
 
 enum MTYPES
 {
-	MTYP_CHICKEN = 0,
-	MTYP_RABBIT,
-	MTYP_CRAB,
-	MTYP_GNOME,
-	MTYP_HUMAN,
-	MTYP_DWARF,
-	MTYP_HOBBIT,
-	MTYP_LICH,
-	MTYP_ACID_BLOB,
-	MTYP_SATAN,
-	NUM_MONS
+	MTYP_chicken = 0,
+	MTYP_rabbit,
+	MTYP_crab,
+	MTYP_gnome,
+	MTYP_human,
+	MTYP_dwarf,
+	MTYP_hobbit,
+	MTYP_lich,
+	//MTYP_acid_blob,
+	MTYP_Satan,
+	MTYP_NUM_MONS
 };
 
 #define MMAX_HEADS  2
@@ -182,6 +182,7 @@ struct Monster
 	TID ID;                /* thing ID                     */
 	int dlevel;            /* parent dungeon level         */
 	int yloc, xloc;        /* location in dungeon          */
+	enum MTYPES type;      /* type of monster              */
 	const char *mname;     /* name of monster type         */
 	glyph gl;              /* display glyph                */
 	union CTRState ctr;    /* state of the control method  */
@@ -232,9 +233,12 @@ int    mons_ST_regen   (struct Monster *);                   /* stamina         
 int    mons_ST_max_regen(struct Monster *);                  /* max stamina                              */
 int    mons_isplayer   (struct Monster *);                   /* is controlled by human                   */
 int    mons_cont       (struct Monster *, MCont, union ContData *);/* continuation to be called next turn*/
-int    mons_base_HP    (int str);                            /* base health for monster                  */
-int    mons_base_ST    (int con);                            /* base stamina                             */
-int    mons_base_MP    (int wis);                            /* base magic power                         */
+int    mons_get_HP     (struct Monster *);                   /* recalculates max HP                      */
+int    mons_get_ST     (struct Monster *);                   /* max stamina                              */
+int    mons_get_MP     (struct Monster *);                   /* max magic power                          */
+int    mons_level      (int exp);                            /* what level a given experience is         */
+int    mons_exp_needed (int level);                          /* exp needed for next level                */
+void   mons_level_stats(struct Monster *);                   /* alter monster's base stats for new level */
 
 /* effects */
 void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */

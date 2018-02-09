@@ -9,8 +9,8 @@ const styp all_skills[] = {
 	{SK_NONE, 0, "", ""},
 	{SK_CHARGE,  SK_ACT, "Charge",  "#CHARGE\n#[cost: 3 stamina/square]\n\nCharge at your opponent, dealing extra damage for one hit. Be careful not to miss! Damage increases with skill level.\n"},
 	{SK_DODGE,   SK_PAS, "Dodge", "#DODGE\n#[passive skill]\n\nYou are uncommonly nimble. When you are attacked you have a chance to dodge the attack. The chance increases with skill level.\n"},
-	{SK_FIREBALL, SK_ACT, "Fireball", "#FIREBALL\n#[cost: free]\nfireball!\n"},
-	{SK_WATER_BOLT, SK_ACT, "Water bolt", "#WATER BOLT\n#[cost: free]\nWater!\n"},
+	{SK_FIREBALL, SK_ACT, "Fireball", "#FIREBALL\n#[cost: 5 MP]\nfireball!\n"},
+	{SK_WATER_BOLT, SK_ACT, "Water bolt", "#WATER BOLT\n#[cost: 6 MP]\nWater!\n"},
 	{SK_FROST, SK_ACT, "Frost", "#FROST\n[cost: free]\nLightly freezes an area."},
 	{SK_FLAMES,  SK_ACT, "Circle of flame", "#CIRCLE OF FLAME\n#[cost: free]\nfiire!!!!\n"}
 };
@@ -49,12 +49,18 @@ int sk_lvl (struct Monster *th, enum SK_TYPE type)
 
 void sk_fireball (struct Monster *mons, int yloc, int xloc, Skill sk)
 {
+	if (mons->MP < 5)
+		return;
+	mons->MP -= 5;
 	ev_queue (mons->speed, (union Event) { .mfireball = {EV_MFIREBALL, mons->ID, yloc, xloc}});
 	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 }
 
 void sk_water_bolt (struct Monster *mons, int yloc, int xloc, Skill sk)
 {
+	if (mons->MP < 6)
+		return;
+	mons->MP -= 6;
 	ev_queue (mons->speed, (union Event) { .mwater_bolt = {EV_MWATER_BOLT, mons->ID, yloc, xloc}});
 	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 }

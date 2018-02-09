@@ -28,7 +28,7 @@ int expcmp (int p_exp, int m_exp)
 
 bool nogen (int mons_id)
 {
-	if (mons_id == MTYP_SATAN)
+	if (mons_id == MTYP_Satan)
 		return ((U.m_glflags&MGL_GSAT) != 0);
 
 	return false;
@@ -36,27 +36,50 @@ bool nogen (int mons_id)
 
 int mons_gen_type ()
 {
-	int i, array[NUM_MONS];
+	int i, array[MTYP_NUM_MONS];
 	uint32_t p_exp = 20; // TODO
 	uint32_t total_weight = 0;
 
-	for (i = 0; i < NUM_MONS; ++i)
+	for (i = 0; i < MTYP_NUM_MONS; ++i)
 	{
 		if (nogen(i)) continue; /* genocided or unique and generated etc */
 		array[i] = expcmp(p_exp, all_mons[i].exp);
 		total_weight += array[i];
 	}
 
-	for (i = 0; i < NUM_MONS; ++i)
+	for (i = 0; i < MTYP_NUM_MONS; ++i)
 	{
 		if (array[i] > rn(total_weight))
 			break;
 		total_weight -= array[i];
 	}
-	if (i < NUM_MONS) return i;
+	if (i < MTYP_NUM_MONS) return i;
 
 	/* If the player has no exp this will happen */
 	return 0;
+}
+
+const int explevel[] = {0, 20, 40, 80};
+const int maxlevel = sizeof(explevel)/sizeof(explevel[0]);
+
+int mons_level (int exp)
+{
+	int i, ret = 0;
+	for (i = 0; i < maxlevel; ++ i)
+	{
+		if (exp >= explevel[i])
+			++ ret;
+		else
+			break;
+	}
+	return ret;
+}
+
+int mons_exp_needed (int level)
+{
+	if (level < maxlevel)
+		return explevel[level];
+	return -1;
 }
 
 int mons_get_wt (struct Monster *mons)
@@ -74,19 +97,19 @@ void mons_corpse (struct Monster *mons, Ityp *itype)
 	itype->gl   = ITCH_CORPSE | (mons->gl & ~0xff);
 }
 
-int mons_base_HP (int str)
+int mons_get_HP (struct Monster *mons)
 {
-	return 2*str + 5;
+	return 2*mons->str + 5;
 }
 
-int mons_base_ST (int cons)
+int mons_get_ST (struct Monster *mons)
 {
-	return (3*cons)/2 + 5;
+	return (3*mons->con)/2 + 5;
 }
 
-int mons_base_MP (int wis)
+int mons_get_MP (struct Monster *mons)
 {
-	return wis + 1;
+	return mons->wis + 1;
 }
 
 int mons_can_wear (struct Monster *mons, struct Item *it, size_t offset)
@@ -387,9 +410,24 @@ int mons_ST_regen (struct Monster *th)
 
 int mons_ST_max_regen (struct Monster *th)
 {
-	if (th->ST >= th->ST_max)
-		return 0;
-	return !rn(1 + 10*th->ST_max);
+	return 0;
+}
+
+void mons_level_stats (struct Monster *mons)
+{
+	mons->str = mons->level + all_mons[mons->type].str;
+	mons->con = mons->level + all_mons[mons->type].con;
+	mons->wis = mons->level + all_mons[mons->type].wis;
+	mons->agi = mons->level + all_mons[mons->type].agi;
+	mons->HP_max = mons_get_HP (mons);
+	if (mons->HP > mons->HP_max)
+		mons->HP = mons->HP_max;
+	mons->ST_max = mons_get_ST (mons);
+	if (mons->ST > mons->ST_max)
+		mons->ST = mons->ST_max;
+	mons->MP_max = mons_get_MP (mons);
+	if (mons->MP > mons->MP_max)
+		mons->MP = mons->MP_max;
 }
 
 int mons_cont (struct Monster *player, MCont cont, union ContData *data)

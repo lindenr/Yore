@@ -377,11 +377,12 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 struct Monster *gen_player (int upsy, int upsx, char *name)
 {
 	struct Monster m1;
-	init_mons (&m1, MTYP_HUMAN);
+	init_mons (&m1, MTYP_human);
 	m1.name = name;
 	m1.skills = v_dinit (sizeof(struct Skill));
 	m1.exp = 0;
 	m1.ctr.mode = CTR_PL;
+	m1.level = 1;
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_WATER_BOLT, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FIREBALL, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FROST, 0, 1}));

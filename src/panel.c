@@ -61,11 +61,15 @@ void p_pane (struct Monster *player)
 
 	if (player)
 	{
+		int exp_needed = mons_exp_needed (player->level);
 		gra_mvprint (gpan, 2, 1, "%s the Player", w_short (player->name, 20));
-		gra_mvprint (gpan, 3, 3, "Health  %d/%d", player->HP, player->HP_max);
-		gra_mvprint (gpan, 4, 3, "Stamina %d/%d", player->ST, player->ST_max);
-		gra_mvprint (gpan, 5, 3, "Power   %d/%d", player->MP, player->MP_max);
-		gra_mvprint (gpan, 6, 3, "XP lvl  %d:%d/infinity", player->level, player->exp); // TODO?
+		gra_mvprint (gpan, 3, 3, "Health  %d (%d)", player->HP, player->HP_max);
+		gra_mvprint (gpan, 4, 3, "Stamina %d (%d)", player->ST, player->ST_max);
+		gra_mvprint (gpan, 5, 3, "Power   %d (%d)", player->MP, player->MP_max);
+		if (exp_needed != -1)
+			gra_mvprint (gpan, 6, 3, "XP lvl  %d:%d (next: %d)", player->level, player->exp, exp_needed);
+		else
+			gra_mvprint (gpan, 6, 3, "XP lvl  %d:%d", player->level, player->exp);
 		gra_mvprint (gpan, 7, 3, "Armour  %d", player->armour);
 		gra_mvaddch (gpan, 3, 1, 3 | COL_TXT_RED(15));
 		gra_mvaddch (gpan, 4, 1, 15 | COL_TXT_GREEN(15));
@@ -339,6 +343,11 @@ int p_skills (struct Monster *player, enum PanelType type)
 			case SK_DODGE:
 				break;
 			case SK_FIREBALL:
+				if (player->MP < 5)
+				{
+					p_msgbox ("Not enough MP.");
+					continue;
+				}
 				gra_hide (sc_status);
 				gra_hide (sc_skills);
 				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
@@ -352,6 +361,11 @@ int p_skills (struct Monster *player, enum PanelType type)
 				sk_fireball (player, yloc, xloc, v_at (pskills, selected));
 				return 1;
 			case SK_WATER_BOLT:
+				if (player->MP < 6)
+				{
+					p_msgbox ("Not enough MP.");
+					continue;
+				}
 				gra_hide (sc_status);
 				gra_hide (sc_skills);
 				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
