@@ -228,9 +228,8 @@ int    mons_hitm       (struct Monster *, struct Monster *, struct Item *); /* w
 int    mons_hitdmg     (struct Monster *, struct Monster *, struct Item *); /* how much damage           */
 int    mons_ST_hit     (struct Monster *, struct Item *);    /* how much stamina will it consume         */
 int    mons_HP_regen   (struct Monster *);                   /* how much HP will regen                   */
-int    mons_HP_max_regen(struct Monster *);                  /* similarly for max HP                     */
 int    mons_ST_regen   (struct Monster *);                   /* stamina                                  */
-int    mons_ST_max_regen(struct Monster *);                  /* max stamina                              */
+int    mons_MP_regen   (struct Monster *);                   /* MP                                       */
 int    mons_isplayer   (struct Monster *);                   /* is controlled by human                   */
 int    mons_cont       (struct Monster *, MCont, union ContData *);/* continuation to be called next turn*/
 int    mons_get_HP     (struct Monster *);                   /* recalculates max HP                      */

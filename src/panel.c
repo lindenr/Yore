@@ -72,9 +72,9 @@ void p_pane (struct Monster *player)
 			gra_mvprint (gpan, 6, 3, "XP lvl  %d:%d", player->level, player->exp);
 		gra_mvprint (gpan, 7, 3, "Armour  %d", player->armour);
 		gra_mvaddch (gpan, 3, 1, 3 | COL_TXT_RED(15));
-		gra_mvaddch (gpan, 4, 1, 0xAF | COL_TXT_GREEN(15));
+		gra_mvaddch (gpan, 4, 1, 5 | COL_TXT_GREEN(15));
 		gra_mvaddch (gpan, 5, 1, 4 | COL_TXT_BLUE(15));
-		gra_mvaddch (gpan, 6, 1, 5 | COL_TXT(11,11,11));
+		gra_mvaddch (gpan, 6, 1, 6 | COL_TXT(11,11,11));
 		gra_mvaddch (gpan, 7, 1, '[' | COL_TXT(11,11,0));
 		gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d", player->status.defending.ydir, player->status.defending.xdir);
 		if (player->status.charging)
@@ -123,6 +123,30 @@ void p_amsg (const char *str)
 	v_push (messages, &msg);
 }
 
+void p_menu_draw (Graph box, Vector lines, int curchoice)
+{
+	int i;
+	int h = box->h, w = box->w;
+	for (i = 0; i < lines->len; ++ i)
+	{
+		struct MenuOption *line = v_at (lines, i);
+		if (line->letter)
+		{
+			gra_mvaddch (box, i+1, 2, ACS_PILLAR);
+			gra_mvaddch (box, i+1, 3, ' ');
+			gra_mvaddch (box, i+1, 4, line->letter);
+		}
+		gra_mvaprintex (box, i+1, 6, line->ex_str);
+	}
+	gra_box (box, 0, 0, h-1, w-1);
+	if (curchoice != -1)
+	{
+		gra_invert (box, curchoice+1, 2);
+		gra_invert (box, curchoice+1, 3);
+		gra_invert (box, curchoice+1, 4);
+	}
+}
+
 char p_menuex (Vector lines)
 {
 	int i, curchoice = -1;
@@ -139,14 +163,11 @@ char p_menuex (Vector lines)
 		struct MenuOption *line = v_at (lines, i);
 		if (line->letter)
 		{
-			if (curchoice == -1)
-				curchoice = i;
-			gra_mvaddch (box, i+1, 2, ACS_PILLAR);
-			gra_mvaddch (box, i+1, 4, line->letter);
+			curchoice = i;
+			break;
 		}
-		gra_mvaprintex (box, i+1, 6, line->ex_str);
 	}
-	gra_box (box, 0, 0, h-1, w-1);
+
 	char ret;
 	if (curchoice == -1)
 	{
@@ -154,18 +175,22 @@ char p_menuex (Vector lines)
 		gra_free (box);
 		return ret;
 	}
-	gra_invert (box, curchoice+1, 2);
-	gra_invert (box, curchoice+1, 3);
-	gra_invert (box, curchoice+1, 4);
 	do
 	{
-		ret = gr_getch();
-		if (ret == CH_ESC || ret == ' ')
+		p_menu_draw (box, lines, curchoice);
+		ret = gr_getch ();
+		if (ret == CH_ESC || ret == ' ' ||
+			(ret >= 'a' && ret <= 'z') ||
+			(ret >= 'A' && ret <= 'Z') ||
+			ret == '-')
 			break;
-		gra_invert (box, curchoice+1, 2);
-		gra_invert (box, curchoice+1, 3);
-		gra_invert (box, curchoice+1, 4);
-		if (ret == GRK_UP)
+		if (ret == '\n')
+		{
+			struct MenuOption *line = v_at (lines, curchoice);
+			if (line->desc)
+				p_msgbox (line->desc);
+		}
+		else if (ret == GRK_UP)
 		{
 			for (i = curchoice - 1; i >= 0; -- i)
 			{
@@ -187,9 +212,6 @@ char p_menuex (Vector lines)
 			if (i < lines->len)
 				curchoice = i;
 		}
-		gra_invert (box, curchoice+1, 2);
-		gra_invert (box, curchoice+1, 3);
-		gra_invert (box, curchoice+1, 4);
 	}
 	while (1);
 

@@ -209,7 +209,7 @@ int mons_try_takeoff (struct Monster *mons, struct Item *it)
 
 int mons_try_attack (struct Monster *mons, int y, int x)
 {
-	ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, mons->ID, y, x}});
+	ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, mons->ID, 0, y, x}});
 	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	return 1;
 }
@@ -395,12 +395,7 @@ int mons_ST_hit (struct Monster *from, struct Item *with)
 
 int mons_HP_regen (struct Monster *th)
 {
-	return !rn(50);
-}
-
-int mons_HP_max_regen (struct Monster *th)
-{
-	return 0;
+	return (!rn(20)) * (rn(th->str) >= 4);
 }
 
 int mons_ST_regen (struct Monster *th)
@@ -408,9 +403,9 @@ int mons_ST_regen (struct Monster *th)
 	return rn(1+th->con/2);
 }
 
-int mons_ST_max_regen (struct Monster *th)
+int mons_MP_regen (struct Monster *th)
 {
-	return 0;
+	return (!rn(10)) * rn(1 + (th->wis + rn(4))/4);
 }
 
 void mons_level_stats (struct Monster *mons)
@@ -531,7 +526,7 @@ int AI_AGGRO_take_turn (struct Monster *ai)
 	}
 	if (bestweap == curweap)
 		goto skip_weapon;
-	ev_queue (0, (union Event) { .mwield = {EV_MWIELD, ai->ID, 0, bestweap}});
+	ev_queue (0, (union Event) { .mwield = {EV_MWIELD, ai->ID, 0, bestweap->ID}});
 
 skip_weapon: ;
 	/* where you are */
@@ -563,7 +558,7 @@ skip_weapon: ;
 	/* attack if that is where your target will be */
 	if (aiy + ymove == toy && aix + xmove == tox)
 	{
-		ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, aiID, ymove, xmove}});
+		ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, aiID, 0, ymove, xmove}});
 		ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
 		return 1;
 	}

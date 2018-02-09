@@ -166,6 +166,7 @@ extern struct Item no_item;
 void ityp_init      ();
 
 void item_piles     (int, Vector, Vector);
+void item_gen       (union ItemLoc);
 
 #define item_worn(item) ((item)->worn_offset != -1)
 

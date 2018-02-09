@@ -46,6 +46,7 @@ struct MenuOption
 {
 	char letter;
 	glyph ex_str[40];
+	char *desc;
 };
 
 char p_menuex   (Vector);

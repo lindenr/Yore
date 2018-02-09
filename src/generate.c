@@ -261,7 +261,7 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 
 	if (type == LEVEL_NORMAL)
 	{
-		int i, y, x;
+		int i;
 
 		total_rooms = 0;
 		attempt_room (lvl, map_graph->h/2 - 2 - rn(3), map_graph->w/2 - 3 - rn(5), 15, 20);
@@ -286,20 +286,21 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 			if (things[i]->len == 0)
 				ADD_MAP (DGN_WALL, i);
 
-		for (i = 0; i < 100; ++ i)
-		{
-			do
-			{
-				y = rn (map_graph->h);
-				x = rn (map_graph->w);
-			}
-			while (!is_safe_gen (lvl, y, x));
+		//for (i = 0; i < 100; ++ i)
+		//{
+		//	gen_mons_in_level ();
+		//	do
+		//	{
+		//		y = rn (map_graph->h);
+	//			x = rn (map_graph->w);
+	//		}
+	//		while (!is_safe_gen (lvl, y, x));
 
 //			struct Item *item = gen_item ();
 			//new_thing (THING_ITEM, lvl, y, x, item);
 //			free (item);
 //			mons_gen (cur_dlevel, 2, U.luck-30);
-		}
+		//}
 		//mons_gen (cur_dlevel, 3, 0);
 	}
 	else if (type == LEVEL_TOWN)
@@ -389,11 +390,11 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
 	struct Monster *pl = new_mons (cur_dlevel, upsy, upsx, &m1);
 	struct Item myitem = new_item (ityps[ITYP_GOLD_PIECE]);
-	myitem.stacksize = 100;
+	myitem.stacksize = rn(80);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}});
-	struct Item myaxe = new_item (ityps[ITYP_BATTLE_AXE]);
+	struct Item myaxe = new_item (ityps[ITYP_DAGGER]);
 	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 1}});
-	myitem = new_item (ityps[ITYP_GLOVE]);
+	/*myitem = new_item (ityps[ITYP_GLOVE]);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 2}});
 	myitem = new_item (ityps[ITYP_GLOVE]);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 3}});
@@ -402,16 +403,23 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	myitem = new_item (ityps[ITYP_HELMET]);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 5}});
 	myitem = new_item (ityps[ITYP_GLOVE]);
-	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 6}});
+	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 6}});*/
 	return pl;
 }
 
 /* start of and during level */
 struct Monster *gen_mons_in_level ()
 {
-	uint32_t xloc = rn(map_graph->w), yloc = rn(map_graph->h);
-	if (!is_safe_gen (cur_dlevel, yloc, xloc))
-		return 0;
+	int i;
+	uint32_t xloc, yloc;
+	for (i = 0; i < 5; ++ i)
+	{
+		xloc = rn(map_graph->w), yloc = rn(map_graph->h);
+		if (is_safe_gen (cur_dlevel, yloc, xloc))
+			break;
+	}
+	if (i >= 5)
+		return NULL;
 
 	struct Monster p;
 	init_mons (&p, mons_gen_type ());

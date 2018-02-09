@@ -162,6 +162,14 @@ void ev_do (Event ev)
 		
 		mons = gen_boss (57, 160);
 		ev_mons_start (mons);
+
+		for (i = 0; i < 100; ++ i)
+		{
+			mons = gen_mons_in_level ();
+			if (!mons)
+				continue;
+			ev_mons_start (mons);
+		}
 		return;
 	case EV_WORLD_HEARTBEAT:
 		/* monster generation */
@@ -345,7 +353,7 @@ void ev_do (Event ev)
 		ev_queue (mons->speed, (union Event) { .mdoattkm = {EV_MDOATTKM, thID}});
 		mons->status.attacking.ydir = ev->mattkm.ydir;
 		mons->status.attacking.xdir = ev->mattkm.xdir;
-		mons->status.attacking.arm = 0;
+		mons->status.attacking.arm = ev->mattkm.arm;
 		p_msg ("The %s swings, to hit in %dms!", mons->mname, mons->speed);
 		break;
 	case EV_MDOATTKM:
@@ -365,6 +373,7 @@ void ev_do (Event ev)
 		toID = to->ID;
 		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}}); /* anger to-mons */
 		struct Item *with = fr->wearing.weaps[fr->status.attacking.arm];
+		fr->status.attacking.arm = -1;
 		int stamina_cost = mons_ST_hit (fr, with);
 		if (fr->ST < stamina_cost)
 		{
@@ -426,6 +435,10 @@ void ev_do (Event ev)
 		free(mons->pack);
 
 	mcorpse: ;
+		/* item drops */
+		if (!rn(5))
+			item_gen ((union ItemLoc) { .dlvl =
+				{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
 		/* add corpse */
 		Ityp ityp_corpse;
 		mons_corpse (mons, &ityp_corpse);
@@ -463,28 +476,32 @@ void ev_do (Event ev)
 		ev_queue (mons_tregen (mons), (union Event) { .mregen =
 			{EV_MREGEN, ev->mregen.thID}}); /* Next regen */
 		/* HP */
-		int HP_regen = mons_HP_regen (mons), HP_max_regen = mons_HP_max_regen (mons);
+		int HP_regen = mons_HP_regen (mons);
 		mons->HP += HP_regen;
-		mons->HP_max += HP_max_regen;
 		if (mons->HP > mons->HP_max)
 			mons->HP = mons->HP_max;
-
 		/* ST */
-		int ST_regen = mons_ST_regen (mons), ST_max_regen = mons_ST_max_regen (mons);
+		int ST_regen = mons_ST_regen (mons);
 		mons->ST += ST_regen;
-		mons->ST_max += ST_max_regen;
 		if (mons->ST > mons->ST_max)
 			mons->ST = mons->ST_max;
+		/* MP */
+		int MP_regen = mons_MP_regen (mons);
+		mons->MP += MP_regen;
+		if (mons->MP > mons->MP_max)
+			mons->MP = mons->MP_max;
 		return;
 	case EV_MWIELD:
 		mons = MTHIID(ev->mwield.thID);
 		if (!mons)
 			return;
 		int arm = ev->mwield.arm;
-		struct Item *it = ev->mwield.it;
+		if (mons->status.attacking.arm == arm)
+			return;
 		if (mons->wearing.weaps[arm])
 			mons_unwield (mons, mons->wearing.weaps[arm]);
-		if (NO_ITEM(it))
+		struct Item *it = ITEMID(ev->mwield.itemID);
+		if ((!it) || it->loc.loc != LOC_INV || it->loc.inv.monsID != ev->mwield.thID)
 			return;
 		char *msg = get_inv_line (it);
 		p_msg ("The %s wields %s.", mons->mname, msg); /* notify */

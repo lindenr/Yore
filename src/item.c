@@ -8,6 +8,7 @@
 #include "include/vector.h"
 #include "include/item.h"
 #include "include/dlevel.h"
+#include "include/rand.h"
 
 #include <stdio.h>
 
@@ -59,9 +60,9 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 		// const char *str = itoa((item->attr&ITEM_PLUS(3)>>3))
 		char ench_string[20] = "";
 		if (item->attk)
-			snprintf (ench_string, 20, " (attk: %d)", item->attk);
+			snprintf (ench_string, 20, " (%d attk)", item->attk);
 		else if (item->def)
-			snprintf (ench_string, 20, " (def: %d)", item->def);
+			snprintf (ench_string, 20, " (%d def)", item->def);
 		snprintf (temp, 128, "%s%s%s%s%s%s%s",
 		         /* beatitude */
 		         (!(item->attr & ITEM_KBUC)) ? "" :
@@ -97,39 +98,20 @@ int it_can_merge (struct Monster *player, struct Item *item1, struct Item *item2
 
 char *get_inv_line (const struct Item *item)
 {
-	//char ch = get_Itref (item);
-	char //*ret = malloc (80),
-		*orig = get_near_desc (MTHIID(item->loc.inv.monsID), item);
-	//snprintf (ret, 80, "%c - %s", ch, orig);
-	//free (orig);
-	return orig;
+	char ch = get_Itref (item);
+	char *ret = malloc (80), *orig = get_near_desc (MTHIID(item->loc.inv.monsID), item);
+	snprintf (ret, 80, "%c - %s", ch, orig);
+	free (orig);
+	return ret;
 }
 
-bool stackable (int n, Vector *pile, int i)
+void item_gen (union ItemLoc loc)
 {
-	//struct Item *item1 = &THING(n, *(int*)v_at (*pile, 0))->thing.item,
-	//            *item2 = &THING(n, i)->thing.item;
-	//return (memcmp (&item1->type, &item2->type, sizeof(Ityp)) == 0);
-	return false;
-}
-
-void item_piles (int n, Vector piles, Vector items)
-{
-	int i;
-	for (i = 0; i < items->len; ++ i)
-	{
-		int j;
-		for (j = 0; j < piles->len; ++ j)
-		{
-			if (stackable (n, v_at (piles, j), *(int*)v_at (items, i)))
-				break;
-		}
-
-		if (j >= piles->len)
-			*(Vector*)v_at (piles, j) = v_dinit (sizeof(int));
-
-		v_push (*(Vector*)v_at (piles, j), v_at (items, i));
-	}
+	enum ITEM_TYPE typ = rn(12);
+	struct Item item = new_item (ityps[typ]);
+	if (typ == ITYP_GOLD_PIECE)
+		item.stacksize = rn(50);
+	item_put (&item, loc);
 }
 
 int items_equal (struct Item *it1, struct Item *it2)

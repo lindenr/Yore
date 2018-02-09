@@ -331,8 +331,8 @@ int Kwield (struct Monster *player)
 	if (NO_ITEM(wield))
 		wield = NULL;
 	if (player->wearing.weaps[0] && wield)
-		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, NULL}});
-	pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield}});
+		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, 0}});
+	pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield->ID}});
 	return pl_execute (player->speed, player, 0);
 }
 

@@ -60,10 +60,10 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 
 	int msglen = strlen(msg);
 	snprintf (first + (40-msglen)/2, 40, "%s", msg);
-	struct MenuOption m = (struct MenuOption) {0, {0,}};
+	struct MenuOption m = (struct MenuOption) {0, {0,}, NULL};
 	gr_ext (m.ex_str, first);
 	v_push (inv, &m);
-	m = (struct MenuOption) {0, {0,}};
+	m = (struct MenuOption) {0, {0,}, NULL};
 	v_push (inv, &m);
 	if (pack)
 	{
@@ -74,8 +74,8 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 				continue;
 			if (item_type_flags (packitem, accepted))
 			{
-				m = (struct MenuOption) {get_Itref (packitem), {0,}};
-				char *line = get_inv_line (packitem);
+				m = (struct MenuOption) {get_Itref (packitem), {0,}, NULL};
+				char *line = get_near_desc (MTHIID(packitem->loc.inv.monsID), packitem);
 				gr_ext (&m.ex_str[2], line);
 				m.ex_str[0] = packitem->type.gl;
 				m.ex_str[1] = ' ';

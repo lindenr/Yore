@@ -139,6 +139,7 @@ typedef union Event
 	{
 		EV_TYPE type;
 		TID thID;
+		int arm;
 		int ydir, xdir;
 	} mattkm;
 	struct
@@ -180,7 +181,7 @@ typedef union Event
 		EV_TYPE type;
 		TID thID;
 		int arm;
-		struct Item *it;
+		TID itemID;
 	} mwield;
 	struct
 	{

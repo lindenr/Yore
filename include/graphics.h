@@ -109,6 +109,7 @@ void gra_chide    (Graph);
 
 void gra_show     (Graph);
 void gra_hide     (Graph);
+void gra_resize   (Graph, int, int);
 
 void gra_mark     (Graph, int, int);
 
