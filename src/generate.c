@@ -398,8 +398,10 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 3}});
 	myitem = new_item (ityps[ITYP_CHAIN_MAIL]);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 4}});
-	myitem = new_item (ityps[ITYP_HELM]);
+	myitem = new_item (ityps[ITYP_HELMET]);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 5}});
+	myitem = new_item (ityps[ITYP_GOLD_PIECE]);
+	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 6}});
 	return pl;
 }
 

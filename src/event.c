@@ -528,21 +528,23 @@ void ev_do (Event ev)
 			return;
 		if (!mons->pack)
 			mons->pack = pack_init ();
-		for (i = 0, j = 0; j < MAX_ITEMS_IN_PACK && i < pickup->len; ++ j)
+		for (i = 0; i < pickup->len; ++ i)
 		{
-			struct Item *packitem = &mons->pack->items[j];
-			if (!NO_ITEM(packitem))
-				continue;
 			itemID = *(TID*)v_at (pickup, i);
-			/* Pick up the item */
 			item = ITEMID(itemID);
+			struct Item *packitem;
+			for (j = 0; j < MAX_ITEMS_IN_PACK; ++ j)
+			{
+				packitem = &mons->pack->items[j];
+				if (it_can_merge (mons, packitem, item))
+					break;
+			}
+			/* Pick up the item */
 			item_put (item, (union ItemLoc) { .inv = {LOC_INV, thID, j}});
 			/* Say so */
 			char *msg = get_inv_line (packitem);
 			p_msg ("%s", msg);
 			free (msg);
-			/* Next item */
-			++ i;
 		}
 		if (i < pickup->len)
 		{

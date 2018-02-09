@@ -16,28 +16,28 @@
    5000g or so */
 
 struct Item no_item;
-#define ITYP(nm,tp,wt,attk,def,gl) {nm,tp,wt,attk,def,gl,1}
+#define ITYP(nm,tp,wt,attk,def,gl,st) {nm,tp,wt,attk,def,gl,st}
 #define DMG(a,b) (((a)<<4)+(b))
 
 /* No corpse -- they are a custom item (see src/monst.c). */
 Ityp ityps[] = {
 /*  item name              type              weight attributes     display                      */
-	ITYP("long sword",     ITSORT_LONGSWORD,  2000,  5,  0,      ITCH_WEAPON | COL_TXT(11,11, 0)),
-	ITYP("fencing sword",  ITSORT_LONGSWORD,  1500,  5,  0,      ITCH_WEAPON | COL_TXT(11, 0,11)),
-	ITYP("axe",            ITSORT_AXE,        3000,  4,  0,      ITCH_WEAPON | COL_TXT(11,11, 0)),
-	ITYP("battle-axe",     ITSORT_AXE,        1000,  8,  0,      ITCH_WEAPON | COL_TXT(11,11, 0)),
-	ITYP("war hammer",     ITSORT_HAMMER,     5000,  8,  0,      ITCH_WEAPON | COL_TXT(15,11, 0)),
-	ITYP("dagger",         ITSORT_DAGGER,     100,   3,  0,      ITCH_WEAPON | COL_TXT( 0,11, 0)),
-	ITYP("short sword",    ITSORT_SHORTSWORD, 2000,  4,  0,      ITCH_WEAPON | COL_TXT(11, 8, 0)),
-	ITYP("glove",          ITSORT_GLOVE,      70,    0,  1,      ITCH_ARMOUR | COL_TXT( 0,11, 0)),
-	ITYP("chain mail",     ITSORT_MAIL,       5000,  0,  8,      ITCH_ARMOUR | COL_TXT( 8, 8, 8)),
-	ITYP("plate mail",     ITSORT_MAIL,       8000,  0,  9,      ITCH_ARMOUR | COL_TXT( 8,11, 0)),
-	ITYP("helmet",         ITSORT_HELM,       2000,  0,  3,      ITCH_ARMOUR | COL_TXT(11,11, 2)),
-	ITYP("gold piece",     ITSORT_MONEY,      1,     0,  0,      ITCH_DOSH   | COL_TXT(15,15, 0)),
-	ITYP("fireball",       ITSORT_ARCANE,     0,     0,  0,      0x09        | COL_TXT(15, 4, 0)),
-	ITYP("water bolt",     ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 4,15)),
-	ITYP("ice bolt",       ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 8,15)),
-	ITYP("",               ITSORT_NONE,       0,     0,  0,      0                              )
+	ITYP("long sword",     ITSORT_LONGSWORD,  2000,  5,  0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
+	ITYP("fencing sword",  ITSORT_LONGSWORD,  1500,  5,  0,      ITCH_WEAPON | COL_TXT(11, 0,11), 0),
+	ITYP("axe",            ITSORT_AXE,        3000,  4,  0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
+	ITYP("battle-axe",     ITSORT_AXE,        1000,  8,  0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
+	ITYP("war hammer",     ITSORT_HAMMER,     5000,  8,  0,      ITCH_WEAPON | COL_TXT(15,11, 0), 0),
+	ITYP("dagger",         ITSORT_DAGGER,     100,   3,  0,      ITCH_WEAPON | COL_TXT( 0,11, 0), 0),
+	ITYP("short sword",    ITSORT_SHORTSWORD, 2000,  4,  0,      ITCH_WEAPON | COL_TXT(11, 8, 0), 0),
+	ITYP("glove",          ITSORT_GLOVE,      70,    0,  1,      ITCH_ARMOUR | COL_TXT( 0,11, 0), 0),
+	ITYP("chain mail",     ITSORT_MAIL,       5000,  0,  8,      ITCH_ARMOUR | COL_TXT( 8, 8, 8), 0),
+	ITYP("plate mail",     ITSORT_MAIL,       8000,  0,  9,      ITCH_ARMOUR | COL_TXT( 8,11, 0), 0),
+	ITYP("helmet",         ITSORT_HELM,       2000,  0,  3,      ITCH_ARMOUR | COL_TXT(11,11, 2), 0),
+	ITYP("gold piece",     ITSORT_MONEY,      1,     0,  0,      ITCH_DOSH   | COL_TXT(15,15, 0), 1),
+	ITYP("fireball",       ITSORT_ARCANE,     0,     0,  0,      0x09        | COL_TXT(15, 4, 0), 0),
+	ITYP("water bolt",     ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 4,15), 0),
+	ITYP("ice bolt",       ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 8,15), 0),
+	ITYP("",               ITSORT_NONE,       0,     0,  0,      0                              , 0)
 /*  item name              type              weight attributes     display                      */
 };
 
@@ -77,6 +77,17 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 		w_some (ret, temp, item->stacksize, 128);
 	}
 	return ret;
+}
+
+int it_can_merge (struct Monster *player, struct Item *item1, struct Item *item2)
+{
+	return NO_ITEM(item1) || NO_ITEM(item2) ||
+		((!memcmp(&item1->type, &item2->type, sizeof(Ityp))) &&
+		 item1->cur_weight == item2->cur_weight &&
+		 item1->name == item2->name &&
+		 item1->attr == item2->attr &&
+		 item1->attk == item2->attk &&
+		 item1->def  == item2->def);
 }
 
 char *get_inv_line (const struct Item *item)

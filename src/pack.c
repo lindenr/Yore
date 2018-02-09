@@ -5,6 +5,7 @@
 #include "include/pack.h"
 #include "include/item.h"
 #include "include/panel.h"
+#include "include/dlevel.h"
 
 unsigned PACK_AT(char a)
 {
@@ -126,7 +127,10 @@ bool pack_add (Pack **ppack, struct Item *it, int u)
 		memcpy (&pack->items[u], it, sizeof(*it));
 		return true;
 	}
-	return false;
+	if (!it_can_merge (MTHIID(pack->items[u].loc.inv.monsID), &pack->items[u], it))
+		return false;
+	pack->items[u].stacksize += it->stacksize;
+	return true;
 }
 
 struct Item *get_Itemc (Pack *pack, char itch)
