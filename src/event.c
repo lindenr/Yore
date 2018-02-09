@@ -421,13 +421,9 @@ void ev_do (Event ev)
 
 	mcorpse: ;
 		/* add corpse */
-		struct Item corpse;
-		mons_corpse (mons, &corpse.type);
-		corpse.ID = 0;
-		corpse.loc.loc = LOC_NONE;
-		corpse.attr = 0;
-		corpse.name = NULL;
-		corpse.cur_weight = 0;
+		Ityp ityp_corpse;
+		mons_corpse (mons, &ityp_corpse);
+		struct Item corpse = new_item (ityp_corpse);
 		item_put (&corpse, (union ItemLoc) { .dlvl =
 			{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
 

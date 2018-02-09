@@ -82,7 +82,8 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 int it_can_merge (struct Monster *player, struct Item *item1, struct Item *item2)
 {
 	return NO_ITEM(item1) || NO_ITEM(item2) ||
-		((!memcmp(&item1->type, &item2->type, sizeof(Ityp))) &&
+		(item1->type.stackable &&
+		 (!memcmp(&item1->type, &item2->type, sizeof(Ityp))) &&
 		 item1->cur_weight == item2->cur_weight &&
 		 item1->name == item2->name &&
 		 item1->attr == item2->attr &&
