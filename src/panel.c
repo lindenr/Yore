@@ -62,10 +62,16 @@ void p_pane (struct Monster *player)
 	if (player)
 	{
 		gra_mvprint (gpan, 2, 1, "%s the Player", w_short (player->name, 20));
-		gra_mvprint (gpan, 3, 1, "HP   %d/%d", player->HP, player->HP_max);
-		gra_mvprint (gpan, 4, 1, "ST   %d/%d", player->ST, player->ST_max);
-		gra_mvprint (gpan, 5, 1, "LV   %d:%d/infinity", player->level, player->exp); // TODO?
-		gra_mvprint (gpan, 6, 1, "DEF  %d", player->def);
+		gra_mvprint (gpan, 3, 3, "Health  %d/%d", player->HP, player->HP_max);
+		gra_mvprint (gpan, 4, 3, "Stamina %d/%d", player->ST, player->ST_max);
+		gra_mvprint (gpan, 5, 3, "Power   %d/%d", player->MP, player->MP_max);
+		gra_mvprint (gpan, 6, 3, "XP lvl  %d:%d/infinity", player->level, player->exp); // TODO?
+		gra_mvprint (gpan, 7, 3, "Armour  %d", player->armour);
+		gra_mvaddch (gpan, 3, 1, 3 | COL_TXT_RED(15));
+		gra_mvaddch (gpan, 4, 1, 15 | COL_TXT_GREEN(15));
+		gra_mvaddch (gpan, 5, 1, 4 | COL_TXT_BLUE(15));
+		gra_mvaddch (gpan, 6, 1, 5 | COL_TXT(11,11,11));
+		gra_mvaddch (gpan, 7, 1, '[' | COL_TXT(11,11,0));
 		gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d", player->status.defending.ydir, player->status.defending.xdir);
 		if (player->status.charging)
 			gra_mvprint (gpan, 3, 110, "CHARGING");
@@ -93,6 +99,15 @@ void p_init ()
 
 	p_height = PANE_H;
 	p_width = map_graph->vw;
+}
+
+void p_msgbox (const char *msg)
+{
+	Vector lines = w_lines (msg, 40);
+	v_pstr (lines, "");
+	v_pstr (lines, "#[OK]");
+	p_lines (lines);
+	v_free (lines);
 }
 
 void p_amsg (const char *str)
@@ -180,7 +195,6 @@ int p_status (struct Monster *player, enum PanelType type)
 	gra_cprint (sc_status, 7, "Str: %d", player->str);
 	gra_cprint (sc_status, 8, "Con: %d", player->con);
 	gra_cprint (sc_status, 9, "Agi: %d", player->agi);
-	gra_cprint (sc_status, 10, "Dex: %d", player->dex);
 	gra_cprint (sc_status, 11, "Press 'S' to save.");
 
 	switch (type)

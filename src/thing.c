@@ -246,6 +246,9 @@ struct Monster *new_mons (struct DLevel *lvl, uint32_t y, uint32_t x, void *actu
 	t.ID = getID();
 	t.dlevel = lvl->level;
 	t.yloc = y; t.xloc = x;
+	t.HP = t.HP_max = mons_base_HP (t.str);
+	t.ST = t.ST_max = mons_base_ST (t.con);
+	t.MP = t.MP_max = mons_base_MP (t.wis);
 	struct Monster *ret = &lvl->mons[n];
 	if (ret->ID) panic ("monster already there!");
 	memcpy (ret, &t, sizeof(t));

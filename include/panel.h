@@ -50,6 +50,8 @@ void p_mvchoose (struct Monster *, int *, int *, const char *, const char *,
 void show_path_on_overlay (enum P_MV, int, int, int, int);
 void show_disc_on_overlay (enum P_MV, int, int, int, int);
 
+void p_msgbox (const char *msg);
+
 extern int p_width, p_height
 //, p_open
 ;

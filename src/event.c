@@ -394,8 +394,8 @@ void ev_do (Event ev)
 		p_msg ("The %s kills the %s!", fr->mname, to->mname);
 		if (mons_isplayer(to))
 		{
-			p_msg ("You die...");
 			p_pane (to);
+			p_msgbox ("You die...");
 			U.playing = PLAYER_LOSTGAME;
 			return;
 		}
@@ -494,7 +494,7 @@ void ev_do (Event ev)
 		free (msg);
 		*(struct Item **)((char*)&mons->wearing + ev->mwear_armour.offset) = item;
 		item->worn_offset = ev->mwear_armour.offset;
-		mons->def += item->def;
+		mons->armour += item->def;
 		return;
 	case EV_MTAKEOFF_ARMOUR:
 		mons = MTHIID(ev->mtakeoff_armour.thID);
@@ -512,7 +512,7 @@ void ev_do (Event ev)
 		msg = get_inv_line (item);
 		p_msg ("The %s takes off %s.", mons->mname, msg); /* notify */
 		free (msg);
-		mons->def -= item->def;
+		mons->armour -= item->def;
 		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop

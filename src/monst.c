@@ -74,6 +74,21 @@ void mons_corpse (struct Monster *mons, Ityp *itype)
 	itype->gl   = ITCH_CORPSE | (mons->gl & ~0xff);
 }
 
+int mons_base_HP (int str)
+{
+	return 2*str + 5;
+}
+
+int mons_base_ST (int cons)
+{
+	return (3*cons)/2 + 5;
+}
+
+int mons_base_MP (int wis)
+{
+	return wis + 1;
+}
+
 int mons_can_wear (struct Monster *mons, struct Item *it, size_t offset)
 {
 	switch (it->type.type)
@@ -336,7 +351,7 @@ int mons_hitm (struct Monster *from, struct Monster *to, struct Item *with)
 	    to->status.defending.ydir + to->yloc == from->yloc &&
 	    to->status.defending.xdir + to->xloc == from->xloc)
 		return 0;
-	return rn(20) && ((!rn(20)) || (10 >= rn(to->def + 10)));
+	return rn(20) && ((!rn(20)) || (10 >= rn(to->armour + 10)));
 }
 
 int mons_hitdmg (struct Monster *from, struct Monster *to, struct Item *with)
@@ -367,14 +382,14 @@ int mons_HP_max_regen (struct Monster *th)
 
 int mons_ST_regen (struct Monster *th)
 {
-	return rn(th->con/2);
+	return rn(1+th->con/2);
 }
 
 int mons_ST_max_regen (struct Monster *th)
 {
 	if (th->ST >= th->ST_max)
 		return 0;
-	return !rn(10*th->ST_max);
+	return !rn(1 + 10*th->ST_max);
 }
 
 int mons_cont (struct Monster *player, MCont cont, union ContData *data)

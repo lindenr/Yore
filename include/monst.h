@@ -179,34 +179,33 @@ struct MStatus
 
 struct Monster
 {
-	TID ID;                     /* thing ID                     */
-	int dlevel;                 /* parent dungeon level         */
-	int yloc, xloc;             /* location in dungeon          */
-	const char *mname;          /* name of monster type         */
-	glyph gl;                   /* display glyph                */
-	union CTRState ctr;         /* state of the control method  */
-	int32_t level;              /* experience level             */
-	int32_t exp;                /* experience points            */
-	char *name;                 /* monster name                 */
+	TID ID;                /* thing ID                     */
+	int dlevel;            /* parent dungeon level         */
+	int yloc, xloc;        /* location in dungeon          */
+	const char *mname;     /* name of monster type         */
+	glyph gl;              /* display glyph                */
+	union CTRState ctr;    /* state of the control method  */
+	int level;             /* experience level             */
+	int exp;               /* experience points            */
+	int armour;            /* aids damage reduction        */
+	char *name;            /* monster name                 */
 
 	/* stats which regenerate automatically */
-	int32_t HP, HP_max;         /* current/max HP               */
-	int32_t ST, ST_max;         /* current/max stamina          */
-	//int32_t MP, MP_max;       /* current/max mana TODO        */
+	int HP, HP_max;        /* current/max HP               */
+	int ST, ST_max;        /* current/max stamina          */
+	int MP, MP_max;        /* current/max mana             */
 	/* fixed stats (may be trained?) */
-	uint32_t str;               /* strength (HP regen)          */
-	uint32_t con;               /* constitution (ST regen)      */
-	//uint32_t wis;             /* wisdom (MP regen) TODO       */
-	uint32_t agi;               /* agility (chance to dodge)    */
-	uint32_t dex;               /* dexterity (chance to hit)    */
-	uint32_t speed;             /* speed (movement delay) */
-	int def;
+	int str;               /* strength (HP max/regen)      */
+	int con;               /* constitution (ST max/regen)  */
+	int wis;               /* wisdom (MP max/regen)        */
+	int agi;               /* agility (affects speed)      */
+	int speed;             /* speed (movement delay)       */
 
-	struct Pack *pack;          /* inventory                    */
-	struct WoW wearing;         /* stuff wielding/wearing/using */
-	struct MStatus status;      /* eating, positioning info etc */
-	uint32_t mflags;            /* physical flags               */
-	Vector skills;              /* available skills             */
+	struct Pack *pack;     /* inventory                    */
+	struct WoW wearing;    /* stuff wielding/wearing/using */
+	struct MStatus status; /* eating, positioning info etc */
+	uint32_t mflags;       /* physical flags               */
+	Vector skills;         /* available skills             */
 };
 
 extern const struct Monster all_mons[];
@@ -233,6 +232,9 @@ int    mons_ST_regen   (struct Monster *);                   /* stamina         
 int    mons_ST_max_regen(struct Monster *);                  /* max stamina                              */
 int    mons_isplayer   (struct Monster *);                   /* is controlled by human                   */
 int    mons_cont       (struct Monster *, MCont, union ContData *);/* continuation to be called next turn*/
+int    mons_base_HP    (int str);                            /* base health for monster                  */
+int    mons_base_ST    (int con);                            /* base stamina                             */
+int    mons_base_MP    (int wis);                            /* base magic power                         */
 
 /* effects */
 void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */
