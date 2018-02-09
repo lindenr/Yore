@@ -72,7 +72,7 @@ void p_pane (struct Monster *player)
 			gra_mvprint (gpan, 6, 3, "XP lvl  %d:%d", player->level, player->exp);
 		gra_mvprint (gpan, 7, 3, "Armour  %d", player->armour);
 		gra_mvaddch (gpan, 3, 1, 3 | COL_TXT_RED(15));
-		gra_mvaddch (gpan, 4, 1, 15 | COL_TXT_GREEN(15));
+		gra_mvaddch (gpan, 4, 1, 0xAF | COL_TXT_GREEN(15));
 		gra_mvaddch (gpan, 5, 1, 4 | COL_TXT_BLUE(15));
 		gra_mvaddch (gpan, 6, 1, 5 | COL_TXT(11,11,11));
 		gra_mvaddch (gpan, 7, 1, '[' | COL_TXT(11,11,0));
@@ -121,6 +121,81 @@ void p_amsg (const char *str)
 	strncpy (msg.msg, str, P_MSG_LEN-1);
 	msg.msg[P_MSG_LEN-1] = 0;
 	v_push (messages, &msg);
+}
+
+char p_menuex (Vector lines)
+{
+	int i, curchoice = -1;
+	int max = 44;
+
+	int h = lines->len + 2, w = max+4;
+	int yloc = (gr_h - h)/2, xloc = (gr_w - w)/2;
+
+	Graph box = gra_init (h, w, yloc, xloc, h, w);
+	gra_fbox (box, 0, 0, h-1, w-1, ' ');
+
+	for (i = 0; i < lines->len; ++ i)
+	{
+		struct MenuOption *line = v_at (lines, i);
+		if (line->letter)
+		{
+			if (curchoice == -1)
+				curchoice = i;
+			gra_mvaddch (box, i+1, 2, ACS_PILLAR);
+			gra_mvaddch (box, i+1, 4, line->letter);
+		}
+		gra_mvaprintex (box, i+1, 6, line->ex_str);
+	}
+	gra_box (box, 0, 0, h-1, w-1);
+	char ret;
+	if (curchoice == -1)
+	{
+		ret = gr_getch ();
+		gra_free (box);
+		return ret;
+	}
+	gra_invert (box, curchoice+1, 2);
+	gra_invert (box, curchoice+1, 3);
+	gra_invert (box, curchoice+1, 4);
+	do
+	{
+		ret = gr_getch();
+		if (ret == CH_ESC || ret == ' ')
+			break;
+		gra_invert (box, curchoice+1, 2);
+		gra_invert (box, curchoice+1, 3);
+		gra_invert (box, curchoice+1, 4);
+		if (ret == GRK_UP)
+		{
+			for (i = curchoice - 1; i >= 0; -- i)
+			{
+				struct MenuOption *line = v_at (lines, i);
+				if (line->letter)
+					break;
+			}
+			if (i >= 0)
+				curchoice = i;
+		}
+		else if (ret == GRK_DN)
+		{
+			for (i = curchoice + 1; i < lines->len; ++ i)
+			{
+				struct MenuOption *line = v_at (lines, i);
+				if (line->letter)
+					break;
+			}
+			if (i < lines->len)
+				curchoice = i;
+		}
+		gra_invert (box, curchoice+1, 2);
+		gra_invert (box, curchoice+1, 3);
+		gra_invert (box, curchoice+1, 4);
+	}
+	while (1);
+
+	gra_free (box);
+
+	return ret;
 }
 
 void p_msg (const char *str, ...)

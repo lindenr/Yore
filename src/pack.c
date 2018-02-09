@@ -54,12 +54,17 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 {
 	int i, num_items = 0;
 	Vector inv;
+	char first[40] = "                                       ";
 
-	inv = v_init (256, MAX_ITEMS_IN_PACK);
-	char first[256];
-	snprintf (first, 256, "#%s", msg);
-	v_pstr (inv, first);
-	v_pstr (inv, "                     ");
+	inv = v_init (sizeof(struct MenuOption), MAX_ITEMS_IN_PACK);
+
+	int msglen = strlen(msg);
+	snprintf (first + (40-msglen)/2, 40, "%s", msg);
+	struct MenuOption m = (struct MenuOption) {0, {0,}};
+	gr_ext (m.ex_str, first);
+	v_push (inv, &m);
+	m = (struct MenuOption) {0, {0,}};
+	v_push (inv, &m);
 	if (pack)
 	{
 		for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
@@ -69,20 +74,26 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 				continue;
 			if (item_type_flags (packitem, accepted))
 			{
+				m = (struct MenuOption) {get_Itref (packitem), {0,}};
 				char *line = get_inv_line (packitem);
-				v_pstr (inv, line);
+				gr_ext (&m.ex_str[2], line);
+				m.ex_str[0] = packitem->type.gl;
+				m.ex_str[1] = ' ';
 				free (line);
+				v_push (inv, &m);
 				++ num_items;
 			}
 		}
 	}
-	if (!num_items)
-	{
-		snprintf(first, 256, "#(empty)");
-		v_pstr (inv, first);
-	}
-	v_pstr (inv, "");
-	char out = p_lines (inv);
+	//if (!num_items)
+	//{
+	//	snprintf(first, 256, "#(empty)");
+	//	v_pstr (inv, "#(empty)");
+	//}
+	//v_pstr (inv, "");
+	m = (struct MenuOption) {0, {0,}};
+	v_push (inv, &m);
+	char out = p_menuex (inv);
 	v_free (inv);
 	return out;
 }

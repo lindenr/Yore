@@ -64,6 +64,14 @@ int gr_buffer (int yloc, int xloc)
 	return gr_w * yloc + xloc;
 }
 
+void gr_ext (glyph *out, char *in)
+{
+	int i;
+	for (i = 0; in[i]; ++ i)
+		out[i] = (glyph) in[i];
+	out[i] = 0;
+}
+
 void gra_movecam (Graph gra, int yloc, int xloc)
 {
 	gra->cy = yloc;
@@ -148,6 +156,14 @@ void gra_cprint (Graph gra, int yloc, const char *str, ...)
 
 	int xloc = (gra->w - len)/2;
 	gra_mvaprint (gra, yloc, xloc, out);
+}
+
+void gra_mvaprintex (Graph gra, int yloc, int xloc, const glyph *str)
+{
+	int i, buf = gra_buffer (gra, yloc, xloc);
+
+	for (i = 0; str[i] && i+buf > 0 && i+buf < gra->a; ++ i)
+		gra_baddch (gra, i+buf, str[i]);
 }
 
 #include "include/rand.h"

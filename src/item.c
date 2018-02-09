@@ -57,22 +57,26 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 	else
 	{
 		// const char *str = itoa((item->attr&ITEM_PLUS(3)>>3))
-		snprintf (temp, 128, "%s%s%s%s%s%s",
+		char ench_string[20] = "";
+		if (item->attk)
+			snprintf (ench_string, 20, " (attk: %d)", item->attk);
+		else if (item->def)
+			snprintf (ench_string, 20, " (def: %d)", item->def);
+		snprintf (temp, 128, "%s%s%s%s%s%s%s",
 		         /* beatitude */
 		         (!(item->attr & ITEM_KBUC)) ? "" :
 		           (item->attr & ITEM_BLES)  ? "blessed " :
 		           (item->attr & ITEM_CURS)  ? "cursed "  : "uncursed ",
 		         /* greasedness */
 		         (item->attr & ITEM_GREASED) ? "greased " : "",
-		         /* enchantment value */
-		         //((item->attr & (ITEM_MINS(3))) | 1 ? ((item->attr & (ITEM_MINS(0))) ? "-" : "+") : ""),
-		         //((item->attr & (ITEM_MINS(3))) | 1 ? (item->attr & ((ITEM_PLUS(3)) >> 3)) : 0),
 		         /* name */
 				 item->type.name,
 		         item->stacksize == 1 ? "" : "s",
 		         /* wielded */
 		         (item->loc.loc == LOC_WIELDED) ? " (wielded)" : "",
-				 item_worn(item) ? " (being worn)" : ""
+				 item_worn(item) ? " (being worn)" : "",
+		         /* enchantment value */
+				 ench_string
 				 );
 		w_some (ret, temp, item->stacksize, 128);
 	}
@@ -93,11 +97,12 @@ int it_can_merge (struct Monster *player, struct Item *item1, struct Item *item2
 
 char *get_inv_line (const struct Item *item)
 {
-	char ch = get_Itref (item);
-	char *ret = malloc (80), *orig = get_near_desc (MTHIID(item->loc.inv.monsID), item);
-	snprintf (ret, 80, "%c - %s", ch, orig);
-	free (orig);
-	return ret;
+	//char ch = get_Itref (item);
+	char //*ret = malloc (80),
+		*orig = get_near_desc (MTHIID(item->loc.inv.monsID), item);
+	//snprintf (ret, 80, "%c - %s", ch, orig);
+	//free (orig);
+	return orig;
 }
 
 bool stackable (int n, Vector *pile, int i)

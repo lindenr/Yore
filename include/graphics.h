@@ -89,6 +89,8 @@ void gra_box      (Graph, int, int, int, int);
 void gra_dbox     (Graph, int, int, int, int);
 void gra_fbox     (Graph, int, int, int, int, glyph);
 
+void gra_mvaprintex (Graph, int, int, const glyph *);
+
 void gra_mvaprint (Graph, int, int, const char *);
 void gra_mvprint  (Graph, int, int, const char *, ...);
 void gra_cprint   (Graph, int, const char *, ...);
@@ -132,6 +134,8 @@ void gr_tout      (int);
 /* Misc */
 int  gra_buffer   (Graph, int, int);
 int  gr_buffer    (int, int);
+
+void gr_ext       (glyph *, char *);
 
 int  gra_nearedge (Graph, int, int);
 void gr_wait      (uint32_t);

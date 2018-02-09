@@ -415,17 +415,27 @@ int mons_ST_max_regen (struct Monster *th)
 
 void mons_level_stats (struct Monster *mons)
 {
+	/* stats */
 	mons->str = mons->level + all_mons[mons->type].str;
 	mons->con = mons->level + all_mons[mons->type].con;
 	mons->wis = mons->level + all_mons[mons->type].wis;
 	mons->agi = mons->level + all_mons[mons->type].agi;
-	mons->HP_max = mons_get_HP (mons);
+	/* HP */
+	int HP_max = mons_get_HP (mons);
+	mons->HP = (mons->HP * HP_max) / mons->HP_max;
+	mons->HP_max = HP_max;
 	if (mons->HP > mons->HP_max)
 		mons->HP = mons->HP_max;
-	mons->ST_max = mons_get_ST (mons);
+	/* ST */
+	int ST_max = mons_get_ST (mons);
+	mons->ST = (mons->ST * ST_max) / mons->ST_max;
+	mons->ST_max = ST_max;
 	if (mons->ST > mons->ST_max)
 		mons->ST = mons->ST_max;
-	mons->MP_max = mons_get_MP (mons);
+	/* MP */
+	int MP_max = mons_get_MP (mons);
+	mons->MP = (mons->MP * MP_max) / mons->MP_max;
+	mons->MP_max = MP_max;
 	if (mons->MP > mons->MP_max)
 		mons->MP = mons->MP_max;
 }

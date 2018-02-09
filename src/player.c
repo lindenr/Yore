@@ -322,7 +322,7 @@ int Kwield_cand (struct Monster *player)
 
 int Kwield (struct Monster *player)
 {
-	struct Item *wield = player_use_pack (player, "Wield what?", ITCAT_ALL);
+	struct Item *wield = player_use_pack (player, "Wield what?", ITCAT_WEAPON);
 	if (wield == NULL)
 		return 0;
 	if (items_equal (wield, player->wearing.weaps[0]))
@@ -343,7 +343,7 @@ int Kwear_cand (struct Monster *player)
 
 int Kwear (struct Monster *player)
 {
-	struct Item *wear = player_use_pack (player, "Wear what?", ITCAT_ALL);
+	struct Item *wear = player_use_pack (player, "Wear what?", ITCAT_ARMOUR);
 	if (NO_ITEM(wear))
 		return 0;
 	return mons_try_wear (player, wear);
@@ -356,7 +356,7 @@ int Ktakeoff_cand (struct Monster *player)
 
 int Ktakeoff (struct Monster *player)
 {
-	struct Item *item = player_use_pack (player, "Take off what?", ITCAT_ALL);
+	struct Item *item = player_use_pack (player, "Take off what?", ITCAT_ARMOUR);
 	if (NO_ITEM(item))
 	{
 		p_msg ("Not an item.");

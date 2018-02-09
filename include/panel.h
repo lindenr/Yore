@@ -42,6 +42,13 @@ enum P_MV
 	P_MV_END
 };
 
+struct MenuOption
+{
+	char letter;
+	glyph ex_str[40];
+};
+
+char p_menuex   (Vector);
 int  p_status   (struct Monster *, enum PanelType);
 int  p_skills   (struct Monster *, enum PanelType);
 void p_mvchoose (struct Monster *, int *, int *, const char *, const char *,

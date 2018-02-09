@@ -12,10 +12,9 @@
 #  define COL(cl) 0
 #endif
 
-//#define MONST(nm,ch,sp,size,diff,at,fl,cl,ex,hp,st) 
 #define MONST(nm,ch,size,at,fl,cl,str,con,wis,agi,spd,ex) \
 {0,0,-1,-1,MTYP_##nm,#nm,ch|COL(cl),{.mode=CTR_NONE},0,ex,0,NULL, \
-0, 0, 0, 0, 0, 0, str, con, wis, agi, spd, NULL, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
+1, 1, 1, 1, 1, 1, str, con, wis, agi, spd, NULL, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
 {{0,0},{0,0,0},0,{0,0},0},(fl)|(FL_SIZE(size)),NULL}
 
 #define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}
