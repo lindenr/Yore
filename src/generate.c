@@ -394,7 +394,7 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}});
 	struct Item myaxe = new_item (ityps[ITYP_DAGGER]);
 	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 1}});
-	/*myitem = new_item (ityps[ITYP_GLOVE]);
+	/*myitem = new_item (ityps[ITYP_BATTLE_AXE]);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 2}});
 	myitem = new_item (ityps[ITYP_GLOVE]);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 3}});
@@ -404,6 +404,7 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 5}});
 	myitem = new_item (ityps[ITYP_GLOVE]);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 6}});*/
+	v_push (cur_dlevel->playerIDs, &pl->ID);
 	return pl;
 }
 

@@ -66,16 +66,17 @@ void p_pane (struct Monster *player)
 		gra_mvprint (gpan, 3, 3, "Health  %d (%d)", player->HP, player->HP_max);
 		gra_mvprint (gpan, 4, 3, "Stamina %d (%d)", player->ST, player->ST_max);
 		gra_mvprint (gpan, 5, 3, "Power   %d (%d)", player->MP, player->MP_max);
+		gra_mvprint (gpan, 7, 3, "Level   %d", player->level);
 		if (exp_needed != -1)
-			gra_mvprint (gpan, 6, 3, "XP lvl  %d:%d (next: %d)", player->level, player->exp, exp_needed);
+			gra_mvprint (gpan, 8, 3, "XP      %d (%d)", player->exp, exp_needed);
 		else
-			gra_mvprint (gpan, 6, 3, "XP lvl  %d:%d", player->level, player->exp);
-		gra_mvprint (gpan, 7, 3, "Armour  %d", player->armour);
+			gra_mvprint (gpan, 8, 3, "XP      %d", player->exp);
+		gra_mvprint (gpan, 6, 3, "Armour  %d", player->armour);
 		gra_mvaddch (gpan, 3, 1, 3 | COL_TXT_RED(15));
 		gra_mvaddch (gpan, 4, 1, 5 | COL_TXT_GREEN(15));
 		gra_mvaddch (gpan, 5, 1, 4 | COL_TXT_BLUE(15));
-		gra_mvaddch (gpan, 6, 1, 6 | COL_TXT(11,11,11));
-		gra_mvaddch (gpan, 7, 1, '[' | COL_TXT(11,11,0));
+		gra_mvaddch (gpan, 7, 1, 6 | COL_TXT(11,11,11));
+		gra_mvaddch (gpan, 6, 1, '[' | COL_TXT(11,11,0));
 		gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d", player->status.defending.ydir, player->status.defending.xdir);
 		if (player->status.charging)
 			gra_mvprint (gpan, 3, 110, "CHARGING");
@@ -186,9 +187,9 @@ char p_menuex (Vector lines)
 			break;
 		if (ret == '\n')
 		{
+			gra_free (box);
 			struct MenuOption *line = v_at (lines, curchoice);
-			if (line->desc)
-				p_msgbox (line->desc);
+			return line->letter;
 		}
 		else if (ret == GRK_UP)
 		{

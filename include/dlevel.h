@@ -12,6 +12,8 @@ struct DLevel
 	Vector *things;
 	Vector *items;
 	struct Monster *mons;
+	Vector playerIDs;
+	int *player_dist;
 
 /* Output of the bresenham algorithm (drawing.c): 0 if we can't see it (outside 
  * our field of vision); 1 if we remember it; and 2 if we are looking at it.
@@ -40,6 +42,7 @@ Vector   dlv_mons   (int);
 uint8_t *dlv_attr   (int);
 int      dlv_dn     (int);
 int      dlv_up     (int);
+void     dlv_fill_player_dist (struct DLevel *);
 
 extern Vector all_dlevels;
 extern Vector all_ids;

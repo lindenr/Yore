@@ -62,6 +62,11 @@ int mons_gen_type ()
 const int explevel[] = {0, 20, 40, 80};
 const int maxlevel = sizeof(explevel)/sizeof(explevel[0]);
 
+int mons_gets_exp (struct Monster *mons)
+{
+	return mons_isplayer (mons);
+}
+
 int mons_level (int exp)
 {
 	int i, ret = 0;
@@ -368,13 +373,18 @@ int proj_hitdmg (struct Item *proj, struct Monster *to)
 	return 2 + rn(3) + (speed >= 2) + (speed >= 4) + (speed >= 8);
 }
 
+int mons_skill (struct Monster *from, struct Item *with)
+{
+	return 5;
+}
+
 int mons_hitm (struct Monster *from, struct Monster *to, struct Item *with)
 {
 	if ((to->status.defending.ydir || to->status.defending.xdir) &&
 	    to->status.defending.ydir + to->yloc == from->yloc &&
 	    to->status.defending.xdir + to->xloc == from->xloc)
 		return 0;
-	return rn(20) && ((!rn(20)) || (10 >= rn(to->armour + 10)));
+	return rn(20) && ((!rn(20)) || (5 + mons_skill (from, with) >= rn(to->armour + 10)));
 }
 
 int mons_hitdmg (struct Monster *from, struct Monster *to, struct Item *with)
@@ -487,14 +497,49 @@ int AI_TIMID_take_turn (struct Monster *ai)
 
 int AI_HOSTILE_take_turn (struct Monster *ai)
 {
-	// TODO attack player on sight
-	int y = rn(3)-1, x = rn(3)-1;
-	int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
-	if (can == 1)
-		mons_move (ai, y, x);
-	else
-		ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
-	return 1;
+	int y, x, min = 999999, nmin = 0;
+	for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
+	{
+		if (y == 0 && x == 0)
+			continue;
+		int a = cur_dlevel->player_dist[map_buffer(ai->yloc + y, ai->xloc + x)];
+		if (a == -1)
+			continue;
+		if (a < min)
+		{
+			min = a;
+			nmin = 1;
+		}
+		else if (a == min)
+			++ nmin;
+	}
+	if (!nmin)
+	{
+		y = rn(3)-1; x = rn(3)-1;
+		int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
+		if (can == 1)
+			mons_move (ai, y, x);
+		else
+			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
+		return 1;
+	}
+	int ch = rn(nmin) + 1;
+	for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
+	{
+		if (y == 0 && x == 0)
+			continue;
+		int a = cur_dlevel->player_dist[map_buffer(ai->yloc + y, ai->xloc + x)];
+		if (a == min)
+			-- ch;
+		if (!ch)
+		{
+			if (!mons_move (ai, y, x))
+				ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
+			return 1;
+		}
+	}
+	panic("end of AI_HOSTILE_take_turn reached");
+	return 0;
 }
 
 int AI_AGGRO_take_turn (struct Monster *ai)

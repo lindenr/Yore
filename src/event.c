@@ -163,18 +163,20 @@ void ev_do (Event ev)
 		mons = gen_boss (57, 160);
 		ev_mons_start (mons);
 
-		for (i = 0; i < 100; ++ i)
+		/*for (i = 0; i < 100; ++ i)
 		{
 			mons = gen_mons_in_level ();
 			if (!mons)
 				continue;
 			ev_mons_start (mons);
-		}
+		}*/
 		return;
 	case EV_WORLD_HEARTBEAT:
 		/* monster generation */
 		if (!rn(3))
 			ev_queue (0, (union Event) { .mgen = {EV_MGEN}});
+		/* re-eval paths to player */
+		dlv_fill_player_dist (cur_dlevel);
 		/* next heartbeat */
 		ev_queue (1000, (union Event) { .world_heartbeat = {EV_WORLD_HEARTBEAT}});
 		return;
@@ -413,9 +415,12 @@ void ev_do (Event ev)
 			return;
 		}
 		ev_queue (0, (union Event) { .mcorpse = {EV_MCORPSE, ev->mkillm.toID}}); /* dead drop */
-		fr->exp += to->exp;
-		if (mons_level (fr->exp) != fr->level)
-			ev_queue (0, (union Event) { .mlevel = {EV_MLEVEL, fr->ID}});
+		if (mons_gets_exp (fr))
+		{
+			fr->exp += to->exp;
+			if (mons_level (fr->exp) != fr->level)
+				ev_queue (0, (union Event) { .mlevel = {EV_MLEVEL, fr->ID}});
+		}
 		return;
 	case EV_MCORPSE:
 		mons = MTHIID(ev->mcorpse.thID);
@@ -455,6 +460,7 @@ void ev_do (Event ev)
 			return;
 		mons->level = mons_level (mons->exp);
 		p_msg ("Level up! The %s is now level %d.", mons->mname, mons->level);
+		p_msgbox ("You have gained a level!");
 		mons_level_stats (mons);
 		return;
 	case EV_MTURN:
@@ -601,7 +607,7 @@ void ev_do (Event ev)
 			return;
 		if (mons_isplayer (to))
 			return;
-		if (to->ctr.mode != CTR_AI_AGGRO)
+		if (to->ctr.mode == CTR_AI_TIMID)
 			p_msg ("The %s angers the %s!", fr->mname, to->mname);
 		to->ctr.mode = CTR_AI_AGGRO;
 		to->ctr.aggro.ID = frID;

@@ -235,6 +235,7 @@ int    mons_cont       (struct Monster *, MCont, union ContData *);/* continuati
 int    mons_get_HP     (struct Monster *);                   /* recalculates max HP                      */
 int    mons_get_ST     (struct Monster *);                   /* max stamina                              */
 int    mons_get_MP     (struct Monster *);                   /* max magic power                          */
+int    mons_gets_exp   (struct Monster *);                   /* does the monster level up                */
 int    mons_level      (int exp);                            /* what level a given experience is         */
 int    mons_exp_needed (int level);                          /* exp needed for next level                */
 void   mons_level_stats(struct Monster *);                   /* alter monster's base stats for new level */

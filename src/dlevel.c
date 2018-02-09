@@ -32,6 +32,8 @@ void dlv_make (int level, int uplevel, int dnlevel)
 		malloc (sizeof(Vector) * map_graph->a),
 		malloc (sizeof(Vector) * map_graph->a),
 		malloc (sizeof(struct Monster)*map_graph->a),
+		v_dinit (sizeof(TID)),
+		malloc (sizeof(int) * map_graph->a),
 		malloc (sizeof(uint8_t)*map_graph->a),
 		malloc (sizeof(uint8_t)*map_graph->a),
 		malloc (sizeof(glyph)*map_graph->a),
@@ -48,6 +50,7 @@ void dlv_make (int level, int uplevel, int dnlevel)
 	{
 		new_level.things[i] = v_dinit (sizeof(struct Thing));
 		new_level.items[i] = v_dinit (sizeof(struct Item));
+		new_level.player_dist[i] = -1;
 	}
 	memset (new_level.mons, 0, sizeof(struct Monster)*map_graph->a);
 	memset (new_level.seen, 0, sizeof(uint8_t)*map_graph->a);
@@ -102,5 +105,57 @@ int dlv_up (int level)
 int dlv_dn (int level)
 {
 	return dlv_lvl (level)->dnlevel;
+}
+
+#define MAX_DIST 10
+void dlv_fill_player_dist (struct DLevel *dlv)
+{
+	int *ylocs = malloc (sizeof(int)*map_graph->a),
+		*xlocs = malloc (sizeof(int)*map_graph->a);
+	int i, cur_loc = 0, cur_back;
+	for (i = 0; i < map_graph->a; ++ i)
+		dlv->player_dist[i] = -1;
+	for (i = 0; i < dlv->playerIDs->len; ++ i)
+	{
+		struct Monster *player = MTHIID(*(TID*)v_at(dlv->playerIDs, i));
+		ylocs[cur_loc] = player->yloc;
+		xlocs[cur_loc] = player->xloc;
+		++ cur_loc;
+	}
+	for (cur_back = 0; cur_back < cur_loc; ++ cur_back)
+	{
+		int y, x, min = MAX_DIST + 5;
+		if (dlv->player_dist[map_buffer(ylocs[cur_back], xlocs[cur_back])] >= 0)
+			continue;
+		for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
+		{
+			if (y == 0 && x == 0)
+				continue;
+			int current = dlv->player_dist[map_buffer(ylocs[cur_back]+y, xlocs[cur_back]+x)];
+			if (current < min && current >= 0)
+				min = current;
+		}
+		if (min < MAX_DIST + 5)
+			dlv->player_dist[map_buffer(ylocs[cur_back], xlocs[cur_back])] = min + 1;
+		else
+			dlv->player_dist[map_buffer(ylocs[cur_back], xlocs[cur_back])] = 0;
+		if (dlv->player_dist[map_buffer(ylocs[cur_back], xlocs[cur_back])] >= MAX_DIST)
+			continue;
+		for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
+		{
+			if (y == 0 && x == 0)
+				continue;
+			int current = dlv->player_dist[map_buffer(ylocs[cur_back]+y, xlocs[cur_back]+x)];
+			if (current == -1 &&
+				ylocs[cur_back]+y+1 < map_graph->h && ylocs[cur_back]+y-1 >= 0 &&
+				xlocs[cur_back]+x+1 < map_graph->w && xlocs[cur_back]+x-1 >= 0 &&
+				can_amove (get_sqattr (cur_dlevel, ylocs[cur_back]+y, xlocs[cur_back]+x)) == 1)
+			{
+				ylocs[cur_loc] = ylocs[cur_back]+y;
+				xlocs[cur_loc] = xlocs[cur_back]+x;
+				++ cur_loc;
+			}
+		}
+	}
 }
 

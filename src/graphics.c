@@ -434,7 +434,7 @@ void gr_refresh ()
 				gflags f = gr_flags[gr_c];
 				if (f)
 					gr_drawboxes (y, x, f);
-				gr_flags[gr_c] &= ~1;
+				gr_flags[gr_c] = 0;
 			}
 			gr_map[gr_c] = 0;
 		}
