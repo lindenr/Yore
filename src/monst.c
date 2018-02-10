@@ -18,6 +18,8 @@ struct player_status U;
 
 int expcmp (int p_exp, int m_exp)
 {
+	if (p_exp >= m_exp * 100)
+		return !rn(p_exp/(m_exp*200) + 1);
 	if (p_exp >= m_exp * 2)
 		return 40;
 	if ((p_exp * 20) + 20 >= m_exp * 19)
@@ -35,10 +37,14 @@ bool nogen (int mons_id)
 	return false;
 }
 
+const int explevel[] = {0, 20, 40, 80, 160, 320};
+const int maxlevel = sizeof(explevel)/sizeof(explevel[0]);
+
 int mons_gen_type ()
 {
 	int i, array[MTYP_NUM_MONS];
-	uint32_t p_exp = 20; // TODO
+	int level = MTHIID(*(TID*)v_at(cur_dlevel->playerIDs,0))->level;
+	uint32_t p_exp = level < maxlevel ? explevel[level] : explevel[maxlevel-1]*2;
 	uint32_t total_weight = 0;
 
 	for (i = 0; i < MTYP_NUM_MONS; ++i)
@@ -59,9 +65,6 @@ int mons_gen_type ()
 	/* If the player has no exp this will happen */
 	return 0;
 }
-
-const int explevel[] = {0, 20, 40, 80};
-const int maxlevel = sizeof(explevel)/sizeof(explevel[0]);
 
 int mons_gets_exp (struct Monster *mons)
 {
@@ -93,14 +96,22 @@ int mons_get_wt (struct Monster *mons)
 	return CORPSE_WEIGHTS[mons->mflags >> 29];
 }
 
-void mons_corpse (struct Monster *mons, Ityp *itype)
+void mons_corpse (struct Monster *mons, struct Item *item)
 {
+	if (mons->type == MTYP_skeleton || mons->type == MTYP_lich)
+	{
+		*item = new_item (ityps[ITYP_BONE]);
+		item->stacksize = rn(6);
+		return;
+	}
 	/* fill in the data */
-	snprintf (itype->name, ITEM_NAME_LENGTH, "%s corpse", mons->mname);
-	itype->type = ITSORT_CORPSE;
-	itype->wt   = mons_get_wt(mons);
-	itype->attk = itype->def = 0;
-	itype->gl   = ITCH_CORPSE | (mons->gl & ~0xff);
+	Ityp itype;
+	snprintf (itype.name, ITEM_NAME_LENGTH, "%s corpse", mons->mname);
+	itype.type = ITSORT_CORPSE;
+	itype.wt   = mons_get_wt(mons);
+	itype.attk = itype.def = 0;
+	itype.gl   = ITCH_CORPSE | (mons->gl & ~0xff);
+	*item = new_item (itype);
 }
 
 int mons_get_HP (struct Monster *mons)
@@ -281,7 +292,7 @@ void mons_tilefrost (struct Monster *mons, int yloc, int xloc)
 {
 	int n = map_buffer (yloc, xloc);
 	struct DLevel *lvl = dlv_lvl (mons->dlevel);
-	if (lvl->mons[n].ID)
+	if (lvl->monsIDs[n])
 	{//TODO anger monster
 	}
 	int i;
@@ -496,13 +507,16 @@ void mons_stats_changed (struct Monster *mons)
 
 void mons_level_up (struct Monster *mons)
 {
-	mons->level = mons_level (mons->exp);
+	mons->level ++;
+	if (mons->level < mons_level (mons->exp))
+		mons->exp = explevel[mons->level+1]-1;
 	p_msg ("Level up! The %s is now level %d.", mons->mname, mons->level);
 	/* stats */
 	mons->str ++;
 	mons->con ++;
 	mons->wis ++;
 	mons->agi ++;
+	p_pane (mons);
 	pl_choose_attr_gain (mons, 1);
 	mons_stats_changed (mons);
 }

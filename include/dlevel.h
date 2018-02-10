@@ -6,12 +6,14 @@
 #include "include/graphics.h"
 
 struct Monster;
+typedef int TID;
 struct DLevel
 {
 	int level;
 	Vector *things;
 	Vector *items;
-	struct Monster *mons;
+	TID *monsIDs;
+	Vector mons;
 	Vector playerIDs;
 	int *player_dist;
 
@@ -38,7 +40,6 @@ void dlv_set  (int);
 struct DLevel *dlv_lvl (int);
 Vector  *dlv_things (int);
 Vector  *dlv_items  (int);
-Vector   dlv_mons   (int);
 uint8_t *dlv_attr   (int);
 int      dlv_dn     (int);
 int      dlv_up     (int);

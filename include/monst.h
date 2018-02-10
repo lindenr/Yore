@@ -118,7 +118,7 @@ enum ATTK_TYPE
 	ATYP_BEAM
 };
 
-typedef int TID;
+typedef int MID;
 
 typedef enum
 {
@@ -155,7 +155,7 @@ union CTRState
 	struct
 	{
 		CTR_MODE mode;
-		TID ID;
+		MID ID;
 	} aggro;
 };
 
@@ -168,7 +168,7 @@ struct MStatus
 	struct
 	{
 		int ydir, xdir;
-		TID toID;
+		MID toID;
 		int arm;
 	} attacking;
 	int evading;
@@ -181,7 +181,7 @@ struct MStatus
 
 struct Monster
 {
-	TID ID;                /* thing ID                     */
+	MID ID;                /* monster ID                   */
 	int dlevel;            /* parent dungeon level         */
 	int yloc, xloc;        /* location in dungeon          */
 	enum MTYPES type;      /* type of monster              */
@@ -221,7 +221,7 @@ int    mons_can_wear   (struct Monster *, struct Item *, size_t); /* can it be w
 int    mons_try_takeoff(struct Monster *, struct Item *);    /* wear some armour                         */
 int    mons_can_takeoff(struct Monster *, struct Item *);    /* can it be taken off                      */
 int    mons_take_turn  (struct Monster *);                   /* give a move (AI or player)               */
-void   mons_corpse     (struct Monster *, Ityp *);           /* make itype corpse type of the monster    */
+void   mons_corpse     (struct Monster *, struct Item *);    /* make itype corpse type of the monster    */
 Tick   mons_tregen     (struct Monster *);                   /* time between regen events                */
 int    mons_throwspeed (struct Monster *, struct Item *);    /* how fast the item can be thrown          */
 int    proj_hitm       (struct Item *, struct Monster *);    /* will the projectile hit                  */

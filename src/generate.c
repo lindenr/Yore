@@ -357,7 +357,7 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 	struct Thing *T;
 	struct map_item_struct *m;
 	int n = map_buffer(yloc, xloc);
-	if (lvl->mons[n].ID)
+	if (lvl->monsIDs[n])
 		return false;
 	LOOP_THING(things, n, i)
 	{
@@ -381,7 +381,7 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	init_mons (&m1, MTYP_human);
 	m1.name = name;
 	m1.skills = v_dinit (sizeof(struct Skill));
-	m1.exp = 19;
+	m1.exp = 0;
 	m1.ctr.mode = CTR_PL;
 	m1.level = 1;
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_WATER_BOLT, 0, 1}));

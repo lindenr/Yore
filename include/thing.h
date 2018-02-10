@@ -12,11 +12,10 @@
 #define BREAK(n)           {n = map_graph->a; break;}
 
 #define THIID(id)          (*(struct Thing **)  v_at (all_ids, (id)))
-#define MTHIID(id)         (*(struct Monster **) v_at (all_ids, (id)))
 #define ITEMID(id)         (*(struct Item **) v_at (all_ids, (id)))
 #define THING(t,n,i)       ((struct Thing*)((t)[n]->data + (i)*sizeof(struct Thing)))
 
-typedef int TID;
+typedef int TID, MID;
 
 enum THING_TYPE
 {
@@ -46,8 +45,9 @@ void          rem_id         (TID);
 
 struct Monster *new_mons     (struct DLevel *, uint32_t, uint32_t, void *);
 void          monsthing_move (struct Monster *, int, int, int);
-void          rem_mid        (TID);
+void          rem_mid        (MID);
 
+struct Monster *MTHIID       (MID);
 void          draw_map       (struct Monster *);
 void          th_init        ();
 
@@ -57,9 +57,7 @@ const char *  get_thing_name (struct Thing);
 struct Item * item_put       (struct Item *, union ItemLoc loc);
 void          item_free      (struct Item *);
 
-TID  getID                   ();
-
-void walls_test ();
+//void walls_test ();
 
 #endif /* THING_H_INCLUDED */
 

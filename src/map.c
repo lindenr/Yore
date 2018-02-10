@@ -22,7 +22,7 @@ uint32_t get_sqattr (struct DLevel *lvl, int yloc, int xloc)
 		return -1;
 
 	int n = map_buffer (yloc, xloc);
-	if (lvl->mons[n].ID)
+	if (lvl->monsIDs[n])
 		return 2;
 	Vector *things = lvl->things;
 	LOOP_THING(things, n, i)

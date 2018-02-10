@@ -18,6 +18,12 @@ TID getID ()
 	return (++curID);
 }
 
+MID curMID = 0;
+MID getMID ()
+{
+	return (++curMID);
+}
+
 void thing_watchvec (Vector vec)
 {
 	int i;
@@ -36,38 +42,6 @@ void rem_id (TID id)
 	v_rptr (lvl->things[n], th);
 	thing_watchvec (lvl->things[n]);
 	THIID(id) = NULL;
-}
-
-void rem_mid (TID id)
-{
-	struct Monster *th = MTHIID(id);
-	struct DLevel *lvl = dlv_lvl (th->dlevel);
-	int n = map_buffer (th->yloc, th->xloc);
-	MTHIID (id) = NULL; 
-	memset (&lvl->mons[n], 0, sizeof(struct Monster));
-	return;
-}
-
-void monsthing_move (struct Monster *thing, int new_level, int new_y, int new_x)
-{
-	if (thing->yloc == new_y && thing->xloc == new_x && thing->dlevel == new_level)
-		return;
-
-	struct DLevel *olv = dlv_lvl (thing->dlevel),
-	              *nlv = dlv_lvl (new_level);
-
-	int old = map_buffer (thing->yloc, thing->xloc),
-	    new = map_buffer (new_y, new_x);
-
-	if (nlv->mons[new].ID) panic ("monster already there");
-	memcpy (&nlv->mons[new], &olv->mons[old], sizeof(struct Monster));
-	memset (&olv->mons[old], 0, sizeof(struct Monster));
-	thing = &nlv->mons[new];
-	MTHIID (thing->ID) = thing;
-
-	thing->yloc = new_y;
-	thing->xloc = new_x;
-	thing->dlevel = new_level;
 }
 
 void update_item_pointers (Vector vec)
@@ -231,11 +205,47 @@ struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t
 
 	memcpy (&t.thing, actual_thing, TSIZ[type]);
 	struct Thing *ret;
-		ret = v_push (lvl->things[n], &t);
-		v_push (all_ids, &ret);
-		thing_watchvec (lvl->things[n]);
+	ret = v_push (lvl->things[n], &t);
+	v_push (all_ids, &ret);
+	thing_watchvec (lvl->things[n]);
 
 	return ret;
+}
+
+void rem_mid (MID id)
+{
+	struct Monster *th = MTHIID(id);
+	dlv_lvl (th->dlevel)->monsIDs[map_buffer (th->yloc, th->xloc)] = 0;
+	memset (th, 0, sizeof(struct Monster));
+	return;
+}
+
+struct Monster *MTHIID (MID id)
+{
+	struct Monster *ret = v_at (cur_dlevel->mons, (id));
+	if (!ret->ID)
+		return NULL;
+	return ret;
+}
+
+void monsthing_move (struct Monster *thing, int new_level, int new_y, int new_x)
+{
+	if (thing->yloc == new_y && thing->xloc == new_x && thing->dlevel == new_level)
+		return;
+
+	struct DLevel *olv = dlv_lvl (thing->dlevel),
+	              *nlv = dlv_lvl (new_level);
+
+	int old = map_buffer (thing->yloc, thing->xloc),
+	    new = map_buffer (new_y, new_x);
+
+	if (nlv->monsIDs[new]) panic ("monster already there");
+	nlv->monsIDs[new] = olv->monsIDs[old];
+	olv->monsIDs[old] = 0;
+
+	thing->yloc = new_y;
+	thing->xloc = new_x;
+	thing->dlevel = new_level;
 }
 
 struct Monster *new_mons (struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)
@@ -243,14 +253,13 @@ struct Monster *new_mons (struct DLevel *lvl, uint32_t y, uint32_t x, void *actu
 	int n = map_buffer (y, x);
 	struct Monster t;
 	memcpy (&t, actual_thing, sizeof(struct Monster));
-	t.ID = getID();
+	t.ID = getMID();
 	t.dlevel = lvl->level;
 	t.yloc = y; t.xloc = x;
 	mons_stats_changed (&t);
-	struct Monster *ret = &lvl->mons[n];
-	if (ret->ID) panic ("monster already there!");
-	memcpy (ret, &t, sizeof(t));
-	v_push (all_ids, &ret);
+	if (lvl->monsIDs[n]) panic ("monster already there!");
+	lvl->monsIDs[n] = t.ID;
+	struct Monster *ret = v_push (lvl->mons, &t);
 	return ret;
 }
 
@@ -364,12 +373,12 @@ void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,
 		bres_draw (Yloc, Xloc, Y, X, map_graph->w, sq_cansee, sq_attr, NULL);
 
 	/* Do the drawing */
-	struct Monster *monsters = dlv_lvl(player->dlevel)->mons;
+	TID *monsIDs = dlv_lvl(player->dlevel)->monsIDs;
 	for (Y = 0, w = 0; Y < map_graph->h; ++Y)
 	{
 		for (X = 0; X < map_graph->w; ++X, ++w)
 		{
-			struct Monster *mons = &monsters[w];
+			struct Monster *mons = MTHIID(monsIDs[w]);
 			if (sq_cansee[w] == 2)
 				sq_memory[w] = sq_nonvis[w];
 
@@ -378,7 +387,7 @@ void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,
 				gra_baddch (map_graph, w, sq_memory[w]);
 				continue;
 			}
-			else if (sq_cansee[w] == 2 && mons->ID)
+			else if (sq_cansee[w] == 2 && mons)
 			{
 				//if (can see monster TODO )
 				gra_bgaddch (map_graph, w, mons->gl);

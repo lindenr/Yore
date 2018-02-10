@@ -173,6 +173,7 @@ char p_menuex (Vector lines)
 	}
 
 	char ret;
+	p_menu_draw (box, lines, curchoice);
 	if (curchoice == -1)
 	{
 		ret = gr_getch ();
@@ -181,7 +182,6 @@ char p_menuex (Vector lines)
 	}
 	do
 	{
-		p_menu_draw (box, lines, curchoice);
 		ret = gr_getch ();
 		if (ret == CH_ESC || ret == ' ' ||
 			ret == '-')
@@ -222,6 +222,7 @@ char p_menuex (Vector lines)
 			if (i < lines->len)
 				curchoice = i;
 		}
+		p_menu_draw (box, lines, curchoice);
 	}
 	while (1);
 

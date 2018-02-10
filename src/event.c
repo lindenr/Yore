@@ -222,7 +222,7 @@ void ev_do (Event ev)
 		loc.fl.xloc = loc.fl.bres.cx;
 		loc.fl.speed -= 1;
 		item_put (item, loc);
-		thID = dlv_lvl(loc.fl.dlevel)->mons[map_buffer(loc.fl.yloc, loc.fl.xloc)].ID;
+		thID = dlv_lvl(loc.fl.dlevel)->monsIDs[map_buffer(loc.fl.yloc, loc.fl.xloc)];
 		if (thID)
 			ev_queue (0, (union Event) { .proj_hit_monster = {EV_PROJ_HIT_MONSTER, itemID, thID}});
 		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, itemID}});
@@ -369,10 +369,10 @@ void ev_do (Event ev)
 		can = can_amove (get_sqattr (dlv_lvl(fr->dlevel), ydest, xdest));
 		if (can != 2)
 			return; // tried and failed to attack TODO
-		to = &dlv_lvl(fr->dlevel)->mons[map_buffer(ydest, xdest)]; /* get to-mons */
-		if (!to->ID)
+		toID = dlv_lvl(fr->dlevel)->monsIDs[map_buffer(ydest, xdest)]; /* get to-mons */
+		if (!toID)
 			return;
-		toID = to->ID;
+		to = MTHIID(toID);
 		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}}); /* anger to-mons */
 		struct Item *with = fr->wearing.weaps[fr->status.attacking.arm];
 		fr->status.attacking.arm = -1;
@@ -447,9 +447,8 @@ void ev_do (Event ev)
 			item_gen ((union ItemLoc) { .dlvl =
 				{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
 		/* add corpse */
-		Ityp ityp_corpse;
-		mons_corpse (mons, &ityp_corpse);
-		struct Item corpse = new_item (ityp_corpse);
+		struct Item corpse;
+		mons_corpse (mons, &corpse);
 		item_put (&corpse, (union ItemLoc) { .dlvl =
 			{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
 

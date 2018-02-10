@@ -329,11 +329,14 @@ int Kwield (struct Monster *player)
 	if (items_equal (wield, player->wearing.weaps[0]))
 		return 0;
 
+	TID wieldID;
 	if (NO_ITEM(wield))
-		wield = NULL;
+		wieldID = 0;
+	else
+		wieldID = wield->ID;
 	if (player->wearing.weaps[0] && wield)
 		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, 0}});
-	pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wield->ID}});
+	pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wieldID}});
 	return pl_execute (player->speed, player, 0);
 }
 
@@ -625,8 +628,16 @@ void pl_choose_attr_gain (struct Monster *player, int points)
 	v_push (lines, &m);
 	m = (struct MenuOption) {0, {0,}, NULL};
 	v_push (lines, &m);
-	p_menuex (lines);
+	char ret = p_menuex (lines);
 	v_free (lines);
+	if (ret == 'a')
+		++ player->str;
+	else if (ret == 'b')
+		++ player->con;
+	else if (ret == 'c')
+		++ player->wis;
+	else if (ret == 'd')
+		++ player->agi;
 }
 
 struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)

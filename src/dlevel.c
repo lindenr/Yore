@@ -31,7 +31,8 @@ void dlv_make (int level, int uplevel, int dnlevel)
 		level,
 		malloc (sizeof(Vector) * map_graph->a),
 		malloc (sizeof(Vector) * map_graph->a),
-		malloc (sizeof(struct Monster)*map_graph->a),
+		malloc (sizeof(TID) * map_graph->a),
+		v_dinit (sizeof(struct Monster)),
 		v_dinit (sizeof(TID)),
 		malloc (sizeof(int) * map_graph->a),
 		malloc (sizeof(uint8_t)*map_graph->a),
@@ -52,7 +53,9 @@ void dlv_make (int level, int uplevel, int dnlevel)
 		new_level.items[i] = v_dinit (sizeof(struct Item));
 		new_level.player_dist[i] = -1;
 	}
-	memset (new_level.mons, 0, sizeof(struct Monster)*map_graph->a);
+	struct Monster dummy_mons = {0};
+	v_push (new_level.mons, &dummy_mons);
+	memset (new_level.monsIDs, 0, sizeof(TID)*map_graph->a);
 	memset (new_level.seen, 0, sizeof(uint8_t)*map_graph->a);
 	memset (new_level.attr, 0, sizeof(uint8_t)*map_graph->a);
 	memset (new_level.unseen, 0, sizeof(glyph)*map_graph->a);
@@ -117,7 +120,7 @@ void dlv_fill_player_dist (struct DLevel *dlv)
 		dlv->player_dist[i] = -1;
 	for (i = 0; i < dlv->playerIDs->len; ++ i)
 	{
-		struct Monster *player = MTHIID(*(TID*)v_at(dlv->playerIDs, i));
+		struct Monster *player = MTHIID(*(MID*)v_at(dlv->playerIDs, i));
 		ylocs[cur_loc] = player->yloc;
 		xlocs[cur_loc] = player->xloc;
 		++ cur_loc;

@@ -85,12 +85,12 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 			}
 		}
 	}
-	//if (!num_items)
-	//{
-	//	snprintf(first, 256, "#(empty)");
-	//	v_pstr (inv, "#(empty)");
-	//}
-	//v_pstr (inv, "");
+	if (!num_items)
+	{
+		v_free (inv);
+		p_msg ("No valid items.");
+		return ' ';
+	}
 	m = (struct MenuOption) {0, {0,}, NULL};
 	v_push (inv, &m);
 	char out = p_menuex (inv);

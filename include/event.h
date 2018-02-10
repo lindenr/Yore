@@ -67,7 +67,7 @@ typedef union Event
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		TID itemID;
 		int ydest, xdest;
 	} mthrow;
@@ -90,82 +90,82 @@ typedef union Event
 	{
 		EV_TYPE type;
 		TID itemID;
-		TID monsID;
+		MID monsID;
 	} proj_hit_monster;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} mwait;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		int ydir, xdir;
 	} mmove;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} mdomove;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} mevade;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} munevade;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		int ydir, xdir;
 	} mshield;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		int ydir, xdir;
 	} mdoshield;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} munshield;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		int arm;
 		int ydir, xdir;
 	} mattkm;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} mdoattkm;
 	struct
 	{
 		EV_TYPE type;
-		TID frID, toID;
+		MID frID, toID;
 	} mkillm;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} mcorpse;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} mlevel;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} mturn;
 	struct
 	{
@@ -174,82 +174,82 @@ typedef union Event
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} mregen;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		int arm;
 		TID itemID;
 	} mwield;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		TID itemID;
 		size_t offset;
 	} mwear_armour;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		TID itemID;
 	} mtakeoff_armour;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		Vector things;
 	} mpickup;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		Vector items;
 	} mdrop;
 	struct
 	{
 		EV_TYPE type;
-		TID frID, toID;
+		MID frID, toID;
 	} mangerm;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} mcalm;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} mstartcharge;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		int ydir, xdir;
 	} mdocharge;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 	} mstopcharge;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		int ydest, xdest;
 	} mfireball;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		int ydest, xdest;
 	} mwater_bolt;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		int ydest, xdest;
 		int radius;
 	} mfrost;
@@ -258,18 +258,18 @@ typedef union Event
 		EV_TYPE type;
 		//int yloc, xloc;
 		//int power, radius;
-		TID thID;
+		MID thID;
 	} circleofflame;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		int ydest, xdest;
 	} mopendoor;
 	struct
 	{
 		EV_TYPE type;
-		TID thID;
+		MID thID;
 		int ydest, xdest;
 	} mclosedoor;
 } *Event;
