@@ -7,12 +7,12 @@
 
 const styp all_skills[] = {
 	{SK_NONE, 0, "", ""},
-	{SK_CHARGE,  SK_ACT, "Charge",  "#CHARGE\n#[cost: 3 stamina/square]\n\nCharge at your opponent, dealing extra damage for one hit. Be careful not to miss! Damage increases with skill level.\n"},
-	{SK_DODGE,   SK_PAS, "Dodge", "#DODGE\n#[passive skill]\n\nYou are uncommonly nimble. When you are attacked you have a chance to dodge the attack. The chance increases with skill level.\n"},
-	{SK_FIREBALL, SK_ACT, "Fireball", "#FIREBALL\n#[cost: 5 MP]\nfireball!\n"},
-	{SK_WATER_BOLT, SK_ACT, "Water bolt", "#WATER BOLT\n#[cost: 6 MP]\nWater!\n"},
+	{SK_CHARGE,  SK_ACT, "Charge",  "#CHARGE\n#[cost: 3 stamina/square]\n\nCharge at your opponent, dealing extra damage for one hit. Be careful not to miss! Damage increases with skill level."},
+	{SK_DODGE,   SK_PAS, "Dodge", "#DODGE\n#[passive skill]\n\nYou are uncommonly nimble. When you are attacked you have a chance to dodge the attack. The chance increases with skill level."},
+	{SK_FIREBALL, SK_ACT, "Fireball", "#FIREBALL\n#[cost: 5 MP]\nfireball!"},
+	{SK_WATER_BOLT, SK_ACT, "Water bolt", "#WATER BOLT\n#[cost: 6 MP]\nWater!"},
 	{SK_FROST, SK_ACT, "Frost", "#FROST\n[cost: free]\nLightly freezes an area."},
-	{SK_FLAMES,  SK_ACT, "Circle of flame", "#CIRCLE OF FLAME\n#[cost: free]\nfiire!!!!\n"},
+	{SK_FLAMES,  SK_ACT, "Circle of flame", "#CIRCLE OF FLAME\n#[cost: free]\nfiire!!!!"},
 	{SK_USE_MARTIAL_ARTS, SK_PAS, "Martial arts ability", "#MARTIAL ARTS\n\nYour skill at using martial arts in combat."},
 	{SK_USE_LONGSWORD, SK_PAS, "Longsword ability", "#LONGSWORD\n\nYour skill at using a longsword in combat."},
 	{SK_USE_AXE, SK_PAS, "Axe ability", "#AXE\n\nYour skill at using an axe in combat."},

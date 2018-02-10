@@ -21,7 +21,7 @@ int w_some (char *ret, char *c, int stacksize, size_t num)
 {
 	if (stacksize <= 0)
 	{
-		panic("stack size <= 0 in w_come");
+		panic("stack size <= 0 in w_some");
 		return 0;
 	}
 

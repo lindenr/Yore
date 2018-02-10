@@ -48,6 +48,7 @@ enum MTYPES
 {
 	MTYP_chicken = 0,
 	MTYP_newt,
+	MTYP_slime_rat,
 	MTYP_skeleton,
 	MTYP_rabbit,
 	MTYP_crab,

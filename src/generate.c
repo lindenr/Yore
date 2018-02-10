@@ -372,7 +372,11 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 	return true;
 }
 
-#define init_mons(mons,TYP) (memcpy ((mons), &all_mons[TYP], sizeof(struct Monster)))
+void init_mons (struct Monster *mons, enum MTYPES type)
+{
+	memcpy (mons, &all_mons[type], sizeof(struct Monster));
+	mons->type = type;
+}
 
 /* initialised at start of game */
 struct Monster *gen_player (int upsy, int upsx, char *name)

@@ -276,6 +276,11 @@ void ev_do (Event ev)
 			ev_queue (0, (union Event) { .mkillm =
 				{EV_MKILLM, item->loc.fl.frID, monsID}}); /* kill to-mons */
 		item->loc.fl.speed = 0;
+		fr = MTHIID (item->loc.fl.frID);
+		if (!fr)
+			return;
+		if (mons_gets_exp (fr))
+			mons_exercise (fr, item);
 		return;
 	case EV_MWAIT:
 		thID = ev->mwait.thID;
@@ -416,13 +421,13 @@ void ev_do (Event ev)
 			U.playing = PLAYER_LOSTGAME;
 			return;
 		}
-		ev_queue (0, (union Event) { .mcorpse = {EV_MCORPSE, ev->mkillm.toID}}); /* dead drop */
 		if (mons_gets_exp (fr))
 		{
 			fr->exp += to->exp;
 			if (mons_level (fr->exp) != fr->level)
 				ev_queue (0, (union Event) { .mlevel = {EV_MLEVEL, fr->ID}});
 		}
+		ev_queue (0, (union Event) { .mcorpse = {EV_MCORPSE, ev->mkillm.toID}}); /* dead drop */
 		return;
 	case EV_MCORPSE:
 		mons = MTHIID(ev->mcorpse.thID);

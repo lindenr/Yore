@@ -101,7 +101,7 @@ void mons_corpse (struct Monster *mons, struct Item *item)
 	if (mons->type == MTYP_skeleton || mons->type == MTYP_lich)
 	{
 		*item = new_item (ityps[ITYP_BONE]);
-		item->stacksize = rn(6);
+		item->stacksize = rn(6) + 1;
 		return;
 	}
 	/* fill in the data */
@@ -381,8 +381,7 @@ int proj_hitm (struct Item *proj, struct Monster *to)
 
 int proj_hitdmg (struct Item *proj, struct Monster *to)
 {
-	int speed = proj->loc.fl.speed;
-	return 2 + rn(3) + (speed >= 2) + (speed >= 4) + (speed >= 8);
+	return rn(proj->attk/2 + 1) + rn (2);
 }
 
 enum SK_TYPE sk_item_use (struct Item *item)
@@ -470,7 +469,7 @@ int mons_ST_hit (struct Monster *from, struct Item *with)
 
 int mons_HP_regen (struct Monster *th)
 {
-	return (!rn(20)) * (rn(th->str) >= 4);
+	return (!rn(8)) * (rn(th->str) >= 4);
 }
 
 int mons_ST_regen (struct Monster *th)
@@ -516,6 +515,7 @@ void mons_level_up (struct Monster *mons)
 	mons->con ++;
 	mons->wis ++;
 	mons->agi ++;
+	draw_map (mons);
 	p_pane (mons);
 	pl_choose_attr_gain (mons, 1);
 	mons_stats_changed (mons);

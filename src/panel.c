@@ -70,9 +70,9 @@ void p_pane (struct Monster *player)
 		gra_mvprint (gpan, 6, 3, "Armour  %d", player->armour);
 		gra_mvprint (gpan, 7, 3, "Level   %d", player->level);
 		if (exp_needed != -1)
-			gra_mvprint (gpan, 8, 3, "XP      %d (%d)", player->exp, exp_needed);
+			gra_mvprint (gpan, 8, 3, "Exp     %d (%d)", player->exp, exp_needed);
 		else
-			gra_mvprint (gpan, 8, 3, "XP      %d", player->exp);
+			gra_mvprint (gpan, 8, 3, "Exp     %d", player->exp);
 		gra_mvaddch (gpan, 2, 1, '@' | COL_TXT(15,15,15));
 		gra_mvaddch (gpan, 3, 1, 3 | COL_TXT_RED(15));
 		gra_mvaddch (gpan, 4, 1, 5 | COL_TXT_GREEN(15));
@@ -358,6 +358,7 @@ int p_status (struct Monster *player, enum PanelType type)
 	return 0;
 }
 
+glyph output_colours;
 /* Skills screen */
 Graph sc_skills = NULL;
 int p_skills (struct Monster *player, enum PanelType type)
@@ -415,10 +416,12 @@ int p_skills (struct Monster *player, enum PanelType type)
 			++ selected;
 		else if (in == CH_LF || in == CH_CR)
 		{
+			if (pskills->len) for (j = 1; j < w-1; ++ j)
+				gra_invert (sc_skills, 4+selected, j);
 			Skill sk = v_at (pskills, selected);
-			Vector lines = w_lines (sk_desc(sk), MAX_BOX_LENGTH);
-			p_lines (lines);
-			v_free (lines);
+			p_msgbox (sk_desc(sk));
+			if (pskills->len) for (j = 1; j < w-1; ++ j)
+				gra_invert (sc_skills, 4+selected, j);
 		}
 		else if (in >= 'a' && in < letter)
 		{
@@ -438,6 +441,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 					sk_charge (player, 0, 0, v_at (pskills, selected));
 					return 1;
 				}
+				output_colours = COL_BG(0,0,0) | COL_TXT(15,15,15);
 				p_mvchoose (player, &yloc, &xloc, "Charge where?", NULL, &show_path_on_overlay);
 				if (yloc == -1)
 				{
@@ -458,6 +462,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 				}
 				gra_hide (sc_status);
 				gra_hide (sc_skills);
+				output_colours = COL_BG(11,0,0) | COL_TXT(15,15,0);
 				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
 				if (yloc == -1)
 				{
@@ -476,6 +481,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 				}
 				gra_hide (sc_status);
 				gra_hide (sc_skills);
+				output_colours = COL_BG(0,0,8) | COL_TXT(8,8,15);
 				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
 				if (yloc == -1)
 				{
@@ -555,7 +561,7 @@ void show_path_on_overlay (enum P_MV action, int fy, int fx, int ty, int tx)
 		gra_movecam (overlay, map_graph->cy, map_graph->cx);
 	}
 	gra_clear (overlay);
-	gra_drawline (overlay, ty, tx, fy, fx, ' '|COL_BG_RED(8));
+	gra_drawline (overlay, ty, tx, fy, fx, output_colours);
 	gra_mvaddch (overlay, fy, fx, 0);
 }
 
