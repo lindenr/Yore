@@ -29,6 +29,8 @@ int  pl_take_turn (struct Monster *);
 
 int  pl_charge_action (struct Monster *);
 
+void pl_choose_attr_gain (struct Monster *, int);
+
 extern Vector player_actions;
 extern int pl_focus_mode;
 

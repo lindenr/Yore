@@ -19,6 +19,12 @@ enum SK_TYPE
 	SK_WATER_BOLT,
 	SK_FROST,
 	SK_FLAMES,
+	SK_USE_MARTIAL_ARTS,
+	SK_USE_LONGSWORD,
+	SK_USE_AXE,
+	SK_USE_HAMMER,
+	SK_USE_DAGGER,
+	SK_USE_SHORTSWORD,
 	SK_NUM
 };
 
@@ -44,6 +50,8 @@ const char *sk_desc (Skill);
 int  sk_isact  (Skill);
 void sk_exp    (struct Monster *, Skill, int);
 int  sk_lvl    (struct Monster *, enum SK_TYPE);
+
+enum SK_TYPE sk_item_use (struct Item *);
 
 void sk_charge (struct Monster *, int, int, Skill);
 void sk_flames (struct Monster *);

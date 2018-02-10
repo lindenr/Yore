@@ -57,26 +57,29 @@ void p_pane (struct Monster *player)
 			txt_mvaddch (max - i - 1, txt_w - 2, COL_BG_BLUE(10) | ' ');
 	}*/
 
-	gra_mvprint (gpan, 1, 1, "T %llu", curtick);
+	gra_mvprint (gpan, 1, 3, "T %llu", curtick);
+	gra_mvaddch (gpan, 1, 1, 0xAF | COL_TXT(15,7,0));
 
 	if (player)
 	{
 		int exp_needed = mons_exp_needed (player->level);
-		gra_mvprint (gpan, 2, 1, "%s the Player", w_short (player->name, 20));
+		gra_mvprint (gpan, 2, 3, "%s the Player", w_short (player->name, 20));
 		gra_mvprint (gpan, 3, 3, "Health  %d (%d)", player->HP, player->HP_max);
 		gra_mvprint (gpan, 4, 3, "Stamina %d (%d)", player->ST, player->ST_max);
 		gra_mvprint (gpan, 5, 3, "Power   %d (%d)", player->MP, player->MP_max);
+		gra_mvprint (gpan, 6, 3, "Armour  %d", player->armour);
 		gra_mvprint (gpan, 7, 3, "Level   %d", player->level);
 		if (exp_needed != -1)
 			gra_mvprint (gpan, 8, 3, "XP      %d (%d)", player->exp, exp_needed);
 		else
 			gra_mvprint (gpan, 8, 3, "XP      %d", player->exp);
-		gra_mvprint (gpan, 6, 3, "Armour  %d", player->armour);
+		gra_mvaddch (gpan, 2, 1, '@' | COL_TXT(15,15,15));
 		gra_mvaddch (gpan, 3, 1, 3 | COL_TXT_RED(15));
 		gra_mvaddch (gpan, 4, 1, 5 | COL_TXT_GREEN(15));
-		gra_mvaddch (gpan, 5, 1, 4 | COL_TXT_BLUE(15));
-		gra_mvaddch (gpan, 7, 1, 6 | COL_TXT(11,11,11));
+		gra_mvaddch (gpan, 5, 1, 4 | COL_TXT(0,5,15));
 		gra_mvaddch (gpan, 6, 1, '[' | COL_TXT(11,11,0));
+		gra_mvaddch (gpan, 7, 1, 6 | COL_TXT(7,15,15));
+		gra_mvaddch (gpan, 8, 1, 0xE4 | COL_TXT(15,0,15));
 		gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d", player->status.defending.ydir, player->status.defending.xdir);
 		if (player->status.charging)
 			gra_mvprint (gpan, 3, 110, "CHARGING");
@@ -181,9 +184,15 @@ char p_menuex (Vector lines)
 		p_menu_draw (box, lines, curchoice);
 		ret = gr_getch ();
 		if (ret == CH_ESC || ret == ' ' ||
-			(ret >= 'a' && ret <= 'z') ||
-			(ret >= 'A' && ret <= 'Z') ||
 			ret == '-')
+			break;
+		for (i = 0; i < lines->len; ++ i)
+		{
+			struct MenuOption *line = v_at (lines, i);
+			if (line->letter == ret)
+				break;
+		}
+		if (i < lines->len)
 			break;
 		if (ret == '\n')
 		{
@@ -352,9 +361,9 @@ int p_status (struct Monster *player, enum PanelType type)
 Graph sc_skills = NULL;
 int p_skills (struct Monster *player, enum PanelType type)
 {
-	int h = 10, w = 41;
-	int y = (gr_h - h)/2, x = (gr_w - w)/2;
 	Vector pskills = player->skills;
+	int h = 6 + pskills->len, w = 41;
+	int y = (gr_h - h)/2, x = (gr_w - w)/2;
 
 	sc_skills = gra_init (h, w, y, x, h, w);
 	sc_skills->def = COL_SKILLS;
@@ -493,6 +502,13 @@ int p_skills (struct Monster *player, enum PanelType type)
 				gra_free (sc_skills);
 				sk_flames (player);
 				return 1;
+			case SK_USE_MARTIAL_ARTS:
+			case SK_USE_LONGSWORD:
+			case SK_USE_AXE:
+			case SK_USE_HAMMER:
+			case SK_USE_DAGGER:
+			case SK_USE_SHORTSWORD:
+				break;
 			case SK_NUM:
 				break;
 			}
@@ -538,7 +554,7 @@ void show_path_on_overlay (enum P_MV action, int fy, int fx, int ty, int tx)
 		gra_movecam (overlay, map_graph->cy, map_graph->cx);
 	}
 	gra_clear (overlay);
-	gra_drawline (overlay, fy, fx, ty, tx, ' '|COL_BG_RED(8));
+	gra_drawline (overlay, ty, tx, fy, fx, ' '|COL_BG_RED(8));
 	gra_mvaddch (overlay, fy, fx, 0);
 }
 

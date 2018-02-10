@@ -47,6 +47,8 @@ typedef long long unsigned Tick;
 enum MTYPES
 {
 	MTYP_chicken = 0,
+	MTYP_newt,
+	MTYP_skeleton,
 	MTYP_rabbit,
 	MTYP_crab,
 	MTYP_gnome,
@@ -238,7 +240,9 @@ int    mons_get_MP     (struct Monster *);                   /* max magic power 
 int    mons_gets_exp   (struct Monster *);                   /* does the monster level up                */
 int    mons_level      (int exp);                            /* what level a given experience is         */
 int    mons_exp_needed (int level);                          /* exp needed for next level                */
-void   mons_level_stats(struct Monster *);                   /* alter monster's base stats for new level */
+void   mons_level_up   (struct Monster *);                   /* alter monster's base stats for new level */
+void   mons_stats_changed(struct Monster *);                 /* update HP etc to reflect stats           */
+void   mons_exercise   (struct Monster *, struct Item *);    /* exercise a weapon use                    */
 
 /* effects */
 void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */
@@ -246,7 +250,7 @@ void   mons_wield      (struct Monster *, int, struct Item *); /* wield an item 
 void   mons_unwield    (struct Monster *, struct Item *);    /* unwield an item */
 
 /* player functions */
-int    mons_gen_type (void);                                 /* get a valid monster type for fighting    */
+int    mons_gen_type   (void);                               /* get a valid monster type for fighting    */
 
 /* map function? */
 int    can_amove       (int);                                /* returns if a square can be moved on to   */

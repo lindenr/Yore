@@ -173,7 +173,12 @@ void gra_drawline (Graph gra, int fy, int fx, int ty, int tx, glyph gl)
 	bres_init (&st, fy, fx, ty, tx);
 	do
 	{
-		gra_mvaddch (gra, st.cy, st.cx, gl);
+		if (st.err*2 > -st.dy && st.err*2 < st.dx)
+			gra_mvaddch (gra, st.cy, st.cx, (st.sx == st.sy ? '\\' : '/') |
+				COL_BG(11,0,0) | COL_TXT(15,15,0));
+		else
+			gra_mvaddch (gra, st.cy, st.cx, (st.dx > st.dy ? ACS_HLINE : ACS_VLINE) |
+				COL_BG(11,0,0) | COL_TXT(15,15,0));
 		bres_iter (&st);
 	}
 	while (!st.done);

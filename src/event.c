@@ -356,7 +356,7 @@ void ev_do (Event ev)
 		mons->status.attacking.ydir = ev->mattkm.ydir;
 		mons->status.attacking.xdir = ev->mattkm.xdir;
 		mons->status.attacking.arm = ev->mattkm.arm;
-		p_msg ("The %s swings, to hit in %dms!", mons->mname, mons->speed);
+		//p_msg ("The %s swings, to hit in %dms!", mons->mname, mons->speed);
 		break;
 	case EV_MDOATTKM:
 		frID = ev->mdoattkm.thID;
@@ -401,6 +401,8 @@ void ev_do (Event ev)
 			to->HP = 0;
 			ev_queue (0, (union Event) { .mkillm = {EV_MKILLM, frID, toID}}); /* kill to-mons */
 		}
+		if (mons_gets_exp (fr))
+			mons_exercise (fr, with);
 		return;
 	case EV_MKILLM:
 		fr = MTHIID(ev->mkillm.frID); to = MTHIID(ev->mkillm.toID);
@@ -458,10 +460,7 @@ void ev_do (Event ev)
 		mons = MTHIID(ev->mlevel.thID);
 		if (!mons)
 			return;
-		mons->level = mons_level (mons->exp);
-		p_msg ("Level up! The %s is now level %d.", mons->mname, mons->level);
-		p_msgbox ("You have gained a level!");
-		mons_level_stats (mons);
+		mons_level_up (mons);
 		return;
 	case EV_MTURN:
 		mons = MTHIID(ev->mturn.thID);

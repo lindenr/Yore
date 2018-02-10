@@ -23,13 +23,13 @@ struct Item no_item;
 /* No corpse -- they are a custom item (see src/monst.c). */
 Ityp ityps[] = {
 /*  item name              type              weight attributes     display                      */
-	ITYP("long sword",     ITSORT_LONGSWORD,  2000,  5,  0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
-	ITYP("fencing sword",  ITSORT_LONGSWORD,  1500,  5,  0,      ITCH_WEAPON | COL_TXT(11, 0,11), 0),
-	ITYP("axe",            ITSORT_AXE,        3000,  4,  0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
-	ITYP("battle-axe",     ITSORT_AXE,        1000,  8,  0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
-	ITYP("war hammer",     ITSORT_HAMMER,     5000,  8,  0,      ITCH_WEAPON | COL_TXT(15,11, 0), 0),
-	ITYP("dagger",         ITSORT_DAGGER,     100,   3,  0,      ITCH_WEAPON | COL_TXT( 0,11, 0), 0),
-	ITYP("short sword",    ITSORT_SHORTSWORD, 2000,  4,  0,      ITCH_WEAPON | COL_TXT(11, 8, 0), 0),
+	ITYP("long sword",     ITSORT_LONGSWORD,  2000,  10, 0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
+	ITYP("fencing sword",  ITSORT_LONGSWORD,  1500,  10, 0,      ITCH_WEAPON | COL_TXT(11, 0,11), 0),
+	ITYP("axe",            ITSORT_AXE,        3000,  8,  0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
+	ITYP("battle-axe",     ITSORT_AXE,        1000,  16, 0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
+	ITYP("war hammer",     ITSORT_HAMMER,     5000,  16, 0,      ITCH_WEAPON | COL_TXT(15,11, 0), 0),
+	ITYP("dagger",         ITSORT_DAGGER,     100,   6,  0,      ITCH_WEAPON | COL_TXT( 0,11, 0), 0),
+	ITYP("short sword",    ITSORT_SHORTSWORD, 2000,  8,  0,      ITCH_WEAPON | COL_TXT(11, 8, 0), 0),
 	ITYP("glove",          ITSORT_GLOVE,      70,    0,  1,      ITCH_ARMOUR | COL_TXT( 0,11, 0), 0),
 	ITYP("chain mail",     ITSORT_MAIL,       5000,  0,  8,      ITCH_ARMOUR | COL_TXT( 8, 8, 8), 0),
 	ITYP("plate mail",     ITSORT_MAIL,       8000,  0,  9,      ITCH_ARMOUR | COL_TXT( 8,11, 0), 0),

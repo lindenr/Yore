@@ -91,7 +91,7 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 	//	v_pstr (inv, "#(empty)");
 	//}
 	//v_pstr (inv, "");
-	m = (struct MenuOption) {0, {0,}};
+	m = (struct MenuOption) {0, {0,}, NULL};
 	v_push (inv, &m);
 	char out = p_menuex (inv);
 	v_free (inv);

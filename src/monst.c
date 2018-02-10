@@ -9,6 +9,7 @@
 #include "include/monst.h"
 #include "include/player.h"
 #include "include/event.h"
+#include "include/skills.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -18,7 +19,7 @@ struct player_status U;
 int expcmp (int p_exp, int m_exp)
 {
 	if (p_exp >= m_exp * 2)
-		return 5;
+		return 40;
 	if ((p_exp * 20) + 20 >= m_exp * 19)
 		return 50;
 	if ((p_exp * 2) >= m_exp)
@@ -104,7 +105,7 @@ void mons_corpse (struct Monster *mons, Ityp *itype)
 
 int mons_get_HP (struct Monster *mons)
 {
-	return 2*mons->str + 5;
+	return 3*mons->str + 1;
 }
 
 int mons_get_ST (struct Monster *mons)
@@ -373,9 +374,62 @@ int proj_hitdmg (struct Item *proj, struct Monster *to)
 	return 2 + rn(3) + (speed >= 2) + (speed >= 4) + (speed >= 8);
 }
 
+enum SK_TYPE sk_item_use (struct Item *item)
+{
+	if (NO_ITEM(item))
+		return SK_USE_MARTIAL_ARTS;
+	switch (item->type.type)
+	{
+		case ITSORT_LONGSWORD:
+			return SK_USE_LONGSWORD;
+		case ITSORT_AXE:
+			return SK_USE_AXE;
+		case ITSORT_HAMMER:
+			return SK_USE_HAMMER;
+		case ITSORT_DAGGER:
+			return SK_USE_DAGGER;
+		case ITSORT_SHORTSWORD:
+			return SK_USE_SHORTSWORD;
+		default:
+			return SK_NONE;
+	}
+}
+
 int mons_skill (struct Monster *from, struct Item *with)
 {
-	return 5;
+	int i;
+	enum SK_TYPE type = sk_item_use (with);
+	if (!from->skills)
+		return 0;
+	for (i = 0; i < from->skills->len; ++ i)
+	{
+		struct Skill *sk = v_at (from->skills, i);
+		if (sk->type != type)
+			continue;
+		return sk->level;
+	}
+	return 0;
+}
+
+void mons_exercise (struct Monster *from, struct Item *with)
+{
+	int i;
+	enum SK_TYPE type = sk_item_use (with);
+	struct Skill *sk = NULL;
+	if (!from->skills)
+		panic ("monster has no skill slots in mons_exercise");
+	for (i = 0; i < from->skills->len; ++ i)
+	{
+		sk = v_at (from->skills, i);
+		if (sk->type == type)
+			break;
+	}
+	if (i >= from->skills->len)
+	{
+		struct Skill add = {type, 0, 0};
+		sk = v_push (from->skills, &add);
+	}
+	sk->exp ++;
 }
 
 int mons_hitm (struct Monster *from, struct Monster *to, struct Item *with)
@@ -384,22 +438,22 @@ int mons_hitm (struct Monster *from, struct Monster *to, struct Item *with)
 	    to->status.defending.ydir + to->yloc == from->yloc &&
 	    to->status.defending.xdir + to->xloc == from->xloc)
 		return 0;
-	return rn(20) && ((!rn(20)) || (5 + mons_skill (from, with) >= rn(to->armour + 10)));
+	return rn(20) && ((!rn(20)) || (5 + mons_skill (from, with) >= rn(to->armour*2 + 7)));
 }
 
 int mons_hitdmg (struct Monster *from, struct Monster *to, struct Item *with)
 {
-	if (!with)
-		return rn(from->str/8 + 1);
-	int attk = with->type.attk;
-	int ret = rn(1 + attk/2) + rn(1 + (attk+1)/2);
-	return ret;
+	int attk = (with ? with->type.attk : 0) + rn (from->str + 1) / 2 + 3;
+	//if (!with)
+	//	return (rn(from->str/2 + 1) + rn((from->str+1)/2 + 1));
+	int dmg = (rn(1 + attk/2) + rn(1 + (attk+1)/2));
+	return dmg;
 }
 
 int mons_ST_hit (struct Monster *from, struct Item *with)
 {
 	if (!with)
-		return 3;
+		return rn(3);
 	return 3 + (with->cur_weight)/500;
 }
 
@@ -418,13 +472,8 @@ int mons_MP_regen (struct Monster *th)
 	return (!rn(10)) * rn(1 + (th->wis + rn(4))/4);
 }
 
-void mons_level_stats (struct Monster *mons)
+void mons_stats_changed (struct Monster *mons)
 {
-	/* stats */
-	mons->str = mons->level + all_mons[mons->type].str;
-	mons->con = mons->level + all_mons[mons->type].con;
-	mons->wis = mons->level + all_mons[mons->type].wis;
-	mons->agi = mons->level + all_mons[mons->type].agi;
 	/* HP */
 	int HP_max = mons_get_HP (mons);
 	mons->HP = (mons->HP * HP_max) / mons->HP_max;
@@ -443,6 +492,19 @@ void mons_level_stats (struct Monster *mons)
 	mons->MP_max = MP_max;
 	if (mons->MP > mons->MP_max)
 		mons->MP = mons->MP_max;
+}
+
+void mons_level_up (struct Monster *mons)
+{
+	mons->level = mons_level (mons->exp);
+	p_msg ("Level up! The %s is now level %d.", mons->mname, mons->level);
+	/* stats */
+	mons->str ++;
+	mons->con ++;
+	mons->wis ++;
+	mons->agi ++;
+	pl_choose_attr_gain (mons, 1);
+	mons_stats_changed (mons);
 }
 
 int mons_cont (struct Monster *player, MCont cont, union ContData *data)
@@ -517,7 +579,7 @@ int AI_HOSTILE_take_turn (struct Monster *ai)
 	{
 		y = rn(3)-1; x = rn(3)-1;
 		int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
-		if (can == 1)
+		if (can == 1 && (!rn(3)))
 			mons_move (ai, y, x);
 		else
 			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
@@ -533,7 +595,10 @@ int AI_HOSTILE_take_turn (struct Monster *ai)
 			-- ch;
 		if (!ch)
 		{
-			if (!mons_move (ai, y, x))
+			if (can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x)) == 1 ||
+				min == 0)
+				mons_move (ai, y, x);
+			else
 				ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
 			return 1;
 		}
@@ -569,9 +634,12 @@ int AI_AGGRO_take_turn (struct Monster *ai)
 		if (AI_weapcmp (ai, item, bestweap) > 0)
 			bestweap = item;
 	}
-	if (bestweap == curweap)
-		goto skip_weapon;
-	ev_queue (0, (union Event) { .mwield = {EV_MWIELD, ai->ID, 0, bestweap->ID}});
+	if (bestweap != curweap)
+	{
+		ev_queue (0, (union Event) { .mwield = {EV_MWIELD, ai->ID, 0, bestweap->ID}});
+		ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
+		return 1;
+	}
 
 skip_weapon: ;
 	/* where you are */

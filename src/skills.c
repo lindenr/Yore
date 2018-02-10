@@ -12,7 +12,13 @@ const styp all_skills[] = {
 	{SK_FIREBALL, SK_ACT, "Fireball", "#FIREBALL\n#[cost: 5 MP]\nfireball!\n"},
 	{SK_WATER_BOLT, SK_ACT, "Water bolt", "#WATER BOLT\n#[cost: 6 MP]\nWater!\n"},
 	{SK_FROST, SK_ACT, "Frost", "#FROST\n[cost: free]\nLightly freezes an area."},
-	{SK_FLAMES,  SK_ACT, "Circle of flame", "#CIRCLE OF FLAME\n#[cost: free]\nfiire!!!!\n"}
+	{SK_FLAMES,  SK_ACT, "Circle of flame", "#CIRCLE OF FLAME\n#[cost: free]\nfiire!!!!\n"},
+	{SK_USE_MARTIAL_ARTS, SK_PAS, "Martial arts ability", "#MARTIAL ARTS\n\nYour skill at using martial arts in combat."},
+	{SK_USE_LONGSWORD, SK_PAS, "Longsword ability", "#LONGSWORD\n\nYour skill at using a longsword in combat."},
+	{SK_USE_AXE, SK_PAS, "Axe ability", "#AXE\n\nYour skill at using an axe in combat."},
+	{SK_USE_HAMMER, SK_PAS, "Hammer ability", "#HAMMER\n\nYour skill at using a hammer in combat."},
+	{SK_USE_DAGGER, SK_PAS, "Dagger ability", "#DAGGER\n\nYour skill at using dagger in combat."},
+	{SK_USE_SHORTSWORD, SK_PAS, "Short sword ability", "#SHORT SWORD\n\nYour skill at using short sword in combat."}
 };
 
 #define SK_MAXLEVEL ((int)(sizeof(xp_levels)/sizeof(*xp_levels)))

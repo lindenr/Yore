@@ -58,14 +58,8 @@ void bres_init (struct BresState *st, int fy, int fx, int ty, int tx)
 {
 	st->dy = abs(ty - fy);
 	st->dx = abs(tx - fx);
-	if (fx < tx)
-		st->sx = 1;
-	else
-		st->sx = -1;
-	if (fy < ty)
-		st->sy = 1;
-	else
-		st->sy = -1;
+	st->sx = (fx < tx) - (fx > tx);
+	st->sy = (fy < ty) - (fy > ty);
 	st->err = st->dx - st->dy;
 	st->cy = fy;
 	st->cx = fx;

@@ -593,6 +593,42 @@ void ask_items (const struct Monster *player, Vector it_out, Vector it_in, const
 	v_free (list);
 }
 
+void pl_choose_attr_gain (struct Monster *player, int points)
+{
+	Vector lines;
+	//char first[40] = "                                       ";
+
+	lines = v_init (sizeof(struct MenuOption), 10);
+
+	//const char *msg = "You gain a level! +1 to all attributes.";
+	//int msglen = strlen(msg);
+	//snprintf (first + (40-msglen)/2, 40, "%s", msg);
+	struct MenuOption m = (struct MenuOption) {0, {0,}, NULL};
+	gr_ext (m.ex_str, "You gain a level! +1 to all attributes.");
+	v_push (lines, &m);
+	m = (struct MenuOption) {0, {0,}, NULL};
+	gr_ext (m.ex_str, "Select an attribute to increase by one.");
+	v_push (lines, &m);
+	m = (struct MenuOption) {0, {0,}, NULL};
+	v_push (lines, &m);
+	m = (struct MenuOption) {'a', {0,}, NULL};
+	gr_ext (m.ex_str, "Strength");
+	v_push (lines, &m);
+	m = (struct MenuOption) {'b', {0,}, NULL};
+	gr_ext (m.ex_str, "Constitution");
+	v_push (lines, &m);
+	m = (struct MenuOption) {'c', {0,}, NULL};
+	gr_ext (m.ex_str, "Wisdom");
+	v_push (lines, &m);
+	m = (struct MenuOption) {'d', {0,}, NULL};
+	gr_ext (m.ex_str, "Agility");
+	v_push (lines, &m);
+	m = (struct MenuOption) {0, {0,}, NULL};
+	v_push (lines, &m);
+	p_menuex (lines);
+	v_free (lines);
+}
+
 struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
 {
 	char in = show_contents (th->pack, accepted, msg);
