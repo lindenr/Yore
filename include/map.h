@@ -28,7 +28,8 @@ enum
 	DGN_FLOWER2,
 	DGN_CORRIDOR,
 	DGN_DOOR,
-	DGN_OPENDOOR
+	DGN_OPENDOOR,
+	DGN_SLIME
 };
 
 struct map_item_struct

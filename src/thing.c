@@ -369,11 +369,11 @@ void walls_test ()
 #define US(w) (lvl->attr[w]?(!lvl->seen[w])*2:1)
 
 gflags map_flags;
-glyph displayed_glyph (struct DLevel *lvl, int w)
+glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 {
 	map_flags = 0;
 	/* draw walls */
-	if (lvl->remembered[w] == ACS_WALL)
+	if (lvl->remembered[w] == ACS_WALL && looking)
 	{
 		int Y = w / map_graph->w, X = w % map_graph->w;
 		int h = 0, j = 0, k = 0, l = 0,
@@ -405,13 +405,14 @@ glyph displayed_glyph (struct DLevel *lvl, int w)
 	/* draw nothing */
 	if (!lvl->seen[w])
 		return ' ';
+
 	/* draw what you remember */
-	if (lvl->seen[w] == 1)
+	if (lvl->seen[w] == 1 && looking)
 		return lvl->remembered[w];
 	
 	/* draw monster */
 	struct Monster *mons = MTHIID(lvl->monsIDs[w]);
-	if (mons)
+	if (mons && looking)
 	{
 		map_flags = 1 |
 			(1<<12) | ((1+mons->status.moving.ydir)*3 + (1+mons->status.moving.xdir))<<8 |
@@ -428,54 +429,25 @@ glyph displayed_glyph (struct DLevel *lvl, int w)
 		return item->type.gl;
 	}
 
-	/* draw dungeon feature */
-	int i;
-	for (i = 0; i < lvl->things[w]->len; ++ i)
+	/* draw topmost dungeon feature */
+	int i = lvl->things[w]->len - 1;
 	{
 		struct Thing *th = v_at (lvl->things[w], i);
 		switch (th->type)
 		{
 		case THING_DGN: ;
 			struct map_item_struct *m = &th->thing.mis;
-			return m->gl;
+			if (looking || m->gl != ACS_BIGDOT)	
+				return m->gl;
+			else
+				return ACS_DOT;
 		case THING_NONE:
 			printf ("%d %d %d\n", w, i, th->type);
-			getchar ();
-			panic ("default reached in draw_map()");
+			panic ("THING_NONE type exists in glyph_to_draw");
 			break;
 		}
 	}
 	return 0;
-}
-
-glyph remembered_glyph (struct DLevel *lvl, int w)
-{
-	/* draw nothing */
-	if (!lvl->seen[w])
-		return ' ';
-
-	/* draw topmost item in pile */
-	if (lvl->items[w]->len > 0)
-		return ((struct Item *)v_at (lvl->items[w], lvl->items[w]->len-1))->type.gl;
-
-	/* draw dungeon feature */
-	int i;
-	for (i = 0; i < lvl->things[w]->len; ++ i)
-	{
-		struct Thing *th = v_at (lvl->things[w], i);
-		switch (th->type)
-		{
-		case THING_DGN: ;
-			struct map_item_struct *m = &th->thing.mis;
-			return m->gl == ACS_BIGDOT ? ACS_DOT : m->gl;
-		case THING_NONE:
-			printf ("%d %d %d\n", w, i, th->type);
-			getchar ();
-			panic ("default reached in draw_map()");
-			break;
-		}
-	}
-	return ' ';
 }
 
 void update_knowledge (struct Monster *player)
@@ -502,7 +474,7 @@ void update_knowledge (struct Monster *player)
 	for (w = 0; w < map_graph->a; ++ w)
 	{
 		if (level->seen[w] == 2)
-			level->remembered[w] = remembered_glyph (level, w);
+			level->remembered[w] = glyph_to_draw (level, w, 0);
 	}
 }
 
@@ -515,7 +487,7 @@ void draw_map ()
 	int w;
 	for (w = 0; w < map_graph->a; ++ w)
 	{
-		gra_baddch (map_graph, w, displayed_glyph (cur_dlevel, w));
+		gra_baddch (map_graph, w, glyph_to_draw (cur_dlevel, w, 1));
 		map_graph->flags[w] |= map_flags;
 	}
 }
@@ -528,7 +500,7 @@ void draw_map_xy (struct DLevel *lvl, int y, int x)
 
 void draw_map_buf (struct DLevel *lvl, int w)
 {
-	gra_baddch (map_graph, w, displayed_glyph (cur_dlevel, w));
+	gra_baddch (map_graph, w, glyph_to_draw (cur_dlevel, w, 1));
 	map_graph->flags[w] |= map_flags;
 }
 

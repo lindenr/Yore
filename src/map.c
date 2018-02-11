@@ -61,6 +61,7 @@ struct map_item_struct map_items[] = {
 	MAPITEM("corridor",  '#',                               M_TSPT),
 	MAPITEM("door",      '+'|COL_TXT(9,9,0),                M_OPQ ),
 	MAPITEM("open door", 254|COL_TXT(9,9,0),                M_TSPT),
+	MAPITEM("slime",     0xB2|COL_TXT(3,9,0),               M_TSPT),
 	MAPITEM("_end_",     '\0',                              M_OPQ )
 };
 

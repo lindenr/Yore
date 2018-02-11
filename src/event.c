@@ -321,6 +321,10 @@ void ev_do (Event ev)
 			/* re-eval paths to player */
 			dlv_fill_player_dist (cur_dlevel);
 		}
+		if (mons->type == MTYP_slime_rat && !rn(3))
+		{
+			new_thing (THING_DGN, dlv_lvl (mons->dlevel), mons->yloc, mons->xloc, &map_items[DGN_SLIME]);
+		}
 		return;
 	case EV_MEVADE:
 		thID = ev->mevade.thID;
@@ -586,9 +590,18 @@ void ev_do (Event ev)
 			for (j = 0; j < MAX_ITEMS_IN_PACK; ++ j)
 			{
 				packitem = &mons->pack->items[j];
+				if (it_can_merge (mons, packitem, item) && !NO_ITEM(packitem))
+					break;
+			}
+			if (j < MAX_ITEMS_IN_PACK)
+				goto pick_up_item;
+			for (j = 0; j < MAX_ITEMS_IN_PACK; ++ j)
+			{
+				packitem = &mons->pack->items[j];
 				if (it_can_merge (mons, packitem, item))
 					break;
 			}
+		pick_up_item:
 			/* Pick up the item */
 			item_put (item, (union ItemLoc) { .inv = {LOC_INV, thID, j}});
 			/* Say so */
