@@ -72,7 +72,7 @@ void p_pane (struct Monster *player)
 		if (exp_needed != -1)
 			gra_mvprint (gpan, 8, 3, "Exp     %d (%d)", player->exp, exp_needed);
 		else
-			gra_mvprint (gpan, 8, 3, "Exp     %d", player->exp);
+			gra_mvprint (gpan, 8, 3, "Exp     %d (%c)", player->exp, 0xEC);
 		gra_mvaddch (gpan, 2, 1, '@' | COL_TXT(15,15,15));
 		gra_mvaddch (gpan, 3, 1, 3 | COL_TXT_RED(15));
 		gra_mvaddch (gpan, 4, 1, 5 | COL_TXT_GREEN(15));

@@ -30,7 +30,7 @@ typedef uint32_t gflags;
 typedef struct Graph
 {
 	int h, w, a;        /* graph dimensions */
-	glyph *data;        /* an h*w grid of glyphs */
+	glyph *data, *old;  /* h*w grids of glyphs */
 	gflags *flags;      /* tracks changes and boxes */
 	int cy, cx;         /* camera location */
 	int vy, vx, vh, vw; /* view location and dimensions on the window */
@@ -40,7 +40,7 @@ typedef struct Graph
 	glyph def;          /* default output glyph */
 } *Graph;
 
-/* Boxes */
+/* Boxes */ /*
 typedef enum
 {
 	BOX_NONE = 0,
@@ -51,7 +51,7 @@ typedef enum
 } BoxType;
 
 extern int BOXPOS[BOX_NUM][2];
-extern int BOXCOL[BOX_NUM][3];
+extern int BOXCOL[BOX_NUM][3]; */
 
 void gra_bsetbox (Graph, int, gflags);
 

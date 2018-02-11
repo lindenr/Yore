@@ -48,7 +48,10 @@ void          monsthing_move (struct Monster *, int, int, int);
 void          rem_mid        (MID);
 
 struct Monster *MTHIID       (MID);
-void          draw_map       (struct Monster *);
+void          draw_map       ();
+void          draw_map_xy    (struct DLevel *, int, int);
+void          draw_map_buf   (struct DLevel *, int);
+void          update_knowledge (struct Monster *);
 void          th_init        ();
 
 int           get_thing_type (char);

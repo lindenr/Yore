@@ -38,10 +38,12 @@ void rem_id (TID id)
 {
 	struct Thing *th = THIID(id);
 	struct DLevel *lvl = dlv_lvl (th->dlevel);
-	int n = map_buffer (th->yloc, th->xloc);
+	int y = th->yloc, x = th->xloc;
+	int n = map_buffer (y, x);
 	v_rptr (lvl->things[n], th);
 	thing_watchvec (lvl->things[n]);
 	THIID(id) = NULL;
+	draw_map_buf (lvl, n);
 }
 
 void update_item_pointers (Vector vec)
@@ -61,15 +63,18 @@ void rem_itemid (TID ID)
 		return;
 	int n;
 	Vector items;
+	struct DLevel *lvl = NULL;
 	if (item->loc.loc == LOC_DLVL)
 	{
 		n = map_buffer (item->loc.dlvl.yloc, item->loc.dlvl.xloc);
-		items = dlv_lvl(item->loc.dlvl.dlevel)->items[n];
+		lvl = dlv_lvl(item->loc.dlvl.dlevel);
+		items = lvl->items[n];
 	}
 	else if (item->loc.loc == LOC_FLIGHT)
 	{
 		n = map_buffer (item->loc.fl.yloc, item->loc.fl.xloc);
-		items = dlv_lvl(item->loc.fl.dlevel)->items[n];
+		lvl = dlv_lvl(item->loc.fl.dlevel);
+		items = lvl->items[n];
 	}
 	struct Monster *mons;
 	switch (item->loc.loc)
@@ -81,6 +86,7 @@ void rem_itemid (TID ID)
 		ITEMID(ID) = NULL;
 		v_rem (items, ((uintptr_t)item - (uintptr_t)items->data)/sizeof(*item));
 		update_item_pointers (items);
+		draw_map_buf (lvl, n);
 		return;
 	case LOC_INV:
 		ITEMID(item->ID) = NULL;
@@ -120,15 +126,18 @@ struct Item *instantiate_item (union ItemLoc loc, struct Item *from)
 	struct Item *ret;
 	int n;
 	Vector items;
+	struct DLevel *lvl = NULL;
 	if (loc.loc == LOC_DLVL)
 	{
 		n = map_buffer (loc.dlvl.yloc, loc.dlvl.xloc);
-		items = dlv_lvl(loc.dlvl.dlevel)->items[n];
+		lvl = dlv_lvl(loc.dlvl.dlevel);
+		items = lvl->items[n];
 	}
 	else if (loc.loc == LOC_FLIGHT)
 	{
 		n = map_buffer (loc.fl.yloc, loc.fl.xloc);
-		items = dlv_lvl(loc.fl.dlevel)->items[n];
+		lvl = dlv_lvl(loc.fl.dlevel);
+		items = lvl->items[n];
 	}
 	struct Monster *th;
 	switch (loc.loc)
@@ -142,6 +151,7 @@ struct Item *instantiate_item (union ItemLoc loc, struct Item *from)
 		ret = v_push (items, &it);
 		item_makeID (ret);
 		update_item_pointers (items);
+		draw_map_buf (lvl, n);
 		return ret;
 	case LOC_INV:
 		memcpy (&it, from, sizeof(struct Item));
@@ -208,6 +218,8 @@ struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t
 	ret = v_push (lvl->things[n], &t);
 	v_push (all_ids, &ret);
 	thing_watchvec (lvl->things[n]);
+	lvl->attr[n] = ret->thing.mis.attr & 1;
+	draw_map_buf (lvl, n);
 
 	return ret;
 }
@@ -215,8 +227,11 @@ struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t
 void rem_mid (MID id)
 {
 	struct Monster *th = MTHIID(id);
-	dlv_lvl (th->dlevel)->monsIDs[map_buffer (th->yloc, th->xloc)] = 0;
+	struct DLevel *lvl = dlv_lvl (th->dlevel);
+	int n = map_buffer (th->yloc, th->xloc);
+	lvl->monsIDs[n] = 0;
 	memset (th, 0, sizeof(struct Monster));
+	draw_map_buf (lvl, n);
 	return;
 }
 
@@ -246,6 +261,7 @@ void monsthing_move (struct Monster *thing, int new_level, int new_y, int new_x)
 	thing->yloc = new_y;
 	thing->xloc = new_x;
 	thing->dlevel = new_level;
+	draw_map_buf (nlv, new);
 }
 
 struct Monster *new_mons (struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)
@@ -260,6 +276,7 @@ struct Monster *new_mons (struct DLevel *lvl, uint32_t y, uint32_t x, void *actu
 	if (lvl->monsIDs[n]) panic ("monster already there!");
 	lvl->monsIDs[n] = t.ID;
 	struct Monster *ret = v_push (lvl->mons, &t);
+	draw_map_buf (lvl, n);
 	return ret;
 }
 
@@ -349,18 +366,122 @@ void walls_test ()
 // more restrictive; gives less away
 //#define US(w) ((!sq_cansee[w])*2 + (!sq_attr[w]))
 // better-looking but leaks some info about layout
-#define US(w) (sq_attr[w]?(!sq_cansee[w])*2:1)
+#define US(w) (lvl->attr[w]?(!lvl->seen[w])*2:1)
 
-void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,
-                  glyph *sq_memory, glyph *sq_vis, glyph *sq_nonvis)
+gflags map_flags;
+glyph displayed_glyph (struct DLevel *lvl, int w)
 {
-	int Yloc = player->yloc, Xloc = player->xloc;
-	int Y, X, w;
+	map_flags = 0;
+	/* draw walls */
+	if (lvl->remembered[w] == ACS_WALL)
+	{
+		int Y = w / map_graph->w, X = w % map_graph->w;
+		int h = 0, j = 0, k = 0, l = 0,
+			y = 0, u = 0, b = 0, n = 0;
 
+		if (X)
+			h = US(w - 1);
+		if (Y)
+			k = US(w - map_graph->w);
+		if (X < map_graph->w - 1)
+			l = US(w + 1);
+		if (Y < map_graph->h - 1)
+			j = US(w + map_graph->w);
+		if (X && Y)
+			y = US(w - map_graph->w - 1);
+		if (X < map_graph->w - 1 && Y)
+			u = US(w - map_graph->w + 1);
+		if (X && Y < map_graph->h - 1)
+			b = US(w + map_graph->w - 1);
+		if (X < map_graph->w - 1 && Y < map_graph->h - 1)
+			n = US(w + map_graph->w + 1);
+
+		/* Finally, do the actual drawing of the wall. */
+		glyph output = WALL_TYPE (y, u, h, j, k, l, b, n);
+		if (lvl->seen[w] == 2)
+			output |= COL_TXT_BRIGHT;
+		return output;
+	}
+	/* draw nothing */
+	if (!lvl->seen[w])
+		return ' ';
+	/* draw what you remember */
+	if (lvl->seen[w] == 1)
+		return lvl->remembered[w];
+	
+	/* draw monster */
+	struct Monster *mons = MTHIID(lvl->monsIDs[w]);
+	if (mons)
+	{
+		map_flags = 1 |
+			(1<<12) | ((1+mons->status.moving.ydir)*3 + (1+mons->status.moving.xdir))<<8 |
+			(1<<17) | ((1+mons->status.attacking.ydir)*3 + (1+mons->status.attacking.xdir))<<13;
+		return mons->gl;
+	}
+
+	/* draw topmost item in pile */
+	if (lvl->items[w]->len > 0)
+		return ((struct Item *)v_at (lvl->items[w], lvl->items[w]->len-1))->type.gl;
+
+	/* draw dungeon feature */
+	int i;
+	for (i = 0; i < lvl->things[w]->len; ++ i)
+	{
+		struct Thing *th = v_at (lvl->things[w], i);
+		switch (th->type)
+		{
+		case THING_DGN: ;
+			struct map_item_struct *m = &th->thing.mis;
+			return m->gl;
+		case THING_NONE:
+			printf ("%d %d %d\n", w, i, th->type);
+			getchar ();
+			panic ("default reached in draw_map()");
+			break;
+		}
+	}
+	return 0;
+}
+
+glyph remembered_glyph (struct DLevel *lvl, int w)
+{
+	/* draw nothing */
+	if (!lvl->seen[w])
+		return ' ';
+
+	/* draw topmost item in pile */
+	if (lvl->items[w]->len > 0)
+		return ((struct Item *)v_at (lvl->items[w], lvl->items[w]->len-1))->type.gl;
+
+	/* draw dungeon feature */
+	int i;
+	for (i = 0; i < lvl->things[w]->len; ++ i)
+	{
+		struct Thing *th = v_at (lvl->things[w], i);
+		switch (th->type)
+		{
+		case THING_DGN: ;
+			struct map_item_struct *m = &th->thing.mis;
+			return m->gl == ACS_BIGDOT ? ACS_DOT : m->gl;
+		case THING_NONE:
+			printf ("%d %d %d\n", w, i, th->type);
+			getchar ();
+			panic ("default reached in draw_map()");
+			break;
+		}
+	}
+	return ' ';
+}
+
+void update_knowledge (struct Monster *player)
+{
+	int Y, X, w;
+	int Yloc = player->yloc, Xloc = player->xloc;
+	struct DLevel *level = dlv_lvl (player->dlevel);
 	/* Anything you could see before you can't necessarily now */
 	for (w = 0; w < map_graph->a; ++ w)
-		if (sq_cansee[w] == 2)
-			sq_cansee[w] = 1;
+		if (level->seen[w] == 2)
+			level->seen[w] = 1;
 
 	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
 	// TODO draw more lines (not just starting at player) so that "tile A visible to tile B"
@@ -370,123 +491,39 @@ void set_can_see (struct Monster *player, uint8_t *sq_cansee, uint8_t *sq_attr,
 	// hold if we drew every line through the player, not just those starting there?
 	// TODO maybe add a range limit
 	for (Y = 0, w = 0; Y < map_graph->h; ++Y) for (X = 0; X < map_graph->w; ++X, ++w)
-		bres_draw (Yloc, Xloc, Y, X, map_graph->w, sq_cansee, sq_attr, NULL);
+		bres_draw (Yloc, Xloc, Y, X, map_graph->w, level->seen, level->attr, NULL);
 
-	/* Do the drawing */
-	TID *monsIDs = dlv_lvl(player->dlevel)->monsIDs;
-	for (Y = 0, w = 0; Y < map_graph->h; ++Y)
+	/* draw things you can see */
+	for (w = 0; w < map_graph->a; ++ w)
 	{
-		for (X = 0; X < map_graph->w; ++X, ++w)
-		{
-			struct Monster *mons = MTHIID(monsIDs[w]);
-			if (sq_cansee[w] == 2)
-				sq_memory[w] = sq_nonvis[w];
-
-			if (sq_cansee[w] < 2 && sq_memory[w] != ACS_WALL)
-			{
-				gra_baddch (map_graph, w, sq_memory[w]);
-				continue;
-			}
-			else if (sq_cansee[w] == 2 && mons)
-			{
-				//if (can see monster TODO )
-				gra_bgaddch (map_graph, w, mons->gl);
-				map_graph->flags[w] |= 1 |
-				                       (1<<12) | ((1+mons->status.moving.ydir)*3 +
-				                                  (1+mons->status.moving.xdir)    )<<8 |
-				                       (1<<17) | ((1+mons->status.attacking.ydir)*3 +
-				                                  (1+mons->status.attacking.xdir)    )<<13;
-				continue;
-			}
-			else if (sq_memory[w] != ACS_WALL)
-			{
-				gra_baddch (map_graph, w, sq_vis[w]);
-				continue;
-			}
-			else if (!sq_cansee[w])
-				continue;
-
-			int h = 0, j = 0, k = 0, l = 0,
-				y = 0, u = 0, b = 0, n = 0;
-
-			if (X)
-				h = US(w - 1);
-			if (Y)
-				k = US(w - map_graph->w);
-			if (X < map_graph->w - 1)
-				l = US(w + 1);
-			if (Y < map_graph->h - 1)
-				j = US(w + map_graph->w);
-			if (X && Y)
-				y = US(w - map_graph->w - 1);
-			if (X < map_graph->w - 1 && Y)
-				u = US(w - map_graph->w + 1);
-			if (X && Y < map_graph->h - 1)
-				b = US(w + map_graph->w - 1);
-			if (X < map_graph->w - 1 && Y < map_graph->h - 1)
-				n = US(w + map_graph->w + 1);
-
-			/* Finally, do the actual drawing of the wall. */
-			glyph output = WALL_TYPE (y, u, h, j, k, l, b, n);
-			if (sq_cansee[w] == 2)
-				output |= COL_TXT_BRIGHT;
-			gra_baddch (map_graph, w, output);
-		}
+		if (level->seen[w] == 2)
+			level->remembered[w] = remembered_glyph (level, w);
 	}
 }
 
-uint32_t *gr_vis, *gr_novis;
 void th_init ()
 {
-	gr_vis = malloc (sizeof (*gr_vis) * map_graph->a);
-	gr_novis = malloc (sizeof (*gr_novis) * map_graph->a);
 }
 
-void draw_map (struct Monster *player)
+void draw_map ()
 {
-	struct DLevel *lvl = cur_dlevel;
-	Vector *things = lvl->things;
-	uint8_t *sq_seen = lvl->seen,
-	        *sq_attr = lvl->attr;
-	glyph *sq_unseen = lvl->unseen;
-
-	int i, at;
-	for (at = 0; at < map_graph->a; ++ at)
+	int w;
+	for (w = 0; w < map_graph->a; ++ w)
 	{
-		gr_vis[at] = gr_novis[at] = 0;
-		int item_seen = 0;
-		sq_attr[at] = 0;
-		if (lvl->items[at]->len > 0)
-		{
-			item_seen = 1;
-			gr_vis [at] = gr_novis [at] = ((struct Item *)v_at (lvl->items[at], lvl->items[at]->len-1))->type.gl;
-		}
-		for (i = 0; i < things[at]->len; ++ i)
-		{
-			struct Thing *th = THING(things, at, i);
-			sq_attr [at] = 1;
-			switch (th->type)
-			{
-			case THING_DGN:
-				if (item_seen)
-					break;
-				struct map_item_struct *m = &th->thing.mis;
-				if (m->gl == ACS_BIGDOT)
-				{
-					gr_vis [at] = ACS_BIGDOT;
-					gr_novis [at] = ACS_DOT;
-				}
-				else
-					gr_vis [at] = gr_novis [at] = m->gl;
-				sq_attr[at] &= m->attr & 1;
-				break;
-			case THING_NONE:
-				printf ("%d %d %d\n", at, i, th->type);
-				getchar ();
-				panic ("default reached in draw_map()");
-			}
-		}
+		gra_baddch (map_graph, w, displayed_glyph (cur_dlevel, w));
+		map_graph->flags[w] |= map_flags;
 	}
-	set_can_see (player, sq_seen, sq_attr, sq_unseen, gr_vis, gr_novis);
+}
+
+void draw_map_xy (struct DLevel *lvl, int y, int x)
+{
+	int w = map_buffer (y, x);
+	draw_map_buf (lvl, w);
+}
+
+void draw_map_buf (struct DLevel *lvl, int w)
+{
+	gra_baddch (map_graph, w, displayed_glyph (cur_dlevel, w));
+	map_graph->flags[w] |= map_flags;
 }
 

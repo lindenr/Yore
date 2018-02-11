@@ -22,7 +22,7 @@ Tick ev_delay (union Event *event)
 	case EV_WORLD_HEARTBEAT:
 		return 0;
 	case EV_MTHROW:
-		return (MTHIID(event->mdrop.thID))->speed;
+		return (MTHIID(event->mdrop.thID))->speed /2;
 	case EV_PROJ_MOVE:
 	case EV_PROJ_DONE:
 	case EV_PROJ_HIT_BARRIER:
@@ -154,10 +154,12 @@ void ev_do (Event ev)
 	case EV_PLAYER_INIT:
 		mons = gen_player (50, 150, player_name);
 		ev_mons_start (mons);
+		update_knowledge (mons);
 
 #ifdef TWOPLAYER
 		mons = gen_player (52, 153, "Player 2");
 		ev_mons_start (mons);
+		update_knowledge (mons);
 #endif
 		
 		mons = gen_boss (57, 160);
@@ -170,13 +172,12 @@ void ev_do (Event ev)
 				continue;
 			ev_mons_start (mons);
 		}*/
+		draw_map ();
 		return;
 	case EV_WORLD_HEARTBEAT:
 		/* monster generation */
 		if (!rn(3))
 			ev_queue (0, (union Event) { .mgen = {EV_MGEN}});
-		/* re-eval paths to player */
-		dlv_fill_player_dist (cur_dlevel);
 		/* next heartbeat */
 		ev_queue (1000, (union Event) { .world_heartbeat = {EV_WORLD_HEARTBEAT}});
 		return;
@@ -226,6 +227,8 @@ void ev_do (Event ev)
 		if (thID)
 			ev_queue (0, (union Event) { .proj_hit_monster = {EV_PROJ_HIT_MONSTER, itemID, thID}});
 		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, itemID}});
+		draw_map ();
+		gr_refresh ();
 		return;
 	case EV_PROJ_DONE:
 		itemID = ev->proj_done.itemID;
@@ -311,6 +314,13 @@ void ev_do (Event ev)
 		if (can == 1)
 			monsthing_move (mons, mons->dlevel, ydest, xdest);
 		//else: tried and failed to move TODO
+		if (mons_isplayer (mons))
+		{
+			/* check what the player can see now */
+			update_knowledge (mons);
+			/* re-eval paths to player */
+			dlv_fill_player_dist (cur_dlevel);
+		}
 		return;
 	case EV_MEVADE:
 		thID = ev->mevade.thID;
@@ -470,6 +480,10 @@ void ev_do (Event ev)
 		mons = MTHIID(ev->mturn.thID);
 		if (!mons)
 			return;
+		if (mons_isplayer (mons))
+		{
+			draw_map ();
+		}
 		mons_take_turn (mons);
 		return;
 	case EV_MGEN:

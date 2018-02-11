@@ -58,7 +58,7 @@ void dlv_make (int level, int uplevel, int dnlevel)
 	memset (new_level.monsIDs, 0, sizeof(TID)*map_graph->a);
 	memset (new_level.seen, 0, sizeof(uint8_t)*map_graph->a);
 	memset (new_level.attr, 0, sizeof(uint8_t)*map_graph->a);
-	memset (new_level.unseen, 0, sizeof(glyph)*map_graph->a);
+	memset (new_level.remembered, 0, sizeof(glyph)*map_graph->a);
 	v_push (all_dlevels, &new_level);
 }
 
@@ -152,7 +152,7 @@ void dlv_fill_player_dist (struct DLevel *dlv)
 			if (current == -1 &&
 				ylocs[cur_back]+y+1 < map_graph->h && ylocs[cur_back]+y-1 >= 0 &&
 				xlocs[cur_back]+x+1 < map_graph->w && xlocs[cur_back]+x-1 >= 0 &&
-				can_amove (get_sqattr (cur_dlevel, ylocs[cur_back]+y, xlocs[cur_back]+x)) == 1)
+				can_amove (get_sqattr (cur_dlevel, ylocs[cur_back]+y, xlocs[cur_back]+x)))
 			{
 				ylocs[cur_loc] = ylocs[cur_back]+y;
 				xlocs[cur_loc] = xlocs[cur_back]+x;

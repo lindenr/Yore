@@ -10,7 +10,7 @@
 #define XSTRINGIFY(x) STRINGIFY(x)
 #define STRINGIFY(x) #x
 #define TILE_FILE "t"XSTRINGIFY(GLW)"x"XSTRINGIFY(GLH)".bmp"
-
+/*
 int BOXPOS[BOX_NUM][2] = {
 	{0, 0},
 	{0, 0},
@@ -23,7 +23,7 @@ int BOXCOL[BOX_NUM][3] = {
 	{150, 0, 0},
 	{0, 100, 200},
 	{255, 90, 50}
-};
+};*/
 
 int forced_refresh = 0;
 
@@ -87,11 +87,17 @@ void gra_centcam (Graph gra, int yloc, int xloc)
 
 void gra_baddch (Graph gra, int buf, glyph gl)
 {
-	if (gl > 0 && gl < 256) gl |= gra->def & 0xFFFFFF00;
-	gra->flags[buf] &= 1;
+	/* what do you actually want to draw? */
+	if (gl > 0 && gl < 256)
+		gl |= gra->def & 0xFFFFFF00;
+	/* only care about the changed flag if there are other pixels */
+	if (gra->flags[buf])
+		gra->flags[buf] = 1;
+	/* if the same then don't bother */
 	if (gra->data[buf] == gl) return;
+	/* update current to new */
 	gra->data[buf] = gl;
-	gra->flags[buf] = 1;
+	/* transparent */
 	if (gl == 0)
 	{
 		int gra_y = buf/gra->w, gra_x = buf%gra->w;
@@ -103,12 +109,19 @@ void gra_baddch (Graph gra, int buf, glyph gl)
 
 void gra_bgaddch (Graph gra, int buf, glyph gl)
 {
-	if (gl > 0 && gl < 256) gl |= gra->def & 0xFFFFFF00;
-	if ((gl&COL_BG_MASK) == 0) gl |= gra->data[buf] & COL_BG_MASK;
-	gra->flags[buf] &= 1;
+	/* what do you actually want to draw? */
+	if (gl > 0 && gl < 256)
+		gl |= gra->def & 0xFFFFFF00;
+	if ((gl&COL_BG_MASK) == 0)
+		gl |= gra->data[buf] & COL_BG_MASK;
+	/* only care about the changed flag if there are other pixels */
+	if (gra->flags[buf])
+		gra->flags[buf] = 1;
+	/* if the same then don't bother */
 	if (gra->data[buf] == gl) return;
+	/* update current to new */
 	gra->data[buf] = gl;
-	gra->flags[buf] = 1;
+	/* transparent */
 	if (gl == 0)
 	{
 		int gra_y = buf/gra->w, gra_x = buf%gra->w;
@@ -288,18 +301,18 @@ void gra_mark (Graph gra, int yloc, int xloc)
 {
 	gra->flags[gra_buffer(gra, yloc, xloc)] |= 1;
 }
-
+/*
 void gra_bsetbox (Graph gra, int b, gflags flags)
 {
 	gra->flags[b] = 1|flags;
-}
+}*/
 
 #define setpixel(y,x) {*(uint32_t*) ((uint8_t*) pixels + 4*(x) + screen->pitch*(y)) = col;}
 void gr_drawboxes (int y, int x, gflags f)
 {
 	if (SDL_MUSTLOCK (screen)) // TODO draw all boxes under one lock
 		SDL_LockSurface (screen);
-	int type;
+	/*int type;
 	for (type = 1; type < 8; ++ type)
 	{
 		if (!(f&(1<<type))) continue;
@@ -308,7 +321,7 @@ void gr_drawboxes (int y, int x, gflags f)
 		uint32_t *pixels = (uint32_t *) ((uintptr_t) screen->pixels + py*screen->pitch + px*4);
 		uint32_t col = SDL_MapRGB (screen->format, r, g, b);
 		setpixel(0,0); setpixel(0,1); setpixel(1,0); setpixel(1,1);
-	}
+	}*/
 
 	int ismoving = 1 & (f>>12), isattacking = 1 & (f>>17), code, px, py, i;
 	uint32_t col, *pixels;
@@ -400,7 +413,8 @@ void gr_refresh ()
 				int gr_c = gr_buffer (gr_y, gr_x);
 				if (gra_c != -1 && gr_c != -1)
 				{
-					if ((gra->flags[gra_c]&1) || forced_refresh || gr_flags[gr_c])
+					if ((gra->flags[gra_c]&1) || forced_refresh || gr_flags[gr_c] ||
+						gra->old[gra_c] != gra->data[gra_c])
 					{
 						glyph gl = gra->data[gra_c];
 						if (gra->csr_state && gra->csr_y == gra_y && gra->csr_x == gra_x)
@@ -415,6 +429,7 @@ void gr_refresh ()
 						}
 						else
 							gr_flags[gr_c] |= 1;
+						gra->old[gra_c] = gl;
 					}
 				}
 				gra->flags[gra_c] &= (~1);
@@ -428,12 +443,21 @@ void gr_refresh ()
 #endif
 	int gr_c = 0;
 	int drawn = 0;
+	int lmost = gr_w-1, rmost = 0, umost = gr_h-1, dmost = 0;
 	for (y = 0; y < gr_h; ++ y)
 	{
 		for (x = 0; x < gr_w; ++ x, ++ gr_c)
 		{
 			if (gr_flags[gr_c] || forced_refresh)
 			{
+				if (umost > y)
+					umost = y;
+				if (dmost < y)
+					dmost = y;
+				if (lmost > x)
+					lmost = x;
+				if (rmost < x)
+					rmost = x;
 				++ drawn;
 				blit_glyph (gr_map[gr_c], y, x);
 				gflags f = gr_flags[gr_c];
@@ -447,16 +471,34 @@ void gr_refresh ()
 
 	//fprintf(stderr, "visible: %d\n", gr_c);
 	//fprintf(stderr, "drawn: %d\n", drawn);
-	SDL_UpdateTexture (sdlTexture, NULL, screen->pixels, screenX * sizeof(Uint32));
 	if (gr_onrefresh)
 		gr_onrefresh ();
+	if (drawn || forced_refresh)
+	{
+		if (forced_refresh)
+			SDL_UpdateTexture (sdlTexture, NULL, screen->pixels, screenX * sizeof(Uint32));
+		else
+		{
+			//int asdf = gr_getms();
+			SDL_Rect rect = {lmost * GLW, umost * GLH,
+				(rmost + 1 - lmost) * GLW, (dmost + 1 - umost) * GLH};
+			void *pixels;
+			int pitch;
+			SDL_LockTexture (sdlTexture, &rect, &pixels, &pitch);
+			for (y = 0; y < rect.h; ++ y)
+				memcpy (pixels + pitch*y, screen->pixels + 4*rect.x + screen->pitch*(y+rect.y), 4*rect.w);
+			SDL_UnlockTexture (sdlTexture);
+			//printf ("area %d took %d (%d %d %d %d)\n", rect.w * rect.h, gr_getms() - asdf,
+			//	lmost, rmost, umost, dmost);
+		}
 
+		SDL_RenderClear (sdlRenderer);
+		SDL_RenderCopy (sdlRenderer, sdlTexture, NULL, NULL);
+		SDL_RenderPresent (sdlRenderer);
+	}
 	forced_refresh = 0;
-	SDL_RenderClear (sdlRenderer);
-	SDL_RenderCopy (sdlRenderer, sdlTexture, NULL, NULL);
-	SDL_RenderPresent (sdlRenderer);
 #ifdef DEBUG_REFRESH_TIME
-	fprintf(stderr, "time: %ums\n", gr_getms() - asdf);
+	fprintf(stderr, "time: %ums\n\n", gr_getms() - asdf);
 #endif
 }
 
@@ -522,8 +564,8 @@ char gr_getch_aux (int text)
 {
 	uint32_t ticks = gr_getms ();
 #ifdef DEBUG_REFRESH_TIME
-	fprintf(stderr, "Time since last getch: %d\n", ticks - lastref);
-	lastref = ticks;
+	//fprintf(stderr, "Time since last getch: %d\n", ticks - lastref);
+	//lastref = ticks;
 #endif
 	gr_refresh ();
 
@@ -788,13 +830,15 @@ Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
 	int a = h*w;
 
 	glyph *data = malloc (sizeof(glyph) * a);
+	glyph *old = malloc (sizeof(glyph) * a);
 	gflags *flags = malloc (sizeof(gflags) * a);
 
 	memset (data, 0, sizeof(glyph) * a);
+	memset (old, 0, sizeof(glyph) * a);
 	memset (flags, 0, sizeof(gflags) * a);
 	
 	gra = malloc (sizeof(struct Graph));
-	struct Graph from = {h, w, a, data, flags, 0, 0, vy, vx, vh, vw, 1, 0, 0, 0, COL_TXT_DEF};
+	struct Graph from = {h, w, a, data, old, flags, 0, 0, vy, vx, vh, vw, 1, 0, 0, 0, COL_TXT_DEF};
 	memcpy (gra, &from, sizeof(struct Graph));
 
 	if (!graphs)
@@ -815,6 +859,7 @@ void gra_free (Graph gra)
 		if (gra == *(Graph*)v_at(graphs, i))
 		{
 			free (gra->data);
+			free (gra->old);
 			free (gra->flags);
 			free (gra);
 			v_rem (graphs, i);

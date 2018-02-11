@@ -14,9 +14,9 @@
 
 #define MAX_BOX_LENGTH 40
 
-#define COL_STATUS     0xBBB00000
-#define COL_PANEL      0xBBB00000
-#define COL_SKILLS     0xFB000000
+#define COL_STATUS     0xBBB22200
+#define COL_PANEL      0xBBB00020
+#define COL_SKILLS     0xBBB11100
 
 /* These crazy spellings... */
 #if !defined(AMERICAN)

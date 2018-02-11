@@ -543,7 +543,7 @@ int pl_take_turn (struct Monster *player)
 		gra_centcam (map_graph, player->yloc, player->xloc);
 	while (1)
 	{
-		draw_map (player);
+		//draw_map ();
 		p_pane (player);
 
 		gra_cmove (map_graph, player->yloc, player->xloc);

@@ -58,7 +58,7 @@ void sk_fireball (struct Monster *mons, int yloc, int xloc, Skill sk)
 	if (mons->MP < 5)
 		return;
 	mons->MP -= 5;
-	ev_queue (mons->speed, (union Event) { .mfireball = {EV_MFIREBALL, mons->ID, yloc, xloc}});
+	ev_queue (mons->speed/2, (union Event) { .mfireball = {EV_MFIREBALL, mons->ID, yloc, xloc}});
 	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 }
 
@@ -67,7 +67,7 @@ void sk_water_bolt (struct Monster *mons, int yloc, int xloc, Skill sk)
 	if (mons->MP < 6)
 		return;
 	mons->MP -= 6;
-	ev_queue (mons->speed, (union Event) { .mwater_bolt = {EV_MWATER_BOLT, mons->ID, yloc, xloc}});
+	ev_queue (mons->speed/2, (union Event) { .mwater_bolt = {EV_MWATER_BOLT, mons->ID, yloc, xloc}});
 	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 }
 

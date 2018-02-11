@@ -37,7 +37,7 @@ bool nogen (int mons_id)
 	return false;
 }
 
-const int explevel[] = {0, 20, 40, 80, 160, 320};
+const int explevel[] = {0, 20, 40, 80, 160, 320, 640, 1250, 2500, 5000, 10000};
 const int maxlevel = sizeof(explevel)/sizeof(explevel[0]);
 
 int mons_gen_type ()
@@ -440,6 +440,12 @@ void mons_exercise (struct Monster *from, struct Item *with)
 		sk = v_push (from->skills, &add);
 	}
 	sk->exp ++;
+	int level = mons_level (sk->exp);
+	if (level != sk->level)
+	{
+		sk->level = level;
+		p_msg ("Congratulations! Your %s is now level %d!", sk_name (sk), level);
+	}
 }
 
 int mons_hitm (struct Monster *from, struct Monster *to, struct Item *with)
@@ -508,14 +514,14 @@ void mons_level_up (struct Monster *mons)
 {
 	mons->level ++;
 	if (mons->level < mons_level (mons->exp))
-		mons->exp = explevel[mons->level+1]-1;
+		mons->exp = explevel[mons->level]-1;
 	p_msg ("Level up! The %s is now level %d.", mons->mname, mons->level);
 	/* stats */
 	mons->str ++;
 	mons->con ++;
 	mons->wis ++;
 	mons->agi ++;
-	draw_map (mons);
+	//draw_map ();
 	p_pane (mons);
 	pl_choose_attr_gain (mons, 1);
 	mons_stats_changed (mons);

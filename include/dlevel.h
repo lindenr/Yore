@@ -28,7 +28,7 @@ struct DLevel
 	uint8_t *attr;
 
 /* What to see instead if it turns out that we can't remember something */
-	glyph *unseen;
+	glyph *remembered;
 
 	int uplevel, dnlevel;
 };

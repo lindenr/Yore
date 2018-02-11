@@ -61,7 +61,7 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 		// const char *str = itoa((item->attr&ITEM_PLUS(3)>>3))
 		char ench_string[20] = "";
 		if (item->attk)
-			snprintf (ench_string, 20, " (%d attk)", item->attk);
+			snprintf (ench_string, 20, " (%d dmg)", item->attk);
 		else if (item->def)
 			snprintf (ench_string, 20, " (%d def)", item->def);
 		snprintf (temp, 128, "%s%s%s%s%s%s%s",
@@ -74,11 +74,11 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 		         /* name */
 				 item->type.name,
 		         item->stacksize == 1 ? "" : "s",
+		         /* enchantment value */
+				 ench_string,
 		         /* wielded */
 		         (item->loc.loc == LOC_WIELDED) ? " (wielded)" : "",
-				 item_worn(item) ? " (being worn)" : "",
-		         /* enchantment value */
-				 ench_string
+				 item_worn(item) ? " (being worn)" : ""
 				 );
 		w_some (ret, temp, item->stacksize, 128);
 	}
