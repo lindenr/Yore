@@ -393,8 +393,8 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FROST, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
 	struct Monster *pl = new_mons (cur_dlevel, upsy, upsx, &m1);
-	struct Item myitem = new_item (ityps[ITYP_GOLD_PIECE]);
-	myitem.stacksize = rn(80);
+	int num = rn(40)+20;
+	struct Item myitem = new_items (ityps[ITYP_GOLD_PIECE], num);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}});
 	struct Item myaxe = new_item (ityps[ITYP_DAGGER]);
 	item_put (&myaxe, (union ItemLoc) { .dlvl = {LOC_DLVL, cur_dlevel->level, 52, 152}});

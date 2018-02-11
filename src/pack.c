@@ -141,6 +141,7 @@ bool pack_add (Pack **ppack, struct Item *it, int u)
 	if (!it_can_merge (MTHIID(pack->items[u].loc.inv.monsID), &pack->items[u], it))
 		return false;
 	pack->items[u].stacksize += it->stacksize;
+	pack->items[u].cur_weight += it->cur_weight;
 	return true;
 }
 

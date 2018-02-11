@@ -100,8 +100,8 @@ void mons_corpse (struct Monster *mons, struct Item *item)
 {
 	if (mons->type == MTYP_skeleton || mons->type == MTYP_lich)
 	{
-		*item = new_item (ityps[ITYP_BONE]);
-		item->stacksize = rn(6) + 1;
+		int num = rn(4) + 3;
+		*item = new_items (ityps[ITYP_BONE], num);
 		return;
 	}
 	/* fill in the data */

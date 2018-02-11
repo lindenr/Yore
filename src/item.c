@@ -37,8 +37,8 @@ Ityp ityps[] = {
 	ITYP("gold piece",     ITSORT_MONEY,      1,     0,  0,      ITCH_DOSH   | COL_TXT(15,15, 0), 1),
 	ITYP("bone",           ITSORT_BONE,       100,   0,  0,      ITCH_CORPSE | COL_TXT(15,15,15), 1),
 	ITYP("fireball",       ITSORT_ARCANE,     0,     0,  0,      0x09        | COL_TXT(15, 4, 0), 0),
-	ITYP("water bolt",     ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 4,15), 0),
-	ITYP("ice bolt",       ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 8,15), 0),
+	ITYP("water bolt",     ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 8,15), 0),
+	ITYP("ice bolt",       ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 15,15), 0),
 	ITYP("",               ITSORT_NONE,       0,     0,  0,      0                              , 0)
 /*  item name              type              weight attributes     display                      */
 };
@@ -108,10 +108,15 @@ char *get_inv_line (const struct Item *item)
 
 void item_gen (union ItemLoc loc)
 {
+	struct Item item;
 	enum ITEM_TYPE typ = rn(12);
-	struct Item item = new_item (ityps[typ]);
 	if (typ == ITYP_GOLD_PIECE)
-		item.stacksize = rn(50);
+	{
+		int stacksize = rn(50)+30;
+		item = new_items (ityps[typ], stacksize);
+	}
+	else
+		item = new_item (ityps[typ]);
 	item_put (&item, loc);
 }
 

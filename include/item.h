@@ -159,8 +159,9 @@ struct Item
 
 extern Ityp ityps[];
 
-#define new_item(ityp) ((struct Item)\
-	{0, { .loc = LOC_NONE}, (ityp), (ityp).wt, NULL, 0, (ityp).attk, (ityp).def, -1, 1})
+#define new_items(ityp,stacksize) ((struct Item)\
+	{0, { .loc = LOC_NONE}, (ityp), (ityp).wt * (stacksize), NULL, 0, (ityp).attk, (ityp).def, -1, stacksize})
+#define new_item(ityp) new_items(ityp, 1)
 
 extern struct Item no_item;
 

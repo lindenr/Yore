@@ -421,7 +421,12 @@ glyph displayed_glyph (struct DLevel *lvl, int w)
 
 	/* draw topmost item in pile */
 	if (lvl->items[w]->len > 0)
-		return ((struct Item *)v_at (lvl->items[w], lvl->items[w]->len-1))->type.gl;
+	{
+		struct Item *item = v_at (lvl->items[w], lvl->items[w]->len-1);
+		if (item->loc.loc == LOC_FLIGHT)
+			return item->type.gl | COL_BG (5,5,5);
+		return item->type.gl;
+	}
 
 	/* draw dungeon feature */
 	int i;
