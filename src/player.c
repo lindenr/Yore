@@ -261,10 +261,23 @@ int Knlook (struct Monster *player)
 {
 	int k = 0;
 	int n = map_buffer (player->yloc, player->xloc);
-	Vector items = cur_dlevel->items[n];
+	struct DLevel *lvl = dlv_lvl (player->dlevel);
+	Vector items = lvl->items[n];
+	Vector things = lvl->things[n];
 	Vector list = v_dinit (256);
 
 	int i;
+	for (i = 0; i < things->len; ++ i)
+	{
+		struct Thing *th = v_at (things, i);
+		struct map_item_struct *m = &th->thing.mis;
+		if (m->gl == map_items[DGN_SLIME].gl)
+		{
+			v_pstr (list, "There is slime on the ground here.");
+			++ k;
+		}
+	}
+
 	for (i = 0; i < items->len; ++ i)
 	{
 		struct Item *it = v_at(items, i);

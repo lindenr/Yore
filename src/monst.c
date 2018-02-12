@@ -42,6 +42,7 @@ const int maxlevel = sizeof(explevel)/sizeof(explevel[0]);
 
 int mons_gen_type ()
 {
+	//return MTYP_slime_rat;
 	int i, array[MTYP_NUM_MONS];
 	int level = MTHIID(*(TID*)v_at(cur_dlevel->playerIDs,0))->level;
 	uint32_t p_exp = level < maxlevel ? explevel[level] : explevel[maxlevel-1]*2;
