@@ -31,8 +31,10 @@ Ityp ityps[] = {
 	ITYP("dagger",         ITSORT_DAGGER,     100,   6,  0,      ITCH_WEAPON | COL_TXT( 0,11, 0), 0),
 	ITYP("short sword",    ITSORT_SHORTSWORD, 2000,  8,  0,      ITCH_WEAPON | COL_TXT(11, 8, 0), 0),
 	ITYP("glove",          ITSORT_GLOVE,      70,    0,  1,      ITCH_ARMOUR | COL_TXT( 0,11, 0), 0),
+	ITYP("cloth tunic",    ITSORT_TUNIC,      100,   0,  1,      ITCH_ARMOUR | COL_TXT(11, 8, 0), 0),
 	ITYP("chain mail",     ITSORT_MAIL,       5000,  0,  8,      ITCH_ARMOUR | COL_TXT( 8, 8, 8), 0),
 	ITYP("plate mail",     ITSORT_MAIL,       8000,  0,  9,      ITCH_ARMOUR | COL_TXT( 8,11, 0), 0),
+	ITYP("leather hat",    ITSORT_HELM,       50,    0,  1,      ITCH_ARMOUR | COL_TXT( 8, 8, 2), 0),
 	ITYP("helmet",         ITSORT_HELM,       2000,  0,  3,      ITCH_ARMOUR | COL_TXT(11,11, 2), 0),
 	ITYP("gold piece",     ITSORT_MONEY,      1,     0,  0,      ITCH_DOSH   | COL_TXT(15,15, 0), 1),
 	ITYP("bone",           ITSORT_BONE,       100,   0,  0,      ITCH_CORPSE | COL_TXT(15,15,15), 1),
@@ -114,7 +116,7 @@ char *get_inv_line (const struct Item *item)
 void item_gen (union ItemLoc loc)
 {
 	struct Item item;
-	enum ITEM_TYPE typ = rn(12);
+	enum ITEM_TYPE typ = rn(14);
 	if (typ == ITYP_GOLD_PIECE)
 	{
 		int stacksize = rn(50)+30;

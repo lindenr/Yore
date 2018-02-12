@@ -50,13 +50,12 @@ int item_type_flags (struct Item *item, uint32_t accepted)
 	return -1;
 }
 
-int add_contents (Vector inv, Pack *pack, uint32_t accepted)
+int add_contents (char *inv, Pack *pack, uint32_t accepted)
 {
 	if (!pack)
 		return 0;
 	
 	int i, num_items = 0;
-	struct MenuOption m;
 	for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
 	{
 		struct Item *packitem = &pack->items[i];
@@ -66,17 +65,18 @@ int add_contents (Vector inv, Pack *pack, uint32_t accepted)
 		{
 			if (!num_items)
 			{
-				m = (struct MenuOption) {0, {0,}, NULL};
-				gr_ext (m.ex_str, item_appearance [packitem->type.gl & 0xFF], 0x000BBB00);
-				v_push (inv, &m);
+				strcat (inv, "#n000BBB00");
+				strcat (inv, item_appearance [packitem->type.gl & 0xFF]);
+				strcat (inv, "#nBBB00000\n");
 			}
-			m = (struct MenuOption) {get_Itref (packitem), {0,}, NULL};
 			char *line = get_near_desc (MTHIID(packitem->loc.inv.monsID), packitem);
-			gr_ext (&m.ex_str[2], line, 0);
-			m.ex_str[0] = packitem->type.gl;
-			m.ex_str[1] = ' ';
+			char option[] = {'#', 'o', get_Itref (packitem), '#', 'g', 0};
+			strcat (inv, option);
+			strcat (inv, gl_format (packitem->type.gl));
+			strcat (inv, " ");
+			strcat (inv, line);
+			strcat (inv, "\n");
 			free (line);
-			v_push (inv, &m);
 			++ num_items;
 		}
 	}
@@ -85,33 +85,25 @@ int add_contents (Vector inv, Pack *pack, uint32_t accepted)
 
 char show_contents (Pack *pack, uint32_t accepted, char *msg)
 {
-	Vector inv;
+	char *format = malloc(1024);
+	format[0] = 0;
+	strcat (format, "#c");
+	strcat (format, msg);
+	strcat (format, "\n\n");
 	int num_items = 0;
-	char first[40] = "                                       ";
 
-	inv = v_init (sizeof(struct MenuOption), MAX_ITEMS_IN_PACK);
-
-	int msglen = strlen(msg);
-	snprintf (first + (40-msglen)/2, 40, "%s", msg);
-	struct MenuOption m = (struct MenuOption) {0, {0,}, NULL};
-	gr_ext (m.ex_str, first, COL_TXT_BRIGHT);
-	v_push (inv, &m);
-	m = (struct MenuOption) {0, {0,}, NULL};
-	v_push (inv, &m);
-	num_items += add_contents (inv, pack, accepted & ITCAT_DOSH);
-	num_items += add_contents (inv, pack, accepted & ITCAT_WEAPON);
-	num_items += add_contents (inv, pack, accepted & ITCAT_ARMOUR);
-	num_items += add_contents (inv, pack, accepted & ITCAT_FOOD);
+	num_items += add_contents (format, pack, accepted & ITCAT_DOSH);
+	num_items += add_contents (format, pack, accepted & ITCAT_WEAPON);
+	num_items += add_contents (format, pack, accepted & ITCAT_ARMOUR);
+	num_items += add_contents (format, pack, accepted & ITCAT_FOOD);
 	if (!num_items)
 	{
-		v_free (inv);
+		free (format);
 		p_msg ("No valid items.");
 		return ' ';
 	}
-	m = (struct MenuOption) {0, {0,}, NULL};
-	v_push (inv, &m);
-	char out = p_menuex (inv);
-	v_free (inv);
+	char out = p_formatted (format);
+	free (format);
 	return out;
 }
 

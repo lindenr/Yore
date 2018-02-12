@@ -49,7 +49,23 @@ struct MenuOption
 	char *desc;
 };
 
+enum P_FORMAT
+{
+	FMT_LEFT = 0,
+	FMT_CENTRE,
+	FMT_RIGHT,
+	FMT_MENUOPTION
+};
+
+struct FormattedGlyph
+{
+	glyph gl;
+	enum P_FORMAT fmt;
+};
+
+char *gl_format (glyph gl);
 char p_menuex   (Vector);
+char p_formatted(const char *);
 int  p_status   (struct Monster *, enum PanelType);
 int  p_skills   (struct Monster *, enum PanelType);
 void p_mvchoose (struct Monster *, int *, int *, const char *, const char *,
@@ -65,6 +81,26 @@ extern int p_width, p_height
 ;
 
 extern Graph gpan;
+
+struct Item;
+/* effects the player might observe */
+void eff_mons_fail_throw (struct Monster *mons, struct Item *item);
+void eff_item_dissipates (struct Item *item);
+void eff_item_absorbed (struct Item *item);
+void eff_item_hits_wall (struct Item *item);
+void eff_proj_misses_mons (struct Item *item, struct Monster *mons);
+void eff_proj_hits_mons (struct Item *item, struct Monster *mons, int damage);
+void eff_mons_tiredly_misses_mons (struct Monster *fr, struct Monster *to);
+void eff_mons_misses_mons (struct Monster *fr, struct Monster *to);
+void eff_mons_just_misses_mons (struct Monster *fr, struct Monster *to);
+void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage);
+void eff_mons_kills_mons (struct Monster *fr, struct Monster *to);
+void eff_mons_picks_up_item (struct Monster *mons, struct Item *item);
+void eff_mons_wields_item (struct Monster *mons, struct Item *item);
+void eff_mons_wears_item (struct Monster *mons, struct Item *item);
+void eff_mons_takes_off_item (struct Monster *mons, struct Item *item);
+void eff_mons_angers_mons (struct Monster *fr, struct Monster *to);
+void eff_mons_calms (struct Monster *mons);
 
 #endif /* PANEL_H_INCLUDED */
 

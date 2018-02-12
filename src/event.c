@@ -193,7 +193,7 @@ void ev_do (Event ev)
 		int speed = mons_throwspeed (mons, item);
 		if (speed <= 0)
 		{
-			p_msg ("The %s fails to throw the %s.", mons->mname, item->type.name);
+			eff_mons_fail_throw (mons, item);
 			return;
 		}
 		loc = (union ItemLoc) { .fl =
@@ -235,7 +235,8 @@ void ev_do (Event ev)
 		item = ITEMID(itemID);
 		if (item->type.type == ITSORT_ARCANE)
 		{
-			p_msg ("The %s dissipates.", item->type.name);
+			//p_msg ("The %s dissipates.", item->type.name);
+			eff_item_dissipates (item);
 			item_free (item);
 			return;
 		}
@@ -248,11 +249,13 @@ void ev_do (Event ev)
 		item = ITEMID(itemID);
 		if (item->type.type == ITSORT_ARCANE)
 		{
-			p_msg ("The %s is absorbed.", item->type.name);
+			//p_msg ("The %s is absorbed.", item->type.name);
+			eff_item_absorbed (item);
 			item_free (item);
 			return;
 		}
-		p_msg ("The %s hits the wall.", item->type.name);
+		//p_msg ("The %s hits the wall.", item->type.name);
+		eff_item_hits_wall (item);
 		item_put (item, (union ItemLoc) { .dlvl =
 			{LOC_DLVL, item->loc.fl.dlevel, item->loc.fl.yloc, item->loc.fl.xloc}});
 		return;
@@ -269,11 +272,13 @@ void ev_do (Event ev)
 			{EV_MANGERM, item->loc.fl.frID, monsID}}); /* anger to-mons */
 		if (!proj_hitm (item, mons))
 		{
-			p_msg ("The %s misses the %s!", item->type.name, mons->mname); /* notify */
+			//p_msg ("The %s misses the %s!", item->type.name, mons->mname); /* notify */
+			eff_proj_misses_mons (item, mons);
 			return;
 		}
 		damage = proj_hitdmg (item, mons);
-		p_msg ("The %s hits the %s for %d!", item->type.name, mons->mname, damage); /* notify */
+		//p_msg ("The %s hits the %s for %d!", item->type.name, mons->mname, damage); /* notify */
+		eff_proj_hits_mons (item, mons, damage);
 		mons->HP -= damage;
 		if (mons->HP <= 0)
 			ev_queue (0, (union Event) { .mkillm =
@@ -398,22 +403,26 @@ void ev_do (Event ev)
 		int stamina_cost = mons_ST_hit (fr, with);
 		if (fr->ST < stamina_cost)
 		{
-			p_msg ("The %s tiredly misses the %s!", fr->mname, to->mname); /* notify */
+			//p_msg ("The %s tiredly misses the %s!", fr->mname, to->mname); /* notify */
+			eff_mons_tiredly_misses_mons (fr, to);
 			return;
 		}
 		fr->ST -= stamina_cost;
 		if (!mons_hitm (fr, to, with))
 		{
-			p_msg ("The %s misses the %s!", fr->mname, to->mname); /* notify */
+			//p_msg ("The %s misses the %s!", fr->mname, to->mname); /* notify */
+			eff_mons_misses_mons (fr, to);
 			return;
 		}
 		damage = mons_hitdmg (fr, to, with);
 		if (damage == 0)
 		{
-			p_msg ("The %s just misses the %s!", fr->mname, to->mname); /* notify */
+			//p_msg ("The %s just misses the %s!", fr->mname, to->mname); /* notify */
+			eff_mons_just_misses_mons (fr, to);
 			return;
 		}
-		p_msg ("The %s hits the %s for %d!", fr->mname, to->mname, damage); /* notify */
+		//p_msg ("The %s hits the %s for %d!", fr->mname, to->mname, damage); /* notify */
+		eff_mons_hits_mons (fr, to, damage);
 		to->HP -= damage;
 		if (to->HP <= 0)
 		{
@@ -427,7 +436,8 @@ void ev_do (Event ev)
 		fr = MTHIID(ev->mkillm.frID); to = MTHIID(ev->mkillm.toID);
 		if ((!fr) || (!to))
 			return;
-		p_msg ("The %s kills the %s!", fr->mname, to->mname);
+		//p_msg ("The %s kills the %s!", fr->mname, to->mname);
+		eff_mons_kills_mons (fr, to);
 		if (mons_isplayer(to))
 		{
 			p_pane (to);
@@ -530,11 +540,11 @@ void ev_do (Event ev)
 		struct Item *it = ITEMID(ev->mwield.itemID);
 		if ((!it) || it->loc.loc != LOC_INV || it->loc.inv.monsID != ev->mwield.thID)
 			return;
-		char *msg = get_inv_line (it);
-		p_msg ("The %s wields %s.", mons->mname, msg); /* notify */
-		free (msg);
 		mons_wield (mons, arm, it);
-		mons->wearing.weaps[arm] = it;
+		//char *msg = get_inv_line (it);
+		//p_msg ("The %s wields %s.", mons->mname, msg); /* notify */
+		eff_mons_wields_item (mons, it);
+		//free (msg);
 		return;
 	case EV_MWEAR_ARMOUR:
 		mons = MTHIID(ev->mwear_armour.thID);
@@ -547,12 +557,11 @@ void ev_do (Event ev)
 			return;
 		if (!mons_can_wear (mons, item, ev->mwear_armour.offset))
 			return;
-		msg = get_inv_line (item);
-		p_msg ("The %s wears %s.", mons->mname, msg); /* notify */
-		free (msg);
-		*(struct Item **)((char*)&mons->wearing + ev->mwear_armour.offset) = item;
-		item->worn_offset = ev->mwear_armour.offset;
-		mons->armour += item->def;
+		//msg = get_inv_line (item);
+		//p_msg ("The %s wears %s.", mons->mname, msg); /* notify */
+		//free (msg);
+		mons_wear (mons, item, ev->mwear_armour.offset);
+		eff_mons_wears_item (mons, item);
 		return;
 	case EV_MTAKEOFF_ARMOUR:
 		mons = MTHIID(ev->mtakeoff_armour.thID);
@@ -565,12 +574,11 @@ void ev_do (Event ev)
 			return;
 		if (!mons_can_takeoff (mons, item))
 			return;
-		*(struct Item **)((char*)&mons->wearing + item->worn_offset) = 0;
-		item->worn_offset = -1;
-		msg = get_inv_line (item);
-		p_msg ("The %s takes off %s.", mons->mname, msg); /* notify */
-		free (msg);
-		mons->armour -= item->def;
+		mons_take_off (mons, item);
+		//msg = get_inv_line (item);
+		//p_msg ("The %s takes off %s.", mons->mname, msg); /* notify */
+		//free (msg);
+		eff_mons_takes_off_item (mons, item);
 		return;
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
@@ -605,9 +613,10 @@ void ev_do (Event ev)
 			/* Pick up the item */
 			item_put (item, (union ItemLoc) { .inv = {LOC_INV, thID, j}});
 			/* Say so */
-			char *msg = get_inv_line (packitem);
-			p_msg ("%s", msg);
-			free (msg);
+			eff_mons_picks_up_item (mons, packitem);
+			//char *msg = get_inv_line (packitem);
+			//p_msg ("%s", msg);
+			//free (msg);
 		}
 		if (i < pickup->len)
 		{
@@ -638,7 +647,8 @@ void ev_do (Event ev)
 		if (mons_isplayer (to))
 			return;
 		if (to->ctr.mode == CTR_AI_TIMID)
-			p_msg ("The %s angers the %s!", fr->mname, to->mname);
+			eff_mons_angers_mons (fr, to);
+			//p_msg ("The %s angers the %s!", fr->mname, to->mname);
 		to->ctr.mode = CTR_AI_AGGRO;
 		to->ctr.aggro.ID = frID;
 		return;
@@ -647,7 +657,8 @@ void ev_do (Event ev)
 		mons = MTHIID(thID);
 		if (!mons)
 			return;
-		p_msg ("The %s calms.", mons->mname);
+		//p_msg ("The %s calms.", mons->mname);
+		eff_mons_calms (mons);
 		mons->ctr.mode = CTR_AI_TIMID;
 		return;
 	case EV_MSTARTCHARGE:

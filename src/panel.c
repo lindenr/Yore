@@ -612,3 +612,365 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc,
 		update_output (P_MV_END, player->yloc, player->xloc, map_graph->csr_y, map_graph->csr_x);
 }
 
+int interp_hex (char in)
+{
+	if ('0' <= in && in <= '9')
+		return in - '0';
+	if ('A' <= in && in <= 'F')
+		return in + 10 - 'A';
+	if ('a' <= in && in <= 'f')
+		return in + 10 - 'a';
+	return -1;
+}
+
+char to_hex (int in)
+{
+	if (in < 0 || in > 15)
+		return 0;
+	if (in < 10)
+		return '0' + in;
+	return in - 10 + 'A';
+}
+
+char gl_format_str[9] = {'0', '0', '0', '0', '0', '0', '0', '0', 0};
+char *gl_format (glyph gl)
+{
+	int i;
+	for (i = 0; i < 8; ++ i)
+		gl_format_str[i] = to_hex ((gl >> (4 * (7-i))) & 0xF);
+	return gl_format_str;
+}
+
+/// EXAMPLE inputs
+// "#cMENU\n\n#oa#gFF000024 24 gold pieces"
+// "#nFF000000 Hello"
+char p_formatted (const char *input)
+{
+	Vector lines = v_dinit (sizeof (struct MenuOption));
+	Vector formats = v_dinit (sizeof (struct FormattedGlyph));
+	int i;
+	glyph cur_gl = 0;
+	enum P_FORMAT cur_pos;
+	struct FormattedGlyph fg;
+	for (i = 0; input[i]; ++ i)
+	{
+		if (input[i] == '#')
+		{
+			++ i;
+			if (!input[i])
+				break;
+			if (input[i] == '#')
+			{
+				fg = (struct FormattedGlyph) {input[i] | (cur_gl&0xFFFFFF00), cur_pos};
+				v_push (formats, &fg);
+			}
+			else if (input[i] == 'c')
+				cur_pos = FMT_CENTRE;
+			else if (input[i] == 'g')
+			{
+				int j;
+				glyph gl = 0;
+				for (j = 1; j <= 8 && input[i+j]; ++ j)
+				{
+					int k = interp_hex (input[i+j]);
+					if (k == -1)
+						break;
+					gl += k << (4*(8-j));
+				}
+				if (j <= 8)
+					break;
+				i += 8;
+				fg = (struct FormattedGlyph) {gl, cur_pos};
+				v_push (formats, &fg);
+			}
+			else if (input[i] == 'n')
+			{
+				int j;
+				glyph gl = 0;
+				for (j = 1; j <= 8 && input[i+j]; ++ j)
+				{
+					int k = interp_hex (input[i+j]);
+					if (k == -1)
+						break;
+					gl += k << (4*(8-j));
+				}
+				if (j <= 8)
+					break;
+				i += 8;
+				cur_gl = gl;
+			}
+			else if (input[i] == 'o')
+			{
+				++ i;
+				if (!input[i])
+					break;
+				fg = (struct FormattedGlyph) {input[i], FMT_MENUOPTION};
+				v_push (formats, &fg);
+			}
+			continue;
+		}
+		if (input[i] == '\n')
+		{
+			fg = (struct FormattedGlyph) {'\n', cur_pos};
+			v_push (formats, &fg);
+			cur_pos = FMT_LEFT;
+			continue;
+		}
+		fg = (struct FormattedGlyph) {input[i] | (cur_gl&0xFFFFFF00), cur_pos};
+		v_push (formats, &fg);
+	}
+
+	int j;
+	struct MenuOption m = (struct MenuOption) {0, {0,}, NULL};
+	for (i = 0, j = 0; i < formats->len; ++ i)
+	{
+		struct FormattedGlyph *fg = v_at (formats, i);
+		if (fg->fmt == FMT_MENUOPTION)
+		{
+			m = (struct MenuOption) {(char) fg->gl, {0,}, NULL};
+			continue;
+		}
+		if (j == 40 || (fg->gl & 0xFF) == '\n')
+		{
+			j = 0;
+			v_push (lines, &m);
+			m = (struct MenuOption) {0, {0,}, NULL};
+			if ((fg->gl & 0xFF) == '\n')
+				continue;
+		}
+		m.ex_str[j] = fg->gl;
+		++ j;
+	}
+	v_push (lines, &m);
+
+	char ret = p_menuex (lines);
+	v_free (lines);
+	return ret;
+}
+
+int player_sees_mons (struct Monster *mons)
+{
+	return dlv_lvl(mons->dlevel)->seen[map_buffer (mons->yloc, mons->xloc)] == 2;
+}
+
+int player_sees_item (struct Item *item)
+{
+	switch (item->loc.loc)
+	{
+		case LOC_NONE:
+			panic ("item in LOC_NONE in player_sees_item");
+		case LOC_DLVL:
+			return dlv_lvl (item->loc.dlvl.dlevel)->
+				seen[map_buffer (item->loc.dlvl.yloc, item->loc.dlvl.xloc)] == 2;
+		case LOC_INV:
+			return mons_isplayer (MTHIID(item->loc.inv.monsID));
+		case LOC_WIELDED:
+			return player_sees_mons (MTHIID(item->loc.wield.monsID));
+		case LOC_FLIGHT:
+			return dlv_lvl (item->loc.fl.dlevel)->
+				seen[map_buffer (item->loc.fl.yloc, item->loc.fl.xloc)] == 2;
+	}
+	return 0;
+}
+
+void eff_mons_fail_throw (struct Monster *mons, struct Item *item)
+{
+	if (!player_sees_mons (mons))
+		return;
+	if (mons_isplayer (mons))
+		p_msg ("You fail to throw the %s.", item->type.name);
+	else
+		p_msg ("The %s fails to throw the %s.", mons->mname, item->type.name);
+	return;
+}
+
+void eff_item_dissipates (struct Item *item)
+{
+	if (!player_sees_item (item))
+		return;
+	p_msg ("The %s dissipates.", item->type.name);
+}
+
+void eff_item_absorbed (struct Item *item)
+{
+	if (!player_sees_item (item))
+		return;
+	p_msg ("The %s is absorbed.", item->type.name);
+}
+
+void eff_item_hits_wall (struct Item *item)
+{
+	if (!player_sees_item (item))
+		return;
+	p_msg ("The %s hits the wall.", item->type.name);
+}
+
+void eff_proj_misses_mons (struct Item *item, struct Monster *mons)
+{
+	if (!player_sees_item (item))
+		return;
+	if (!player_sees_mons (mons))
+		return;
+	if (mons_isplayer (mons))
+		p_msg ("The %s misses you!", item->type.name);
+	else
+		p_msg ("The %s misses the %s!", item->type.name, mons->mname);
+}
+
+void eff_proj_hits_mons (struct Item *item, struct Monster *mons, int damage)
+{
+	if (!player_sees_item (item))
+		return;
+	if (!player_sees_mons (mons))
+		return;
+	if (mons_isplayer (mons))
+		p_msg ("The %s hits you for %d!", item->type.name, damage);
+	else
+		p_msg ("The %s hits the %s for %d!", item->type.name, mons->mname, damage);
+}
+
+void eff_mons_tiredly_misses_mons (struct Monster *fr, struct Monster *to)
+{
+	if (!player_sees_mons (fr))
+		return;
+	if (!player_sees_mons (to))
+		return;
+	if (mons_isplayer (to))
+		p_msg ("The %s tiredly misses you!", fr->mname);
+	else if (mons_isplayer (fr))
+		p_msg ("You tiredly miss the %s!", to->mname);
+	else
+		p_msg ("The %s tiredly misses the %s!", fr->mname, to->mname);
+}
+
+void eff_mons_misses_mons (struct Monster *fr, struct Monster *to)
+{
+	if (!player_sees_mons (fr))
+		return;
+	if (!player_sees_mons (to))
+		return;
+	if (mons_isplayer (to))
+		p_msg ("The %s misses you!", fr->mname);
+	else if (mons_isplayer (fr))
+		p_msg ("You miss the %s!", to->mname);
+	else
+		p_msg ("The %s misses the %s!", fr->mname, to->mname);
+}
+
+void eff_mons_just_misses_mons (struct Monster *fr, struct Monster *to)
+{
+	if (!player_sees_mons (fr))
+		return;
+	if (!player_sees_mons (to))
+		return;
+	if (mons_isplayer (to))
+		p_msg ("The %s just misses you!", fr->mname);
+	else if (mons_isplayer (fr))
+		p_msg ("You just miss the %s!", to->mname);
+	else
+		p_msg ("The %s just misses the %s!", fr->mname, to->mname);
+}
+
+void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage)
+{
+	if (!player_sees_mons (fr))
+		return;
+	if (!player_sees_mons (to))
+		return;
+	if (mons_isplayer (to))
+		p_msg ("The %s hits you for %d!", fr->mname, damage);
+	else if (mons_isplayer (fr))
+		p_msg ("You hit the %s for %d!", to->mname, damage);
+	else
+		p_msg ("The %s hits the %s for %d!", fr->mname, to->mname, damage);
+}
+
+void eff_mons_kills_mons (struct Monster *fr, struct Monster *to)
+{
+	if (!player_sees_mons (fr))
+		return;
+	if (!player_sees_mons (to))
+		return;
+	if (mons_isplayer (to))
+		p_msg ("The %s kills you!", fr->mname);
+	else if (mons_isplayer (fr))
+		p_msg ("You kill the %s!", to->mname);
+	else
+		p_msg ("The %s kills the %s!", fr->mname, to->mname);
+}
+
+void eff_mons_picks_up_item (struct Monster *mons, struct Item *item)
+{
+	if (!player_sees_mons (mons))
+		return;
+	if (!player_sees_item (item))
+		return;
+	char *msg = get_inv_line (item);
+	if (mons_isplayer (mons))
+		p_msg ("%s", msg);
+	else
+		p_msg ("The %s picks up %s.", mons->mname, msg);
+	free (msg);
+}
+
+void eff_mons_wields_item (struct Monster *mons, struct Item *item)
+{
+	if (!player_sees_mons (mons))
+		return;
+	if (!player_sees_item (item))
+		return;
+	char *msg = get_inv_line (item);
+	if (mons_isplayer (mons))
+		p_msg ("You wield %s.", msg);
+	else
+		p_msg ("The %s wields %s.", mons->mname, msg);
+	free (msg);
+}
+
+void eff_mons_wears_item (struct Monster *mons, struct Item *item)
+{
+	if (!player_sees_mons (mons))
+		return;
+	if (!player_sees_item (item))
+		return;
+	char *msg = get_inv_line (item);
+	if (mons_isplayer (mons))
+		p_msg ("You wear %s.", msg);
+	else
+		p_msg ("The %s wears %s.", mons->mname, msg);
+	free (msg);
+}
+
+void eff_mons_takes_off_item (struct Monster *mons, struct Item *item)
+{
+	if (!player_sees_mons (mons))
+		return;
+	if (!player_sees_item (item))
+		return;
+	char *msg = get_inv_line (item);
+	if (mons_isplayer (mons))
+		p_msg ("You take off %s.", msg);
+	else
+		p_msg ("The %s takes off %s.", mons->mname, msg);
+	free (msg);
+}
+
+void eff_mons_angers_mons (struct Monster *fr, struct Monster *to)
+{
+	if (!player_sees_mons (fr))
+		return;
+	if (!player_sees_mons (to))
+		return;
+	if (mons_isplayer (fr))
+		p_msg ("You anger the %s!", to->mname);
+	else
+		p_msg ("The %s angers the %s.", fr->mname, to->mname);
+}
+
+void eff_mons_calms (struct Monster *mons)
+{
+	if (!player_sees_mons (mons))
+		return;
+	p_msg ("The %s calms.", mons->mname);
+}
+

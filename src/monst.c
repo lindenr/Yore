@@ -139,6 +139,7 @@ int mons_can_wear (struct Monster *mons, struct Item *it, size_t offset)
 			offset >= offsetof (struct WoW, hands[mons->wearing.narms]))
 			return 0;
 		return 1;
+	case ITSORT_TUNIC:
 	case ITSORT_MAIL:
 		if (offset < offsetof (struct WoW, torsos[0]) ||
 			offset >= offsetof (struct WoW, torsos[mons->wearing.ntorsos]))
@@ -175,6 +176,7 @@ int mons_try_wear (struct Monster *mons, struct Item *it)
 			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, hands[i])}});
 		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
+	case ITSORT_TUNIC:
 	case ITSORT_MAIL:
 		for (i = 0; i < mons->wearing.ntorsos; ++ i)
 		{
@@ -327,6 +329,20 @@ void mons_wield (struct Monster *mons, int arm, struct Item *it)
 void mons_unwield (struct Monster *mons, struct Item *it)
 {
 	item_put (it, (union ItemLoc) { .inv = {LOC_INV, mons->ID, it->loc.wield.invnum}});
+}
+
+void mons_wear (struct Monster *mons, struct Item *item, size_t offset)
+{
+	*(struct Item **)((void*)&mons->wearing + offset) = item;
+	item->worn_offset = offset;
+	mons->armour += item->def;
+}
+
+void mons_take_off (struct Monster *mons, struct Item *item)
+{
+	*(struct Item **)((char*)&mons->wearing + item->worn_offset) = 0;
+	item->worn_offset = -1;
+	mons->armour -= item->def;
 }
 
 int mons_take_turn (struct Monster *th)

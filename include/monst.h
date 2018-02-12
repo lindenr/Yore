@@ -249,6 +249,8 @@ void   mons_exercise   (struct Monster *, struct Item *);    /* exercise a weapo
 void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */
 void   mons_wield      (struct Monster *, int, struct Item *); /* wield an item in an arm                */
 void   mons_unwield    (struct Monster *, struct Item *);    /* unwield an item */
+void   mons_wear       (struct Monster *, struct Item *, size_t); /* wear an item                        */
+void   mons_take_off   (struct Monster *, struct Item *);    /* take off an item                         */
 
 /* player functions */
 int    mons_gen_type   (void);                               /* get a valid monster type for fighting    */
