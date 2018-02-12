@@ -50,10 +50,43 @@ int item_type_flags (struct Item *item, uint32_t accepted)
 	return -1;
 }
 
+int add_contents (Vector inv, Pack *pack, uint32_t accepted)
+{
+	if (!pack)
+		return 0;
+	
+	int i, num_items = 0;
+	struct MenuOption m;
+	for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
+	{
+		struct Item *packitem = &pack->items[i];
+		if (NO_ITEM(packitem))
+			continue;
+		if (item_type_flags (packitem, accepted))
+		{
+			if (!num_items)
+			{
+				m = (struct MenuOption) {0, {0,}, NULL};
+				gr_ext (m.ex_str, item_appearance [packitem->type.gl & 0xFF], 0x000BBB00);
+				v_push (inv, &m);
+			}
+			m = (struct MenuOption) {get_Itref (packitem), {0,}, NULL};
+			char *line = get_near_desc (MTHIID(packitem->loc.inv.monsID), packitem);
+			gr_ext (&m.ex_str[2], line, 0);
+			m.ex_str[0] = packitem->type.gl;
+			m.ex_str[1] = ' ';
+			free (line);
+			v_push (inv, &m);
+			++ num_items;
+		}
+	}
+	return num_items;
+}
+
 char show_contents (Pack *pack, uint32_t accepted, char *msg)
 {
-	int i, num_items = 0;
 	Vector inv;
+	int num_items = 0;
 	char first[40] = "                                       ";
 
 	inv = v_init (sizeof(struct MenuOption), MAX_ITEMS_IN_PACK);
@@ -61,30 +94,14 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 	int msglen = strlen(msg);
 	snprintf (first + (40-msglen)/2, 40, "%s", msg);
 	struct MenuOption m = (struct MenuOption) {0, {0,}, NULL};
-	gr_ext (m.ex_str, first);
+	gr_ext (m.ex_str, first, COL_TXT_BRIGHT);
 	v_push (inv, &m);
 	m = (struct MenuOption) {0, {0,}, NULL};
 	v_push (inv, &m);
-	if (pack)
-	{
-		for (i = 0; i < MAX_ITEMS_IN_PACK; ++i)
-		{
-			struct Item *packitem = &pack->items[i];
-			if (NO_ITEM(packitem))
-				continue;
-			if (item_type_flags (packitem, accepted))
-			{
-				m = (struct MenuOption) {get_Itref (packitem), {0,}, NULL};
-				char *line = get_near_desc (MTHIID(packitem->loc.inv.monsID), packitem);
-				gr_ext (&m.ex_str[2], line);
-				m.ex_str[0] = packitem->type.gl;
-				m.ex_str[1] = ' ';
-				free (line);
-				v_push (inv, &m);
-				++ num_items;
-			}
-		}
-	}
+	num_items += add_contents (inv, pack, accepted & ITCAT_DOSH);
+	num_items += add_contents (inv, pack, accepted & ITCAT_WEAPON);
+	num_items += add_contents (inv, pack, accepted & ITCAT_ARMOUR);
+	num_items += add_contents (inv, pack, accepted & ITCAT_FOOD);
 	if (!num_items)
 	{
 		v_free (inv);

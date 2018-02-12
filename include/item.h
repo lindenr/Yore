@@ -178,6 +178,8 @@ void item_look      (const struct Item *);
 char *get_inv_line  (const struct Item *);
 int  items_equal    (struct Item *, struct Item *);
 
+extern char *item_appearance[256];
+
 int it_can_merge    (struct Monster *, struct Item *, struct Item *);
 
 #endif /* ITEM_H_INCLUDED */

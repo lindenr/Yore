@@ -64,11 +64,11 @@ int gr_buffer (int yloc, int xloc)
 	return gr_w * yloc + xloc;
 }
 
-void gr_ext (glyph *out, char *in)
+void gr_ext (glyph *out, char *in, glyph def)
 {
 	int i;
 	for (i = 0; in[i]; ++ i)
-		out[i] = (glyph) in[i];
+		out[i] = in[i] | (def & 0xFFFFFF00);
 	out[i] = 0;
 }
 

@@ -136,7 +136,7 @@ void gr_tout      (int);
 int  gra_buffer   (Graph, int, int);
 int  gr_buffer    (int, int);
 
-void gr_ext       (glyph *, char *);
+void gr_ext       (glyph *, char *, glyph);
 
 int  gra_nearedge (Graph, int, int);
 void gr_wait      (uint32_t);

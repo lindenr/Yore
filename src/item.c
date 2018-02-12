@@ -43,8 +43,14 @@ Ityp ityps[] = {
 /*  item name              type              weight attributes     display                      */
 };
 
+char *item_appearance[256] = {0,};
+
 void ityp_init ()
 {
+	item_appearance['$'] = "MONEY";
+	item_appearance[')'] = "WEAPONS";
+	item_appearance['['] = "ARMOUR";
+	item_appearance['%'] = "FOOD, DEBRIS";
 	return;
 }
 
