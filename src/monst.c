@@ -438,10 +438,25 @@ int mons_skill (struct Monster *from, struct Item *with)
 	return 0;
 }
 
+void mons_ex_skill (struct Monster *mons, Skill sk)
+{
+	if (!mons_gets_exp (mons))
+		return;
+	sk->exp ++;
+	int level = mons_level (sk->exp);
+	if (level != sk->level)
+	{
+		sk->level = level;
+		eff_mons_sk_levels_up (mons, sk);
+	}
+}
+
 void mons_exercise (struct Monster *from, struct Item *with)
 {
 	int i;
 	enum SK_TYPE type = sk_item_use (with);
+	if (type == SK_NONE)
+		return;
 	struct Skill *sk = NULL;
 	if (!from->skills)
 		panic ("monster has no skill slots in mons_exercise");
@@ -456,13 +471,7 @@ void mons_exercise (struct Monster *from, struct Item *with)
 		struct Skill add = {type, 0, 0};
 		sk = v_push (from->skills, &add);
 	}
-	sk->exp ++;
-	int level = mons_level (sk->exp);
-	if (level != sk->level)
-	{
-		sk->level = level;
-		p_msg ("Congratulations! Your %s is now level %d!", sk_name (sk), level);
-	}
+	mons_ex_skill (from, sk);
 }
 
 int mons_hitm (struct Monster *from, struct Monster *to, struct Item *with)

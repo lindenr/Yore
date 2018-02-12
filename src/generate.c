@@ -400,6 +400,8 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	struct Item myaxe = new_item (ityps[ITYP_DAGGER]);
 	item = item_put (&myaxe, (union ItemLoc) { .dlvl = {LOC_INV, pl->ID, 1}});
 	mons_wield (pl, 0, item);
+	struct Skill skill = {SK_USE_DAGGER, 0, 1};
+	v_push (pl->skills, &skill);
 	myitem = new_item (ityps[ITYP_LEATHER_HAT]);
 	item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 2}});
 	mons_wear (pl, item, offsetof (struct WoW, heads[0]));

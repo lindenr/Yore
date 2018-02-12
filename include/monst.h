@@ -43,6 +43,8 @@ extern const int CORPSE_WEIGHTS[];
 #define get_filename() "Yore-savegame.sav"
 
 typedef long long unsigned Tick;
+struct Skill;
+typedef struct Skill *Skill;
 
 enum MTYPES
 {
@@ -244,6 +246,7 @@ int    mons_exp_needed (int level);                          /* exp needed for n
 void   mons_level_up   (struct Monster *);                   /* alter monster's base stats for new level */
 void   mons_stats_changed(struct Monster *);                 /* update HP etc to reflect stats           */
 void   mons_exercise   (struct Monster *, struct Item *);    /* exercise a weapon use                    */
+void   mons_ex_skill   (struct Monster *, Skill);            /* exercise a skill                         */
 
 /* effects */
 void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */

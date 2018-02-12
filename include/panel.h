@@ -84,7 +84,15 @@ extern int p_width, p_height
 
 extern Graph gpan;
 
+#define FCOL(col,str) "#n" col str "#nBBB00000"
+#define COL_BRIGHT(str) FCOL("FFF00000", str)
+#define COL_RED(str) FCOL("F3300000", str)
+#define COL_YELLOW(str) FCOL("FF000000", str)
+#define COL_GREEN(str) FCOL("0F000000", str)
+
 struct Item;
+struct Skill;
+typedef struct Skill *Skill;
 /* effects the player might observe */
 void eff_mons_fail_throw (struct Monster *mons, struct Item *item);
 void eff_item_dissipates (struct Item *item);
@@ -97,6 +105,7 @@ void eff_mons_misses_mons (struct Monster *fr, struct Monster *to);
 void eff_mons_just_misses_mons (struct Monster *fr, struct Monster *to);
 void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage);
 void eff_mons_kills_mons (struct Monster *fr, struct Monster *to);
+void eff_mons_sk_levels_up (struct Monster *mons, Skill sk);
 void eff_mons_levels_up (struct Monster *mons);
 void eff_mons_picks_up_item (struct Monster *mons, struct Item *item);
 void eff_mons_wields_item (struct Monster *mons, struct Item *item);

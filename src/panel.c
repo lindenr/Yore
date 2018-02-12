@@ -324,7 +324,7 @@ int p_status (struct Monster *player, enum PanelType type)
 	gra_mvprint (sc_status, 9, 7, "Wis: %d", player->wis);
 	gra_mvaddch (sc_status, 10, 5, GL_AGI | (COL_BG_MASK & sc_status->def));
 	gra_mvprint (sc_status, 10, 7, "Agi: %d", player->agi);
-	gra_mvprint (sc_status, 12, 7, "Press 'S' to save.");
+	gra_mvprint (sc_status, 12, 5, "Press 'S' to save.");
 
 	switch (type)
 	{
@@ -820,9 +820,9 @@ void eff_proj_hits_mons (struct Item *item, struct Monster *mons, int damage)
 	if (!player_sees_mons (mons))
 		return;
 	if (mons_isplayer (mons))
-		p_msg ("The %s hits you for %d!", item->type.name, damage);
+		p_msg ("The %s hits you for "COL_RED("%d")"!", item->type.name, damage);
 	else
-		p_msg ("The %s hits the %s for %d!", item->type.name, mons->mname, damage);
+		p_msg ("The %s hits the %s for "COL_RED("%d")"!", item->type.name, mons->mname, damage);
 }
 
 void eff_mons_tiredly_misses_mons (struct Monster *fr, struct Monster *to)
@@ -874,11 +874,11 @@ void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage)
 	if (!player_sees_mons (to))
 		return;
 	if (mons_isplayer (to))
-		p_msg ("The %s hits you for %d!", fr->mname, damage);
+		p_msg ("The %s hits you for "COL_RED("%d")"!", fr->mname, damage);
 	else if (mons_isplayer (fr))
-		p_msg ("You hit the %s for %d!", to->mname, damage);
+		p_msg ("You hit the %s for "COL_RED("%d")"!", to->mname, damage);
 	else
-		p_msg ("The %s hits the %s for %d!", fr->mname, to->mname, damage);
+		p_msg ("The %s hits the %s for "COL_RED("%d")"!", fr->mname, to->mname, damage);
 }
 
 void eff_mons_kills_mons (struct Monster *fr, struct Monster *to)
@@ -888,11 +888,18 @@ void eff_mons_kills_mons (struct Monster *fr, struct Monster *to)
 	if (!player_sees_mons (to))
 		return;
 	if (mons_isplayer (to))
-		p_msg ("The %s kills you!", fr->mname);
+		p_msg ("The %s "COL_RED("kills")" you!", fr->mname);
 	else if (mons_isplayer (fr))
-		p_msg ("You kill the %s!", to->mname);
+		p_msg ("You "COL_RED("kill")" the %s!", to->mname);
 	else
-		p_msg ("The %s kills the %s!", fr->mname, to->mname);
+		p_msg ("The %s "COL_RED("kills")" the %s!", fr->mname, to->mname);
+}
+
+void eff_mons_sk_levels_up (struct Monster *mons, Skill sk)
+{
+	if (!mons_isplayer (mons))
+		return;
+	p_msg ("Congratulations! Your %s is now level %d!", sk_name (sk), sk->level);
 }
 
 void eff_mons_levels_up (struct Monster *mons)
@@ -900,7 +907,7 @@ void eff_mons_levels_up (struct Monster *mons)
 	if (!player_sees_mons (mons))
 		return;
 	if (mons_isplayer (mons))
-		p_msg ("Level up! You are now level %d.", mons->level);
+		p_msg (COL_BRIGHT("Level up!")" You are now level "COL_GREEN("%d")".", mons->level);
 	else
 		p_msg ("The %d seems more experienced.", mons->mname);
 }
