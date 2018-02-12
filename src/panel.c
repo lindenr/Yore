@@ -58,7 +58,7 @@ void p_pane (struct Monster *player)
 	}*/
 
 	gra_mvprint (gpan, 1, 3, "T %llu", curtick);
-	gra_mvaddch (gpan, 1, 1, 0xAF | COL_TXT(15,7,0));
+	gra_mvaddch (gpan, 1, 1, '>' | COL_TXT(15,7,0));
 
 	if (player)
 	{
@@ -74,9 +74,9 @@ void p_pane (struct Monster *player)
 		else
 			gra_mvprint (gpan, 8, 3, "Exp     %d (%c)", player->exp, 0xEC);
 		gra_mvaddch (gpan, 2, 1, '@' | COL_TXT(15,15,15));
-		gra_mvaddch (gpan, 3, 1, 3 | COL_TXT_RED(15));
-		gra_mvaddch (gpan, 4, 1, 5 | COL_TXT_GREEN(15));
-		gra_mvaddch (gpan, 5, 1, 4 | COL_TXT(0,5,15));
+		gra_mvaddch (gpan, 3, 1, GL_HEALTH);
+		gra_mvaddch (gpan, 4, 1, GL_STAMINA);
+		gra_mvaddch (gpan, 5, 1, GL_POWER);
 		gra_mvaddch (gpan, 6, 1, '[' | COL_TXT(11,11,0));
 		gra_mvaddch (gpan, 7, 1, 6 | COL_TXT(7,15,15));
 		gra_mvaddch (gpan, 8, 1, 0xE4 | COL_TXT(15,0,15));
@@ -93,8 +93,8 @@ void p_pane (struct Monster *player)
 	for (i = 0; i < 8 && i < messages->len; ++ i)
 	{
 		struct P_msg *msg = v_at (messages, messages->len - i - 1);
-		int len = strlen (msg->msg);
-		gra_mvprint (gpan, 1 + i, (gr_w - len)/2, msg->msg);
+		int len = P_MSG_LEN; //strlen (msg->msg);
+		gra_mvaprintex (gpan, 1 + i, (gr_w - len)/2, msg->msg);
 	}
 skip2:
 	;
@@ -113,16 +113,18 @@ void p_msgbox (const char *msg)
 {
 	Vector lines = w_lines (msg, 40);
 	v_pstr (lines, "");
-	v_pstr (lines, "#[OK]");
+	v_pstr (lines, "#n000BBB00[OK]");
 	p_lines (lines);
 	v_free (lines);
 }
 
 void p_amsg (const char *str)
 {
+	Vector formatted = p_formatted (str, P_MSG_LEN);
 	struct P_msg msg;
 	msg.expiry = 0;
-	strncpy (msg.msg, str, P_MSG_LEN-1);
+	struct MenuOption *m = v_at (formatted, 0);
+	memcpy (msg.msg, m->ex_str, sizeof(glyph)*(P_MSG_LEN));
 	msg.msg[P_MSG_LEN-1] = 0;
 	v_push (messages, &msg);
 }
@@ -130,7 +132,6 @@ void p_amsg (const char *str)
 void p_menu_draw (Graph box, Vector lines, int curchoice)
 {
 	int i;
-	int h = box->h, w = box->w;
 	for (i = 0; i < lines->len; ++ i)
 	{
 		struct MenuOption *line = v_at (lines, i);
@@ -140,9 +141,9 @@ void p_menu_draw (Graph box, Vector lines, int curchoice)
 			gra_mvaddch (box, i+1, 3, ' ');
 			gra_mvaddch (box, i+1, 4, line->letter);
 		}
-		gra_mvaprintex (box, i+1, 6, line->ex_str);
+		if (line->ex_str)
+			gra_mvaprintex (box, i+1, 6, line->ex_str);
 	}
-	gra_box (box, 0, 0, h-1, w-1);
 	if (curchoice != -1)
 	{
 		gra_invert (box, curchoice+1, 2);
@@ -151,16 +152,18 @@ void p_menu_draw (Graph box, Vector lines, int curchoice)
 	}
 }
 
-char p_menuex (Vector lines)
+char p_menuex (Vector lines, const char *toquit, int max_line_len)
 {
 	int i, curchoice = -1;
-	int max = 44;
+	int max = max_line_len + 4;
 
 	int h = lines->len + 2, w = max+4;
 	int yloc = (gr_h - h)/2, xloc = (gr_w - w)/2;
 
 	Graph box = gra_init (h, w, yloc, xloc, h, w);
 	gra_fbox (box, 0, 0, h-1, w-1, ' ');
+	if (toquit)
+		gra_mvprint (box, 0, w-strlen(toquit), toquit);
 
 	for (i = 0; i < lines->len; ++ i)
 	{
@@ -259,13 +262,13 @@ char p_ask (struct Monster *player, const char *results, const char *question)
 char p_lines (Vector lines)
 {
 	int i;
-	int max = 0;
-	for (i = 0; i < lines->len; ++ i)
-	{
-		int len = strlen(v_at(lines, i));
-		if (len > max)
-			max = len;
-	}
+	int max = P_MSG_LEN;
+	//for (i = 0; i < lines->len; ++ i)
+	//{
+	//	int len = strlen(v_at(lines, i));
+	//	if (len > max)
+	//		max = len;
+	//}
 
 	int h = lines->len + 2, w = max+4;
 	int yloc = (gr_h - h)/2, xloc = (gr_w - w)/2;
@@ -275,11 +278,20 @@ char p_lines (Vector lines)
 
 	for (i = 0; i < lines->len; ++ i)
 	{
-		char *str = v_at(lines, i);
-		if (str[0] != '#')
-			gra_mvaprint (box, i+1, 2, str);
-		else
-			gra_cprint (box, i+1, str+1);
+		char *str = v_at (lines, i);
+		Vector formatted = p_formatted (str, P_MSG_LEN);
+		//struct P_msg msg;
+		//msg.expiry = 0;
+		struct MenuOption *m = v_at (formatted, 0);
+		//memcpy (msg.msg, m->ex_str, sizeof(glyph)*(P_MSG_LEN));
+		///msg.msg[P_MSG_LEN-1] = 0;
+		//v_push (messages, &msg);
+		//if (str[0] != '#')
+		if (m->ex_str)
+			gra_mvaprintex (box, i+1, 2, m->ex_str);
+		p_ffree (formatted);
+		//else
+		//	gra_cprint (box, i+1, str+1);
 	}
 	gra_box (box, 0, 0, h-1, w-1);
 	char ret = gr_getch();
@@ -304,10 +316,15 @@ int p_status (struct Monster *player, enum PanelType type)
 	gra_cprint (sc_status, 5, "  HP: %d/%d  %c  ST:    %d/%d",
 				player->HP, player->HP_max, ACS_VLINE, player->ST, player->ST_max);
 	gra_cprint (sc_status, 6, "LV %d:%d/infinity   %c  Speed: %d       ", player->level, player->exp, ACS_VLINE, player->speed);
-	gra_cprint (sc_status, 7, "Str: %d", player->str);
-	gra_cprint (sc_status, 8, "Con: %d", player->con);
-	gra_cprint (sc_status, 9, "Agi: %d", player->agi);
-	gra_cprint (sc_status, 11, "Press 'S' to save.");
+	gra_mvaddch (sc_status, 7, 5, GL_STR | (COL_BG_MASK & sc_status->def));
+	gra_mvprint (sc_status, 7, 7, "Str: %d", player->str);
+	gra_mvaddch (sc_status, 8, 5, GL_CON | (COL_BG_MASK & sc_status->def));
+	gra_mvprint (sc_status, 8, 7, "Con: %d", player->con);
+	gra_mvaddch (sc_status, 9, 5, GL_WIS | (COL_BG_MASK & sc_status->def));
+	gra_mvprint (sc_status, 9, 7, "Wis: %d", player->wis);
+	gra_mvaddch (sc_status, 10, 5, GL_AGI | (COL_BG_MASK & sc_status->def));
+	gra_mvprint (sc_status, 10, 7, "Agi: %d", player->agi);
+	gra_mvprint (sc_status, 12, 7, "Press 'S' to save.");
 
 	switch (type)
 	{
@@ -360,168 +377,115 @@ int p_status (struct Monster *player, enum PanelType type)
 
 glyph output_colours;
 /* Skills screen */
-Graph sc_skills = NULL;
 int p_skills (struct Monster *player, enum PanelType type)
 {
 	Vector pskills = player->skills;
-	int h = 6 + pskills->len, w = 41;
-	int y = (gr_h - h)/2, x = (gr_w - w)/2;
-
-	sc_skills = gra_init (h, w, y, x, h, w);
-	sc_skills->def = COL_SKILLS;
-
-	gra_fbox (sc_skills, 0, 0, h-1, w-1, ' ');
-	gra_mvprint (sc_skills, 0, w-7, "(Space)");
-	gra_cprint (sc_skills, 2, "SKILLS");
+	char *fmt = malloc (1024);
+	fmt[0] = 0;
+	strcat (fmt, "#c#nFFF00000SKILLS#nBBB00000\n");
 	if (pskills->len == 0)
-		gra_cprint (sc_skills, 3, "(no skills available)");
+		strcat (fmt, "#c(no skills available)\n");
 	else
-		gra_cprint (sc_skills, 3, "(enter to inspect; letter to use)");
-
-	int i, selected = 0;
-	int j;
-	while (1)
+		strcat (fmt, "#c(enter to inspect; letter to use)\n");
+	
+	char letter = 'a';
+	int i;
+	for (i = 0; i < pskills->len; ++ i)
 	{
-		char letter = 'a';
-		for (i = 0; i < pskills->len; ++ i)
+		Skill sk = v_at (pskills, i);
+		char line[128];
+		if (sk_isact (sk))
+			strcat (fmt, (char []){'#', 'o', letter++, 0});
+		snprintf (line, 127, "#g%s %s %d:%d\n", gl_format (sk_gl(sk)), sk_name(sk), sk->level, sk->exp);
+		strcat (fmt, line);
+	}
+	char in = p_flines (fmt);
+	free (fmt);
+	if (in == CH_ESC)
+		return -1;
+	else if (in >= 'a' && in < letter)
+	{
+		int n = in - 'a';
+		int yloc, xloc;
+		Skill sk = v_at (pskills, n);
+		switch (sk->type)
 		{
-			Skill sk = v_at (pskills, i);
-			int row = 4+i;
-			if (sk_isact (sk))
-				gra_cprint (sc_skills, row, "%c - %s %d:%d", letter, sk_name(sk), sk->level, sk->exp);
-			else
-				gra_cprint (sc_skills, row, "%s %d:%d", sk_name(sk), sk->level, sk->exp);
-			++ letter;
-		}
-		if (pskills->len) for (j = 1; j < w-1; ++ j)
-			gra_invert (sc_skills, 4+selected, j);
-		char in = gr_getch();
-		if (pskills->len) for (j = 1; j < w-1; ++ j)
-			gra_invert (sc_skills, 4+selected, j);
-		if (in == CH_ESC)
-		{
-			gra_free (sc_skills);
-			return -1;
-		}
-		else if (in == ' ')
-		{
-			gra_free (sc_skills);
-			return 0;
-		}
-		else if (pskills->len == 0)
-			continue;
-		else if (in == GRK_UP && selected > 0)
-			-- selected;
-		else if (in == GRK_DN && selected < pskills->len-1)
-			++ selected;
-		else if (in == CH_LF || in == CH_CR)
-		{
-			if (pskills->len) for (j = 1; j < w-1; ++ j)
-				gra_invert (sc_skills, 4+selected, j);
-			Skill sk = v_at (pskills, selected);
-			p_msgbox (sk_desc(sk));
-			if (pskills->len) for (j = 1; j < w-1; ++ j)
-				gra_invert (sc_skills, 4+selected, j);
-		}
-		else if (in >= 'a' && in < letter)
-		{
-			int n = in - 'a';
-			int yloc, xloc;
-			Skill sk = v_at (pskills, n);
-			switch (sk->type)
+		case SK_NONE:
+			break;
+		case SK_CHARGE:
+			gra_hide (sc_status);
+			if (player->status.charging)
 			{
-			case SK_NONE:
-				break;
-			case SK_CHARGE:
-				gra_hide (sc_status);
-				gra_hide (sc_skills);
-				if (player->status.charging)
-				{
-					gra_free (sc_skills);
-					sk_charge (player, 0, 0, v_at (pskills, selected));
-					return 1;
-				}
-				output_colours = COL_BG(0,0,0) | COL_TXT(15,15,15);
-				p_mvchoose (player, &yloc, &xloc, "Charge where?", NULL, &show_path_on_overlay);
-				if (yloc == -1)
-				{
-					gra_show (sc_status);
-					gra_show (sc_skills);
-					continue;
-				}
-				gra_free (sc_skills);
-				sk_charge (player, yloc, xloc, v_at (pskills, selected));
+				sk_charge (player, 0, 0, sk);
 				return 1;
-			case SK_DODGE:
-				break;
-			case SK_FIREBALL:
-				if (player->MP < 5)
-				{
-					p_msgbox ("Not enough MP.");
-					continue;
-				}
-				gra_hide (sc_status);
-				gra_hide (sc_skills);
-				output_colours = COL_BG(11,0,0) | COL_TXT(15,15,0);
-				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
-				if (yloc == -1)
-				{
-					gra_show (sc_status);
-					gra_show (sc_skills);
-					continue;
-				}
-				gra_free (sc_skills);
-				sk_fireball (player, yloc, xloc, v_at (pskills, selected));
-				return 1;
-			case SK_WATER_BOLT:
-				if (player->MP < 6)
-				{
-					p_msgbox ("Not enough MP.");
-					continue;
-				}
-				gra_hide (sc_status);
-				gra_hide (sc_skills);
-				output_colours = COL_BG(0,0,8) | COL_TXT(8,8,15);
-				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
-				if (yloc == -1)
-				{
-					gra_show (sc_status);
-					gra_show (sc_skills);
-					continue;
-				}
-				gra_free (sc_skills);
-				sk_water_bolt (player, yloc, xloc, v_at (pskills, selected));
-				return 1;
-			case SK_FROST:
-				gra_hide (sc_status);
-				gra_hide (sc_skills);
-				p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_disc_on_overlay);
-				if (yloc == -1)
-				{
-					gra_show (sc_status);
-					gra_show (sc_skills);
-					continue;
-				}
-				gra_free (sc_skills);
-				sk_frost (player, yloc, xloc, v_at (pskills, selected));
-				return 1;
-			case SK_FLAMES:
-				gra_free (sc_skills);
-				sk_flames (player);
-				return 1;
-			case SK_USE_MARTIAL_ARTS:
-			case SK_USE_LONGSWORD:
-			case SK_USE_AXE:
-			case SK_USE_HAMMER:
-			case SK_USE_DAGGER:
-			case SK_USE_SHORTSWORD:
-				break;
-			case SK_NUM:
-				break;
 			}
+			output_colours = COL_BG(0,0,0) | COL_TXT(15,15,15);
+			p_mvchoose (player, &yloc, &xloc, "Charge where?", NULL, &show_path_on_overlay);
+			if (yloc == -1)
+			{
+				gra_show (sc_status);
+				return 0;
+			}
+			sk_charge (player, yloc, xloc, sk);
+			return 1;
+		case SK_DODGE:
+			break;
+		case SK_FIREBALL:
+			if (player->MP < 5)
+			{
+				p_msgbox ("Not enough MP.");
+				return 0;
+			}
+			gra_hide (sc_status);
+			output_colours = COL_BG(11,0,0) | COL_TXT(15,15,0);
+			p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
+			if (yloc == -1)
+			{
+				gra_show (sc_status);
+				return 0;
+			}
+			sk_fireball (player, yloc, xloc, sk);
+			return 1;
+		case SK_WATER_BOLT:
+			if (player->MP < 6)
+			{
+				p_msgbox ("Not enough MP.");
+				return 0;
+			}
+			gra_hide (sc_status);
+			output_colours = COL_BG(0,0,8) | COL_TXT(8,8,15);
+			p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
+			if (yloc == -1)
+			{
+				gra_show (sc_status);
+				return 0;
+			}
+			sk_water_bolt (player, yloc, xloc, sk);
+			return 1;
+		case SK_FROST:
+			gra_hide (sc_status);
+			p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_disc_on_overlay);
+			if (yloc == -1)
+			{
+				gra_show (sc_status);
+				return 0;
+			}
+			sk_frost (player, yloc, xloc, sk);
+			return 1;
+		case SK_FLAMES:
+			sk_flames (player);
+			return 1;
+		case SK_USE_MARTIAL_ARTS:
+		case SK_USE_LONGSWORD:
+		case SK_USE_AXE:
+		case SK_USE_HAMMER:
+		case SK_USE_DAGGER:
+		case SK_USE_SHORTSWORD:
+			break;
+		case SK_NUM:
+			break;
 		}
 	}
-	gra_free (sc_skills);
 	return 0;
 }
 
@@ -641,10 +605,14 @@ char *gl_format (glyph gl)
 	return gl_format_str;
 }
 
-/// EXAMPLE inputs
-// "#cMENU\n\n#oa#gFF000024 24 gold pieces"
-// "#nFF000000 Hello"
-char p_formatted (const char *input)
+/* produces output formatted to a given width.
+ * special commands are '#' followed by:
+ * '#': outputs a '#';
+ * 'l', 'c', 'r': left-, centre-, and right-align respectively;
+ * 'g': followed by a 8-digit hex repn outputs a given glyph;
+ * 'n': changes all subsequent characters to a given colour
+ */
+Vector p_formatted (const char *input, int max_line_len)
 {
 	Vector lines = v_dinit (sizeof (struct MenuOption));
 	Vector formats = v_dinit (sizeof (struct FormattedGlyph));
@@ -664,8 +632,12 @@ char p_formatted (const char *input)
 				fg = (struct FormattedGlyph) {input[i] | (cur_gl&0xFFFFFF00), cur_pos};
 				v_push (formats, &fg);
 			}
+			else if (input[i] == 'l')
+				cur_pos = FMT_LEFT;
 			else if (input[i] == 'c')
 				cur_pos = FMT_CENTRE;
+			else if (input[i] == 'r')
+				cur_pos = FMT_RIGHT;
 			else if (input[i] == 'g')
 			{
 				int j;
@@ -721,30 +693,54 @@ char p_formatted (const char *input)
 	}
 
 	int j;
-	struct MenuOption m = (struct MenuOption) {0, {0,}, NULL};
+	struct MenuOption m = (struct MenuOption) {0, NULL, NULL};
 	for (i = 0, j = 0; i < formats->len; ++ i)
 	{
 		struct FormattedGlyph *fg = v_at (formats, i);
 		if (fg->fmt == FMT_MENUOPTION)
 		{
-			m = (struct MenuOption) {(char) fg->gl, {0,}, NULL};
+			m = (struct MenuOption) {(char) fg->gl, NULL, NULL};
 			continue;
 		}
-		if (j == 40 || (fg->gl & 0xFF) == '\n')
+		if (j == max_line_len || (fg->gl & 0xFF) == '\n')
 		{
+			if (j < max_line_len && m.ex_str)
+				m.ex_str[j] = 0;
 			j = 0;
 			v_push (lines, &m);
-			m = (struct MenuOption) {0, {0,}, NULL};
+			m = (struct MenuOption) {0, NULL, NULL};
 			if ((fg->gl & 0xFF) == '\n')
 				continue;
 		}
+		if (!m.ex_str)
+			m.ex_str = malloc(sizeof(glyph) * max_line_len);
 		m.ex_str[j] = fg->gl;
 		++ j;
 	}
+	if (j < max_line_len && m.ex_str)
+		m.ex_str[j] = 0;
 	v_push (lines, &m);
 
-	char ret = p_menuex (lines);
+	return lines;
+
+}
+
+void p_ffree (Vector lines)
+{
+	int i;
+	for (i = 0; i < lines->len; ++ i)
+	{
+		struct MenuOption *mo = v_at (lines, i);
+		free (mo->ex_str);
+	}
 	v_free (lines);
+}
+
+char p_flines (const char *input)
+{
+	Vector lines = p_formatted (input, 50);
+	char ret = p_menuex (lines, "(Space)", 50);
+	p_ffree (lines);
 	return ret;
 }
 
@@ -763,7 +759,7 @@ int player_sees_item (struct Item *item)
 			return dlv_lvl (item->loc.dlvl.dlevel)->
 				seen[map_buffer (item->loc.dlvl.yloc, item->loc.dlvl.xloc)] == 2;
 		case LOC_INV:
-			return mons_isplayer (MTHIID(item->loc.inv.monsID));
+			return player_sees_mons (MTHIID(item->loc.inv.monsID));
 		case LOC_WIELDED:
 			return player_sees_mons (MTHIID(item->loc.wield.monsID));
 		case LOC_FLIGHT:
@@ -897,6 +893,16 @@ void eff_mons_kills_mons (struct Monster *fr, struct Monster *to)
 		p_msg ("You kill the %s!", to->mname);
 	else
 		p_msg ("The %s kills the %s!", fr->mname, to->mname);
+}
+
+void eff_mons_levels_up (struct Monster *mons)
+{
+	if (!player_sees_mons (mons))
+		return;
+	if (mons_isplayer (mons))
+		p_msg ("Level up! You are now level %d.", mons->level);
+	else
+		p_msg ("The %d seems more experienced.", mons->mname);
 }
 
 void eff_mons_picks_up_item (struct Monster *mons, struct Item *item)

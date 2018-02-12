@@ -59,6 +59,7 @@ void ityp_init ()
 char *get_near_desc (const struct Monster *mons, const struct Item *item)
 {
 	char *ret = malloc(128);
+	char temp2[128];
 	char temp[128];
 	if (item->name != NULL && item->name[0] != '\0')
 	{
@@ -67,11 +68,11 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 	else
 	{
 		// const char *str = itoa((item->attr&ITEM_PLUS(3)>>3))
-		char ench_string[20] = "";
+		char ench_string[50] = "";
 		if (item->attk)
-			snprintf (ench_string, 20, " (%d dmg)", item->attk);
+			snprintf (ench_string, 50, " (#nF3300000%d#nBBB00000 dmg)", item->attk);
 		else if (item->def)
-			snprintf (ench_string, 20, " (%d def)", item->def);
+			snprintf (ench_string, 50, " (#nF7000000%d#nBBB00000 def)", item->def);
 		snprintf (temp, 128, "%s%s%s%s%s%s%s",
 		         /* beatitude */
 		         (!(item->attr & ITEM_KBUC)) ? "" :
@@ -88,7 +89,8 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 		         (item->loc.loc == LOC_WIELDED) ? " (wielded)" : "",
 				 item_worn(item) ? " (being worn)" : ""
 				 );
-		w_some (ret, temp, item->stacksize, 128);
+		w_some (temp2, temp, item->stacksize, 128);
+		snprintf (ret, 128, "#g%s %s", gl_format (item->type.gl), temp2);
 	}
 	return ret;
 }
@@ -106,8 +108,15 @@ int it_can_merge (struct Monster *player, struct Item *item1, struct Item *item2
 
 char *get_inv_line (const struct Item *item)
 {
+	MID ID = (item->loc.loc == LOC_INV) ? item->loc.inv.monsID :
+		(item->loc.loc == LOC_WIELDED) ? item->loc.wield.monsID : 0;
+	struct Monster *mons = MTHIID (ID);
+	if (!mons)
+		panic ("Invalid MID in get_inv_line");
+	if (!mons_isplayer (mons))
+		return get_near_desc (mons, item);
 	char ch = get_Itref (item);
-	char *ret = malloc (80), *orig = get_near_desc (MTHIID(item->loc.inv.monsID), item);
+	char *ret = malloc (80), *orig = get_near_desc (mons, item);
 	snprintf (ret, 80, "%c - %s", ch, orig);
 	free (orig);
 	return ret;

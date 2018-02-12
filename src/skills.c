@@ -6,19 +6,19 @@
 #include "include/event.h"
 
 const styp all_skills[] = {
-	{SK_NONE, 0, "", ""},
-	{SK_CHARGE,  SK_ACT, "Charge",  "#CHARGE\n#[cost: 3 stamina/square]\n\nCharge at your opponent, dealing extra damage for one hit. Be careful not to miss! Damage increases with skill level."},
-	{SK_DODGE,   SK_PAS, "Dodge", "#DODGE\n#[passive skill]\n\nYou are uncommonly nimble. When you are attacked you have a chance to dodge the attack. The chance increases with skill level."},
-	{SK_FIREBALL, SK_ACT, "Fireball", "#FIREBALL\n#[cost: 5 MP]\nfireball!"},
-	{SK_WATER_BOLT, SK_ACT, "Water bolt", "#WATER BOLT\n#[cost: 6 MP]\nWater!"},
-	{SK_FROST, SK_ACT, "Frost", "#FROST\n[cost: free]\nLightly freezes an area."},
-	{SK_FLAMES,  SK_ACT, "Circle of flame", "#CIRCLE OF FLAME\n#[cost: free]\nfiire!!!!"},
-	{SK_USE_MARTIAL_ARTS, SK_PAS, "Martial arts ability", "#MARTIAL ARTS\n\nYour skill at using martial arts in combat."},
-	{SK_USE_LONGSWORD, SK_PAS, "Longsword ability", "#LONGSWORD\n\nYour skill at using a longsword in combat."},
-	{SK_USE_AXE, SK_PAS, "Axe ability", "#AXE\n\nYour skill at using an axe in combat."},
-	{SK_USE_HAMMER, SK_PAS, "Hammer ability", "#HAMMER\n\nYour skill at using a hammer in combat."},
-	{SK_USE_DAGGER, SK_PAS, "Dagger ability", "#DAGGER\n\nYour skill at using dagger in combat."},
-	{SK_USE_SHORTSWORD, SK_PAS, "Short sword ability", "#SHORT SWORD\n\nYour skill at using short sword in combat."}
+	{SK_NONE, 0, 0, "", ""},
+	{SK_CHARGE, SK_ACT, GL_STR, "Charge",  "#CHARGE\n#[cost: 3 stamina/square]\n\nCharge at your opponent, dealing extra damage for one hit. Be careful not to miss! Damage increases with skill level."},
+	{SK_DODGE, SK_PAS, GL_AGI, "Dodge", "#DODGE\n#[passive skill]\n\nYou are uncommonly nimble. When you are attacked you have a chance to dodge the attack. The chance increases with skill level."},
+	{SK_FIREBALL, SK_ACT, GL_WIS, "Fireball", "#FIREBALL\n#[cost: 5 MP]\nfireball!"},
+	{SK_WATER_BOLT, SK_ACT, GL_WIS, "Water bolt", "#WATER BOLT\n#[cost: 6 MP]\nWater!"},
+	{SK_FROST, SK_ACT, GL_WIS, "Frost", "#FROST\n[cost: free]\nLightly freezes an area."},
+	{SK_FLAMES,  SK_ACT, GL_WIS, "Circle of flame", "#CIRCLE OF FLAME\n#[cost: free]\nfiire!!!!"},
+	{SK_USE_MARTIAL_ARTS, SK_PAS, GL_STR, "Martial arts ability", "#MARTIAL ARTS\n\nYour skill at using martial arts in combat."},
+	{SK_USE_LONGSWORD, SK_PAS, GL_STR, "Longsword ability", "#LONGSWORD\n\nYour skill at using a longsword in combat."},
+	{SK_USE_AXE, SK_PAS, GL_STR, "Axe ability", "#AXE\n\nYour skill at using an axe in combat."},
+	{SK_USE_HAMMER, SK_PAS, GL_STR, "Hammer ability", "#HAMMER\n\nYour skill at using a hammer in combat."},
+	{SK_USE_DAGGER, SK_PAS, GL_STR, "Dagger ability", "#DAGGER\n\nYour skill at using dagger in combat."},
+	{SK_USE_SHORTSWORD, SK_PAS, GL_STR, "Short sword ability", "#SHORT SWORD\n\nYour skill at using short sword in combat."}
 };
 
 #define SK_MAXLEVEL ((int)(sizeof(xp_levels)/sizeof(*xp_levels)))
@@ -32,6 +32,11 @@ const char *sk_name (Skill sk)
 const char *sk_desc (Skill sk)
 {
 	return all_skills[sk->type].desc;
+}
+
+glyph sk_gl (Skill sk)
+{
+	return all_skills[sk->type].gl;
 }
 
 int sk_isact (Skill sk)

@@ -103,6 +103,8 @@ int Kpickup (struct Monster *player)
 
 		/* Do the asking */
 		ask_items (player, pickup, ground, "Pick up what?");
+		if (pickup->len == 0)
+			return 0;
 
 	}
 	pl_queue (player, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
@@ -591,58 +593,48 @@ void ask_items (const struct Monster *player, Vector it_out, Vector it_in, const
 {
 	int i;
 	// TODO fix
-	Vector list = v_init (128, it_in->len);
-	char first[256];
-	snprintf (first, 128, " ## %s ##",  msg);
-	v_pstr (list, first);
-	v_pstr (list, "");
+	char *fmt = malloc (1024);
+	fmt[0] = 0;
+	//Vector list = v_init (128, it_in->len);
+	//char first[256];
+	strcat (fmt, msg);
+	//snprintf (first, 128, " ## %s ##",  msg);
+	//v_pstr (list, first);
+	//v_pstr (list, "");
+	strcat (fmt, "\n\n");
+	char letter = 'a';
 	for (i = 0; i < it_in->len; ++ i)
 	{
-		v_push (it_out, v_at (it_in, i));
+		//v_push (it_out, v_at (it_in, i));
 		TID itemID = *(TID *) v_at (it_in, i);
 		char *asdf = get_near_desc (player, ITEMID (itemID));
-		v_pstrf (list, "  (*)   %s", asdf);
+		//v_pstrf (list, "  (*)   %s", asdf);
+		char opt[] = {'#', 'o', letter + i, 0};
+		strcat (fmt, opt);
+		strcat (fmt, asdf);
+		strcat (fmt, "\n");
 		free (asdf);
 	}
-	v_pstr (list, "");
-	p_lines (list);
-	v_free (list);
+	//v_pstr (list, "");
+	strcat (fmt, "\n");
+	//p_lines (list);
+	char ret = p_flines (fmt);
+	//v_free (list);
+	free (fmt);
+	int a = PACK_AT (ret);
+	if (a != -1)
+		v_push (it_out, v_at (it_in, a));
 }
 
 void pl_choose_attr_gain (struct Monster *player, int points)
 {
-	Vector lines;
-	//char first[40] = "                                       ";
-
-	lines = v_init (sizeof(struct MenuOption), 10);
-
-	//const char *msg = "You gain a level! +1 to all attributes.";
-	//int msglen = strlen(msg);
-	//snprintf (first + (40-msglen)/2, 40, "%s", msg);
-	struct MenuOption m = (struct MenuOption) {0, {0,}, NULL};
-	gr_ext (m.ex_str, "You gain a level! +1 to all attributes.", 0);
-	v_push (lines, &m);
-	m = (struct MenuOption) {0, {0,}, NULL};
-	gr_ext (m.ex_str, "Select an attribute to increase by one.", 0);
-	v_push (lines, &m);
-	m = (struct MenuOption) {0, {0,}, NULL};
-	v_push (lines, &m);
-	m = (struct MenuOption) {'a', {0,}, NULL};
-	gr_ext (m.ex_str, "Strength", 0);
-	v_push (lines, &m);
-	m = (struct MenuOption) {'b', {0,}, NULL};
-	gr_ext (m.ex_str, "Constitution", 0);
-	v_push (lines, &m);
-	m = (struct MenuOption) {'c', {0,}, NULL};
-	gr_ext (m.ex_str, "Wisdom", 0);
-	v_push (lines, &m);
-	m = (struct MenuOption) {'d', {0,}, NULL};
-	gr_ext (m.ex_str, "Agility", 0);
-	v_push (lines, &m);
-	m = (struct MenuOption) {0, {0,}, NULL};
-	v_push (lines, &m);
-	char ret = p_menuex (lines);
-	v_free (lines);
+	char ret = p_flines (
+	"#cYou gain a level! +1 to all attributes.\n"
+	"#cSelect another attribute to increase by one.\n"
+	"#oa#g"FMT_STR" Strength\n"
+	"#ob#g"FMT_CON" Constitution\n"
+	"#oc#g"FMT_WIS" Wisdom\n"
+	"#od#g"FMT_AGI" Agility");
 	if (ret == 'a')
 		++ player->str;
 	else if (ret == 'b')

@@ -7,7 +7,7 @@
 #include "include/panel.h"
 #include "include/dlevel.h"
 
-unsigned PACK_AT(char a)
+int PACK_AT(char a)
 {
 	if (a < 65 || a > 122 || (a > 90 && a < 97))
 		return -1;
@@ -70,10 +70,10 @@ int add_contents (char *inv, Pack *pack, uint32_t accepted)
 				strcat (inv, "#nBBB00000\n");
 			}
 			char *line = get_near_desc (MTHIID(packitem->loc.inv.monsID), packitem);
-			char option[] = {'#', 'o', get_Itref (packitem), '#', 'g', 0};
+			char option[] = {'#', 'o', get_Itref (packitem), 0};//'#', 'g', 0};
 			strcat (inv, option);
-			strcat (inv, gl_format (packitem->type.gl));
-			strcat (inv, " ");
+			//strcat (inv, gl_format (packitem->type.gl));
+			//strcat (inv, " ");
 			strcat (inv, line);
 			strcat (inv, "\n");
 			free (line);
@@ -87,9 +87,9 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 {
 	char *format = malloc(1024);
 	format[0] = 0;
-	strcat (format, "#c");
+	strcat (format, "#nFFF00000#c");
 	strcat (format, msg);
-	strcat (format, "\n\n");
+	strcat (format, "#nBBB00000\n\n");
 	int num_items = 0;
 
 	num_items += add_contents (format, pack, accepted & ITCAT_DOSH);
@@ -102,7 +102,7 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 		p_msg ("No valid items.");
 		return ' ';
 	}
-	char out = p_formatted (format);
+	char out = p_flines (format);
 	free (format);
 	return out;
 }

@@ -385,7 +385,7 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	init_mons (&m1, MTYP_human);
 	m1.name = name;
 	m1.skills = v_dinit (sizeof(struct Skill));
-	m1.exp = 0;
+	m1.exp = 19;
 	m1.ctr.mode = CTR_PL;
 	m1.level = 1;
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_WATER_BOLT, 0, 1}));

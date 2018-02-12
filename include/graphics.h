@@ -154,6 +154,19 @@ void gr_resize    (int, int);
 #define ACS_BIGDOT   0xF9
 #define ACS_PILLAR   0x07
 
+#define GL_HEALTH    0xF0000003
+#define GL_STAMINA   0x0F000005
+#define GL_POWER     0x05F00004
+
+#define GL_STR       0xF000000B
+#define FMT_STR       "F000000B"
+#define GL_CON       0x0F0000F0
+#define FMT_CON       "0F0000F0"
+#define GL_WIS       0x05F0000F
+#define FMT_WIS       "05F0000F"
+#define GL_AGI       0xF70000AF
+#define FMT_AGI       "F70000AF"
+
 /* line graphics */
 #define ACS_VLINE    0xB3
 #define ACS_HLINE    0xC4

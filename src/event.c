@@ -235,12 +235,10 @@ void ev_do (Event ev)
 		item = ITEMID(itemID);
 		if (item->type.type == ITSORT_ARCANE)
 		{
-			//p_msg ("The %s dissipates.", item->type.name);
 			eff_item_dissipates (item);
 			item_free (item);
 			return;
 		}
-		//p_msg ("The %s falls to the ground.", item->type.name); // is this message necessary?
 		item_put (item, (union ItemLoc) { .dlvl =
 			{LOC_DLVL, item->loc.fl.dlevel, item->loc.fl.yloc, item->loc.fl.xloc}});
 		return;
@@ -249,12 +247,10 @@ void ev_do (Event ev)
 		item = ITEMID(itemID);
 		if (item->type.type == ITSORT_ARCANE)
 		{
-			//p_msg ("The %s is absorbed.", item->type.name);
 			eff_item_absorbed (item);
 			item_free (item);
 			return;
 		}
-		//p_msg ("The %s hits the wall.", item->type.name);
 		eff_item_hits_wall (item);
 		item_put (item, (union ItemLoc) { .dlvl =
 			{LOC_DLVL, item->loc.fl.dlevel, item->loc.fl.yloc, item->loc.fl.xloc}});
@@ -272,12 +268,10 @@ void ev_do (Event ev)
 			{EV_MANGERM, item->loc.fl.frID, monsID}}); /* anger to-mons */
 		if (!proj_hitm (item, mons))
 		{
-			//p_msg ("The %s misses the %s!", item->type.name, mons->mname); /* notify */
 			eff_proj_misses_mons (item, mons);
 			return;
 		}
 		damage = proj_hitdmg (item, mons);
-		//p_msg ("The %s hits the %s for %d!", item->type.name, mons->mname, damage); /* notify */
 		eff_proj_hits_mons (item, mons, damage);
 		mons->HP -= damage;
 		if (mons->HP <= 0)
@@ -380,7 +374,6 @@ void ev_do (Event ev)
 		mons->status.attacking.ydir = ev->mattkm.ydir;
 		mons->status.attacking.xdir = ev->mattkm.xdir;
 		mons->status.attacking.arm = ev->mattkm.arm;
-		//p_msg ("The %s swings, to hit in %dms!", mons->mname, mons->speed);
 		break;
 	case EV_MDOATTKM:
 		frID = ev->mdoattkm.thID;
@@ -403,25 +396,21 @@ void ev_do (Event ev)
 		int stamina_cost = mons_ST_hit (fr, with);
 		if (fr->ST < stamina_cost)
 		{
-			//p_msg ("The %s tiredly misses the %s!", fr->mname, to->mname); /* notify */
 			eff_mons_tiredly_misses_mons (fr, to);
 			return;
 		}
 		fr->ST -= stamina_cost;
 		if (!mons_hitm (fr, to, with))
 		{
-			//p_msg ("The %s misses the %s!", fr->mname, to->mname); /* notify */
 			eff_mons_misses_mons (fr, to);
 			return;
 		}
 		damage = mons_hitdmg (fr, to, with);
 		if (damage == 0)
 		{
-			//p_msg ("The %s just misses the %s!", fr->mname, to->mname); /* notify */
 			eff_mons_just_misses_mons (fr, to);
 			return;
 		}
-		//p_msg ("The %s hits the %s for %d!", fr->mname, to->mname, damage); /* notify */
 		eff_mons_hits_mons (fr, to, damage);
 		to->HP -= damage;
 		if (to->HP <= 0)
@@ -436,7 +425,6 @@ void ev_do (Event ev)
 		fr = MTHIID(ev->mkillm.frID); to = MTHIID(ev->mkillm.toID);
 		if ((!fr) || (!to))
 			return;
-		//p_msg ("The %s kills the %s!", fr->mname, to->mname);
 		eff_mons_kills_mons (fr, to);
 		if (mons_isplayer(to))
 		{
@@ -540,11 +528,8 @@ void ev_do (Event ev)
 		struct Item *it = ITEMID(ev->mwield.itemID);
 		if ((!it) || it->loc.loc != LOC_INV || it->loc.inv.monsID != ev->mwield.thID)
 			return;
-		mons_wield (mons, arm, it);
-		//char *msg = get_inv_line (it);
-		//p_msg ("The %s wields %s.", mons->mname, msg); /* notify */
 		eff_mons_wields_item (mons, it);
-		//free (msg);
+		mons_wield (mons, arm, it);
 		return;
 	case EV_MWEAR_ARMOUR:
 		mons = MTHIID(ev->mwear_armour.thID);
@@ -557,11 +542,8 @@ void ev_do (Event ev)
 			return;
 		if (!mons_can_wear (mons, item, ev->mwear_armour.offset))
 			return;
-		//msg = get_inv_line (item);
-		//p_msg ("The %s wears %s.", mons->mname, msg); /* notify */
-		//free (msg);
-		mons_wear (mons, item, ev->mwear_armour.offset);
 		eff_mons_wears_item (mons, item);
+		mons_wear (mons, item, ev->mwear_armour.offset);
 		return;
 	case EV_MTAKEOFF_ARMOUR:
 		mons = MTHIID(ev->mtakeoff_armour.thID);
@@ -575,9 +557,6 @@ void ev_do (Event ev)
 		if (!mons_can_takeoff (mons, item))
 			return;
 		mons_take_off (mons, item);
-		//msg = get_inv_line (item);
-		//p_msg ("The %s takes off %s.", mons->mname, msg); /* notify */
-		//free (msg);
 		eff_mons_takes_off_item (mons, item);
 		return;
 	case EV_MPICKUP:
@@ -614,9 +593,6 @@ void ev_do (Event ev)
 			item_put (item, (union ItemLoc) { .inv = {LOC_INV, thID, j}});
 			/* Say so */
 			eff_mons_picks_up_item (mons, packitem);
-			//char *msg = get_inv_line (packitem);
-			//p_msg ("%s", msg);
-			//free (msg);
 		}
 		if (i < pickup->len)
 		{
@@ -648,7 +624,6 @@ void ev_do (Event ev)
 			return;
 		if (to->ctr.mode == CTR_AI_TIMID)
 			eff_mons_angers_mons (fr, to);
-			//p_msg ("The %s angers the %s!", fr->mname, to->mname);
 		to->ctr.mode = CTR_AI_AGGRO;
 		to->ctr.aggro.ID = frID;
 		return;
@@ -657,7 +632,6 @@ void ev_do (Event ev)
 		mons = MTHIID(thID);
 		if (!mons)
 			return;
-		//p_msg ("The %s calms.", mons->mname);
 		eff_mons_calms (mons);
 		mons->ctr.mode = CTR_AI_TIMID;
 		return;

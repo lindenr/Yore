@@ -532,13 +532,12 @@ void mons_level_up (struct Monster *mons)
 	mons->level ++;
 	if (mons->level < mons_level (mons->exp))
 		mons->exp = explevel[mons->level]-1;
-	p_msg ("Level up! The %s is now level %d.", mons->mname, mons->level);
+	eff_mons_levels_up (mons);
 	/* stats */
 	mons->str ++;
 	mons->con ++;
 	mons->wis ++;
 	mons->agi ++;
-	//draw_map ();
 	p_pane (mons);
 	pl_choose_attr_gain (mons, 1);
 	mons_stats_changed (mons);

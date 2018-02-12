@@ -33,6 +33,7 @@ typedef struct
 {
 	enum SK_TYPE type;
 	int  flags;
+	glyph gl;
 	char name[SK_NAME_LEN];
 	char desc[SK_DESC_LEN];
 } styp;
@@ -47,6 +48,7 @@ typedef struct Skill
 
 const char *sk_name (Skill);
 const char *sk_desc (Skill);
+glyph       sk_gl   (Skill);
 int  sk_isact  (Skill);
 void sk_exp    (struct Monster *, Skill, int);
 int  sk_lvl    (struct Monster *, enum SK_TYPE);

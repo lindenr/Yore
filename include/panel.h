@@ -19,7 +19,7 @@ struct Monster;
 struct P_msg
 {
 	uint64_t expiry;
-	char msg[P_MSG_LEN];
+	glyph msg[P_MSG_LEN];
 };
 
 void p_init    ();
@@ -45,7 +45,7 @@ enum P_MV
 struct MenuOption
 {
 	char letter;
-	glyph ex_str[40];
+	glyph *ex_str;
 	char *desc;
 };
 
@@ -64,8 +64,10 @@ struct FormattedGlyph
 };
 
 char *gl_format (glyph gl);
-char p_menuex   (Vector);
-char p_formatted(const char *);
+char p_menuex   (Vector lines, const char *toquit, int max_line_len);
+Vector p_formatted(const char *input, int max_line_len);
+char p_flines   (const char *);
+void p_ffree    (Vector);
 int  p_status   (struct Monster *, enum PanelType);
 int  p_skills   (struct Monster *, enum PanelType);
 void p_mvchoose (struct Monster *, int *, int *, const char *, const char *,
@@ -95,6 +97,7 @@ void eff_mons_misses_mons (struct Monster *fr, struct Monster *to);
 void eff_mons_just_misses_mons (struct Monster *fr, struct Monster *to);
 void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage);
 void eff_mons_kills_mons (struct Monster *fr, struct Monster *to);
+void eff_mons_levels_up (struct Monster *mons);
 void eff_mons_picks_up_item (struct Monster *mons, struct Item *item);
 void eff_mons_wields_item (struct Monster *mons, struct Item *item);
 void eff_mons_wears_item (struct Monster *mons, struct Item *item);
