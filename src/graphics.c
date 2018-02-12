@@ -475,7 +475,7 @@ void gr_refresh ()
 		gr_onrefresh ();
 	if (drawn || forced_refresh)
 	{
-		if (forced_refresh)
+		if (1 || forced_refresh)
 			SDL_UpdateTexture (sdlTexture, NULL, screen->pixels, screenX * sizeof(Uint32));
 		else
 		{
