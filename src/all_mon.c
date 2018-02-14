@@ -81,7 +81,7 @@ const struct Monster all_mons[] = {
 		  ATTK(A(2, 4, ATTK_HIT), A(2, 2, AM(ATTK_MAGIC, ATYP_CURS)), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_SKEL,
 		  COL_TXT_RED(11) | COL_TXT_BLUE(11),
-		  200, 200, 200, 200, 600, 1000)/*,
+		  200, 200, 200, 200, 600, 10000)/*,
 	MONST("acid blob", 'j', 2000, SIZE(3), 5,
 		  ATTK(A(2, 4, ATTK_TOUCH), A(3, 2, AM(ATTK_PASS, ATYP_ACID)), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_BLOB,
@@ -90,7 +90,7 @@ const struct Monster all_mons[] = {
 	MONST("Satan", 'D', SIZE(5),
 		  ATTK(A(3, 5, ATTK_HIT), A(4, 5, AM(ATTK_MAGIC, ATYP_BEAM)), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_UNIQ, COL_TXT_RED(11),
-		  300, 300, 300, 300, 1200, 1200),
+		  300, 300, 300, 300, 1200, 12000),
 	MONST(NULL, 0, SIZE(0),
 		  ATTK(AT_NONE, AT_NONE, AT_NONE, AT_NONE, AT_NONE, AT_NONE), 0, 0, 0, 0, 0, 0, 0, 0)
 };

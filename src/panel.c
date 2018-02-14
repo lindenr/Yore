@@ -139,16 +139,19 @@ void p_menu_draw (Graph box, Vector lines, int curchoice)
 		{
 			gra_mvaddch (box, i+1, 2, ACS_PILLAR);
 			gra_mvaddch (box, i+1, 3, ' ');
-			gra_mvaddch (box, i+1, 4, line->letter);
+			gra_mvaddch (box, i+1, 4, ' ');
+	//		gra_mvaddch (box, i+1, 4, line->letter);
+	//		gra_mvaddch (box, i+1, 4, '>');
 		}
 		if (line->ex_str)
-			gra_mvaprintex (box, i+1, 6, line->ex_str);
+			gra_mvaprintex (box, i+1, 5, line->ex_str);
 	}
 	if (curchoice != -1)
 	{
+		gra_mvaddch (box, curchoice+1, 3, '>');
 		gra_invert (box, curchoice+1, 2);
 		gra_invert (box, curchoice+1, 3);
-		gra_invert (box, curchoice+1, 4);
+		//gra_invert (box, curchoice+1, 4);
 	}
 }
 
@@ -189,21 +192,21 @@ char p_menuex (Vector lines, const char *toquit, int max_line_len)
 		if (ret == CH_ESC || ret == ' ' ||
 			ret == '-')
 			break;
-		for (i = 0; i < lines->len; ++ i)
-		{
-			struct MenuOption *line = v_at (lines, i);
-			if (line->letter == ret)
-				break;
-		}
-		if (i < lines->len)
-			break;
-		if (ret == '\n')
+		//for (i = 0; i < lines->len; ++ i)
+		//{
+		//	struct MenuOption *line = v_at (lines, i);
+		//	if (line->letter == ret)
+		//		break;
+		//}
+		//if (i < lines->len)
+		//	break;
+		if (ret == '\n' || ret == '.')
 		{
 			gra_free (box);
 			struct MenuOption *line = v_at (lines, curchoice);
 			return line->letter;
 		}
-		else if (ret == GRK_UP)
+		else if (ret == GRK_UP || ret == 'k')
 		{
 			for (i = curchoice - 1; i >= 0; -- i)
 			{
@@ -214,7 +217,7 @@ char p_menuex (Vector lines, const char *toquit, int max_line_len)
 			if (i >= 0)
 				curchoice = i;
 		}
-		else if (ret == GRK_DN)
+		else if (ret == GRK_DN || ret == 'j')
 		{
 			for (i = curchoice + 1; i < lines->len; ++ i)
 			{

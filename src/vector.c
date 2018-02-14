@@ -24,7 +24,7 @@ Vector v_init (int siz, int mlen)
 	return vec;
 }
 
-#define V_NEXT_LENGTH(cur) (cur*2)
+#define V_NEXT_LENGTH(cur) (1 + (cur)*2)
 #define DATA(i)            (vec->data + ((i)*(vec->siz)))
 void *v_push (Vector vec, const void *data)
 {
@@ -49,7 +49,10 @@ void *v_pstr (Vector vec, char *data)
 		vec->mlen = V_NEXT_LENGTH(vec->mlen);
 		vec->data = realloc (vec->data, vec->mlen * vec->siz);
 	}
-	memcpy (DATA(vec->len), data, strlen (data) + 1);
+
+	strncpy (DATA(vec->len), data, vec->siz);
+	((char*) DATA(vec->len))[vec->siz-1] = 0;
+
 	++ vec->len;
 	return v_at (vec, vec->len - 1);
 }
@@ -64,11 +67,9 @@ void *v_pstrf (Vector vec, char *data, ...)
 		vec->data = realloc (vec->data, vec->mlen * vec->siz);
 	}
 
-
 	va_list args;
-
 	va_start (args, data);
-	vsnprintf (DATA(vec->len), vec->siz ,data, args);
+	vsnprintf (DATA(vec->len), vec->siz, data, args);
 	va_end (args);
 
 	++ vec->len;
@@ -82,7 +83,6 @@ void v_rem (Vector vec, int rem)
 
 	for (i = rem; i < vec->len - 1; ++ i)
 		memcpy (DATA(i), DATA(i+1), vec->siz);
-	memclr (DATA(i), vec->siz);
 	-- vec->len;
 }
 
@@ -110,10 +110,3 @@ void v_print (Vector vec)
 	printf("\n");
 }
 
-bool v_isin (Vector vec, void *data)
-{
-	int i;
-	for (i = 0; i < vec->len; ++ i)
-		if (memcmp (DATA(i), data, vec->siz) == 0) return true;
-	return false;
-}

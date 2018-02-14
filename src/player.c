@@ -284,9 +284,7 @@ int Knlook (struct Monster *player)
 	{
 		struct Item *it = v_at(items, i);
 		char *line = get_near_desc (player, it);
-		char out[256];
-		snprintf (out, 256, "You%s see here %s.", (k ? " also" : ""), line);
-		v_pstr (list, out);
+		v_pstrf (list, "You%s see here %s.", (k ? " also" : ""), line);
 		++ k;
 		free (line);
 	}
@@ -592,35 +590,19 @@ int pl_take_turn (struct Monster *player)
 void ask_items (const struct Monster *player, Vector it_out, Vector it_in, const char *msg)
 {
 	int i;
-	// TODO fix
-	char *fmt = malloc (1024);
-	fmt[0] = 0;
-	//Vector list = v_init (128, it_in->len);
-	//char first[256];
-	strcat (fmt, msg);
-	//snprintf (first, 128, " ## %s ##",  msg);
-	//v_pstr (list, first);
-	//v_pstr (list, "");
-	strcat (fmt, "\n\n");
+	char fmt[1024];
+	int len = 0;
+	len += snprintf (fmt, 1024, "%s\n\n", msg);
 	char letter = 'a';
 	for (i = 0; i < it_in->len; ++ i)
 	{
-		//v_push (it_out, v_at (it_in, i));
 		TID itemID = *(TID *) v_at (it_in, i);
 		char *asdf = get_near_desc (player, ITEMID (itemID));
-		//v_pstrf (list, "  (*)   %s", asdf);
-		char opt[] = {'#', 'o', letter + i, 0};
-		strcat (fmt, opt);
-		strcat (fmt, asdf);
-		strcat (fmt, "\n");
+		len += snprintf (fmt + len, 1024-len, "#o%c%s\n", letter + i, asdf);
 		free (asdf);
 	}
-	//v_pstr (list, "");
-	strcat (fmt, "\n");
-	//p_lines (list);
+	len += snprintf (fmt + len, 1024-len, "\n");
 	char ret = p_flines (fmt);
-	//v_free (list);
-	free (fmt);
 	int a = PACK_AT (ret);
 	if (a != -1)
 		v_push (it_out, v_at (it_in, a));

@@ -27,11 +27,7 @@ void  *v_pstrf (Vector, char *, ...);
 void   v_rem   (Vector, int);
 void   v_rptr  (Vector, void *);
 
-/* read */
-bool   v_isin  (Vector, void *);
-
 /* misc */
-#define v_thing(vec,i) (((struct Thing *) v_at ((vec), (i)))->thing)
 #define v_at(vec,i)    (((vec)->data) + (i)*((vec)->siz))
 void    v_print (Vector);
 

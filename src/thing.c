@@ -84,7 +84,7 @@ void rem_itemid (TID ID)
 	case LOC_DLVL:
 	case LOC_FLIGHT:
 		ITEMID(ID) = NULL;
-		v_rem (items, ((uintptr_t)item - (uintptr_t)items->data)/sizeof(*item));
+		v_rptr (items, item);
 		update_item_pointers (items);
 		draw_map_buf (lvl, n);
 		return;

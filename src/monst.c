@@ -302,7 +302,7 @@ void mons_tilefrost (struct Monster *mons, int yloc, int xloc)
 	Vector items = lvl->items[n];
 	for (i = 0; i < items->len; ++ i)
 	{
-		struct Item *it = (struct Item *) (items->data + i);
+		struct Item *it = v_at (items, i);
 		if (it->type.type != ITSORT_ARCANE)
 			continue;
 		if (!strcmp (it->type.name, "fireball"))

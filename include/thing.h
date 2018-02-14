@@ -13,7 +13,7 @@
 
 #define THIID(id)          (*(struct Thing **)  v_at (all_ids, (id)))
 #define ITEMID(id)         (*(struct Item **) v_at (all_ids, (id)))
-#define THING(t,n,i)       ((struct Thing*)((t)[n]->data + (i)*sizeof(struct Thing)))
+#define THING(t,n,i)       ((struct Thing*)(v_at((t)[n], i)))
 
 typedef int TID, MID;
 
