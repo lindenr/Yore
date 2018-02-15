@@ -532,12 +532,43 @@ void show_path_on_overlay (enum P_MV action, int fy, int fx, int ty, int tx)
 	gra_mvaddch (overlay, fy, fx, 0);
 }
 
+Graph gra_n = NULL;
+void p_anotify (const char *msg)
+{
+	if (gra_n)
+		p_endnotify ();
+	int h = 5, w = strlen(msg) + 4;
+	gra_n = gra_init (h, w, 0, 0, h, w);
+	gra_box (gra_n, 0, 0, h-1, w-1);
+	gra_mvaprint (gra_n, 2, 2, msg);
+}
+
+void p_notify (const char *msg, ...)
+{
+	va_list args;
+	char out[100];
+
+	va_start (args, msg);
+	vsnprintf (out, 100, msg, args);
+	va_end (args);
+
+	p_anotify (out);
+}
+
+void p_endnotify ()
+{
+	if (!gra_n)
+		return;
+	gra_free (gra_n);
+	gra_n = NULL;
+}
+
 void p_mvchoose (struct Monster *player, int *yloc, int *xloc,
 	const char *instruct, const char *confirm, void (*update_output) (enum P_MV, int, int, int, int))
 {
 	int orig_y = map_graph->csr_y, orig_x = map_graph->csr_x;
 	if (instruct)
-		p_msg (instruct);
+		p_notify (instruct);
 	p_pane (player);
 	if (update_output)
 		update_output (P_MV_START, orig_y, orig_x, orig_y, orig_x);
@@ -553,6 +584,7 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc,
 				update_output (P_MV_END, player->yloc, player->xloc, map_graph->csr_y, map_graph->csr_x);
 			*yloc = -1;
 			gra_cmove (map_graph, orig_y, orig_x);
+			p_endnotify ();
 			return;
 		}
 		if (ymove == -1 && map_graph->csr_y > 0 && map_graph->csr_y - map_graph->cy > 0)
@@ -577,6 +609,7 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc,
 	gra_cmove (map_graph, orig_y, orig_x);
 	if (update_output)
 		update_output (P_MV_END, player->yloc, player->xloc, map_graph->csr_y, map_graph->csr_x);
+	p_endnotify ();
 }
 
 int interp_hex (char in)
@@ -910,7 +943,7 @@ void eff_mons_levels_up (struct Monster *mons)
 	if (!player_sees_mons (mons))
 		return;
 	if (mons_isplayer (mons))
-		p_msg (COL_BRIGHT("Level up!")" You are now level "COL_GREEN("%d")".", mons->level);
+		p_msg (COL_BRIGHT("Level up!")" You are now level "COL_YELLOW("%d")".", mons->level);
 	else
 		p_msg ("The %d seems more experienced.", mons->mname);
 }

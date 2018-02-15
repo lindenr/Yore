@@ -302,7 +302,9 @@ int Kflook (struct Monster *player)
 {
 	int y, x;
 	p_mvchoose (player, &y, &x, "What are you looking for?", NULL, NULL);
-	p_msg ("%d", cur_dlevel->player_dist[map_buffer(y,x)]);
+	p_notify ("%d", cur_dlevel->player_dist[map_buffer(y,x)]);
+	gr_getch ();
+	p_endnotify ();
 	return 0;
 }
 

@@ -28,6 +28,9 @@ void p_amsg    (const char *);
 void p_msg     (const char *, ...);
 char p_ask     (struct Monster *, const char *, const char *);
 char p_lines   (Vector);
+void p_anotify  (const char *);
+void p_notify  (const char *, ...);
+void p_endnotify  ();
 
 enum PanelType
 {
