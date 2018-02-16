@@ -53,7 +53,7 @@ int  sk_isact  (Skill);
 void sk_exp    (struct Monster *, Skill, int);
 int  sk_lvl    (struct Monster *, enum SK_TYPE);
 
-enum SK_TYPE sk_item_use (struct Item *);
+enum SK_TYPE sk_item_use (const struct Item *);
 
 void sk_charge (struct Monster *, int, int, Skill);
 void sk_flames (struct Monster *);

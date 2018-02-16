@@ -401,7 +401,7 @@ int proj_hitdmg (struct Item *proj, struct Monster *to)
 	return rn(proj->attk/2 + 1) + rn (2);
 }
 
-enum SK_TYPE sk_item_use (struct Item *item)
+enum SK_TYPE sk_item_use (const struct Item *item)
 {
 	if (NO_ITEM(item))
 		return SK_USE_MARTIAL_ARTS;
@@ -422,7 +422,7 @@ enum SK_TYPE sk_item_use (struct Item *item)
 	}
 }
 
-int mons_skill (struct Monster *from, struct Item *with)
+int mons_skill (const struct Monster *from, const struct Item *with)
 {
 	int i;
 	enum SK_TYPE type = sk_item_use (with);
@@ -436,6 +436,12 @@ int mons_skill (struct Monster *from, struct Item *with)
 		return sk->level;
 	}
 	return 0;
+}
+
+int mons_attk_bonus (const struct Monster *mons, const struct Item *with)
+{
+	int level = mons_skill (mons, with);
+	return (level*(level+1))/2;
 }
 
 void mons_ex_skill (struct Monster *mons, Skill sk)
@@ -474,7 +480,7 @@ void mons_exercise (struct Monster *from, struct Item *with)
 	mons_ex_skill (from, sk);
 }
 
-int mons_hitm (struct Monster *from, struct Monster *to, struct Item *with)
+int mons_hitm (const struct Monster *from, const struct Monster *to, const struct Item *with)
 {
 	if ((to->status.defending.ydir || to->status.defending.xdir) &&
 	    to->status.defending.ydir + to->yloc == from->yloc &&
@@ -483,11 +489,11 @@ int mons_hitm (struct Monster *from, struct Monster *to, struct Item *with)
 	return rn(20) && ((!rn(20)) || (5 + mons_skill (from, with) >= rn(to->armour*2 + 7)));
 }
 
-int mons_hitdmg (struct Monster *from, struct Monster *to, struct Item *with)
+int mons_hitdmg (const struct Monster *from, const struct Monster *to, const struct Item *with)
 {
-	int attk = (with ? with->type.attk : 0) + rn (from->str + 1) / 2 + 3;
-	//if (!with)
-	//	return (rn(from->str/2 + 1) + rn((from->str+1)/2 + 1));
+	if (!with)
+		return (rn(from->str/6 + 1) + rn((from->str+3)/6 + 1));
+	int attk = with->type.attk + mons_attk_bonus (from, with);
 	int dmg = (rn(1 + attk/2) + rn(1 + (attk+1)/2));
 	return dmg;
 }
@@ -547,7 +553,6 @@ void mons_level_up (struct Monster *mons)
 	mons->con ++;
 	mons->wis ++;
 	mons->agi ++;
-	p_pane (mons);
 	pl_choose_attr_gain (mons, 1);
 	mons_stats_changed (mons);
 }

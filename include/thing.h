@@ -56,6 +56,7 @@ void          th_init        ();
 
 int           get_thing_type (char);
 const char *  get_thing_name (struct Thing);
+glyph         glyph_to_draw  (struct DLevel *, int, int);
 
 struct Item * item_put       (struct Item *, union ItemLoc loc);
 void          item_free      (struct Item *);

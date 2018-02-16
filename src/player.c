@@ -140,9 +140,9 @@ int Kshield_cand (struct Monster *player)
 int Kshield (struct Monster *player)
 {
 	int ymove, xmove;
-	p_msg ("Shield in which direction?");
-	p_pane (player);
-	char in = gr_getch ();
+	p_notify ("Shield in which direction?");
+	char in = p_getch (player);
+	p_endnotify ();
 	p_move (&ymove, &xmove, in);
 	if (ymove == 0 && xmove == 0)
 		return 0;
@@ -191,7 +191,7 @@ int Kfmove_cand (struct Monster *player)
 
 int Kfmove (struct Monster *player)
 {
-	char in = gr_getch ();
+	char in = p_getch (player);
 	if (in == CH_ESC)
 		return 0;
 	
@@ -213,7 +213,7 @@ int Kgmove_cand (struct Monster *player)
 
 int Kgmove (struct Monster *player)
 {
-	char in = gr_getch ();
+	char in = p_getch (player);
 	if (in == CH_ESC)
 		return 0;
 	
@@ -259,14 +259,15 @@ int Kinv (struct Monster *player)
 	return 0;
 }
 
-int Knlook (struct Monster *player)
+int nlook_msg (char *out, const int len, struct Monster *player)
 {
-	int k = 0;
+	int k = 0, cur = 0;
 	int n = map_buffer (player->yloc, player->xloc);
 	struct DLevel *lvl = dlv_lvl (player->dlevel);
 	Vector items = lvl->items[n];
 	Vector things = lvl->things[n];
-	Vector list = v_dinit (256);
+	//Vector list = v_dinit (256);
+	cur += snprintf (out + cur, len - cur, "\n");
 
 	int i;
 	for (i = 0; i < things->len; ++ i)
@@ -275,7 +276,12 @@ int Knlook (struct Monster *player)
 		struct map_item_struct *m = &th->thing.mis;
 		if (m->gl == map_items[DGN_SLIME].gl)
 		{
-			v_pstr (list, "There is slime on the ground here.");
+			cur += snprintf (out + cur, len - cur, "#g%s slime on the ground\n", gl_format (m->gl));
+			++ k;
+		}
+		else if (m->gl == map_items[DGN_OPENDOOR].gl)
+		{
+			cur += snprintf (out + cur, len - cur, "#g%s an open door\n", gl_format (m->gl));
 			++ k;
 		}
 	}
@@ -284,26 +290,44 @@ int Knlook (struct Monster *player)
 	{
 		struct Item *it = v_at(items, i);
 		char *line = get_near_desc (player, it);
-		v_pstrf (list, "You%s see here %s.", (k ? " also" : ""), line);
+		cur += snprintf (out + cur, len - cur, "%s\n", line);
 		++ k;
 		free (line);
 	}
+
 	if (k == 0)
-		p_msg ("You see nothing here. ");
-	else
-		p_lines (list);
+		cur += snprintf (out + cur, len - cur, "You see nothing here.\n");
 
-	v_free (list);
+	return k;
+}
 
+#define MSG_LEN 1024
+void nlook_auto (struct Monster *player)
+{
+	char msg[MSG_LEN];
+	nlook_msg (msg, MSG_LEN, player);
+	p_notify (msg);
+}
+
+int Knlook (struct Monster *player)
+{
+	char msg[MSG_LEN];
+	nlook_msg (msg, MSG_LEN, player);
+	p_flines (msg);
 	return 0;
+}
+
+void flook_callback (enum P_MV action, int fy, int fx, int ty, int tx)
+{
+	int n = map_buffer (ty, tx);
+	glyph gl = map_graph->data[n];
+	p_notify ("You see here: #g%s", gl_format (gl));
 }
 
 int Kflook (struct Monster *player)
 {
 	int y, x;
-	p_mvchoose (player, &y, &x, "What are you looking for?", NULL, NULL);
-	p_notify ("%d", cur_dlevel->player_dist[map_buffer(y,x)]);
-	gr_getch ();
+	p_mvchoose (player, &y, &x, "What are you looking for?", NULL, flook_callback);
 	p_endnotify ();
 	return 0;
 }
@@ -554,16 +578,16 @@ int pl_charge_action (struct Monster *player)
 
 int pl_take_turn (struct Monster *player)
 {
+	draw_map ();
+	//p_notify ("You see nothing here.");
 	if (gra_nearedge (map_graph, player->yloc, player->xloc))
 		gra_centcam (map_graph, player->yloc, player->xloc);
 	while (1)
 	{
-		//draw_map ();
-		p_pane (player);
-
+		nlook_auto (player);
 		gra_cmove (map_graph, player->yloc, player->xloc);
 
-		char in = gr_getch();
+		char in = p_getch (player);
 
 		int ymove, xmove;
 		p_move (&ymove, &xmove, in);
@@ -632,35 +656,10 @@ void pl_choose_attr_gain (struct Monster *player, int points)
 struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
 {
 	char in = show_contents (th->pack, accepted, msg);
-	//char in, cs[100];
-	//bool tried = false;
-/*
-	do
-	{
-		if (tried)
-			p_msg ("No such item.");
-		tried = false;
-
-		pack_get_letters (pmons.pack, cs);
-		in = p_ask (cs, msg);
-		if (in == '?')
-		{
-			gr_getch ();
-			continue;
-		}
-		if (in == ' ' || in == 0x1B)
-			break;
-		if (in == '*')
-		{
-			show_contents (pmons.pack, ITCAT_ALL, "Inventory");
-			gr_getch ();
-			continue;
-		}
-
-		It = get_Itemc (pmons.pack, in);
-		tried = true;
-	}
-	while (It == NULL);*/
 	return get_Itemc (th->pack, in);
+}
+
+void pl_redraw ()
+{
 }
 

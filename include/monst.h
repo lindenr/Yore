@@ -220,7 +220,8 @@ extern const struct Monster all_mons[];
 int    mons_move       (struct Monster *, int, int);         /* move in given directions                 */
 int    mons_try_attack (struct Monster *, int, int);         /* attack in given directions               */
 int    mons_try_wear   (struct Monster *, struct Item *);    /* wear some armour                         */
-int    mons_can_wear   (struct Monster *, struct Item *, size_t); /* can it be worn                      */
+int    mons_can_wear   (struct Monster *, struct Item *,
+	size_t);                                                 /* can it be worn                           */
 int    mons_try_takeoff(struct Monster *, struct Item *);    /* wear some armour                         */
 int    mons_can_takeoff(struct Monster *, struct Item *);    /* can it be taken off                      */
 int    mons_take_turn  (struct Monster *);                   /* give a move (AI or player)               */
@@ -229,14 +230,17 @@ Tick   mons_tregen     (struct Monster *);                   /* time between reg
 int    mons_throwspeed (struct Monster *, struct Item *);    /* how fast the item can be thrown          */
 int    proj_hitm       (struct Item *, struct Monster *);    /* will the projectile hit                  */
 int    proj_hitdmg     (struct Item *, struct Monster *);    /* how much damage                          */
-int    mons_hitm       (struct Monster *, struct Monster *, struct Item *); /* will it hit               */
-int    mons_hitdmg     (struct Monster *, struct Monster *, struct Item *); /* how much damage           */
+int    mons_hitm       (const struct Monster *, const struct Monster *,
+	const struct Item *);                                    /* will it hit                              */
+int    mons_hitdmg     (const struct Monster *, const struct Monster *,
+	const struct Item *);                                    /* how much damage                          */
 int    mons_ST_hit     (struct Monster *, struct Item *);    /* how much stamina will it consume         */
 int    mons_HP_regen   (struct Monster *);                   /* how much HP will regen                   */
 int    mons_ST_regen   (struct Monster *);                   /* stamina                                  */
 int    mons_MP_regen   (struct Monster *);                   /* MP                                       */
 int    mons_isplayer   (struct Monster *);                   /* is controlled by human                   */
-int    mons_cont       (struct Monster *, MCont, union ContData *);/* continuation to be called next turn*/
+int    mons_cont       (struct Monster *, MCont,
+	union ContData *);                                       /* continuation to be called next turn      */
 int    mons_get_HP     (struct Monster *);                   /* recalculates max HP                      */
 int    mons_get_ST     (struct Monster *);                   /* max stamina                              */
 int    mons_get_MP     (struct Monster *);                   /* max magic power                          */
@@ -247,6 +251,10 @@ void   mons_level_up   (struct Monster *);                   /* alter monster's 
 void   mons_stats_changed(struct Monster *);                 /* update HP etc to reflect stats           */
 void   mons_exercise   (struct Monster *, struct Item *);    /* exercise a weapon use                    */
 void   mons_ex_skill   (struct Monster *, Skill);            /* exercise a skill                         */
+int    mons_skill      (const struct Monster *,
+	const struct Item *);                                    /* get skill level for using an item to hit */
+int    mons_attk_bonus (const struct Monster *,
+	const struct Item *);                                    /* get extra damage a monster does          */
 
 /* effects */
 void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */

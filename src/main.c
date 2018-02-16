@@ -75,11 +75,13 @@ void on_quit ()
 int main (int argc, char *argv[])
 {
 	int i;
+	gr_init (720, 1200);
 	gr_onresize = p_init;
+	gr_quit = on_quit;
 	map_graph = gra_init (100, 300, 0, 0, gr_h - PANE_H, gr_w - 1);
-	gr_quit = &on_quit;
 	map_graph->vis = 0;
-	gr_init();
+
+	p_init ();
 	ev_init ();
 	dlv_init ();
 	rng_init ();

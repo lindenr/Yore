@@ -70,7 +70,8 @@ char *get_near_desc (const struct Monster *mons, const struct Item *item)
 		// const char *str = itoa((item->attr&ITEM_PLUS(3)>>3))
 		char ench_string[50] = "";
 		if (item->attk)
-			snprintf (ench_string, 50, " (#nF3300000%d#nBBB00000 dmg)", item->attk);
+			snprintf (ench_string, 50, " (#nF3300000%d+%d#nBBB00000 dmg)",
+				item->attk, mons_attk_bonus (mons, item));
 		else if (item->def)
 			snprintf (ench_string, 50, " (#nF7000000%d#nBBB00000 def)", item->def);
 		snprintf (temp, 128, "%s%s%s%s%s%s%s",

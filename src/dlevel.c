@@ -38,6 +38,7 @@ void dlv_make (int level, int uplevel, int dnlevel)
 		malloc (sizeof(uint8_t)*map_graph->a),
 		malloc (sizeof(uint8_t)*map_graph->a),
 		malloc (sizeof(glyph)*map_graph->a),
+//		malloc (sizeof(int) * map_graph->a),
 		uplevel,
 		dnlevel
 	};
@@ -59,6 +60,7 @@ void dlv_make (int level, int uplevel, int dnlevel)
 	memset (new_level.seen, 0, sizeof(uint8_t)*map_graph->a);
 	memset (new_level.attr, 0, sizeof(uint8_t)*map_graph->a);
 	memset (new_level.remembered, 0, sizeof(glyph)*map_graph->a);
+//	memset (new_level.descs, 0, sizeof(int)*map_graph->a);
 	v_push (all_dlevels, &new_level);
 }
 

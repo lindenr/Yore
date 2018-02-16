@@ -68,7 +68,7 @@ extern void (*gr_onresize)  ();
 extern void (*gr_quit) ();
 
 /* Initialisation */
-void gr_init      (void);
+void gr_init      (int h, int w);
 Graph gra_init    (int, int, int, int, int, int);
 void gra_free     (Graph);
 

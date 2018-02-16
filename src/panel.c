@@ -20,10 +20,15 @@ Vector messages = NULL;
 
 Graph gpan = NULL;
 
+struct Monster *cur_player = NULL;
+
 void p_pane (struct Monster *player)
 {
 	int i;
 	int xpan = 0, ypan = gr_h - PANE_H;
+	if (!player)
+		player = cur_player;
+	cur_player = player;
 	if (!gpan)
 	{
 		gpan = gra_init (p_height, p_width, ypan, xpan, p_height, p_width);
@@ -94,7 +99,7 @@ void p_pane (struct Monster *player)
 	{
 		struct P_msg *msg = v_at (messages, messages->len - i - 1);
 		int len = P_MSG_LEN; //strlen (msg->msg);
-		gra_mvaprintex (gpan, 1 + i, (gr_w - len)/2, msg->msg);
+		gra_mvaprintex (gpan, 8 - i, (gr_w - len)/2, msg->msg);
 	}
 skip2:
 	;
@@ -122,11 +127,28 @@ void p_amsg (const char *str)
 {
 	Vector formatted = p_formatted (str, P_MSG_LEN);
 	struct P_msg msg;
-	msg.expiry = 0;
-	struct MenuOption *m = v_at (formatted, 0);
-	memcpy (msg.msg, m->ex_str, sizeof(glyph)*(P_MSG_LEN));
-	msg.msg[P_MSG_LEN-1] = 0;
-	v_push (messages, &msg);
+	int i;
+	for (i = 0; i < formatted->len; ++ i)
+	{
+		struct MenuOption *m = v_at (formatted, i);
+		memcpy (msg.msg, m->ex_str, sizeof(glyph)*m->len);
+		msg.msg[P_MSG_LEN-1] = 0;
+		v_push (messages, &msg);
+	}
+}
+
+void p_msg (const char *str, ...)
+{
+	va_list args;
+	char out[100];
+
+	snprintf(out, 10, "(%llu) ", curtick);
+
+	va_start (args, str);
+	vsnprintf (out + strlen(out), 90, str, args);
+	va_end (args);
+
+	p_amsg (out);
 }
 
 void p_menu_draw (Graph box, Vector lines, int curchoice)
@@ -182,13 +204,13 @@ char p_menuex (Vector lines, const char *toquit, int max_line_len)
 	p_menu_draw (box, lines, curchoice);
 	if (curchoice == -1)
 	{
-		ret = gr_getch ();
+		ret = p_getch (NULL);
 		gra_free (box);
 		return ret;
 	}
 	do
 	{
-		ret = gr_getch ();
+		ret = p_getch (NULL);
 		if (ret == CH_ESC || ret == ' ' ||
 			ret == '-')
 			break;
@@ -237,29 +259,20 @@ char p_menuex (Vector lines, const char *toquit, int max_line_len)
 	return ret;
 }
 
-void p_msg (const char *str, ...)
-{
-	va_list args;
-	char out[100];
-
-	snprintf(out, 10, "(%llu) ", curtick);
-
-	va_start (args, str);
-	vsnprintf (out + strlen(out), 90, str, args);
-	va_end (args);
-
-	p_amsg (out);
-}
-
 char p_ask (struct Monster *player, const char *results, const char *question)
 {
 	p_amsg (question);
-	p_pane (player);
 	char in;
 	do
-		in = (char)gr_getch();
+		in = p_getch (player);
 	while (!strchr(results, in));
 	return in;
+}
+
+char p_getch (struct Monster *pl)
+{
+	p_pane (pl);
+	return gr_getch ();
 }
 
 char p_lines (Vector lines)
@@ -283,21 +296,13 @@ char p_lines (Vector lines)
 	{
 		char *str = v_at (lines, i);
 		Vector formatted = p_formatted (str, P_MSG_LEN);
-		//struct P_msg msg;
-		//msg.expiry = 0;
 		struct MenuOption *m = v_at (formatted, 0);
-		//memcpy (msg.msg, m->ex_str, sizeof(glyph)*(P_MSG_LEN));
-		///msg.msg[P_MSG_LEN-1] = 0;
-		//v_push (messages, &msg);
-		//if (str[0] != '#')
 		if (m->ex_str)
 			gra_mvaprintex (box, i+1, 2, m->ex_str);
 		p_ffree (formatted);
-		//else
-		//	gra_cprint (box, i+1, str+1);
 	}
 	gra_box (box, 0, 0, h-1, w-1);
-	char ret = gr_getch();
+	char ret = p_getch (NULL);
 
 	gra_free (box);
 
@@ -351,7 +356,7 @@ int p_status (struct Monster *player, enum PanelType type)
 
 	while (1)
 	{
-		char in = gr_getch ();
+		char in = p_getch (player);
 		if (in == CH_ESC || in == ' ')
 			break;
 		else if (in == 's')
@@ -384,12 +389,10 @@ int p_skills (struct Monster *player, enum PanelType type)
 {
 	Vector pskills = player->skills;
 	char *fmt = malloc (1024);
-	fmt[0] = 0;
-	strcat (fmt, "#c#nFFF00000SKILLS#nBBB00000\n");
-	if (pskills->len == 0)
-		strcat (fmt, "#c(no skills available)\n");
-	else
-		strcat (fmt, "#c(enter to inspect; letter to use)\n");
+	snprintf (fmt, 1024, "#c#nFFF00000SKILLS#nBBB00000\n%s",
+		(pskills->len == 0) ? 
+		"#c(no skills available)\n" :
+		"#c(press '.' to use)\n");
 	
 	char letter = 'a';
 	int i;
@@ -537,19 +540,27 @@ void p_anotify (const char *msg)
 {
 	if (gra_n)
 		p_endnotify ();
-	int h = 5, w = strlen(msg) + 4;
+	Vector fmt = p_formatted (msg, 50);
+	int h = fmt->len + 2, w = 50 + 4;
 	gra_n = gra_init (h, w, 0, 0, h, w);
 	gra_box (gra_n, 0, 0, h-1, w-1);
-	gra_mvaprint (gra_n, 2, 2, msg);
+	int i;
+	for (i = 0; i < fmt->len; ++ i)
+	{
+		struct MenuOption *m = v_at (fmt, i);
+		if (m->ex_str)
+			gra_mvaprintex (gra_n, 1+i, 2, m->ex_str);
+	}
+	//gra_mvaprint (gra_n, 2, 2, msg);
 }
 
 void p_notify (const char *msg, ...)
 {
 	va_list args;
-	char out[100];
+	char out[1024];
 
 	va_start (args, msg);
-	vsnprintf (out, 100, msg, args);
+	vsnprintf (out, 1024, msg, args);
 	va_end (args);
 
 	p_anotify (out);
@@ -567,14 +578,13 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc,
 	const char *instruct, const char *confirm, void (*update_output) (enum P_MV, int, int, int, int))
 {
 	int orig_y = map_graph->csr_y, orig_x = map_graph->csr_x;
-	if (instruct)
-		p_notify (instruct);
-	p_pane (player);
 	if (update_output)
 		update_output (P_MV_START, orig_y, orig_x, orig_y, orig_x);
+	if (instruct)
+		p_notify (instruct);
 	gr_refresh ();
 	int xmove, ymove;
-	char key = gr_getch ();
+	char key = p_getch (player);
 	p_move (&ymove, &xmove, key);
 	while (key != '.' || (confirm && (p_ask (player, "yn", confirm) != 'y')))
 	{
@@ -601,7 +611,7 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc,
 		//	gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);
 		if (update_output)
 			update_output (P_MV_CHOOSING, player->yloc, player->xloc, map_graph->csr_y, map_graph->csr_x);
-		key = gr_getch ();
+		key = p_getch (player);
 		p_move (&ymove, &xmove, key);
 	}
 	*yloc = map_graph->csr_y;
@@ -729,13 +739,13 @@ Vector p_formatted (const char *input, int max_line_len)
 	}
 
 	int j;
-	struct MenuOption m = (struct MenuOption) {0, NULL, NULL};
+	struct MenuOption m = (struct MenuOption) {0, 0, NULL};
 	for (i = 0, j = 0; i < formats->len; ++ i)
 	{
 		struct FormattedGlyph *fg = v_at (formats, i);
 		if (fg->fmt == FMT_MENUOPTION)
 		{
-			m = (struct MenuOption) {(char) fg->gl, NULL, NULL};
+			m = (struct MenuOption) {(char) fg->gl, 0, NULL};
 			continue;
 		}
 		if (j == max_line_len || (fg->gl & 0xFF) == '\n')
@@ -744,12 +754,15 @@ Vector p_formatted (const char *input, int max_line_len)
 				m.ex_str[j] = 0;
 			j = 0;
 			v_push (lines, &m);
-			m = (struct MenuOption) {0, NULL, NULL};
+			m = (struct MenuOption) {0, 0, NULL};
 			if ((fg->gl & 0xFF) == '\n')
 				continue;
 		}
 		if (!m.ex_str)
+		{
 			m.ex_str = malloc(sizeof(glyph) * max_line_len);
+			m.len = max_line_len;
+		}
 		m.ex_str[j] = fg->gl;
 		++ j;
 	}

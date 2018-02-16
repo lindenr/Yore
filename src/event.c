@@ -227,7 +227,7 @@ void ev_do (Event ev)
 		if (thID)
 			ev_queue (0, (union Event) { .proj_hit_monster = {EV_PROJ_HIT_MONSTER, itemID, thID}});
 		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, itemID}});
-		draw_map ();
+		//draw_map ();
 		gr_refresh ();
 		return;
 	case EV_PROJ_DONE:
@@ -428,7 +428,6 @@ void ev_do (Event ev)
 		eff_mons_kills_mons (fr, to);
 		if (mons_isplayer(to))
 		{
-			p_pane (to);
 			p_msgbox ("You die...");
 			U.playing = PLAYER_LOSTGAME;
 			return;
@@ -482,10 +481,6 @@ void ev_do (Event ev)
 		mons = MTHIID(ev->mturn.thID);
 		if (!mons)
 			return;
-		if (mons_isplayer (mons))
-		{
-			draw_map ();
-		}
 		mons_take_turn (mons);
 		return;
 	case EV_MGEN:

@@ -261,6 +261,7 @@ void monsthing_move (struct Monster *thing, int new_level, int new_y, int new_x)
 	thing->yloc = new_y;
 	thing->xloc = new_x;
 	thing->dlevel = new_level;
+	draw_map_buf (olv, old);
 	draw_map_buf (nlv, new);
 }
 
@@ -431,6 +432,7 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 
 	/* draw topmost dungeon feature */
 	int i = lvl->things[w]->len - 1;
+	if (i >= 0)
 	{
 		struct Thing *th = v_at (lvl->things[w], i);
 		switch (th->type)
@@ -447,7 +449,7 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 			break;
 		}
 	}
-	return 0;
+	return ' ';
 }
 
 void update_knowledge (struct Monster *player)
@@ -486,10 +488,7 @@ void draw_map ()
 {
 	int w;
 	for (w = 0; w < map_graph->a; ++ w)
-	{
-		gra_baddch (map_graph, w, glyph_to_draw (cur_dlevel, w, 1));
-		map_graph->flags[w] |= map_flags;
-	}
+		draw_map_buf (cur_dlevel, w);
 }
 
 void draw_map_xy (struct DLevel *lvl, int y, int x)
@@ -500,7 +499,8 @@ void draw_map_xy (struct DLevel *lvl, int y, int x)
 
 void draw_map_buf (struct DLevel *lvl, int w)
 {
-	gra_baddch (map_graph, w, glyph_to_draw (cur_dlevel, w, 1));
+	glyph gl = glyph_to_draw (lvl, w, 1);
+	gra_baddch (map_graph, w, gl);
 	map_graph->flags[w] |= map_flags;
 }
 

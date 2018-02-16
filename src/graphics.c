@@ -32,14 +32,14 @@ SDL_Renderer *sdlRenderer;
 SDL_Surface *tiles, *screen, *glyph_col;
 SDL_Texture *sdlTexture;
 
-/* starting size */
-const int screenY = 720, screenX = 1000;
+/* starting and current size */
+int screenY = 0, screenX = 0;
 
 glyph *gr_map = NULL;
 gflags *gr_flags = NULL;
 
 /* window dimensions (in glyphs) */
-int gr_h = 720/GLH, gr_w = 1000/GLW;
+int gr_h = 0, gr_w = 0; //screenY/GLH, gr_w = screenX/GLW;
 int gr_area = 0;
 
 Vector graphs = NULL;
@@ -726,6 +726,8 @@ void gr_resize (int ysiz, int xsiz)
 	//SDL_FreeSurface (screen);
 	//screen = SDL_SetVideoMode (xsiz, ysiz, 32, SDL_SWSURFACE | SDL_RESIZABLE);
 
+	screenY = ysiz;
+	screenX = xsiz;
 	gr_h = ysiz/GLH;
 	gr_w = xsiz/GLW;
 	gr_area = gr_h * gr_w;
@@ -788,7 +790,7 @@ void gr_cleanup ()
 	SDL_Quit ();
 }
 
-void gr_init ()
+void gr_init (int screenYstart, int screenXstart)
 {
 	if (SDL_Init (SDL_INIT_VIDEO) < 0)
 	{
@@ -798,7 +800,7 @@ void gr_init ()
 
 	atexit (gr_cleanup);
 	sdlWindow = SDL_CreateWindow ("Yore", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-		screenX, screenY, 0);
+		screenXstart, screenYstart, 0);
 	if (sdlWindow == NULL)
 	{
 		fprintf (stderr, "SDL error: window is NULL\n");
@@ -815,13 +817,13 @@ void gr_init ()
 	SDL_RenderClear (sdlRenderer);
 	SDL_SetRenderDrawBlendMode (sdlRenderer, SDL_BLENDMODE_NONE);
 	SDL_StartTextInput();
-	sdlTexture = SDL_CreateTexture (sdlRenderer, SDL_GetWindowPixelFormat (sdlWindow), SDL_TEXTUREACCESS_STREAMING, screenX, screenY);
-	screen = SDL_CreateRGBSurface (0, screenX, screenY, 32, 0, 0, 0, 0);
+	sdlTexture = SDL_CreateTexture (sdlRenderer, SDL_GetWindowPixelFormat (sdlWindow), SDL_TEXTUREACCESS_STREAMING, screenXstart, screenYstart);
+	screen = SDL_CreateRGBSurface (0, screenXstart, screenYstart, 32, 0, 0, 0, 0);
 	glyph_col = SDL_CreateRGBSurface (0, GLW, GLH, 32, 0, 0, 0, 0);
 	SDL_SetColorKey (glyph_col, SDL_TRUE, SDL_MapRGB (glyph_col->format, 255, 255, 255));
 
 	gr_load_tiles ();
-	gr_resize (screenY, screenX);
+	gr_resize (screenYstart, screenXstart);
 }
 
 Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)

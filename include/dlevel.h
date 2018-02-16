@@ -7,6 +7,8 @@
 
 struct Monster;
 typedef int TID;
+
+
 struct DLevel
 {
 	int level;
@@ -27,8 +29,9 @@ struct DLevel
  * monster). The options are mutually exclusive. */
 	uint8_t *attr;
 
-/* What to see instead if it turns out that we can't remember something */
+/* What to render/describe instead if it turns out that we can't see something */
 	glyph *remembered;
+//	int *tilemem;
 
 	int uplevel, dnlevel;
 };

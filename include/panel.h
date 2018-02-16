@@ -12,13 +12,12 @@
 #define PANEL_MSG     2
 #define PANEL_OPTIONS 3
 
-#define P_MSG_LEN 60
+#define P_MSG_LEN 45
 
 struct Monster;
 
 struct P_msg
 {
-	uint64_t expiry;
 	glyph msg[P_MSG_LEN];
 };
 
@@ -48,8 +47,8 @@ enum P_MV
 struct MenuOption
 {
 	char letter;
+	int len;
 	glyph *ex_str;
-	char *desc;
 };
 
 enum P_FORMAT
@@ -78,6 +77,8 @@ void p_mvchoose (struct Monster *, int *, int *, const char *, const char *,
 
 void show_path_on_overlay (enum P_MV, int, int, int, int);
 void show_disc_on_overlay (enum P_MV, int, int, int, int);
+
+char p_getch (struct Monster *player);
 
 void p_msgbox (const char *msg);
 
