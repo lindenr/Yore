@@ -25,9 +25,34 @@ struct Monster *cur_player = NULL;
 void p_timeline ()
 {
 	int i;
+	int ticks_per_tile = 25;
 	gra_mvaddch (gpred, 0, 0, ACS_TTEE | COL_TXT_BRIGHT);
 	for (i = 1; i < gr_h; ++ i)
 		gra_mvaddch (gpred, i, 0, ACS_VLINE | COL_TXT_BRIGHT);
+	int y, x;
+	for (i = 0; i < cur_dlevel->playerIDs->len; ++ i)
+	{
+		MID *plID = v_at (cur_dlevel->playerIDs, i);
+		struct Monster *pl = MTHIID (*plID);
+		for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
+		{
+			int w = map_buffer (pl->yloc + y, pl->xloc + x);
+			if (w == -1)
+				continue;
+			MID ID = cur_dlevel->monsIDs[w];
+			if (!ID)
+				continue;
+			struct Monster *mons = MTHIID (ID);
+			if (!mons)
+				continue;
+			if (mons->status.moving.ydir || mons->status.moving.xdir)
+				gra_mvaddch (gpred, (mons->status.moving.arrival - curtick) / ticks_per_tile, 0,
+					ACS_PLUS | COL_TXT(15,15,0));
+			else if (mons->status.attacking.ydir || mons->status.attacking.xdir)
+				gra_mvaddch (gpred, (mons->status.attacking.arrival - curtick) / ticks_per_tile, 0,
+					ACS_PLUS | COL_TXT(15,0,0));
+		}
+	}
 }
 
 void p_pane (struct Monster *player)

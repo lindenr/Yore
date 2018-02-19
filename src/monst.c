@@ -348,33 +348,27 @@ void mons_take_off (struct Monster *mons, struct Item *item)
 	mons->armour -= item->def;
 }
 
-void mons_start_move (struct Monster *mons, int y, int x)
+void mons_start_move (struct Monster *mons, int y, int x, Tick arrival)
 {
-	mons->status.moving.ydir = y;
-	mons->status.moving.xdir = x;
+	mons->status.moving = (typeof(mons->status.moving)) {y, x, arrival};
 	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
 }
 
 void mons_stop_move (struct Monster *mons)
 {
-	mons->status.moving.ydir = 0;
-	mons->status.moving.xdir = 0;
+	mons->status.moving = (typeof(mons->status.moving)) {0, 0, 0};
 	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
 }
 
 void mons_start_hit (struct Monster *mons, int y, int x, int arm, Tick arrival)
 {
-	mons->status.attacking.ydir = y;
-	mons->status.attacking.xdir = x;
-	mons->status.attacking.arm = arm;
+	mons->status.attacking = (typeof(mons->status.attacking)) {y, x, arm, arrival};
 	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
 }
 
 void mons_stop_hit (struct Monster *mons)
 {
-	mons->status.attacking.ydir = 0;
-	mons->status.attacking.xdir = 0;
-	mons->status.attacking.arm = -1;
+	mons->status.attacking = (typeof(mons->status.attacking)) {0, 0, -1, 0};
 	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
 }
 

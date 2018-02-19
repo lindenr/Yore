@@ -297,8 +297,9 @@ void ev_do (Event ev)
 		mons = MTHIID(thID);
 		if (!mons)
 			return;
-		ev_queue (mons->speed, (union Event) { .mdomove = {EV_MDOMOVE, thID}});
-		mons_start_move (mons, ev->mmove.ydir, ev->mmove.xdir);
+		delay = mons->speed;
+		ev_queue (delay, (union Event) { .mdomove = {EV_MDOMOVE, thID}});
+		mons_start_move (mons, ev->mmove.ydir, ev->mmove.xdir, curtick + delay);
 		return;
 	case EV_MDOMOVE:
 		thID = ev->mdomove.thID;

@@ -15,7 +15,7 @@
 #define MONST(nm,ch,size,at,fl,cl,str,con,wis,agi,spd,ex) \
 {0,0,-1,-1,-1,nm,ch|COL(cl),{.mode=CTR_NONE},0,ex,0,NULL, \
 1, 1, 1, 1, 1, 1, str, con, wis, agi, spd, NULL, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
-{{0,0},{0,0,0,-1},0,{0,0},0},(fl)|(FL_SIZE(size)),NULL}
+{{0,0},{0,0,-1},0,{0,0},0},(fl)|(FL_SIZE(size)),NULL}
 
 #define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}
 #define AM(a,b) ((a)|((b)<<16))
