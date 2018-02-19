@@ -18,6 +18,9 @@ struct player_status U;
 
 int expcmp (int p_exp, int m_exp)
 {
+	if (p_exp < 21)
+		return (m_exp < 7);
+	return p_exp >= ((m_exp*(m_exp-1))/2);/*
 	if (p_exp >= m_exp * 100)
 		return !rn(p_exp/(m_exp*200) + 1);
 	if (p_exp >= m_exp * 2)
@@ -26,7 +29,7 @@ int expcmp (int p_exp, int m_exp)
 		return 50;
 	if ((p_exp * 2) >= m_exp)
 		return 1;
-	return 0;
+	return 0;*/
 }
 
 bool nogen (int mons_id)
@@ -345,6 +348,36 @@ void mons_take_off (struct Monster *mons, struct Item *item)
 	mons->armour -= item->def;
 }
 
+void mons_start_move (struct Monster *mons, int y, int x)
+{
+	mons->status.moving.ydir = y;
+	mons->status.moving.xdir = x;
+	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
+}
+
+void mons_stop_move (struct Monster *mons)
+{
+	mons->status.moving.ydir = 0;
+	mons->status.moving.xdir = 0;
+	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
+}
+
+void mons_start_hit (struct Monster *mons, int y, int x, int arm, Tick arrival)
+{
+	mons->status.attacking.ydir = y;
+	mons->status.attacking.xdir = x;
+	mons->status.attacking.arm = arm;
+	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
+}
+
+void mons_stop_hit (struct Monster *mons)
+{
+	mons->status.attacking.ydir = 0;
+	mons->status.attacking.xdir = 0;
+	mons->status.attacking.arm = -1;
+	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
+}
+
 int mons_take_turn (struct Monster *th)
 {
 	switch (th->ctr.mode)
@@ -398,7 +431,20 @@ int proj_hitm (struct Item *proj, struct Monster *to)
 
 int proj_hitdmg (struct Item *proj, struct Monster *to)
 {
-	return rn(proj->attk/2 + 1) + rn (2);
+	switch (proj->type.type)
+	{
+	case ITSORT_LONGSWORD:
+	case ITSORT_AXE:
+	case ITSORT_HAMMER:
+	case ITSORT_DAGGER:
+	case ITSORT_SHORTSWORD:
+		return rn(proj->attk + 1)/2;
+	case ITSORT_ARCANE:
+		return rn(10);
+	default:
+		break;
+	}
+	return rn(3);
 }
 
 enum SK_TYPE sk_item_use (const struct Item *item)

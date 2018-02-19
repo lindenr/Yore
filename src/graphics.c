@@ -650,7 +650,7 @@ char gr_getch_aux (int text)
 
 			case SDL_WINDOWEVENT:
 				if (sdlEvent.window.event == SDL_WINDOWEVENT_EXPOSED)
-					gr_refresh ();
+					gr_frefresh ();
 				break;
 			
 			case SDL_QUIT:

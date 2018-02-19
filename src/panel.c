@@ -18,9 +18,17 @@ int p_height, p_width;
 
 Vector messages = NULL;
 
-Graph gpan = NULL;
+Graph gpan = NULL, gpred = NULL;
 
 struct Monster *cur_player = NULL;
+
+void p_timeline ()
+{
+	int i;
+	gra_mvaddch (gpred, 0, 0, ACS_TTEE | COL_TXT_BRIGHT);
+	for (i = 1; i < gr_h; ++ i)
+		gra_mvaddch (gpred, i, 0, ACS_VLINE | COL_TXT_BRIGHT);
+}
 
 void p_pane (struct Monster *player)
 {
@@ -35,6 +43,12 @@ void p_pane (struct Monster *player)
 		gpan->def = COL_PANEL;
 	}
 	gra_fbox (gpan, 0, 0, p_height-1, p_width-1, ' ');
+
+	if (!gpred)
+	{
+		gpred = gra_init (gr_h, 1, 0, gr_w - 1, gr_h, 1);
+	}
+	p_timeline ();
 
 	//int max = gr_h;
 
@@ -540,10 +554,11 @@ void p_anotify (const char *msg)
 {
 	if (gra_n)
 		p_endnotify ();
+	else
+		gra_n = gra_init (20, 54, 0, 0, 20, 54);
 	Vector fmt = p_formatted (msg, 50);
 	int h = fmt->len + 2, w = 50 + 4;
-	gra_n = gra_init (h, w, 0, 0, h, w);
-	gra_box (gra_n, 0, 0, h-1, w-1);
+	gra_fbox (gra_n, 0, 0, h-1, w-1, ' ');
 	int i;
 	for (i = 0; i < fmt->len; ++ i)
 	{
@@ -551,7 +566,6 @@ void p_anotify (const char *msg)
 		if (m->ex_str)
 			gra_mvaprintex (gra_n, 1+i, 2, m->ex_str);
 	}
-	//gra_mvaprint (gra_n, 2, 2, msg);
 }
 
 void p_notify (const char *msg, ...)
@@ -570,8 +584,9 @@ void p_endnotify ()
 {
 	if (!gra_n)
 		return;
-	gra_free (gra_n);
-	gra_n = NULL;
+	int w;
+	for (w = 0; w < gra_n->a; ++ w)
+		gra_baddch (gra_n, w, 0);
 }
 
 void p_mvchoose (struct Monster *player, int *yloc, int *xloc,

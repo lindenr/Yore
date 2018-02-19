@@ -255,6 +255,11 @@ int    mons_skill      (const struct Monster *,
 	const struct Item *);                                    /* get skill level for using an item to hit */
 int    mons_attk_bonus (const struct Monster *,
 	const struct Item *);                                    /* get extra damage a monster does          */
+void   mons_start_move (struct Monster *, int, int);         /* start monster moving in a given direction*/
+void   mons_stop_move  (struct Monster *);                   /* stop monster moving                      */
+void   mons_start_hit  (struct Monster *, int, int, int,
+	Tick);                                                   /* start monster attacking                  */
+void   mons_stop_hit   (struct Monster *);                   /* stop monster attacking                   */
 
 /* effects */
 void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */

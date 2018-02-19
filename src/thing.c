@@ -474,10 +474,9 @@ void update_knowledge (struct Monster *player)
 
 	/* draw things you can see */
 	for (w = 0; w < map_graph->a; ++ w)
-	{
 		if (level->seen[w] == 2)
 			level->remembered[w] = glyph_to_draw (level, w, 0);
-	}
+	draw_map ();
 }
 
 void th_init ()

@@ -140,7 +140,7 @@ void ev_do (Event ev)
 	struct Monster *mons, *fr, *to;
 	struct Item newitem, *item;
 	TID thID, frID, toID, itemID, monsID;
-	int can, ydest, xdest, damage, radius;
+	int can, ydest, xdest, damage, radius, arm, delay;
 	int i, j;
 	Vector pickup, items;
 	union ItemLoc loc;
@@ -172,7 +172,7 @@ void ev_do (Event ev)
 				continue;
 			ev_mons_start (mons);
 		}*/
-		draw_map ();
+		//draw_map ();
 		return;
 	case EV_WORLD_HEARTBEAT:
 		/* monster generation */
@@ -298,8 +298,7 @@ void ev_do (Event ev)
 		if (!mons)
 			return;
 		ev_queue (mons->speed, (union Event) { .mdomove = {EV_MDOMOVE, thID}});
-		mons->status.moving.ydir = ev->mmove.ydir;
-		mons->status.moving.xdir = ev->mmove.xdir;
+		mons_start_move (mons, ev->mmove.ydir, ev->mmove.xdir);
 		return;
 	case EV_MDOMOVE:
 		thID = ev->mdomove.thID;
@@ -308,8 +307,7 @@ void ev_do (Event ev)
 			return;
 		ydest = mons->yloc + mons->status.moving.ydir; xdest = mons->xloc + mons->status.moving.xdir;
 		can = can_amove (get_sqattr (dlv_lvl(mons->dlevel), ydest, xdest));
-		mons->status.moving.ydir = 0;
-		mons->status.moving.xdir = 0;
+		mons_stop_move (mons);
 		if (can == 1)
 			monsthing_move (mons, mons->dlevel, ydest, xdest);
 		//else: tried and failed to move TODO
@@ -370,10 +368,9 @@ void ev_do (Event ev)
 		mons = MTHIID(thID);
 		if (!mons)
 			return;
-		ev_queue (mons->speed, (union Event) { .mdoattkm = {EV_MDOATTKM, thID}});
-		mons->status.attacking.ydir = ev->mattkm.ydir;
-		mons->status.attacking.xdir = ev->mattkm.xdir;
-		mons->status.attacking.arm = ev->mattkm.arm;
+		delay = mons->speed;
+		ev_queue (delay, (union Event) { .mdoattkm = {EV_MDOATTKM, thID}});
+		mons_start_hit (mons, ev->mattkm.ydir, ev->mattkm.xdir, ev->mattkm.arm, curtick + delay);
 		break;
 	case EV_MDOATTKM:
 		frID = ev->mdoattkm.thID;
@@ -381,8 +378,8 @@ void ev_do (Event ev)
 		if (!fr)
 			return;
 		ydest = fr->yloc + fr->status.attacking.ydir; xdest = fr->xloc + fr->status.attacking.xdir;
-		fr->status.attacking.ydir = 0;
-		fr->status.attacking.xdir = 0;
+		arm = fr->status.attacking.arm;
+		mons_stop_hit (fr);
 		can = can_amove (get_sqattr (dlv_lvl(fr->dlevel), ydest, xdest));
 		if (can != 2)
 			return; // tried and failed to attack TODO
@@ -391,8 +388,7 @@ void ev_do (Event ev)
 			return;
 		to = MTHIID(toID);
 		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}}); /* anger to-mons */
-		struct Item *with = fr->wearing.weaps[fr->status.attacking.arm];
-		fr->status.attacking.arm = -1;
+		struct Item *with = fr->wearing.weaps[arm];
 		int stamina_cost = mons_ST_hit (fr, with);
 		if (fr->ST < stamina_cost)
 		{
@@ -515,7 +511,7 @@ void ev_do (Event ev)
 		mons = MTHIID(ev->mwield.thID);
 		if (!mons)
 			return;
-		int arm = ev->mwield.arm;
+		arm = ev->mwield.arm;
 		if (mons->status.attacking.arm == arm)
 			return;
 		if (mons->wearing.weaps[arm])

@@ -578,7 +578,7 @@ int pl_charge_action (struct Monster *player)
 
 int pl_take_turn (struct Monster *player)
 {
-	draw_map ();
+	//draw_map ();
 	//p_notify ("You see nothing here.");
 	if (gra_nearedge (map_graph, player->yloc, player->xloc))
 		gra_centcam (map_graph, player->yloc, player->xloc);
