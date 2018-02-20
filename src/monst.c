@@ -109,12 +109,8 @@ void mons_corpse (struct Monster *mons, struct Item *item)
 		return;
 	}
 	/* fill in the data */
-	Ityp itype;
+	Ityp itype = (Ityp) {{0,}, ITSORT_CORPSE, mons_get_wt (mons), 0, 0, ITCH_CORPSE | (mons->gl & ~0xff), 1};
 	snprintf (itype.name, ITEM_NAME_LENGTH, "%s corpse", mons->mname);
-	itype.type = ITSORT_CORPSE;
-	itype.wt   = mons_get_wt(mons);
-	itype.attk = itype.def = 0;
-	itype.gl   = ITCH_CORPSE | (mons->gl & ~0xff);
 	*item = new_item (itype);
 }
 

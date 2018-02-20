@@ -10,20 +10,6 @@
 #define XSTRINGIFY(x) STRINGIFY(x)
 #define STRINGIFY(x) #x
 #define TILE_FILE "t"XSTRINGIFY(GLW)"x"XSTRINGIFY(GLH)".bmp"
-/*
-int BOXPOS[BOX_NUM][2] = {
-	{0, 0},
-	{0, 0},
-	{2, 0},
-	{0, 2}
-};
-
-int BOXCOL[BOX_NUM][3] = {
-	{0, 0, 0},
-	{150, 0, 0},
-	{0, 100, 200},
-	{255, 90, 50}
-};*/
 
 int forced_refresh = 0;
 
@@ -799,7 +785,7 @@ void gr_init (int screenYstart, int screenXstart)
 	}
 
 	atexit (gr_cleanup);
-	sdlWindow = SDL_CreateWindow ("Yore", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+	sdlWindow = SDL_CreateWindow ("Yore", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		screenXstart, screenYstart, 0);
 	if (sdlWindow == NULL)
 	{

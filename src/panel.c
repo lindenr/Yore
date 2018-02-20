@@ -591,6 +591,7 @@ void p_anotify (const char *msg)
 		if (m->ex_str)
 			gra_mvaprintex (gra_n, 1+i, 2, m->ex_str);
 	}
+	p_ffree (fmt);
 }
 
 void p_notify (const char *msg, ...)
@@ -704,7 +705,7 @@ Vector p_formatted (const char *input, int max_line_len)
 	Vector formats = v_dinit (sizeof (struct FormattedGlyph));
 	int i;
 	glyph cur_gl = 0;
-	enum P_FORMAT cur_pos;
+	enum P_FORMAT cur_pos = FMT_LEFT;
 	struct FormattedGlyph fg;
 	for (i = 0; input[i]; ++ i)
 	{
@@ -809,6 +810,7 @@ Vector p_formatted (const char *input, int max_line_len)
 	if (j < max_line_len && m.ex_str)
 		m.ex_str[j] = 0;
 	v_push (lines, &m);
+	v_free (formats);
 
 	return lines;
 

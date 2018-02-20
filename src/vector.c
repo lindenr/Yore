@@ -9,12 +9,12 @@
 #include <stdlib.h>
 
 #define V_DEFAULT_LENGTH 2
-Vector v_dinit (int siz)
+Vector v_dinit (size_t siz)
 {
 	return v_init (siz, V_DEFAULT_LENGTH);
 }
 
-Vector v_init (int siz, int mlen)
+Vector v_init (size_t siz, size_t mlen)
 {
 	Vector vec = malloc (sizeof(*vec));
 	vec->data = malloc (siz * mlen);
@@ -76,7 +76,7 @@ void *v_pstrf (Vector vec, char *data, ...)
 	return v_at (vec, vec->len - 1);
 }
 
-void v_rem (Vector vec, int rem)
+void v_rem (Vector vec, size_t rem)
 {
 	int i;
 	if (rem >= vec->len) return;
@@ -105,7 +105,7 @@ void v_free (Vector vec)
 void v_print (Vector vec)
 {
 	int i;
-	printf("%p %d %d %d\n", vec->data, vec->siz, vec->len, vec->mlen);
+	printf("%p %zu %zu %zu\n", vec->data, vec->siz, vec->len, vec->mlen);
 	for (i = 0; i < vec->len; ++ i) printf("%d, ", *(int*)DATA(i));
 	printf("\n");
 }

@@ -2,20 +2,17 @@
 #define VECTOR_H_INCLUDED
 
 #include "include/all.h"
-#include <stdbool.h>
+#include <stddef.h>
 
-struct vector_;
-typedef struct vector_ *Vector;
-
-struct vector_
+typedef struct
 {
 	void *data;
-	int siz, len, mlen;
-};
+	size_t siz, len, mlen;
+} *Vector;
 
 /* init/free */
-Vector v_dinit (int);
-Vector v_init  (int, int);
+Vector v_dinit (size_t);
+Vector v_init  (size_t, size_t);
 void   v_free  (Vector);
 
 /* add */
@@ -24,7 +21,7 @@ void  *v_pstr  (Vector, char *);
 void  *v_pstrf (Vector, char *, ...);
 
 /* remove */
-void   v_rem   (Vector, int);
+void   v_rem   (Vector, size_t);
 void   v_rptr  (Vector, void *);
 
 /* misc */

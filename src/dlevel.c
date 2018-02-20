@@ -113,10 +113,14 @@ int dlv_dn (int level)
 }
 
 #define MAX_DIST 10
+int *ylocs = NULL, *xlocs = NULL;
 void dlv_fill_player_dist (struct DLevel *dlv)
 {
-	int *ylocs = malloc (sizeof(int)*map_graph->a),
-		*xlocs = malloc (sizeof(int)*map_graph->a);
+	if (!ylocs)
+	{
+		ylocs = malloc (sizeof(int)*map_graph->a);
+		xlocs = malloc (sizeof(int)*map_graph->a);
+	}
 	int i, cur_loc = 0, cur_back;
 	for (i = 0; i < map_graph->a; ++ i)
 		dlv->player_dist[i] = -1;

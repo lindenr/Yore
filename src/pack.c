@@ -6,6 +6,7 @@
 #include "include/item.h"
 #include "include/panel.h"
 #include "include/dlevel.h"
+#include "include/string.h"
 
 int PACK_AT(char a)
 {
@@ -50,7 +51,7 @@ int item_type_flags (struct Item *item, uint32_t accepted)
 	return -1;
 }
 
-int add_contents (char *inv, Pack *pack, uint32_t accepted)
+int add_contents (struct String *str, Pack *pack, uint32_t accepted)
 {
 	if (!pack)
 		return 0;
@@ -65,17 +66,17 @@ int add_contents (char *inv, Pack *pack, uint32_t accepted)
 		{
 			if (!num_items)
 			{
-				strcat (inv, "#n000BBB00");
-				strcat (inv, item_appearance [packitem->type.gl & 0xFF]);
-				strcat (inv, "#nBBB00000\n");
+				str_catf (str, 128, "#n000BBB00%s#nBBB00000\n", item_appearance [packitem->type.gl & 0xFF]);
+				//strcat (inv, item_appearance [packitem->type.gl & 0xFF]);
+				//strcat (inv, "#nBBB00000\n");
 			}
 			char *line = get_near_desc (MTHIID(packitem->loc.inv.monsID), packitem);
-			char option[] = {'#', 'o', get_Itref (packitem), 0};//'#', 'g', 0};
-			strcat (inv, option);
+			//char option[] = {'#', 'o', get_Itref (packitem), 0};//'#', 'g', 0};
+			str_catf (str, 128, "#o%c%s\n", get_Itref (packitem), line);
 			//strcat (inv, gl_format (packitem->type.gl));
 			//strcat (inv, " ");
-			strcat (inv, line);
-			strcat (inv, "\n");
+			//strcat (inv, line);
+			//strcat (inv, "\n");
 			free (line);
 			++ num_items;
 		}
@@ -85,25 +86,27 @@ int add_contents (char *inv, Pack *pack, uint32_t accepted)
 
 char show_contents (Pack *pack, uint32_t accepted, char *msg)
 {
-	char *format = malloc(1024);
+	struct String *fmt = str_dinit ();
+	str_catf (fmt, 256, "#nFFF00000#c%s#nBBB00000\n\n", msg);
+	/*char *format = malloc(10024);
 	format[0] = 0;
 	strcat (format, "#nFFF00000#c");
 	strcat (format, msg);
-	strcat (format, "#nBBB00000\n\n");
+	strcat (format, "#nBBB00000\n\n");*/
 	int num_items = 0;
 
-	num_items += add_contents (format, pack, accepted & ITCAT_DOSH);
-	num_items += add_contents (format, pack, accepted & ITCAT_WEAPON);
-	num_items += add_contents (format, pack, accepted & ITCAT_ARMOUR);
-	num_items += add_contents (format, pack, accepted & ITCAT_FOOD);
+	num_items += add_contents (fmt, pack, accepted & ITCAT_DOSH);
+	num_items += add_contents (fmt, pack, accepted & ITCAT_WEAPON);
+	num_items += add_contents (fmt, pack, accepted & ITCAT_ARMOUR);
+	num_items += add_contents (fmt, pack, accepted & ITCAT_FOOD);
 	if (!num_items)
 	{
-		free (format);
+		str_free (fmt);
 		p_msg ("No valid items.");
 		return ' ';
 	}
-	char out = p_flines (format);
-	free (format);
+	char out = p_flines (fmt->data);
+	str_free (fmt);
 	return out;
 }
 

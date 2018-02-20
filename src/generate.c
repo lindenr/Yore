@@ -408,6 +408,12 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	myitem = new_item (ityps[ITYP_CLOTH_TUNIC]);
 	item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 3}});
 	mons_wear (pl, item, offsetof (struct WoW, torsos[0]));
+	int i;
+	for (i = 4; i < 40; ++ i)
+	{
+		myitem = new_item (ityps[ITYP_CLOTH_TUNIC]);
+		item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, i}});
+	}
 	/*myitem = new_item (ityps[ITYP_GLOVE]);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 3}});
 	myitem = new_item (ityps[ITYP_CHAIN_MAIL]);
