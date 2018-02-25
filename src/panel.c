@@ -10,6 +10,7 @@
 #include "include/event.h"
 #include "include/player.h"
 #include "include/drawing.h"
+#include "include/string.h"
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -427,8 +428,8 @@ glyph output_colours;
 int p_skills (struct Monster *player, enum PanelType type)
 {
 	Vector pskills = player->skills;
-	char *fmt = malloc (1024);
-	snprintf (fmt, 1024, "#c#nFFF00000SKILLS#nBBB00000\n%s",
+	struct String *fmt = str_dinit ();
+	str_catf (fmt, "#c#nFFF00000SKILLS#nBBB00000\n%s",
 		(pskills->len == 0) ? 
 		"#c(no skills available)\n" :
 		"#c(press '.' to use)\n");
@@ -438,14 +439,12 @@ int p_skills (struct Monster *player, enum PanelType type)
 	for (i = 0; i < pskills->len; ++ i)
 	{
 		Skill sk = v_at (pskills, i);
-		char line[128];
 		if (sk_isact (sk))
-			strcat (fmt, (char []){'#', 'o', letter++, 0});
-		snprintf (line, 127, "#g%s %s %d:%d\n", gl_format (sk_gl(sk)), sk_name(sk), sk->level, sk->exp);
-		strcat (fmt, line);
+			str_catf (fmt, "#o%c", letter++);
+		str_catf (fmt, "#g%s %s %d:%d\n", gl_format (sk_gl(sk)), sk_name(sk), sk->level, sk->exp);
 	}
-	char in = p_flines (fmt);
-	free (fmt);
+	char in = p_flines (str_data (fmt));
+	str_free (fmt);
 	if (in == CH_ESC)
 		return -1;
 	else if (in >= 'a' && in < letter)

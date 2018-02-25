@@ -66,17 +66,10 @@ int add_contents (struct String *str, Pack *pack, uint32_t accepted)
 		{
 			if (!num_items)
 			{
-				str_catf (str, 128, "#n000BBB00%s#nBBB00000\n", item_appearance [packitem->type.gl & 0xFF]);
-				//strcat (inv, item_appearance [packitem->type.gl & 0xFF]);
-				//strcat (inv, "#nBBB00000\n");
+				str_catf (str, "#n000BBB00%s#nBBB00000\n", item_appearance [packitem->type.gl & 0xFF]);
 			}
 			char *line = get_near_desc (MTHIID(packitem->loc.inv.monsID), packitem);
-			//char option[] = {'#', 'o', get_Itref (packitem), 0};//'#', 'g', 0};
-			str_catf (str, 128, "#o%c%s\n", get_Itref (packitem), line);
-			//strcat (inv, gl_format (packitem->type.gl));
-			//strcat (inv, " ");
-			//strcat (inv, line);
-			//strcat (inv, "\n");
+			str_catf (str, "#o%c%s\n", get_Itref (packitem), line);
 			free (line);
 			++ num_items;
 		}
@@ -87,12 +80,7 @@ int add_contents (struct String *str, Pack *pack, uint32_t accepted)
 char show_contents (Pack *pack, uint32_t accepted, char *msg)
 {
 	struct String *fmt = str_dinit ();
-	str_catf (fmt, 256, "#nFFF00000#c%s#nBBB00000\n\n", msg);
-	/*char *format = malloc(10024);
-	format[0] = 0;
-	strcat (format, "#nFFF00000#c");
-	strcat (format, msg);
-	strcat (format, "#nBBB00000\n\n");*/
+	str_catf (fmt, "#nFFF00000#c%s#nBBB00000\n\n", msg);
 	int num_items = 0;
 
 	num_items += add_contents (fmt, pack, accepted & ITCAT_DOSH);
@@ -105,7 +93,7 @@ char show_contents (Pack *pack, uint32_t accepted, char *msg)
 		p_msg ("No valid items.");
 		return ' ';
 	}
-	char out = p_flines (fmt->data);
+	char out = p_flines (str_data (fmt));
 	str_free (fmt);
 	return out;
 }

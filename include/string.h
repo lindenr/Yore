@@ -25,10 +25,13 @@ void str_free (struct String *str);
 void str_append (struct String *str, char ch);
 
 /* safe concatenation */
-void str_cat (struct String *str, size_t max, const char *source);
+void str_cat (struct String *str, const char *source);
 
 /* safe formatted concatenation */
-void str_catf (struct String *str, size_t max, const char *fmt, ...);
+void str_catf (struct String *str, const char *fmt, ...);
+
+/* null-terminated string containing the data */
+#define str_data(str) ((str)->data)
 
 #endif /* STRING_H_INCLUDED */
 

@@ -46,32 +46,24 @@ void str_append (struct String *str, char ch)
 	str->len ++;
 }
 
-void str_cat (struct String *str, size_t max, const char *source)
+void str_cat (struct String *str, const char *source)
 {
 	int i;
 
-	/*if (str->len + max < str->mlen)
-	{
-		strncat (str->data + str->len, source, max);
-		str->len += ?? TODO
-		return;
-	}*/
-
-	for (i = 0; i < max && source[i]; ++ i)
+	for (i = 0; source[i]; ++ i)
 		str_append (str, source[i]);
 }
 
-void str_catf (struct String *str, size_t max, const char *fmt, ...)
+void str_catf (struct String *str, const char *fmt, ...)
 {
-	char *mystr = malloc (max);
+	char mystr[1024];
 
 	va_list args;
 	va_start (args, fmt);
-	vsnprintf (mystr, max+1, fmt, args);
+	vsnprintf (mystr, 1024, fmt, args);
 	va_end (args);
 
-	str_cat (str, max, mystr);
-	free (mystr);
+	str_cat (str, mystr);
 }
 
 
