@@ -7,6 +7,7 @@
 #include "include/save.h"
 #include "include/item.h"
 #include "include/event.h"
+#include "include/string.h"
 
 int pl_focus_mode = 0;
 Vector player_actions = NULL;
@@ -616,19 +617,19 @@ int pl_take_turn (struct Monster *player)
 void ask_items (const struct Monster *player, Vector it_out, Vector it_in, const char *msg)
 {
 	int i;
-	char fmt[1024];
-	int len = 0;
-	len += snprintf (fmt, 1024, "%s\n\n", msg);
+	struct String *fmt = str_dinit ();
+	str_catf (fmt, "%s\n\n", msg);
 	char letter = 'a';
 	for (i = 0; i < it_in->len; ++ i)
 	{
 		TID itemID = *(TID *) v_at (it_in, i);
 		char *asdf = get_near_desc (player, ITEMID (itemID));
-		len += snprintf (fmt + len, 1024-len, "#o%c%s\n", letter + i, asdf);
+		str_catf (fmt, "#o%c%s\n", letter + i, asdf);
 		free (asdf);
 	}
-	len += snprintf (fmt + len, 1024-len, "\n");
-	char ret = p_flines (fmt);
+	str_catf (fmt, "\n");
+	char ret = p_flines (str_data (fmt));
+	str_free (fmt);
 	int a = PACK_AT (ret);
 	if (a != -1)
 		v_push (it_out, v_at (it_in, a));
