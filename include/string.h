@@ -31,7 +31,7 @@ void str_cat (struct String *str, const char *source);
 void str_catf (struct String *str, const char *fmt, ...);
 
 /* null-terminated string containing the data */
-#define str_data(str) ((str)->data)
+const char *str_data (struct String *str);
 
 #endif /* STRING_H_INCLUDED */
 

@@ -66,4 +66,8 @@ void str_catf (struct String *str, const char *fmt, ...)
 	str_cat (str, mystr);
 }
 
+const char *str_data (struct String *str)
+{
+	return str->data;
+}
 
