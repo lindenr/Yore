@@ -48,11 +48,6 @@ Tick ev_delay (union Event *event)
 		return 0;
 	case EV_MDOATTKM:
 		return (MTHIID(event->mdoattkm.thID))->speed;
-	case EV_MKILLM:
-		return 0;
-	case EV_MCORPSE:
-	case EV_MLEVEL:
-		return 0;
 	case EV_MTURN:
 		return 0;
 	case EV_MGEN:
@@ -70,10 +65,6 @@ Tick ev_delay (union Event *event)
 	case EV_MDROP:
 		// TODO: should be 0 if just unwielded the dropped thing
 		return (MTHIID(event->mdrop.thID))->speed;
-	case EV_MANGERM:
-		return 0;
-	case EV_MCALM:
-		return 0;
 	case EV_MSTARTCHARGE:
 		return 0;
 	case EV_MDOCHARGE:
@@ -135,7 +126,7 @@ void ev_mons_start (struct Monster *mons)
 	ev_queue (1, (union Event) { .mregen = {EV_MREGEN, mons->ID}});
 }
 
-void ev_do (Event ev)
+void ev_do (const Event ev)
 {
 	struct Monster *mons, *fr, *to;
 	struct Item newitem, *item;
@@ -264,8 +255,7 @@ void ev_do (Event ev)
 		mons = MTHIID(monsID);
 		if (!mons)
 			return;
-		ev_queue (0, (union Event) { .mangerm =
-			{EV_MANGERM, item->loc.fl.frID, monsID}}); /* anger to-mons */
+		mons_anger (MTHIID (item->loc.fl.frID), mons);
 		if (!proj_hitm (item, mons))
 		{
 			eff_proj_misses_mons (item, mons);
@@ -275,8 +265,7 @@ void ev_do (Event ev)
 		eff_proj_hits_mons (item, mons, damage);
 		mons->HP -= damage;
 		if (mons->HP <= 0)
-			ev_queue (0, (union Event) { .mkillm =
-				{EV_MKILLM, item->loc.fl.frID, monsID}}); /* kill to-mons */
+			mons_kill (MTHIID (item->loc.fl.frID), mons);
 		item->loc.fl.speed = 0;
 		fr = MTHIID (item->loc.fl.frID);
 		if (!fr)
@@ -388,7 +377,7 @@ void ev_do (Event ev)
 		if (!toID)
 			return;
 		to = MTHIID(toID);
-		ev_queue (0, (union Event) { .mangerm = {EV_MANGERM, frID, toID}}); /* anger to-mons */
+		mons_anger (fr, to);
 		struct Item *with = fr->wearing.weaps[arm];
 		int stamina_cost = mons_ST_hit (fr, with);
 		if (fr->ST < stamina_cost)
@@ -413,66 +402,10 @@ void ev_do (Event ev)
 		if (to->HP <= 0)
 		{
 			to->HP = 0;
-			ev_queue (0, (union Event) { .mkillm = {EV_MKILLM, frID, toID}}); /* kill to-mons */
+			mons_kill (fr, to);
 		}
 		if (mons_gets_exp (fr))
 			mons_exercise (fr, with);
-		return;
-	case EV_MKILLM:
-		fr = MTHIID(ev->mkillm.frID); to = MTHIID(ev->mkillm.toID);
-		if ((!fr) || (!to))
-			return;
-		eff_mons_kills_mons (fr, to);
-		if (mons_isplayer(to))
-		{
-			p_msgbox ("You die...");
-			U.playing = PLAYER_LOSTGAME;
-			return;
-		}
-		if (mons_gets_exp (fr))
-		{
-			fr->exp += to->exp;
-			if (mons_level (fr->exp) != fr->level)
-				ev_queue (0, (union Event) { .mlevel = {EV_MLEVEL, fr->ID}});
-		}
-		ev_queue (0, (union Event) { .mcorpse = {EV_MCORPSE, ev->mkillm.toID}}); /* dead drop */
-		return;
-	case EV_MCORPSE:
-		mons = MTHIID(ev->mcorpse.thID);
-		if (!mons)
-			return;
-
-		if (!mons->pack)
-			goto mcorpse;
-		for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
-		{
-			struct Item *packitem = &mons->pack->items[i];
-			if (NO_ITEM(packitem))
-				continue;
-			item_put (packitem, (union ItemLoc) { .dlvl =
-				{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
-		}
-		free(mons->pack);
-
-	mcorpse: ;
-		/* item drops */
-		if (!rn(5))
-			item_gen ((union ItemLoc) { .dlvl =
-				{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
-		/* add corpse */
-		struct Item corpse;
-		mons_corpse (mons, &corpse);
-		item_put (&corpse, (union ItemLoc) { .dlvl =
-			{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
-
-		/* remove dead monster */
-		rem_mid (mons->ID);
-		return;
-	case EV_MLEVEL:
-		mons = MTHIID(ev->mlevel.thID);
-		if (!mons)
-			return;
-		mons_level_up (mons);
 		return;
 	case EV_MTURN:
 		mons = MTHIID(ev->mturn.thID);
@@ -606,26 +539,6 @@ void ev_do (Event ev)
 			item_put (drop, (union ItemLoc) { .dlvl = {LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
 		}
 		v_free (items);
-		return;
-	case EV_MANGERM:
-		frID = ev->mangerm.frID; toID = ev->mangerm.toID;
-		fr = MTHIID(frID); to = MTHIID(toID);
-		if ((!fr) || (!to))
-			return;
-		if (mons_isplayer (to))
-			return;
-		if (to->ctr.mode == CTR_AI_TIMID)
-			eff_mons_angers_mons (fr, to);
-		to->ctr.mode = CTR_AI_AGGRO;
-		to->ctr.aggro.ID = frID;
-		return;
-	case EV_MCALM:
-		thID = ev->mcalm.thID;
-		mons = MTHIID(thID);
-		if (!mons)
-			return;
-		eff_mons_calms (mons);
-		mons->ctr.mode = CTR_AI_TIMID;
 		return;
 	case EV_MSTARTCHARGE:
 		thID = ev->mstartcharge.thID;

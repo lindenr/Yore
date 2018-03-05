@@ -5,6 +5,7 @@
 
 /* Player options go here */
 
+//#define DEBUG_GETCH_TIME   // print time between getch's
 //#define DEBUG_REFRESH_TIME // print framerate info
 //#define TWOPLAYER          // two player characters
 

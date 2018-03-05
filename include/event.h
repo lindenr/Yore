@@ -25,9 +25,6 @@ typedef enum
 	EV_MUNSHIELD,
 	EV_MATTKM,
 	EV_MDOATTKM,
-	EV_MKILLM,
-	EV_MCORPSE,
-	EV_MLEVEL,
 	EV_MTURN,
 	EV_MGEN,
 	EV_MREGEN,
@@ -36,8 +33,6 @@ typedef enum
 	EV_MTAKEOFF_ARMOUR,
 	EV_MPICKUP,
 	EV_MDROP,
-	EV_MANGERM,
-	EV_MCALM,
 	EV_MSTARTCHARGE,
 	EV_MDOCHARGE,
 	EV_MSTOPCHARGE,
@@ -150,21 +145,6 @@ typedef union Event
 	struct
 	{
 		EV_TYPE type;
-		MID frID, toID;
-	} mkillm;
-	struct
-	{
-		EV_TYPE type;
-		MID thID;
-	} mcorpse;
-	struct
-	{
-		EV_TYPE type;
-		MID thID;
-	} mlevel;
-	struct
-	{
-		EV_TYPE type;
 		MID thID;
 	} mturn;
 	struct
@@ -208,16 +188,6 @@ typedef union Event
 		MID thID;
 		Vector items;
 	} mdrop;
-	struct
-	{
-		EV_TYPE type;
-		MID frID, toID;
-	} mangerm;
-	struct
-	{
-		EV_TYPE type;
-		MID thID;
-	} mcalm;
 	struct
 	{
 		EV_TYPE type;

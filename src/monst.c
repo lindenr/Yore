@@ -368,6 +368,65 @@ void mons_stop_hit (struct Monster *mons)
 	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
 }
 
+void mons_kill (struct Monster *fr, struct Monster *to)
+{
+	eff_mons_kills_mons (fr, to);
+	if (mons_isplayer(to))
+	{
+		p_msgbox ("You die...");
+		U.playing = PLAYER_LOSTGAME;
+		return;
+	}
+	mons_dead (to);
+	mons_get_exp (fr, to->exp);
+}
+
+void mons_dead (struct Monster *mons)
+{
+	if (!mons->pack)
+		goto mcorpse;
+	int i;
+	for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
+	{
+		struct Item *packitem = &mons->pack->items[i];
+		if (NO_ITEM(packitem))
+			continue;
+		item_put (packitem, (union ItemLoc) { .dlvl =
+			{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
+	}
+	free(mons->pack);
+
+mcorpse: ;
+	/* item drops */
+	if (!rn(5))
+		item_gen ((union ItemLoc) { .dlvl =
+			{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
+	/* add corpse */
+	struct Item corpse;
+	mons_corpse (mons, &corpse);
+	item_put (&corpse, (union ItemLoc) { .dlvl =
+		{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
+
+	/* remove dead monster */
+	rem_mid (mons->ID);
+}
+
+void mons_anger (struct Monster *fr, struct Monster *to)
+{
+	if (mons_isplayer (to))
+		return;
+	if (to->ctr.mode == CTR_AI_TIMID)
+		eff_mons_angers_mons (fr, to);
+	to->ctr.mode = CTR_AI_AGGRO;
+	to->ctr.aggro.ID = fr->ID;
+}
+
+void mons_calm (struct Monster *mons)
+{
+	mons->ctr.mode = CTR_AI_TIMID;
+	eff_mons_calms (mons);
+}
+
 int mons_take_turn (struct Monster *th)
 {
 	switch (th->ctr.mode)
@@ -578,8 +637,19 @@ void mons_stats_changed (struct Monster *mons)
 		mons->MP = mons->MP_max;
 }
 
-void mons_level_up (struct Monster *mons)
+void mons_get_exp (struct Monster *mons, int exp)
 {
+	if (!mons_gets_exp (mons))
+		return;
+	mons->exp += exp;
+	int new_level = mons_level (mons->exp);
+	if (new_level == mons->level)
+		return;
+	if (new_level < mons->level)
+	{
+		panic ("monster leveled down in mons_get_exp");
+		return;
+	}
 	mons->level ++;
 	if (mons->level < mons_level (mons->exp))
 		mons->exp = explevel[mons->level]-1;
@@ -589,7 +659,7 @@ void mons_level_up (struct Monster *mons)
 	mons->con ++;
 	mons->wis ++;
 	mons->agi ++;
-	pl_choose_attr_gain (mons, 1);
+	//pl_choose_attr_gain (mons, 1);
 	mons_stats_changed (mons);
 }
 
@@ -699,8 +769,8 @@ int AI_AGGRO_take_turn (struct Monster *ai)
 	struct Monster *to = MTHIID (ai->ctr.aggro.ID);
 	if (!to)
 	{
+		mons_calm (ai);
 		ev_queue (0, (union Event) { .mturn = {EV_MTURN, aiID}});
-		ev_queue (0, (union Event) { .mcalm = {EV_MCALM, aiID}});
 		return 1;
 	}
 
