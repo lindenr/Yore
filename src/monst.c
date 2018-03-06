@@ -377,8 +377,9 @@ void mons_kill (struct Monster *fr, struct Monster *to)
 		U.playing = PLAYER_LOSTGAME;
 		return;
 	}
+	int exp_gain = to->exp;
 	mons_dead (to);
-	mons_get_exp (fr, to->exp);
+	mons_get_exp (fr, exp_gain);
 }
 
 void mons_dead (struct Monster *mons)
@@ -394,7 +395,7 @@ void mons_dead (struct Monster *mons)
 		item_put (packitem, (union ItemLoc) { .dlvl =
 			{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
 	}
-	free(mons->pack);
+	free (mons->pack);
 
 mcorpse: ;
 	/* item drops */
@@ -770,8 +771,9 @@ int AI_AGGRO_take_turn (struct Monster *ai)
 	if (!to)
 	{
 		mons_calm (ai);
-		ev_queue (0, (union Event) { .mturn = {EV_MTURN, aiID}});
-		return 1;
+		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, aiID}});
+		return mons_take_turn (ai);
+		//return 1;
 	}
 
 	if (!ai->pack)

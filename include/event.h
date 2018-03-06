@@ -44,7 +44,7 @@ typedef enum
 	EV_MCLOSEDOOR
 } EV_TYPE;
 
-typedef union Event
+union Event
 {
 	EV_TYPE type;
 	struct
@@ -242,11 +242,12 @@ typedef union Event
 		MID thID;
 		int ydest, xdest;
 	} mclosedoor;
-} *Event;
+};
 
 struct QEv
 {
 	Tick tick;
+	long long unsigned ID;
 	union Event ev;
 };
 

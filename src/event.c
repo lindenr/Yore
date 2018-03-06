@@ -10,6 +10,9 @@
 #include "include/rand.h"
 #include "include/player.h"
 #include "include/skills.h"
+#include "include/heap.h"
+
+struct Heap *events;
 
 Tick ev_delay (union Event *event)
 {
@@ -86,24 +89,19 @@ Tick ev_delay (union Event *event)
 }
 
 void ev_print (struct QEv *qe);
-Vector events = NULL;
 Tick curtick = 0;
+long long unsigned curQID = 0;
 void ev_queue (Tick udelay, union Event ev)
 {
 	Tick when = curtick + udelay;
-	struct QEv qe = {when, ev};
-	int i = 0;
-	if (udelay)
-	for (i = 0; i < events->len && ((struct QEv*)v_at(events, i))->tick <= when; ++ i)
-		{}
-	v_push (events, &qe);
-	memmove (v_at (events, i+1), v_at (events, i), events->siz * (events->len - i - 1));
-	memcpy (v_at (events, i), &qe, events->siz);
+	++ curQID;
+	struct QEv qe = {when, curQID, ev};
+	h_push (events, &qe);
 }
 
 void ev_debug ()
 {
-	int i;
+	/*int i;
 	printf ("curtick is %llu\n", curtick);
 	for (i = 0; i < events->len; ++ i)
 	{
@@ -112,7 +110,7 @@ void ev_debug ()
 		if (qe->ev.type == EV_MTURN)
 			printf ("     id %d\n", qe->ev.mturn.thID);
 	}
-	printf("\n");
+	printf("\n");*/
 }
 
 void ev_print (struct QEv *qe)
@@ -126,7 +124,7 @@ void ev_mons_start (struct Monster *mons)
 	ev_queue (1, (union Event) { .mregen = {EV_MREGEN, mons->ID}});
 }
 
-void ev_do (const Event ev)
+void ev_do (const union Event *ev)
 {
 	struct Monster *mons, *fr, *to;
 	struct Item newitem, *item;
@@ -138,8 +136,8 @@ void ev_do (const Event ev)
 	switch (ev->type)
 	{
 	case EV_WORLD_INIT:
-		ev_queue (0, (union Event) { .world_heartbeat = {EV_WORLD_HEARTBEAT}});
 		ev_queue (0, (union Event) { .player_init = {EV_PLAYER_INIT}});
+		ev_queue (0, (union Event) { .world_heartbeat = {EV_WORLD_HEARTBEAT}});
 		generate_map (dlv_lvl (1), LEVEL_NORMAL);
 		return;
 	case EV_PLAYER_INIT:
@@ -621,27 +619,30 @@ void ev_do (const Event ev)
 	}
 }
 
+int qev_cmp (struct QEv *q1, struct QEv *q2)
+{
+	if (q1->tick < q2->tick)
+		return 1;
+	return q1->tick == q2->tick && q1->ID < q2->ID;
+}
+
 void ev_init ()
 {
-	events = v_dinit (sizeof(struct QEv));
+	events = h_dinit (sizeof(struct QEv), qev_cmp);
 	player_actions = v_dinit (sizeof(struct QEv));
 	ev_queue (0, (union Event) { .world_init = {EV_WORLD_INIT}});
 }
 
-// TODO make events a heap
 void ev_loop ()
 {
 	while (U.playing == PLAYER_PLAYING)
 	{
 		////printf ("CURTICK=%d\n", curtick);
-		struct QEv qe;
-		memcpy (&qe, v_at (events, 0), sizeof (qe));
-		//ev_print (&qe);
-		v_rem (events, 0);
+		const struct QEv *qe = h_least (events);
+		curtick = qe->tick;
 
-		curtick = qe.tick;
-
-		ev_do (&qe.ev);
+		ev_do (&qe->ev);
+		h_pop (events, NULL);
 	}
 }
 

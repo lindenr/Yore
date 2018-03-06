@@ -13,7 +13,7 @@ int pl_focus_mode = 0;
 Vector player_actions = NULL;
 void pl_queue (struct Monster *player, union Event ev)
 {
-	struct QEv qev = {ev_delay (&ev), ev};
+	struct QEv qev = {ev_delay (&ev), 0, ev};
 	v_push (player_actions, &qev);
 }
 

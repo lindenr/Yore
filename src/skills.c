@@ -122,12 +122,12 @@ void sk_charge (struct Monster *th, int y, int x, Skill sk)
 {
 	if (!th->status.charging)
 	{
-		ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		ev_queue (0, (union Event) { .mstartcharge = {EV_MSTARTCHARGE, th->ID /*, y, x*/ }});
+		ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		return;
 	}
-	ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 	ev_queue (0, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, th->ID /*, y, x*/ }});
+	ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 //	sk_exp (th, sk, 1);
 	
 //	chID = th->ID;

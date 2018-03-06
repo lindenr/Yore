@@ -10,6 +10,7 @@
 #include "include/event.h"
 #include "include/save.h"
 #include "include/dlevel.h"
+#include "include/heap.h"
 
 #include <stdlib.h>
 #include <stdio.h>
