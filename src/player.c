@@ -256,7 +256,7 @@ int Kthrow (struct Monster *player)
 
 int Kinv (struct Monster *player)
 {
-	show_contents (player->pack, ITCAT_ALL, "Inventory");
+	show_contents (player, ITCAT_ALL, "Inventory");
 	return 0;
 }
 
@@ -290,7 +290,7 @@ int nlook_msg (char *out, const int len, struct Monster *player)
 	for (i = 0; i < items->len; ++ i)
 	{
 		struct Item *it = v_at(items, i);
-		char *line = get_near_desc (player, it);
+		char *line = it_desc (it, NULL);
 		cur += snprintf (out + cur, len - cur, "%s\n", line);
 		++ k;
 		free (line);
@@ -321,8 +321,9 @@ int Knlook (struct Monster *player)
 void flook_callback (enum P_MV action, int fy, int fx, int ty, int tx)
 {
 	int n = map_buffer (ty, tx);
-	glyph gl = map_graph->data[n];
-	p_notify ("You see here: #g%s", gl_format (gl));
+	//glyph gl = map_graph->data[n];
+	//p_notify ("You see here: #g%s", gl_format (gl));
+	p_notify ("%d", cur_dlevel->num_fires[n]);
 }
 
 int Kflook (struct Monster *player)
@@ -363,7 +364,7 @@ int Kwield_cand (struct Monster *player)
 
 int Kwield (struct Monster *player)
 {
-	struct Item *wield = player_use_pack (player, "Wield what?", ITCAT_WEAPON);
+	struct Item *wield = player_use_pack (player, "Wield what?", 1<<ITCAT_WEAPON);
 	if (wield == NULL)
 		return 0;
 	if (items_equal (wield, player->wearing.weaps[0]))
@@ -387,7 +388,7 @@ int Kwear_cand (struct Monster *player)
 
 int Kwear (struct Monster *player)
 {
-	struct Item *wear = player_use_pack (player, "Wear what?", ITCAT_ARMOUR);
+	struct Item *wear = player_use_pack (player, "Wear what?", 1<<ITCAT_ARMOUR);
 	if (NO_ITEM(wear))
 		return 0;
 	return mons_try_wear (player, wear);
@@ -400,7 +401,7 @@ int Ktakeoff_cand (struct Monster *player)
 
 int Ktakeoff (struct Monster *player)
 {
-	struct Item *item = player_use_pack (player, "Take off what?", ITCAT_ARMOUR);
+	struct Item *item = player_use_pack (player, "Take off what?", 1<<ITCAT_ARMOUR);
 	if (NO_ITEM(item))
 	{
 		p_msg ("Not an item.");
@@ -619,45 +620,51 @@ void ask_items (const struct Monster *player, Vector it_out, Vector it_in, const
 	int i;
 	struct String *fmt = str_dinit ();
 	str_catf (fmt, "%s\n\n", msg);
-	char letter = 'a';
 	for (i = 0; i < it_in->len; ++ i)
 	{
 		TID itemID = *(TID *) v_at (it_in, i);
-		char *asdf = get_near_desc (player, ITEMID (itemID));
-		str_catf (fmt, "#o%c%s\n", letter + i, asdf);
+		char *asdf = it_desc (ITEMID (itemID), NULL);
+		str_catf (fmt, "#o%s\n", asdf);
 		free (asdf);
 	}
 	str_catf (fmt, "\n");
-	char ret = p_flines (str_data (fmt));
+	int a = p_flines (str_data (fmt));
 	str_free (fmt);
-	int a = PACK_AT (ret);
 	if (a != -1)
 		v_push (it_out, v_at (it_in, a));
 }
 
 void pl_choose_attr_gain (struct Monster *player, int points)
 {
-	char ret = p_flines (
+	int choice = p_flines (
 	"#cYou gain a level! +1 to all attributes.\n"
 	"#cSelect another attribute to increase by one.\n"
-	"#oa#g"FMT_STR" Strength\n"
-	"#ob#g"FMT_CON" Constitution\n"
-	"#oc#g"FMT_WIS" Wisdom\n"
-	"#od#g"FMT_AGI" Agility");
-	if (ret == 'a')
+	"#o#g"FMT_STR" Strength\n"
+	"#o#g"FMT_CON" Constitution\n"
+	"#o#g"FMT_WIS" Wisdom\n"
+	"#o#g"FMT_AGI" Agility");
+	switch (choice)
+	{
+	case 0:
 		++ player->str;
-	else if (ret == 'b')
+		return;
+	case 1:
 		++ player->con;
-	else if (ret == 'c')
+		return;
+	case 2:
 		++ player->wis;
-	else if (ret == 'd')
+		return;
+	case 3:
 		++ player->agi;
+		return;
+	default:
+		return;
+	}
 }
 
 struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
 {
-	char in = show_contents (th->pack, accepted, msg);
-	return get_Itemc (th->pack, in);
+	return show_contents (th, accepted, msg);
 }
 
 void pl_redraw ()

@@ -27,7 +27,7 @@ struct Item *pack_rem   (Pack *, unsigned);
 void pack_free          (Pack **);
 bool pack_add           (Pack **, struct Item *, int);
 int PACK_AT             (char);
-char show_contents      (Pack *, uint32_t, char *);
+struct Item *show_contents(struct Monster *, uint32_t, char *);
 struct Item *get_Itemc  (Pack *, char);
 char get_Itref          (const struct Item *item);
 Pack *pack_init         ();

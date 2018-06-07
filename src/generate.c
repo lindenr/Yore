@@ -372,10 +372,10 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 	return true;
 }
 
-void init_mons (struct Monster *mons, enum MTYPES type)
+void init_mons (struct Monster *mons, int type)
 {
 	memcpy (mons, &all_mons[type], sizeof(struct Monster));
-	mons->type = type;
+	//mons->type = type;
 }
 
 /* initialised at start of game */
@@ -408,6 +408,8 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	myitem = new_item (ityps[ITYP_CLOTH_TUNIC]);
 	item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 3}});
 	mons_wear (pl, item, offsetof (struct WoW, torsos[0]));
+	myitem = new_item (ityps[ITYP_FORCE_SHARD]);
+	item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 4}});
 	/*int i;
 	for (i = 4; i < 40; ++ i)
 	{

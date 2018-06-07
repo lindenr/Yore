@@ -11,24 +11,24 @@
 #define STRINGIFY(x) #x
 #define TILE_FILE "t"XSTRINGIFY(GLW)"x"XSTRINGIFY(GLH)".bmp"
 
-int forced_refresh = 0;
+static int forced_refresh = 0;
 
-SDL_Window *sdlWindow;
-SDL_Renderer *sdlRenderer;
-SDL_Surface *tiles, *screen, *glyph_col;
-SDL_Texture *sdlTexture;
+static SDL_Window *sdlWindow;
+static SDL_Renderer *sdlRenderer;
+static SDL_Surface *tiles, *screen, *glyph_col;
+static SDL_Texture *sdlTexture;
 
 /* starting and current size */
-int screenY = 0, screenX = 0;
+static int screenY = 0, screenX = 0;
 
-glyph *gr_map = NULL;
-gflags *gr_flags = NULL;
+static glyph *gr_map = NULL;
+static gflags *gr_flags = NULL;
 
 /* window dimensions (in glyphs) */
 int gr_h = 0, gr_w = 0; //screenY/GLH, gr_w = screenX/GLW;
 int gr_area = 0;
 
-Vector graphs = NULL;
+static Vector graphs = NULL;
 
 /* event callback functions */
 void (*gr_onidle) () = NULL;

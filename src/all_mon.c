@@ -13,9 +13,9 @@
 #endif
 
 #define MONST(nm,ch,size,at,fl,cl,str,con,wis,agi,spd,ex) \
-{0,0,-1,-1,-1,nm,ch|COL(cl),{.mode=CTR_NONE},0,ex,0,NULL, \
+{0,0,-1,-1,nm,ch|COL(cl),{.mode=CTR_NONE},0,ex,0,NULL, \
 1, 1, 1, 1, 1, 1, str, con, wis, agi, spd, NULL, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
-{{0,0},{0,0,-1},0,{0,0},0},(fl)|(FL_SIZE(size)),NULL}
+(struct MStatus){{0,0},{0,0,-1},0,{0,0},0,0},(fl)|(FL_SIZE(size)),NULL}
 
 #define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}
 #define AM(a,b) ((a)|((b)<<16))
@@ -39,14 +39,14 @@ const struct Monster all_mons[] = {
 		  2, 0, 2, 3, 1000, 3),
 	MONST("slime rat", 'r', SIZE(1),
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
-			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_FLSH,
+			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_FLSH | FL_SLIMY,
 		  COL_TXT(7, 8, 0),
 		  2, 0, 2, 3, 1000, 3),
 	MONST("skeleton", 's', SIZE(4),
 		  ATTK(A(1, 2, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_SKEL,
 		  COL_TXT(15, 15, 15),
-		  4, 0, 2, 3, 1000, 8),
+		  20, 0, 2, 3, 1000, 8),
 	MONST("rabbit", 'g', SIZE(2),
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_NEUTRAL | FL_FLSH,

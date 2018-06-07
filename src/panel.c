@@ -197,7 +197,7 @@ void p_menu_draw (Graph box, Vector lines, int curchoice)
 	for (i = 0; i < lines->len; ++ i)
 	{
 		struct MenuOption *line = v_at (lines, i);
-		if (line->letter)
+		if (line->num != -1)
 		{
 			gra_mvaddch (box, i+1, 2, ACS_PILLAR);
 			gra_mvaddch (box, i+1, 3, ' ');
@@ -217,7 +217,7 @@ void p_menu_draw (Graph box, Vector lines, int curchoice)
 	}
 }
 
-char p_menuex (Vector lines, const char *toquit, int max_line_len)
+int p_menuex (Vector lines, const char *toquit, int max_line_len)
 {
 	int i, curchoice = -1;
 	int max = max_line_len + 4;
@@ -226,54 +226,47 @@ char p_menuex (Vector lines, const char *toquit, int max_line_len)
 	int yloc = (gr_h - h)/2, xloc = (gr_w - w)/2;
 
 	Graph box = gra_init (h, w, yloc, xloc, h, w);
-	gra_fbox (box, 0, 0, h-1, w-1, ' ');
+	box->def = COL_BG(1,1,1)|COL_TXT_DEF;
+	gra_fbox (box, 0, 0, h-1, w-1, COL_TXT_DEF|' ');
 	if (toquit)
 		gra_mvprint (box, 0, w-strlen(toquit), toquit);
+	box->def = COL_TXT_DEF;
 
 	for (i = 0; i < lines->len; ++ i)
 	{
 		struct MenuOption *line = v_at (lines, i);
-		if (line->letter)
+		if (line->num != -1)
 		{
 			curchoice = i;
 			break;
 		}
 	}
 
-	char ret;
 	p_menu_draw (box, lines, curchoice);
 	if (curchoice == -1)
 	{
-		ret = p_getch (NULL);
+		p_getch (NULL);
 		gra_free (box);
-		return ret;
+		return -1;
 	}
 	do
 	{
-		ret = p_getch (NULL);
+		char ret = p_getch (NULL);
 		if (ret == CH_ESC || ret == ' ' ||
 			ret == '-')
 			break;
-		//for (i = 0; i < lines->len; ++ i)
-		//{
-		//	struct MenuOption *line = v_at (lines, i);
-		//	if (line->letter == ret)
-		//		break;
-		//}
-		//if (i < lines->len)
-		//	break;
 		if (ret == '\n' || ret == '.')
 		{
 			gra_free (box);
 			struct MenuOption *line = v_at (lines, curchoice);
-			return line->letter;
+			return line->num;
 		}
 		else if (ret == GRK_UP || ret == 'k')
 		{
 			for (i = curchoice - 1; i >= 0; -- i)
 			{
 				struct MenuOption *line = v_at (lines, i);
-				if (line->letter)
+				if (line->num != -1)
 					break;
 			}
 			if (i >= 0)
@@ -284,7 +277,7 @@ char p_menuex (Vector lines, const char *toquit, int max_line_len)
 			for (i = curchoice + 1; i < lines->len; ++ i)
 			{
 				struct MenuOption *line = v_at (lines, i);
-				if (line->letter)
+				if (line->num != -1)
 					break;
 			}
 			if (i < lines->len)
@@ -296,7 +289,7 @@ char p_menuex (Vector lines, const char *toquit, int max_line_len)
 
 	gra_free (box);
 
-	return ret;
+	return -1;
 }
 
 char p_ask (struct Monster *player, const char *results, const char *question)
@@ -434,22 +427,22 @@ int p_skills (struct Monster *player, enum PanelType type)
 		"#c(no skills available)\n" :
 		"#c(press '.' to use)\n");
 	
-	char letter = 'a';
+	//char letter = 'a';
 	int i;
 	for (i = 0; i < pskills->len; ++ i)
 	{
 		Skill sk = v_at (pskills, i);
 		if (sk_isact (sk))
-			str_catf (fmt, "#o%c", letter++);
+			str_catf (fmt, "#o");
 		str_catf (fmt, "#g%s %s %d:%d\n", gl_format (sk_gl(sk)), sk_name(sk), sk->level, sk->exp);
 	}
-	char in = p_flines (str_data (fmt));
+	int n = p_flines (str_data (fmt));
 	str_free (fmt);
-	if (in == CH_ESC)
+	if (n == -1)
 		return -1;
-	else if (in >= 'a' && in < letter)
+	else// if (in >= 'a' && in < letter)
 	{
-		int n = in - 'a';
+		//int n = in - 'a';
 		int yloc, xloc;
 		Skill sk = v_at (pskills, n);
 		switch (sk->type)
@@ -518,6 +511,9 @@ int p_skills (struct Monster *player, enum PanelType type)
 			return 1;
 		case SK_FLAMES:
 			sk_flames (player);
+			return 1;
+		case SK_SCRY:
+			sk_scry (player, sk);
 			return 1;
 		case SK_USE_MARTIAL_ARTS:
 		case SK_USE_LONGSWORD:
@@ -759,10 +755,7 @@ Vector p_formatted (const char *input, int max_line_len)
 			}
 			else if (input[i] == 'o')
 			{
-				++ i;
-				if (!input[i])
-					break;
-				fg = (struct FormattedGlyph) {input[i], FMT_MENUOPTION};
+				fg = (struct FormattedGlyph) {0, FMT_MENUOPTION};
 				v_push (formats, &fg);
 			}
 			continue;
@@ -778,14 +771,14 @@ Vector p_formatted (const char *input, int max_line_len)
 		v_push (formats, &fg);
 	}
 
-	int j;
-	struct MenuOption m = (struct MenuOption) {0, 0, NULL};
-	for (i = 0, j = 0; i < formats->len; ++ i)
+	int j, curnum;
+	struct MenuOption m = (struct MenuOption) {-1, 0, NULL};
+	for (i = 0, j = 0, curnum = 0; i < formats->len; ++ i)
 	{
 		struct FormattedGlyph *fg = v_at (formats, i);
 		if (fg->fmt == FMT_MENUOPTION)
 		{
-			m = (struct MenuOption) {(char) fg->gl, 0, NULL};
+			m = (struct MenuOption) {curnum++, 0, NULL};
 			continue;
 		}
 		if (j == max_line_len || (fg->gl & 0xFF) == '\n')
@@ -794,7 +787,7 @@ Vector p_formatted (const char *input, int max_line_len)
 				m.ex_str[j] = 0;
 			j = 0;
 			v_push (lines, &m);
-			m = (struct MenuOption) {0, 0, NULL};
+			m = (struct MenuOption) {-1, 0, NULL};
 			if ((fg->gl & 0xFF) == '\n')
 				continue;
 		}
@@ -826,16 +819,18 @@ void p_ffree (Vector lines)
 	v_free (lines);
 }
 
-char p_flines (const char *input)
+int p_flines (const char *input)
 {
 	Vector lines = p_formatted (input, 50);
-	char ret = p_menuex (lines, "(Space)", 50);
+	int ret = p_menuex (lines, "(Space)", 50);
 	p_ffree (lines);
 	return ret;
 }
 
 int player_sees_mons (struct Monster *mons)
 {
+	if (!mons)
+		return 1;
 	return dlv_lvl(mons->dlevel)->seen[map_buffer (mons->yloc, mons->xloc)] == 2;
 }
 
@@ -1008,8 +1003,9 @@ void eff_mons_picks_up_item (struct Monster *mons, struct Item *item)
 		return;
 	if (!player_sees_item (item))
 		return;
-	char *msg = get_inv_line (item);
-	if (mons_isplayer (mons))
+	int p = mons_isplayer (mons);
+	char *msg = it_desc (item, p ? mons : NULL);
+	if (p)
 		p_msg ("%s", msg);
 	else
 		p_msg ("The %s picks up %s.", mons->mname, msg);
@@ -1022,8 +1018,9 @@ void eff_mons_wields_item (struct Monster *mons, struct Item *item)
 		return;
 	if (!player_sees_item (item))
 		return;
-	char *msg = get_inv_line (item);
-	if (mons_isplayer (mons))
+	int p = mons_isplayer (mons);
+	char *msg = it_desc (item, p ? mons : NULL);
+	if (p)
 		p_msg ("You wield %s.", msg);
 	else
 		p_msg ("The %s wields %s.", mons->mname, msg);
@@ -1036,8 +1033,9 @@ void eff_mons_wears_item (struct Monster *mons, struct Item *item)
 		return;
 	if (!player_sees_item (item))
 		return;
-	char *msg = get_inv_line (item);
-	if (mons_isplayer (mons))
+	int p = mons_isplayer (mons);
+	char *msg = it_desc (item, p ? mons : NULL);
+	if (p)
 		p_msg ("You wear %s.", msg);
 	else
 		p_msg ("The %s wears %s.", mons->mname, msg);
@@ -1050,8 +1048,9 @@ void eff_mons_takes_off_item (struct Monster *mons, struct Item *item)
 		return;
 	if (!player_sees_item (item))
 		return;
-	char *msg = get_inv_line (item);
-	if (mons_isplayer (mons))
+	int p = mons_isplayer (mons);
+	char *msg = it_desc (item, p ? mons : NULL);
+	if (p)
 		p_msg ("You take off %s.", msg);
 	else
 		p_msg ("The %s takes off %s.", mons->mname, msg);

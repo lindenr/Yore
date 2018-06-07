@@ -79,6 +79,11 @@ void h_pop (struct Heap *h, void *out)
 	h->len --;
 }
 
+void h_empty (struct Heap *h)
+{
+	h->len = 0;
+}
+
 void *h_at (struct Heap *h, size_t i)
 {
 	return h->data + i * h->siz;

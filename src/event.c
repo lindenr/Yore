@@ -30,6 +30,7 @@ Tick ev_delay (union Event *event)
 	case EV_PROJ_DONE:
 	case EV_PROJ_HIT_BARRIER:
 	case EV_PROJ_HIT_MONSTER:
+	case EV_ITEM_EXPLODE:
 		return 0;
 	case EV_MWAIT:
 		return (MTHIID(event->mwait.thID))->speed;
@@ -83,6 +84,8 @@ Tick ev_delay (union Event *event)
 		return 0;
 	case EV_MCLOSEDOOR:
 		return 0;
+	default:
+		return 0;
 	}
 	panic ("ev_delay reached end");
 	return 0;
@@ -124,13 +127,16 @@ void ev_mons_start (struct Monster *mons)
 	ev_queue (1, (union Event) { .mregen = {EV_MREGEN, mons->ID}});
 }
 
+int ev_should_refresh = 0;
+
 void ev_do (const union Event *ev)
 {
 	struct Monster *mons, *fr, *to;
 	struct Item newitem, *item;
 	TID thID, frID, toID, itemID, monsID;
+	struct DLevel *dlvl;
 	int can, ydest, xdest, damage, radius, arm, delay;
-	int i, j;
+	int i, j, ydist, xdist, dist;
 	Vector pickup, items;
 	union ItemLoc loc;
 	switch (ev->type)
@@ -165,8 +171,8 @@ void ev_do (const union Event *ev)
 		return;
 	case EV_WORLD_HEARTBEAT:
 		/* monster generation */
-		if (!rn(3))
-			ev_queue (0, (union Event) { .mgen = {EV_MGEN}});
+		//if (!rn(3))
+		//	ev_queue (0, (union Event) { .mgen = {EV_MGEN}});
 		/* next heartbeat */
 		ev_queue (1000, (union Event) { .world_heartbeat = {EV_WORLD_HEARTBEAT}});
 		return;
@@ -194,10 +200,15 @@ void ev_do (const union Event *ev)
 	case EV_PROJ_MOVE:
 		itemID = ev->proj_move.itemID;
 		item = ITEMID(itemID);
-		if ((!item) || item->loc.loc != LOC_FLIGHT)
+		if (!it_flight (item))
 			return;
 		if (item->loc.fl.speed <= 0)
 		{
+			if (item->type.type == ITSORT_SHARD)
+			{
+				ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, itemID, 10}});
+				return;
+			}
 			ev_queue (0, (union Event) { .proj_done = {EV_PROJ_DONE, itemID}});
 			return;
 		}
@@ -216,13 +227,12 @@ void ev_do (const union Event *ev)
 		if (thID)
 			ev_queue (0, (union Event) { .proj_hit_monster = {EV_PROJ_HIT_MONSTER, itemID, thID}});
 		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, itemID}});
-		//draw_map ();
-		gr_refresh ();
+		ev_should_refresh = 1;
 		return;
 	case EV_PROJ_DONE:
 		itemID = ev->proj_done.itemID;
 		item = ITEMID(itemID);
-		if (item->type.type == ITSORT_ARCANE)
+		if (!it_persistent (item))
 		{
 			eff_item_dissipates (item);
 			item_free (item);
@@ -234,7 +244,7 @@ void ev_do (const union Event *ev)
 	case EV_PROJ_HIT_BARRIER:
 		itemID = ev->proj_hit_barrier.itemID;
 		item = ITEMID(itemID);
-		if (item->type.type == ITSORT_ARCANE)
+		if (!it_persistent (item))
 		{
 			eff_item_absorbed (item);
 			item_free (item);
@@ -247,7 +257,7 @@ void ev_do (const union Event *ev)
 	case EV_PROJ_HIT_MONSTER:
 		itemID = ev->proj_hit_monster.itemID;
 		item = ITEMID(itemID);
-		if ((!item) || item->loc.loc != LOC_FLIGHT)
+		if (!it_flight(item))
 			return;
 		monsID = ev->proj_hit_monster.monsID;
 		mons = MTHIID(monsID);
@@ -261,15 +271,65 @@ void ev_do (const union Event *ev)
 		}
 		damage = proj_hitdmg (item, mons);
 		eff_proj_hits_mons (item, mons, damage);
-		mons->HP -= damage;
-		if (mons->HP <= 0)
-			mons_kill (MTHIID (item->loc.fl.frID), mons);
-		item->loc.fl.speed = 0;
 		fr = MTHIID (item->loc.fl.frID);
+		mons_take_damage (mons, fr, damage, ATYP_PHYS);
+		item->loc.fl.speed = 0;
 		if (!fr)
 			return;
 		if (mons_gets_exp (fr))
 			mons_exercise (fr, item);
+		return;
+	case EV_ITEM_EXPLODE:
+		itemID = ev->item_explode.itemID;
+		item = ITEMID(itemID);
+		if (!it_flight (item))
+			return;
+		ydest = item->loc.fl.yloc; xdest = item->loc.fl.xloc;
+		struct BresState bres;
+		int R = ev->item_explode.force;
+		int r2 = (R-1)*(R-1), R2 = (R+1)*(R+1);
+		for (i = -R; i <= R; ++ i)
+			for (j = -R; j <= R; ++ j)
+			{
+				int d2 = i*i + j*j;
+				if (d2 >= r2 && d2 <= R2)
+				{
+					bres_init (&bres, ydest, xdest, ydest + i, xdest + j);
+					ev_queue (0, (union Event) { .line_explode = {EV_LINE_EXPLODE, item->loc.fl.dlevel, bres, 0}});
+				}
+			}
+		item_free (item);
+		return;
+	case EV_LINE_EXPLODE:
+		bres = ev->line_explode.bres;
+		dlvl = dlv_lvl (ev->line_explode.dlevel);
+		ydist = bres.cy - bres.fy; xdist = bres.cx - bres.fx; dist = ev->line_explode.dist;
+		if (ydist * ydist + xdist * xdist >= dist * dist)
+		{
+			ev_queue (50, (union Event) { .line_explode = {EV_LINE_EXPLODE, ev->line_explode.dlevel, bres, ev->line_explode.dist + 1}});
+			return;
+		}
+		i = map_buffer (bres.cy, bres.cx);
+		mons = v_at (dlvl->mons, dlvl->monsIDs[i]);
+		if (mons->ID)
+		{
+			mons_take_damage (mons, NULL, 5, ATYP_PHYS);
+		}
+		if (dlvl->num_fires[i])
+		{
+			dlvl->num_fires[i] --;
+			draw_map_buf (dlvl, i);
+		}
+		if (bres.done)
+			return;
+		bres_iter (&bres);
+		if (!can_amove (get_sqattr (dlvl, bres.cy, bres.cx)))
+			return;
+		i = map_buffer (bres.cy, bres.cx);
+		dlvl->num_fires[i] ++;
+		draw_map_buf (dlvl, i);
+		ev_queue (50, (union Event) { .line_explode = {EV_LINE_EXPLODE, ev->line_explode.dlevel, bres, ev->line_explode.dist + 1}});
+		ev_should_refresh = 1;
 		return;
 	case EV_MWAIT:
 		thID = ev->mwait.thID;
@@ -301,13 +361,14 @@ void ev_do (const union Event *ev)
 		//else: tried and failed to move TODO
 		if (mons_isplayer (mons))
 		{
-			/* check what the player can see now */
-			update_knowledge (mons);
 			/* re-eval paths to player */
 			dlv_fill_player_dist (cur_dlevel);
+			/* check what the player can see now */
+			update_knowledge (mons);
 		}
-		if (mons->type == MTYP_slime_rat && !rn(3))
+		if (mons->mflags & FL_SLIMY && !rn(3))
 		{
+			// TODO check if there is already slime
 			new_thing (THING_DGN, dlv_lvl (mons->dlevel), mons->yloc, mons->xloc, &map_items[DGN_SLIME]);
 		}
 		return;
@@ -396,18 +457,15 @@ void ev_do (const union Event *ev)
 			return;
 		}
 		eff_mons_hits_mons (fr, to, damage);
-		to->HP -= damage;
-		if (to->HP <= 0)
-		{
-			to->HP = 0;
-			mons_kill (fr, to);
-		}
+		mons_take_damage (to, fr, damage, ATYP_PHYS);
 		if (mons_gets_exp (fr))
 			mons_exercise (fr, with);
 		return;
 	case EV_MTURN:
 		mons = MTHIID(ev->mturn.thID);
 		if (!mons)
+			return;
+		if (mons->status.helpless)
 			return;
 		mons_take_turn (mons);
 		return;
@@ -449,7 +507,7 @@ void ev_do (const union Event *ev)
 		if (mons->wearing.weaps[arm])
 			mons_unwield (mons, mons->wearing.weaps[arm]);
 		struct Item *it = ITEMID(ev->mwield.itemID);
-		if ((!it) || it->loc.loc != LOC_INV || it->loc.inv.monsID != ev->mwield.thID)
+		if (it_invID (it) != ev->mwield.thID)
 			return;
 		eff_mons_wields_item (mons, it);
 		mons_wield (mons, arm, it);
@@ -459,9 +517,8 @@ void ev_do (const union Event *ev)
 		if (!mons)
 			return;
 		item = ITEMID (ev->mwear_armour.itemID); 
-		if ((!item) || item->loc.loc != LOC_INV ||
-			item->loc.inv.monsID != ev->mwear_armour.thID ||
-			item_worn(item))
+		if (it_invID (item) != ev->mwear_armour.thID ||
+			item_worn (item))
 			return;
 		if (!mons_can_wear (mons, item, ev->mwear_armour.offset))
 			return;
@@ -473,8 +530,7 @@ void ev_do (const union Event *ev)
 		if (!mons)
 			return;
 		item = ITEMID (ev->mtakeoff_armour.itemID); 
-		if ((!item) || item->loc.loc != LOC_INV ||
-			item->loc.inv.monsID != ev->mtakeoff_armour.thID ||
+		if (it_invID(item) != ev->mtakeoff_armour.thID ||
 			(!item_worn(item)))
 			return;
 		if (!mons_can_takeoff (mons, item))
@@ -500,7 +556,7 @@ void ev_do (const union Event *ev)
 			for (j = 0; j < MAX_ITEMS_IN_PACK; ++ j)
 			{
 				packitem = &mons->pack->items[j];
-				if (it_can_merge (mons, packitem, item) && !NO_ITEM(packitem))
+				if (it_can_merge (packitem, item) && !NO_ITEM(packitem))
 					break;
 			}
 			if (j < MAX_ITEMS_IN_PACK)
@@ -508,7 +564,7 @@ void ev_do (const union Event *ev)
 			for (j = 0; j < MAX_ITEMS_IN_PACK; ++ j)
 			{
 				packitem = &mons->pack->items[j];
-				if (it_can_merge (mons, packitem, item))
+				if (it_can_merge (packitem, item))
 					break;
 			}
 		pick_up_item:
@@ -564,6 +620,7 @@ void ev_do (const union Event *ev)
 		if (!mons)
 			return;
 		newitem = new_item (ityps[ITYP_FIREBALL]);
+		newitem.attk = ev->mfireball.attk;
 		loc = (union ItemLoc) { .fl =
 			{LOC_FLIGHT, mons->dlevel, mons->yloc, mons->xloc, {0,}, mons->str, thID}};
 		bres_init (&loc.fl.bres, mons->yloc, mons->xloc, ev->mfireball.ydest, ev->mfireball.xdest);
@@ -576,6 +633,7 @@ void ev_do (const union Event *ev)
 		if (!mons)
 			return;
 		newitem = new_item (ityps[ITYP_WATER_BOLT]);
+		newitem.attk = ev->mwater_bolt.attk;
 		loc = (union ItemLoc) { .fl =
 			{LOC_FLIGHT, mons->dlevel, mons->yloc, mons->xloc, {0,}, mons->str, thID}};
 		bres_init (&loc.fl.bres, mons->yloc, mons->xloc, ev->mwater_bolt.ydest, ev->mwater_bolt.xdest);
@@ -639,6 +697,11 @@ void ev_loop ()
 	{
 		////printf ("CURTICK=%d\n", curtick);
 		const struct QEv *qe = h_least (events);
+		if (curtick/50 < qe->tick/50 && ev_should_refresh)
+		{
+			ev_should_refresh = 0;
+			gr_refresh ();
+		}
 		curtick = qe->tick;
 
 		ev_do (&qe->ev);

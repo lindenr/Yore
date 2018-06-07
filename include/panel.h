@@ -46,7 +46,7 @@ enum P_MV
 
 struct MenuOption
 {
-	char letter;
+	int num;
 	int len;
 	glyph *ex_str;
 };
@@ -66,9 +66,9 @@ struct FormattedGlyph
 };
 
 char *gl_format (glyph gl);
-char p_menuex   (Vector lines, const char *toquit, int max_line_len);
+int  p_menuex   (Vector lines, const char *toquit, int max_line_len);
 Vector p_formatted(const char *input, int max_line_len);
-char p_flines   (const char *);
+int  p_flines   (const char *);
 void p_ffree    (Vector);
 int  p_status   (struct Monster *, enum PanelType);
 int  p_skills   (struct Monster *, enum PanelType);
@@ -97,6 +97,7 @@ extern Graph gpan;
 struct Item;
 struct Skill;
 typedef struct Skill *Skill;
+
 /* effects the player might observe */
 void eff_mons_fail_throw (struct Monster *mons, struct Item *item);
 void eff_item_dissipates (struct Item *item);

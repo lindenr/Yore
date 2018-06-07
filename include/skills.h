@@ -19,6 +19,7 @@ enum SK_TYPE
 	SK_WATER_BOLT,
 	SK_FROST,
 	SK_FLAMES,
+	SK_SCRY,
 	SK_USE_MARTIAL_ARTS,
 	SK_USE_LONGSWORD,
 	SK_USE_AXE,
@@ -61,6 +62,7 @@ void sk_flames_overlay (struct Monster *);
 void sk_fireball (struct Monster *mons, int yloc, int xloc, Skill skill);
 void sk_water_bolt (struct Monster *mons, int yloc, int xloc, Skill skill);
 void sk_frost (struct Monster *mons, int yloc, int xloc, Skill skill);
+void sk_scry (struct Monster *mons, Skill skill);
 
 #endif /* SKILL_H_INCLUDED */
 

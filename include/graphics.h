@@ -60,7 +60,6 @@ void gra_bsetbox (Graph, int, gflags);
  * gra_ is the graph prefix for messing with a Graph */
 
 extern int gr_h, gr_w, gr_area;
-extern int forced_refresh;
 
 //extern void (*gr_onidle)    ();
 extern void (*gr_onresize)  ();
@@ -158,8 +157,8 @@ void gr_resize    (int, int);
 #define GL_STAMINA   0x0F000005
 #define GL_POWER     0x05F00004
 
-#define GL_STR       0xF000000B
-#define FMT_STR       "F000000B"
+#define GL_STR       0xF00000EA
+#define FMT_STR       "F00000EA"
 #define GL_CON       0x0F0000F0
 #define FMT_CON       "0F0000F0"
 #define GL_WIS       0x05F0000F

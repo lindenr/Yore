@@ -7,6 +7,7 @@
 struct BresState
 {
 	int cy, cx;
+	int fy, fx;
 	int ty, tx;
 	int dy, dx;
 	int sy, sx;

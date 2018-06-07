@@ -14,6 +14,8 @@ typedef enum
 	EV_PROJ_DONE,
 	EV_PROJ_HIT_BARRIER,
 	EV_PROJ_HIT_MONSTER,
+	EV_ITEM_EXPLODE,
+	EV_LINE_EXPLODE,
 	EV_MWAIT,
 	EV_MMOVE,
 	EV_MDOMOVE,
@@ -87,6 +89,19 @@ union Event
 		TID itemID;
 		MID monsID;
 	} proj_hit_monster;
+	struct
+	{
+		EV_TYPE type;
+		TID itemID;
+		int force;
+	} item_explode;
+	struct
+	{
+		EV_TYPE type;
+		int dlevel;
+		struct BresState bres;
+		int dist;
+	} line_explode;
 	struct
 	{
 		EV_TYPE type;
@@ -209,12 +224,14 @@ union Event
 		EV_TYPE type;
 		MID thID;
 		int ydest, xdest;
+		int attk;
 	} mfireball;
 	struct
 	{
 		EV_TYPE type;
 		MID thID;
 		int ydest, xdest;
+		int attk;
 	} mwater_bolt;
 	struct
 	{

@@ -64,25 +64,22 @@ void rem_itemid (TID ID)
 	int n;
 	Vector items;
 	struct DLevel *lvl = NULL;
-	if (item->loc.loc == LOC_DLVL)
-	{
-		n = map_buffer (item->loc.dlvl.yloc, item->loc.dlvl.xloc);
-		lvl = dlv_lvl(item->loc.dlvl.dlevel);
-		items = lvl->items[n];
-	}
-	else if (item->loc.loc == LOC_FLIGHT)
-	{
-		n = map_buffer (item->loc.fl.yloc, item->loc.fl.xloc);
-		lvl = dlv_lvl(item->loc.fl.dlevel);
-		items = lvl->items[n];
-	}
 	struct Monster *mons;
 	switch (item->loc.loc)
 	{
 	case LOC_NONE:
 		return;
 	case LOC_DLVL:
+		n = map_buffer (item->loc.dlvl.yloc, item->loc.dlvl.xloc);
+		lvl = dlv_lvl(item->loc.dlvl.dlevel);
+		items = lvl->items[n];
+		goto end_remove;
 	case LOC_FLIGHT:
+		n = map_buffer (item->loc.fl.yloc, item->loc.fl.xloc);
+		lvl = dlv_lvl(item->loc.fl.dlevel);
+		items = lvl->items[n];
+		goto end_remove;
+	end_remove:
 		ITEMID(ID) = NULL;
 		v_rptr (items, item);
 		update_item_pointers (items);
@@ -127,25 +124,22 @@ struct Item *instantiate_item (union ItemLoc loc, struct Item *from)
 	int n;
 	Vector items;
 	struct DLevel *lvl = NULL;
-	if (loc.loc == LOC_DLVL)
-	{
-		n = map_buffer (loc.dlvl.yloc, loc.dlvl.xloc);
-		lvl = dlv_lvl(loc.dlvl.dlevel);
-		items = lvl->items[n];
-	}
-	else if (loc.loc == LOC_FLIGHT)
-	{
-		n = map_buffer (loc.fl.yloc, loc.fl.xloc);
-		lvl = dlv_lvl(loc.fl.dlevel);
-		items = lvl->items[n];
-	}
 	struct Monster *th;
 	switch (loc.loc)
 	{
 	case LOC_NONE:
 		break;
 	case LOC_DLVL:
+		n = map_buffer (loc.dlvl.yloc, loc.dlvl.xloc);
+		lvl = dlv_lvl(loc.dlvl.dlevel);
+		items = lvl->items[n];
+		goto end_inst;
 	case LOC_FLIGHT:
+		n = map_buffer (loc.fl.yloc, loc.fl.xloc);
+		lvl = dlv_lvl(loc.fl.dlevel);
+		items = lvl->items[n];
+		goto end_inst;
+	end_inst:
 		memcpy (&it, from, sizeof(struct Item));
 		memcpy (&it.loc, &loc, sizeof(loc));
 		ret = v_push (items, &it);
@@ -158,7 +152,7 @@ struct Item *instantiate_item (union ItemLoc loc, struct Item *from)
 		memcpy (&it.loc, &loc, sizeof(loc));
 		th = MTHIID (loc.inv.monsID);
 		if (!pack_add (&th->pack, &it, loc.inv.invnum))
-			panic("item already in inventory location in new_item");
+			panic("item already in inventory location in instantiate_item");
 		ret = &th->pack->items[loc.inv.invnum];
 		item_makeID (ret);
 		return ret;
@@ -167,15 +161,15 @@ struct Item *instantiate_item (union ItemLoc loc, struct Item *from)
 		memcpy (&it.loc, &loc, sizeof(loc));
 		th = MTHIID (loc.wield.monsID);
 		if (!pack_add (&th->pack, &it, loc.wield.invnum))
-			panic("item already in inventory location in new_item");
+			panic("item already in inventory location in instantiate_item");
 		ret = &th->pack->items[loc.wield.invnum];
 		item_makeID (ret);
 		if (th->wearing.weaps[loc.wield.arm])
-			panic("already wielding an item in new_item");
+			panic("already wielding an item in instantiate_item");
 		th->wearing.weaps[loc.wield.arm] = ret;
 		return ret;
 	}
-	panic("end of new_item reached");
+	panic("end of instantiate_item reached");
 	return 0;
 }
 
@@ -237,7 +231,7 @@ void rem_mid (MID id)
 
 struct Monster *MTHIID (MID id)
 {
-	struct Monster *ret = v_at (cur_dlevel->mons, (id));
+	struct Monster *ret = v_at (cur_dlevel->mons, id);
 	if (!ret->ID)
 		return NULL;
 	return ret;
@@ -373,6 +367,12 @@ gflags map_flags;
 glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 {
 	map_flags = 0;
+	if (looking && lvl->seen[w] == 2 && lvl->num_fires[w])
+	{
+		int fires = lvl->num_fires[w];
+		int col = (fires >= 2) + (fires >= 4) + (fires >= 6) + (fires >= 8);
+		return 30 | COL_BG(7+2*col,col,0) | COL_TXT(11+col,3+col,0);
+	}
 	/* draw walls */
 	if (lvl->remembered[w] == ACS_WALL && looking)
 	{
@@ -439,8 +439,14 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 		{
 		case THING_DGN: ;
 			struct map_item_struct *m = &th->thing.mis;
+			//int dist = lvl->escape_dist[w] + (5*lvl->player_dist[w])/3;
+			//if (looking && m->gl == ACS_BIGDOT && dist >= 0)
+			//	return '0' + dist%10;
 			if (looking || m->gl != ACS_BIGDOT)	
-				return m->gl;
+				return m->gl
+					//| ((dist==-1)?0:COL_BG (
+					//	dist < 30 ? 15 - dist/2 : 0, dist<14 ? 14-dist : 0, dist<20?8:(50-dist)/4))
+					;
 			else
 				return ACS_DOT;
 		case THING_NONE:

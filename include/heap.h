@@ -40,6 +40,9 @@ const void *h_least (const struct Heap *heap);
 /* remove bottom element and write it to out */
 void h_pop (struct Heap *heap, void *out);
 
+/* empty heap */
+void h_empty (struct Heap *heap);
+
 /* random access (not for normal use) */
 void *h_at (struct Heap *heap, size_t at);
 

@@ -3,6 +3,24 @@
 
 #include "include/drawing.h"
 
+typedef int TID, MID;
+struct Pack;
+struct Monster;
+enum MONS_BODYPART;
+enum SK_TYPE;
+
+enum ITCAT
+{
+	ITCAT_DOSH = 0,
+	ITCAT_WEAPON,
+	ITCAT_ARMOUR,
+	ITCAT_FOOD,
+	ITCAT_TOOL,
+	ITCAT_STRANGE,
+	ITCAT_CHARM,
+	ITCAT_JEWEL
+};
+
 enum ITSORT
 {
 	ITSORT_NONE = 0,  /* placeholder - always useful */
@@ -19,8 +37,11 @@ enum ITSORT
 	ITSORT_CORPSE,
 	ITSORT_BONE,
 	ITSORT_MONEY,
-	ITSORT_ARCANE
+	ITSORT_ARCANE,
+	ITSORT_SHARD
 };
+
+extern const int it_displayorder[];
 
 enum ITEM_TYPE
 {
@@ -43,6 +64,8 @@ enum ITEM_TYPE
 	ITYP_FIREBALL,
 	ITYP_WATER_BOLT,
 	ITYP_ICE_BOLT,
+	ITYP_FORCE_SHARD,
+	ITYP_WIND_SHARD,
 	NUM_ITYPS
 };
 
@@ -67,23 +90,10 @@ enum ITEM_TYPE
 #define ITCH_CHARM   '='
 #define ITCH_JEWEL    7
 
-#define ITCAT_DOSH    0x0001
-#define ITCAT_WEAPON  0x0002
-#define ITCAT_ARMOUR  0x0004
-#define ITCAT_FOOD    0x0008
-#define ITCAT_TOOL    0x0010
-#define ITCAT_STRANGE 0x0020
-#define ITCAT_CHARM   0x0040
-#define ITCAT_JEWEL   0x0080
-
-#define ITCAT_ALL     0xFFFF
+#define ITCAT_ALL     (~0)
 
 #define ITEM_NAME_LENGTH 20
 #define NO_ITEM(item) ((!(item)) || ((item)->type.type == ITSORT_NONE))
-
-typedef int TID;
-struct Pack;
-struct Monster;
 
 /* type of item */
 typedef struct
@@ -176,14 +186,47 @@ void item_gen       (union ItemLoc);
 #define item_worn(item) ((item)->worn_offset != -1)
 
 char *get_near_desc (const struct Monster *mons, const struct Item *item);
-char *get_item_desc (const struct Item);
 void item_look      (const struct Item *);
-char *get_inv_line  (const struct Item *);
 int  items_equal    (struct Item *, struct Item *);
 
 extern char *item_appearance[256];
 
-int it_can_merge    (struct Monster *, struct Item *, struct Item *);
+/* get near and far descriptions */
+char *it_desc (const struct Item *item, const struct Monster *player);
+
+/* get mergibility of two item stacks */
+int it_can_merge (const struct Item *it1, const struct Item *it2);
+
+/* can exist stably */
+int it_persistent (const struct Item *item);
+
+/* can wear in a particular place */
+int it_canwear (const struct Item *item, enum MONS_BODYPART part);
+
+/* freeze an item; return whether item still exists */
+int it_freeze (struct Item *item);
+
+/* calculate base item damage */
+int it_projdamage (const struct Item *item);
+
+/* get skill used by item */
+enum SK_TYPE it_skill (const struct Item *item);
+
+/* get associated item category */
+enum ITCAT it_category (enum ITSORT type);
+
+/* merge second stack to first stack if possible */
+int it_merge (struct Item *it1, struct Item *it2);
+
+/* get weight */
+int it_weight (const struct Item *item);
+int it_base_weight (const struct Item *item);
+
+/* get item location */
+MID it_wieldedID (const struct Item *item);
+MID it_invID (const struct Item *item);
+int it_dlvl (const struct Item *item);
+int it_flight (const struct Item *item);
 
 #endif /* ITEM_H_INCLUDED */
 

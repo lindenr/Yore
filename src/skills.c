@@ -13,6 +13,7 @@ const styp all_skills[] = {
 	{SK_WATER_BOLT, SK_ACT, GL_WIS, "Water bolt", "#WATER BOLT\n#[cost: 6 MP]\nWater!"},
 	{SK_FROST, SK_ACT, GL_WIS, "Frost", "#FROST\n[cost: free]\nLightly freezes an area."},
 	{SK_FLAMES,  SK_ACT, GL_WIS, "Circle of flame", "#CIRCLE OF FLAME\n#[cost: free]\nfiire!!!!"},
+	{SK_SCRY,  SK_ACT, GL_WIS, "Scry", "#SCRY\n#[cost: free]\nscry!!!!"},
 	{SK_USE_MARTIAL_ARTS, SK_PAS, GL_STR, "Martial arts ability", "#MARTIAL ARTS\n\nYour skill at using martial arts in combat."},
 	{SK_USE_LONGSWORD, SK_PAS, GL_STR, "Longsword ability", "#LONGSWORD\n\nYour skill at using a longsword in combat."},
 	{SK_USE_AXE, SK_PAS, GL_STR, "Axe ability", "#AXE\n\nYour skill at using an axe in combat."},
@@ -63,7 +64,7 @@ void sk_fireball (struct Monster *mons, int yloc, int xloc, Skill sk)
 	if (mons->MP < 5)
 		return;
 	mons->MP -= 5;
-	ev_queue (mons->speed/2, (union Event) { .mfireball = {EV_MFIREBALL, mons->ID, yloc, xloc}});
+	ev_queue (mons->speed/2, (union Event) { .mfireball = {EV_MFIREBALL, mons->ID, yloc, xloc, sk->level*5}});
 	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	mons_ex_skill (mons, sk);
 }
@@ -73,7 +74,7 @@ void sk_water_bolt (struct Monster *mons, int yloc, int xloc, Skill sk)
 	if (mons->MP < 6)
 		return;
 	mons->MP -= 6;
-	ev_queue (mons->speed/2, (union Event) { .mwater_bolt = {EV_MWATER_BOLT, mons->ID, yloc, xloc}});
+	ev_queue (mons->speed/2, (union Event) { .mwater_bolt = {EV_MWATER_BOLT, mons->ID, yloc, xloc, sk->level*5}});
 	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	mons_ex_skill (mons, sk);
 }
@@ -173,5 +174,9 @@ void sk_flames_overlay (struct Monster *th)
 	}
 	gra_free (flames_overlay);
 	ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
+}
+
+void sk_scry (struct Monster *mons, Skill skill)
+{
 }
 

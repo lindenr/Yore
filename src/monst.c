@@ -72,6 +72,8 @@ int mons_gen_type ()
 
 int mons_gets_exp (struct Monster *mons)
 {
+	if (!mons)
+		return 0;
 	return mons_isplayer (mons);
 }
 
@@ -102,7 +104,7 @@ int mons_get_wt (struct Monster *mons)
 
 void mons_corpse (struct Monster *mons, struct Item *item)
 {
-	if (mons->type == MTYP_skeleton || mons->type == MTYP_lich)
+	if (!(mons->mflags & FL_FLSH))
 	{
 		int num = rn(4) + 3;
 		*item = new_items (ityps[ITYP_BONE], num);
@@ -131,36 +133,23 @@ int mons_get_MP (struct Monster *mons)
 
 int mons_can_wear (struct Monster *mons, struct Item *it, size_t offset)
 {
-	switch (it->type.type)
-	{
-	case ITSORT_GLOVE:
-		if (offset < offsetof (struct WoW, hands[0]) ||
-			offset >= offsetof (struct WoW, hands[mons->wearing.narms]))
-			return 0;
-		return 1;
-	case ITSORT_TUNIC:
-	case ITSORT_MAIL:
-		if (offset < offsetof (struct WoW, torsos[0]) ||
-			offset >= offsetof (struct WoW, torsos[mons->wearing.ntorsos]))
-			return 0;
-		return 1;
-	case ITSORT_HELM:
-		if (offset < offsetof (struct WoW, heads[0]) ||
-			offset >= offsetof (struct WoW, heads[mons->wearing.nheads]))
-			return 0;
-		return 1;
-	default:
-		break;
-	}
+	if (it_canwear (it, MONS_HAND))
+		return (offset >= offsetof (struct WoW, hands[0]) &&
+			offset < offsetof (struct WoW, hands[mons->wearing.narms]));
+	if (it_canwear (it, MONS_TORSO))
+		return (offset >= offsetof (struct WoW, torsos[0]) &&
+			offset < offsetof (struct WoW, torsos[mons->wearing.ntorsos]));
+	if (it_canwear (it, MONS_HEAD))
+		return (offset >= offsetof (struct WoW, heads[0]) &&
+			offset < offsetof (struct WoW, heads[mons->wearing.nheads]));
 	return 0;
 }
 
 int mons_try_wear (struct Monster *mons, struct Item *it)
 {
 	int i;
-	switch (it->type.type)
+	if (it_canwear (it, MONS_HAND))
 	{
-	case ITSORT_GLOVE:
 		for (i = 0; i < mons->wearing.narms; ++ i)
 		{
 			if (!mons->wearing.hands[i])
@@ -175,8 +164,9 @@ int mons_try_wear (struct Monster *mons, struct Item *it)
 			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, hands[i])}});
 		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
-	case ITSORT_TUNIC:
-	case ITSORT_MAIL:
+	}
+	if (it_canwear (it, MONS_TORSO))
+	{
 		for (i = 0; i < mons->wearing.ntorsos; ++ i)
 		{
 			if (!mons->wearing.torsos[i])
@@ -191,7 +181,9 @@ int mons_try_wear (struct Monster *mons, struct Item *it)
 			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, torsos[i])}});
 		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
-	case ITSORT_HELM:
+	}
+	if (it_canwear (it, MONS_HEAD))
+	{
 		for (i = 0; i < mons->wearing.nheads; ++ i)
 		{
 			if (!mons->wearing.heads[i])
@@ -206,8 +198,6 @@ int mons_try_wear (struct Monster *mons, struct Item *it)
 			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, heads[i])}});
 		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
-	default:
-		break;
 	}
 	return 0;
 }
@@ -302,20 +292,10 @@ void mons_tilefrost (struct Monster *mons, int yloc, int xloc)
 	for (i = 0; i < items->len; ++ i)
 	{
 		struct Item *it = v_at (items, i);
-		if (it->type.type != ITSORT_ARCANE)
-			continue;
-		if (!strcmp (it->type.name, "fireball"))
+		if (!it_freeze (it))
 		{
-			item_free (it);
+			/* it has disappeared */
 			-- i;
-			p_msg ("The fire goes out!");
-			continue;
-		}
-		if (!strcmp (it->type.name, "water bolt"))
-		{
-			memcpy (&it->type, &ityps[ITYP_ICE_BOLT], sizeof(Ityp));
-			p_msg ("The water freezes into an ice bolt!");
-			continue;
 		}
 	}
 }
@@ -368,9 +348,20 @@ void mons_stop_hit (struct Monster *mons)
 	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
 }
 
+void mons_take_damage (struct Monster *mons, struct Monster *fr, int dmg, enum ATTK_TYPE type)
+{
+	mons->HP -= dmg;
+	if (mons->HP <= 0)
+	{
+		mons->HP = 0;
+		mons_kill (fr, mons);
+	}
+}
+
 void mons_kill (struct Monster *fr, struct Monster *to)
 {
-	eff_mons_kills_mons (fr, to);
+	if (fr)
+		eff_mons_kills_mons (fr, to);
 	if (mons_isplayer(to))
 	{
 		p_msgbox ("You die...");
@@ -471,7 +462,7 @@ Tick mons_tregen (struct Monster *th)
 
 int mons_throwspeed (struct Monster *mons, struct Item *it)
 {
-	return rn(3) + mons->str/2 - it->cur_weight/500;
+	return rn(3) + mons->str/2 - it_weight(it)/500;
 }
 
 int proj_hitm (struct Item *proj, struct Monster *to)
@@ -481,47 +472,14 @@ int proj_hitm (struct Item *proj, struct Monster *to)
 
 int proj_hitdmg (struct Item *proj, struct Monster *to)
 {
-	switch (proj->type.type)
-	{
-	case ITSORT_LONGSWORD:
-	case ITSORT_AXE:
-	case ITSORT_HAMMER:
-	case ITSORT_DAGGER:
-	case ITSORT_SHORTSWORD:
-		return rn(proj->attk + 1)/2;
-	case ITSORT_ARCANE:
-		return rn(10);
-	default:
-		break;
-	}
-	return rn(3);
-}
-
-enum SK_TYPE sk_item_use (const struct Item *item)
-{
-	if (NO_ITEM(item))
-		return SK_USE_MARTIAL_ARTS;
-	switch (item->type.type)
-	{
-		case ITSORT_LONGSWORD:
-			return SK_USE_LONGSWORD;
-		case ITSORT_AXE:
-			return SK_USE_AXE;
-		case ITSORT_HAMMER:
-			return SK_USE_HAMMER;
-		case ITSORT_DAGGER:
-			return SK_USE_DAGGER;
-		case ITSORT_SHORTSWORD:
-			return SK_USE_SHORTSWORD;
-		default:
-			return SK_NONE;
-	}
+	// TODO mitigated by armour?
+	return it_projdamage (proj);
 }
 
 int mons_skill (const struct Monster *from, const struct Item *with)
 {
 	int i;
-	enum SK_TYPE type = sk_item_use (with);
+	enum SK_TYPE type = it_skill (with);
 	if (!from->skills)
 		return 0;
 	for (i = 0; i < from->skills->len; ++ i)
@@ -542,6 +500,8 @@ int mons_attk_bonus (const struct Monster *mons, const struct Item *with)
 
 void mons_ex_skill (struct Monster *mons, Skill sk)
 {
+	if (!mons)
+		return;
 	if (!mons_gets_exp (mons))
 		return;
 	sk->exp ++;
@@ -556,7 +516,7 @@ void mons_ex_skill (struct Monster *mons, Skill sk)
 void mons_exercise (struct Monster *from, struct Item *with)
 {
 	int i;
-	enum SK_TYPE type = sk_item_use (with);
+	enum SK_TYPE type = it_skill (with);
 	if (type == SK_NONE)
 		return;
 	struct Skill *sk = NULL;
@@ -598,7 +558,7 @@ int mons_ST_hit (struct Monster *from, struct Item *with)
 {
 	if (!with)
 		return rn(3);
-	return 3 + (with->cur_weight)/500;
+	return 3 + it_weight(with)/500;
 }
 
 int mons_HP_regen (struct Monster *th)
@@ -640,6 +600,8 @@ void mons_stats_changed (struct Monster *mons)
 
 void mons_get_exp (struct Monster *mons, int exp)
 {
+	if (!mons)
+		return;
 	if (!mons_gets_exp (mons))
 		return;
 	mons->exp += exp;
@@ -677,6 +639,8 @@ int mons_cont (struct Monster *player, MCont cont, union ContData *data)
 
 int mons_isplayer (struct Monster *th)
 {
+	if (!th)
+		return 0;
 	switch (th->ctr.mode)
 	{
 	case CTR_NONE:

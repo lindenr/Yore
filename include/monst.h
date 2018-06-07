@@ -6,6 +6,14 @@
 #include "include/map.h"
 #include "include/vector.h"
 
+enum MONS_BODYPART
+{
+	MONS_HAND = 0,
+	MONS_TORSO,
+	MONS_HEAD,
+	MONS_FOOT
+};
+
 #define FL_NONE 0x00000000      /* placeholder    */
 #define FL_UNIQ 0x00000001      /* unique         */
 #define FL_FLSH 0x00000002      /* fleshy         */
@@ -15,6 +23,7 @@
 #define FL_TRSO 0x00000040      /* has torso      */
 #define FL_MIND 0x00000080      /* mindful        */
 #define FL_WING 0x00000100      /* has wings      */
+#define FL_SLIMY 0x00000200     /* slimy          */
 
 #define FL_HOSTILE 0x01000000   /* starts hostile */
 #define FL_NEUTRAL 0x00000000   /* starts neutral */
@@ -181,6 +190,7 @@ struct MStatus
 		int ydir, xdir;
 	} defending;
 	int charging;
+	int helpless;
 };
 
 struct Monster
@@ -188,7 +198,6 @@ struct Monster
 	MID ID;                /* monster ID                   */
 	int dlevel;            /* parent dungeon level         */
 	int yloc, xloc;        /* location in dungeon          */
-	enum MTYPES type;      /* type of monster              */
 	const char *mname;     /* name of monster type         */
 	glyph gl;              /* display glyph                */
 	union CTRState ctr;    /* state of the control method  */
@@ -271,6 +280,8 @@ void   mons_wield      (struct Monster *, int, struct Item *); /* wield an item 
 void   mons_unwield    (struct Monster *, struct Item *);    /* unwield an item */
 void   mons_wear       (struct Monster *, struct Item *, size_t); /* wear an item                        */
 void   mons_take_off   (struct Monster *, struct Item *);    /* take off an item                         */
+void   mons_take_damage(struct Monster *, struct Monster *,  /* take damage                              */
+	int, enum ATTK_TYPE);
 void   mons_kill       (struct Monster *, struct Monster *); /* kill a given monster                     */
 
 /* player functions */

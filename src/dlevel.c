@@ -3,6 +3,7 @@
 #include "include/dlevel.h"
 #include "include/thing.h"
 #include "include/graphics.h"
+#include "include/heap.h"
 
 // TODO: make this all non-global in a nice struct somewhere
 Vector all_ids;
@@ -35,6 +36,8 @@ void dlv_make (int level, int uplevel, int dnlevel)
 		v_dinit (sizeof(struct Monster)),
 		v_dinit (sizeof(TID)),
 		malloc (sizeof(int) * map_graph->a),
+		malloc (sizeof(int) * map_graph->a),
+		malloc (sizeof(int) * map_graph->a),
 		malloc (sizeof(uint8_t)*map_graph->a),
 		malloc (sizeof(uint8_t)*map_graph->a),
 		malloc (sizeof(glyph)*map_graph->a),
@@ -53,10 +56,12 @@ void dlv_make (int level, int uplevel, int dnlevel)
 		new_level.things[i] = v_dinit (sizeof(struct Thing));
 		new_level.items[i] = v_dinit (sizeof(struct Item));
 		new_level.player_dist[i] = -1;
+		new_level.escape_dist[i] = -1;
 	}
 	struct Monster dummy_mons = {0};
 	v_push (new_level.mons, &dummy_mons);
 	memset (new_level.monsIDs, 0, sizeof(TID)*map_graph->a);
+	memset (new_level.num_fires, 0, sizeof(int)*map_graph->a);
 	memset (new_level.seen, 0, sizeof(uint8_t)*map_graph->a);
 	memset (new_level.attr, 0, sizeof(uint8_t)*map_graph->a);
 	memset (new_level.remembered, 0, sizeof(glyph)*map_graph->a);
@@ -112,18 +117,37 @@ int dlv_dn (int level)
 	return dlv_lvl (level)->dnlevel;
 }
 
+struct TileDist
+{
+	int y, x;
+	int dist;
+};
+
+int cmp_tile (const struct TileDist *t1, const struct TileDist *t2)
+{
+	return t1->dist > t2->dist;
+}
+
 #define MAX_DIST 10
-int *ylocs = NULL, *xlocs = NULL;
+#define ESC_FUDGE 3
+#define ESC_REM   1
+static int *ylocs = NULL, *xlocs = NULL;
+static struct Heap *tiles = NULL;
 void dlv_fill_player_dist (struct DLevel *dlv)
 {
 	if (!ylocs)
 	{
 		ylocs = malloc (sizeof(int)*map_graph->a);
 		xlocs = malloc (sizeof(int)*map_graph->a);
+		tiles = h_dinit (sizeof (struct TileDist), cmp_tile);
 	}
+	h_empty (tiles);
 	int i, cur_loc = 0, cur_back;
 	for (i = 0; i < map_graph->a; ++ i)
+	{
 		dlv->player_dist[i] = -1;
+		dlv->escape_dist[i] = -1;
+	}
 	for (i = 0; i < dlv->playerIDs->len; ++ i)
 	{
 		struct Monster *player = MTHIID(*(MID*)v_at(dlv->playerIDs, i));
@@ -145,7 +169,12 @@ void dlv_fill_player_dist (struct DLevel *dlv)
 				min = current;
 		}
 		if (min < MAX_DIST + 5)
+		{
 			dlv->player_dist[map_buffer(ylocs[cur_back], xlocs[cur_back])] = min + 1;
+			dlv->escape_dist[map_buffer(ylocs[cur_back], xlocs[cur_back])] = ESC_FUDGE * (min + 1);
+			struct TileDist td = {ylocs[cur_back], xlocs[cur_back], ESC_FUDGE * (min + 1)};
+			h_push (tiles, &td);
+		}
 		else
 			dlv->player_dist[map_buffer(ylocs[cur_back], xlocs[cur_back])] = 0;
 		if (dlv->player_dist[map_buffer(ylocs[cur_back], xlocs[cur_back])] >= MAX_DIST)
@@ -165,6 +194,29 @@ void dlv_fill_player_dist (struct DLevel *dlv)
 				++ cur_loc;
 			}
 		}
+	}
+	while (tiles->len)
+	{
+		const struct TileDist *t = h_least (tiles);
+		int y, x;
+		for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
+		{
+			if (y == 0 && x == 0)
+				continue;
+			int yloc = t->y + y, xloc = t->x + x;
+			if (yloc < 0 || yloc >= map_graph->h || xloc < 0 || xloc >= map_graph->w)
+				continue;
+			if (dlv->escape_dist[map_buffer(yloc, xloc)] == -1)
+				continue;
+			if (dlv->escape_dist[map_buffer(yloc, xloc)] >=
+				dlv->escape_dist[map_buffer(t->y, t->x)] - ESC_REM)
+				continue;
+			dlv->escape_dist[map_buffer(yloc, xloc)] =
+				dlv->escape_dist[map_buffer(t->y, t->x)] - ESC_REM;
+			struct TileDist t1 = {yloc, xloc, dlv->escape_dist[map_buffer(yloc, xloc)]};
+			h_push (tiles, &t1);
+		}
+		h_pop (tiles, NULL);
 	}
 }
 
