@@ -252,8 +252,7 @@ int p_menuex (Vector lines, const char *toquit, int max_line_len)
 	do
 	{
 		char ret = p_getch (NULL);
-		if (ret == CH_ESC || ret == ' ' ||
-			ret == '-')
+		if (ret == CH_ESC || ret == ' ')
 			break;
 		if (ret == '\n' || ret == '.')
 		{
@@ -439,10 +438,9 @@ int p_skills (struct Monster *player, enum PanelType type)
 	int n = p_flines (str_data (fmt));
 	str_free (fmt);
 	if (n == -1)
-		return -1;
-	else// if (in >= 'a' && in < letter)
+		return 0;
+	else
 	{
-		//int n = in - 'a';
 		int yloc, xloc;
 		Skill sk = v_at (pskills, n);
 		switch (sk->type)
@@ -997,6 +995,7 @@ void eff_mons_levels_up (struct Monster *mons)
 		p_msg ("The %d seems more experienced.", mons->mname);
 }
 
+static char msg[128];
 void eff_mons_picks_up_item (struct Monster *mons, struct Item *item)
 {
 	if (!player_sees_mons (mons))
@@ -1004,12 +1003,11 @@ void eff_mons_picks_up_item (struct Monster *mons, struct Item *item)
 	if (!player_sees_item (item))
 		return;
 	int p = mons_isplayer (mons);
-	char *msg = it_desc (item, p ? mons : NULL);
+	it_desc (msg, item, p ? mons : NULL);
 	if (p)
 		p_msg ("%s", msg);
 	else
 		p_msg ("The %s picks up %s.", mons->mname, msg);
-	free (msg);
 }
 
 void eff_mons_wields_item (struct Monster *mons, struct Item *item)
@@ -1019,12 +1017,21 @@ void eff_mons_wields_item (struct Monster *mons, struct Item *item)
 	if (!player_sees_item (item))
 		return;
 	int p = mons_isplayer (mons);
-	char *msg = it_desc (item, p ? mons : NULL);
+	it_desc (msg, item, p ? mons : NULL);
 	if (p)
 		p_msg ("You wield %s.", msg);
 	else
 		p_msg ("The %s wields %s.", mons->mname, msg);
-	free (msg);
+}
+
+void eff_mons_unwields (struct Monster *mons)
+{
+	if (!player_sees_mons (mons))
+		return;
+	if (mons_isplayer (mons))
+		p_msg ("You are now empty-handed.");
+	else
+		p_msg ("The %s is now empty-handed.", mons->mname);
 }
 
 void eff_mons_wears_item (struct Monster *mons, struct Item *item)
@@ -1034,12 +1041,11 @@ void eff_mons_wears_item (struct Monster *mons, struct Item *item)
 	if (!player_sees_item (item))
 		return;
 	int p = mons_isplayer (mons);
-	char *msg = it_desc (item, p ? mons : NULL);
+	it_desc (msg, item, p ? mons : NULL);
 	if (p)
 		p_msg ("You wear %s.", msg);
 	else
 		p_msg ("The %s wears %s.", mons->mname, msg);
-	free (msg);
 }
 
 void eff_mons_takes_off_item (struct Monster *mons, struct Item *item)
@@ -1049,12 +1055,11 @@ void eff_mons_takes_off_item (struct Monster *mons, struct Item *item)
 	if (!player_sees_item (item))
 		return;
 	int p = mons_isplayer (mons);
-	char *msg = it_desc (item, p ? mons : NULL);
+	it_desc (msg, item, p ? mons : NULL);
 	if (p)
 		p_msg ("You take off %s.", msg);
 	else
 		p_msg ("The %s takes off %s.", mons->mname, msg);
-	free (msg);
 }
 
 void eff_mons_angers_mons (struct Monster *fr, struct Monster *to)

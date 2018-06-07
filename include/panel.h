@@ -114,6 +114,7 @@ void eff_mons_sk_levels_up (struct Monster *mons, Skill sk);
 void eff_mons_levels_up (struct Monster *mons);
 void eff_mons_picks_up_item (struct Monster *mons, struct Item *item);
 void eff_mons_wields_item (struct Monster *mons, struct Item *item);
+void eff_mons_unwields (struct Monster *mons);
 void eff_mons_wears_item (struct Monster *mons, struct Item *item);
 void eff_mons_takes_off_item (struct Monster *mons, struct Item *item);
 void eff_mons_angers_mons (struct Monster *fr, struct Monster *to);

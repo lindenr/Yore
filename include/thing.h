@@ -7,12 +7,8 @@
 #include "include/monst.h"
 #include "include/map.h"
 
-#define LOOP_THING(t,n,i)  int i;                                        for (i = 0; i < (t)[n]->len; ++ i)
-#define LOOP_THINGS(t,n,i) int i, n; for (n = 0; n < map_graph->a; ++ n) for (i = 0; i < (t)[n]->len; ++ i)
-#define BREAK(n)           {n = map_graph->a; break;}
-
-#define THIID(id)          (*(struct Thing **)  v_at (all_ids, (id)))
 #define ITEMID(id)         (*(struct Item **) v_at (all_ids, (id)))
+#define THIID(id)          (*(struct Thing **)  v_at (all_ids, (id)))
 #define THING(t,n,i)       ((struct Thing*)(v_at((t)[n], i)))
 
 typedef int TID, MID;
@@ -48,6 +44,7 @@ void          monsthing_move (struct Monster *, int, int, int);
 void          rem_mid        (MID);
 
 struct Monster *MTHIID       (MID);
+struct Item *it_at           (TID);
 void          draw_map       ();
 void          draw_map_xy    (struct DLevel *, int, int);
 void          draw_map_buf   (struct DLevel *, int);

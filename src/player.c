@@ -260,15 +260,14 @@ int Kinv (struct Monster *player)
 	return 0;
 }
 
-int nlook_msg (char *out, const int len, struct Monster *player)
+int nlook_msg (struct String *str, struct Monster *player)
 {
-	int k = 0, cur = 0;
+	int k = 0;
 	int n = map_buffer (player->yloc, player->xloc);
 	struct DLevel *lvl = dlv_lvl (player->dlevel);
 	Vector items = lvl->items[n];
 	Vector things = lvl->things[n];
-	//Vector list = v_dinit (256);
-	cur += snprintf (out + cur, len - cur, "\n");
+	str_catf (str, "\n");
 
 	int i;
 	for (i = 0; i < things->len; ++ i)
@@ -277,44 +276,44 @@ int nlook_msg (char *out, const int len, struct Monster *player)
 		struct map_item_struct *m = &th->thing.mis;
 		if (m->gl == map_items[DGN_SLIME].gl)
 		{
-			cur += snprintf (out + cur, len - cur, "#g%s slime on the ground\n", gl_format (m->gl));
+			str_catf (str, "#g%s slime on the ground\n", gl_format (m->gl));
 			++ k;
 		}
 		else if (m->gl == map_items[DGN_OPENDOOR].gl)
 		{
-			cur += snprintf (out + cur, len - cur, "#g%s an open door\n", gl_format (m->gl));
+			str_catf (str, "#g%s an open door\n", gl_format (m->gl));
 			++ k;
 		}
 	}
 
+	char desc[128];
 	for (i = 0; i < items->len; ++ i)
 	{
 		struct Item *it = v_at(items, i);
-		char *line = it_desc (it, NULL);
-		cur += snprintf (out + cur, len - cur, "%s\n", line);
+		it_desc (desc, it, NULL);
+		str_catf (str, "%s\n", desc);
 		++ k;
-		free (line);
 	}
 
 	if (k == 0)
-		cur += snprintf (out + cur, len - cur, "You see nothing here.\n");
+		str_catf (str, "You see nothing here.\n");
 
 	return k;
 }
 
-#define MSG_LEN 1024
+static struct String *look_str = NULL;
 void nlook_auto (struct Monster *player)
 {
-	char msg[MSG_LEN];
-	nlook_msg (msg, MSG_LEN, player);
-	p_notify (msg);
+	nlook_msg (look_str, player);
+	p_notify (str_data (look_str));
+	str_empty (look_str);
 }
 
 int Knlook (struct Monster *player)
 {
-	char msg[MSG_LEN];
-	nlook_msg (msg, MSG_LEN, player);
-	p_flines (msg);
+	nlook_msg (look_str, player);
+	p_flines (str_data (look_str));
+	str_empty (look_str);
 	return 0;
 }
 
@@ -364,19 +363,12 @@ int Kwield_cand (struct Monster *player)
 
 int Kwield (struct Monster *player)
 {
-	struct Item *wield = player_use_pack (player, "Wield what?", 1<<ITCAT_WEAPON);
-	if (wield == NULL)
+	TID wieldID = show_contents (player, (1<<ITCAT_WEAPON) | (1<<ITCAT_HANDS), "Wield what?");
+	if (wieldID == -1)
 		return 0;
-	if (items_equal (wield, player->wearing.weaps[0]))
+	if (player->wearing.weaps[0] && wieldID == player->wearing.weaps[0]->ID)
 		return 0;
 
-	TID wieldID;
-	if (NO_ITEM(wield))
-		wieldID = 0;
-	else
-		wieldID = wield->ID;
-	if (player->wearing.weaps[0] && wield)
-		pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, 0}});
 	pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wieldID}});
 	return pl_execute (player->speed, player, 0);
 }
@@ -573,6 +565,11 @@ int key_lookup (struct Monster *player, char ch)
 	return 0;
 }
 
+void pl_init ()
+{
+	look_str = str_dinit ();
+}
+
 int pl_charge_action (struct Monster *player)
 {
 	return -1;
@@ -620,12 +617,12 @@ void ask_items (const struct Monster *player, Vector it_out, Vector it_in, const
 	int i;
 	struct String *fmt = str_dinit ();
 	str_catf (fmt, "%s\n\n", msg);
+	char desc[128];
 	for (i = 0; i < it_in->len; ++ i)
 	{
 		TID itemID = *(TID *) v_at (it_in, i);
-		char *asdf = it_desc (ITEMID (itemID), NULL);
-		str_catf (fmt, "#o%s\n", asdf);
-		free (asdf);
+		it_desc (desc, it_at (itemID), NULL);
+		str_catf (fmt, "#o%s\n", desc);
 	}
 	str_catf (fmt, "\n");
 	int a = p_flines (str_data (fmt));
@@ -664,7 +661,7 @@ void pl_choose_attr_gain (struct Monster *player, int points)
 
 struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
 {
-	return show_contents (th, accepted, msg);
+	return it_at(show_contents (th, accepted, msg));
 }
 
 void pl_redraw ()

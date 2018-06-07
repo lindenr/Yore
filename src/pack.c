@@ -39,10 +39,18 @@ bool pack_add (Pack **ppack, struct Item *it, int u)
 
 void add_desc (struct String *str, Pack *pack, int itcat, struct Monster *mons, Vector contents)
 {
+	if (itcat == ITCAT_HANDS)
+	{
+		str_catf (str, "#o#nFFF00000###nBBB00000 Your bare hands\n");
+		TID ID = 0;
+		v_push (contents, &ID);
+		return;
+	}
 	if (!pack)
 		return;
 	
 	int i, any;
+	char line[128];
 	for (i = any = 0; i < MAX_ITEMS_IN_PACK; ++i)
 	{
 		struct Item *packitem = &pack->items[i];
@@ -55,18 +63,17 @@ void add_desc (struct String *str, Pack *pack, int itcat, struct Monster *mons, 
 			str_catf (str, "#n000BBB00%s#nBBB00000\n", item_appearance [itcat]);
 			any = 1;
 		}
-		char *line = it_desc (packitem, mons);
+		it_desc (line, packitem, mons);
 		str_catf (str, "#o%s\n", line);
-		free (line);
-		v_push (contents, &packitem);
+		v_push (contents, &packitem->ID);
 	}
 }
 
-struct Item *show_contents (struct Monster *mons, uint32_t accepted, char *msg)
+TID show_contents (struct Monster *mons, uint32_t accepted, char *msg)
 {
 	struct Pack *pack = mons->pack;
 	struct String *fmt = str_dinit ();
-	Vector contents = v_init (sizeof (struct Item *), 52); // can be larger?
+	Vector contents = v_init (sizeof (TID), 52); // can be larger?
 	str_catf (fmt, "#nFFF00000#c%s#nBBB00000\n\n", msg);
 
 	int i;
@@ -80,16 +87,16 @@ struct Item *show_contents (struct Monster *mons, uint32_t accepted, char *msg)
 		str_free (fmt);
 		v_free (contents);
 		p_msg ("No items to show.");
-		return NULL;
+		return -1;
 	}
 	int num = p_flines (str_data (fmt));
 	str_free (fmt);
 	if (num == -1)
 	{
 		v_free (contents);
-		return NULL;
+		return -1;
 	}
-	struct Item *ret = *(struct Item **)v_at (contents, num);
+	TID ret = *(TID*)v_at (contents, num);
 	v_free (contents);
 	return ret;
 }

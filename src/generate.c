@@ -359,7 +359,8 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 	int n = map_buffer(yloc, xloc);
 	if (lvl->monsIDs[n])
 		return false;
-	LOOP_THING(things, n, i)
+	int i;
+	for (i = 0; i < things[n]->len; ++ i)
 	{
 		T = THING(things, n, i);
 		if (T->type == THING_DGN)

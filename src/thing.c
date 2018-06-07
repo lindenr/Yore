@@ -58,7 +58,7 @@ void update_item_pointers (Vector vec)
 
 void rem_itemid (TID ID)
 {
-	struct Item *item = ITEMID(ID);
+	struct Item *item = it_at(ID);
 	if (!item)
 		return;
 	int n;
@@ -229,8 +229,20 @@ void rem_mid (MID id)
 	return;
 }
 
+struct Item *it_at (TID id)
+{
+	if (id <= 0)
+		return NULL;
+	struct Item *it = *(struct Item **) v_at (all_ids, id);
+	if (it && it->ID == id)
+		return it;
+	return NULL;
+}
+
 struct Monster *MTHIID (MID id)
 {
+	if (id <= 0)
+		return NULL;
 	struct Monster *ret = v_at (cur_dlevel->mons, id);
 	if (!ret->ID)
 		return NULL;

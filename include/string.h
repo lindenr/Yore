@@ -18,6 +18,9 @@ struct String *str_dinit ();
 /* init with a given alloc */
 struct String *str_init (size_t mlen);
 
+/* turn to empty string but don't deallocate memory */
+void str_empty (struct String *str);
+
 /* free all allocs */
 void str_free (struct String *str);
 

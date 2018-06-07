@@ -18,7 +18,8 @@ enum ITCAT
 	ITCAT_TOOL,
 	ITCAT_STRANGE,
 	ITCAT_CHARM,
-	ITCAT_JEWEL
+	ITCAT_JEWEL,
+	ITCAT_HANDS
 };
 
 enum ITSORT
@@ -90,7 +91,7 @@ enum ITEM_TYPE
 #define ITCH_CHARM   '='
 #define ITCH_JEWEL    7
 
-#define ITCAT_ALL     (~0)
+#define ITCAT_ALL     0xFFFFFEFF // misses out hands
 
 #define ITEM_NAME_LENGTH 20
 #define NO_ITEM(item) ((!(item)) || ((item)->type.type == ITSORT_NONE))
@@ -185,14 +186,13 @@ void item_gen       (union ItemLoc);
 
 #define item_worn(item) ((item)->worn_offset != -1)
 
-char *get_near_desc (const struct Monster *mons, const struct Item *item);
-void item_look      (const struct Item *);
+extern char *item_appearance[];
+
+/* are two items equal? */
 int  items_equal    (struct Item *, struct Item *);
 
-extern char *item_appearance[256];
-
 /* get near and far descriptions */
-char *it_desc (const struct Item *item, const struct Monster *player);
+void it_desc (char *out, const struct Item *item, const struct Monster *player);
 
 /* get mergibility of two item stacks */
 int it_can_merge (const struct Item *it1, const struct Item *it2);

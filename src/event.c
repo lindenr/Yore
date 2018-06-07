@@ -182,7 +182,7 @@ void ev_do (const union Event *ev)
 		if (!mons)
 			return;
 		itemID = ev->mthrow.itemID;
-		item = ITEMID (itemID);
+		item = it_at (itemID);
 		if (!item)
 			return;
 		int speed = mons_throwspeed (mons, item);
@@ -199,7 +199,7 @@ void ev_do (const union Event *ev)
 		return;
 	case EV_PROJ_MOVE:
 		itemID = ev->proj_move.itemID;
-		item = ITEMID(itemID);
+		item = it_at(itemID);
 		if (!it_flight (item))
 			return;
 		if (item->loc.fl.speed <= 0)
@@ -231,7 +231,7 @@ void ev_do (const union Event *ev)
 		return;
 	case EV_PROJ_DONE:
 		itemID = ev->proj_done.itemID;
-		item = ITEMID(itemID);
+		item = it_at(itemID);
 		if (!it_persistent (item))
 		{
 			eff_item_dissipates (item);
@@ -243,7 +243,7 @@ void ev_do (const union Event *ev)
 		return;
 	case EV_PROJ_HIT_BARRIER:
 		itemID = ev->proj_hit_barrier.itemID;
-		item = ITEMID(itemID);
+		item = it_at(itemID);
 		if (!it_persistent (item))
 		{
 			eff_item_absorbed (item);
@@ -256,7 +256,7 @@ void ev_do (const union Event *ev)
 		return;
 	case EV_PROJ_HIT_MONSTER:
 		itemID = ev->proj_hit_monster.itemID;
-		item = ITEMID(itemID);
+		item = it_at(itemID);
 		if (!it_flight(item))
 			return;
 		monsID = ev->proj_hit_monster.monsID;
@@ -281,7 +281,7 @@ void ev_do (const union Event *ev)
 		return;
 	case EV_ITEM_EXPLODE:
 		itemID = ev->item_explode.itemID;
-		item = ITEMID(itemID);
+		item = it_at(itemID);
 		if (!it_flight (item))
 			return;
 		ydest = item->loc.fl.yloc; xdest = item->loc.fl.xloc;
@@ -506,9 +506,12 @@ void ev_do (const union Event *ev)
 			return;
 		if (mons->wearing.weaps[arm])
 			mons_unwield (mons, mons->wearing.weaps[arm]);
-		struct Item *it = ITEMID(ev->mwield.itemID);
+		struct Item *it = it_at(ev->mwield.itemID);
 		if (it_invID (it) != ev->mwield.thID)
+		{
+			eff_mons_unwields (mons);
 			return;
+		}
 		eff_mons_wields_item (mons, it);
 		mons_wield (mons, arm, it);
 		return;
@@ -516,7 +519,7 @@ void ev_do (const union Event *ev)
 		mons = MTHIID(ev->mwear_armour.thID);
 		if (!mons)
 			return;
-		item = ITEMID (ev->mwear_armour.itemID); 
+		item = it_at (ev->mwear_armour.itemID); 
 		if (it_invID (item) != ev->mwear_armour.thID ||
 			item_worn (item))
 			return;
@@ -529,7 +532,7 @@ void ev_do (const union Event *ev)
 		mons = MTHIID(ev->mtakeoff_armour.thID);
 		if (!mons)
 			return;
-		item = ITEMID (ev->mtakeoff_armour.itemID); 
+		item = it_at (ev->mtakeoff_armour.itemID); 
 		if (it_invID(item) != ev->mtakeoff_armour.thID ||
 			(!item_worn(item)))
 			return;
@@ -551,7 +554,7 @@ void ev_do (const union Event *ev)
 		for (i = 0; i < pickup->len; ++ i)
 		{
 			itemID = *(TID*)v_at (pickup, i);
-			item = ITEMID(itemID);
+			item = it_at(itemID);
 			struct Item *packitem;
 			for (j = 0; j < MAX_ITEMS_IN_PACK; ++ j)
 			{
@@ -587,7 +590,7 @@ void ev_do (const union Event *ev)
 		items = ev->mdrop.items;
 		for (i = 0; i < items->len; ++ i)
 		{
-			struct Item *drop = ITEMID(*(TID*)v_at (items, i));
+			struct Item *drop = it_at(*(TID*)v_at (items, i));
 			if (item_worn(drop))
 				continue;
 			item_put (drop, (union ItemLoc) { .dlvl = {LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});

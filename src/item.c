@@ -17,7 +17,6 @@
    be able to carry 30000g before getting burdened, and weak would be just
    5000g or so */
 
-struct Item no_item;
 #define ITYP(nm,tp,wt,attk,def,gl,st) {nm,tp,wt,attk,def,gl,st}
 #define DMG(a,b) (((a)<<4)+(b))
 
@@ -48,18 +47,17 @@ Ityp ityps[] = {
 /*  item name              type              weight attributes     display                      */
 };
 
-char *item_appearance[] = {"MONEY", "WEAPONS", "ARMOUR", "FOOD, DEBRIS", "TOOLS", "", "", "CURIOS"};
+char *item_appearance[] = {"MONEY", "WEAPONS", "ARMOUR", "FOOD, DEBRIS", "TOOLS", "", "", "CURIOS", ""};
 
-const int it_displayorder[] = {ITCAT_DOSH, ITCAT_WEAPON, ITCAT_ARMOUR, ITCAT_FOOD, ITCAT_JEWEL, -1};
+const int it_displayorder[] = {ITCAT_HANDS, ITCAT_DOSH, ITCAT_WEAPON, ITCAT_ARMOUR, ITCAT_FOOD, ITCAT_JEWEL, -1};
 
 void ityp_init ()
 {
 	return;
 }
 
-char *it_desc (const struct Item *item, const struct Monster *pl)
+void it_desc (char *out, const struct Item *item, const struct Monster *pl)
 {
-	char *ret = malloc(128);
 	char temp2[120];
 	char temp[115];
 	if (item->name != NULL && item->name[0] != '\0')
@@ -68,16 +66,16 @@ char *it_desc (const struct Item *item, const struct Monster *pl)
 	}
 	else
 	{
-		char ench_string[50] = "";
+		char ench_string[60] = "";
 		if (item->attk && pl)
-			snprintf (ench_string, 50, " (#nF3300000%d+%d#nBBB00000 dmg)",
+			snprintf (ench_string, 60, " (#nF3300000%d+%d#nBBB00000 dmg)",
 				item->attk, mons_attk_bonus (pl, item));
 		else if (item->attk)
-			snprintf (ench_string, 50, " (#nF3300000%d#nBBB00000 dmg)",
+			snprintf (ench_string, 60, " (#nF3300000%d#nBBB00000 dmg)",
 				item->attk);
 		else if (item->def)
-			snprintf (ench_string, 50, " (#nF7000000%d#nBBB00000 def)", item->def);
-		snprintf (temp, 128, "%s%s%s%s%s%s%s",
+			snprintf (ench_string, 60, " (#nF7000000%d#nBBB00000 def)", item->def);
+		snprintf (temp, 115, "%s%s%s%s%s%s%s",
 		         /* beatitude */
 		         (!(item->attr & ITEM_KBUC)) ? "" :
 		           (item->attr & ITEM_BLES)  ? "blessed " :
@@ -94,9 +92,8 @@ char *it_desc (const struct Item *item, const struct Monster *pl)
 				 item_worn (item) ? " (worn)" : ""
 				 );
 		w_some (temp2, temp, item->stacksize, 128);
-		snprintf (ret, 128, "#g%s %s", gl_format (item->type.gl), temp2);
+		snprintf (out, 128, "#g%s %s", gl_format (item->type.gl), temp2);
 	}
-	return ret;
 }
 
 int it_can_merge (const struct Item *item1, const struct Item *item2)
@@ -251,6 +248,8 @@ enum ITCAT it_category (enum ITSORT type)
 
 MID it_wieldedID (const struct Item *item)
 {
+	if (!item)
+		return 0;
 	if (item->loc.loc == LOC_WIELDED)
 		return item->loc.wield.monsID;
 	return 0;
@@ -258,6 +257,8 @@ MID it_wieldedID (const struct Item *item)
 
 MID it_invID (const struct Item *item)
 {
+	if (!item)
+		return 0;
 	if (item->loc.loc == LOC_INV)
 		return item->loc.inv.monsID;
 	return 0;

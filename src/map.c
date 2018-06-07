@@ -25,7 +25,8 @@ uint32_t get_sqattr (struct DLevel *lvl, int yloc, int xloc)
 	if (lvl->monsIDs[n])
 		return 2;
 	Vector *things = lvl->things;
-	LOOP_THING(things, n, i)
+	int i;
+	for (i = 0; i < things[n]->len; ++ i)
 	{
 		struct Thing *th = THING(things, n, i);
 		if (th->type == THING_DGN)

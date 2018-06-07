@@ -26,6 +26,12 @@ struct String *str_init (size_t mlen)
 	return str;
 }
 
+void str_empty (struct String *str)
+{
+	str->data[0] = 0;
+	str->len = 0;
+}
+
 void str_free (struct String *str)
 {
 	free (str->data);
@@ -54,16 +60,34 @@ void str_cat (struct String *str, const char *source)
 		str_append (str, source[i]);
 }
 
+#define ATTEMPT_LEN 1024
 void str_catf (struct String *str, const char *fmt, ...)
 {
-	char mystr[1024];
+	char mystr[ATTEMPT_LEN];
+	int total_len;
 
 	va_list args;
 	va_start (args, fmt);
-	vsnprintf (mystr, 1024, fmt, args);
+	total_len = vsnprintf (mystr, ATTEMPT_LEN, fmt, args);
 	va_end (args);
 
-	str_cat (str, mystr);
+	if (total_len < 0)
+		panic ("error formatting string in str_catf");
+
+	if (total_len < ATTEMPT_LEN)
+	{
+		str_cat (str, mystr);
+		return;
+	}
+
+	/* Try again */
+	char *newstr = malloc (total_len + 1);
+	va_start (args, fmt);
+	vsnprintf (mystr, total_len + 1, fmt, args);
+	va_end (args);
+
+	str_cat (str, newstr);
+	free (newstr);
 }
 
 const char *str_data (struct String *str)

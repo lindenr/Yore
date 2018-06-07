@@ -11,6 +11,7 @@
 #include "include/save.h"
 #include "include/dlevel.h"
 #include "include/heap.h"
+#include "include/player.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -88,6 +89,7 @@ int main (int argc, char *argv[])
 	rng_init ();
 	th_init ();
 	ityp_init ();
+	pl_init ();
 
 	if (argc > 1)
 	{
