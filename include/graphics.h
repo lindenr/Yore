@@ -152,6 +152,8 @@ void gr_resize    (int, int);
 #define ACS_DOT      0xFA
 #define ACS_BIGDOT   0xF9
 #define ACS_PILLAR   0x07
+#define ACS_CORRIDOR 0xB1
+#define ACS_DIMCORRIDOR 0xB0
 
 #define GL_HEALTH    0xF0000003
 #define GL_STAMINA   0x0F000005

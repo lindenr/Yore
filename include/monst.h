@@ -258,21 +258,10 @@ int    mons_gets_exp   (struct Monster *);                   /* does the monster
 void   mons_get_exp    (struct Monster *, int);              /* gain exp                                 */
 int    mons_level      (int exp);                            /* what level a given experience is         */
 int    mons_exp_needed (int level);                          /* exp needed for next level                */
-void   mons_stats_changed(struct Monster *);                 /* update HP etc to reflect stats           */
-void   mons_exercise   (struct Monster *, struct Item *);    /* exercise a weapon use                    */
-void   mons_ex_skill   (struct Monster *, Skill);            /* exercise a skill                         */
 int    mons_skill      (const struct Monster *,              /* get skill level for using an item to hit */
 	const struct Item *);
 int    mons_attk_bonus (const struct Monster *,              /* get extra damage a monster does          */
 	const struct Item *);
-void   mons_start_move (struct Monster *, int, int, Tick);   /* start monster moving in a given direction*/
-void   mons_stop_move  (struct Monster *);                   /* stop monster moving                      */
-void   mons_start_hit  (struct Monster *, int, int, int,     /* start monster attacking                  */
-	Tick);
-void   mons_stop_hit   (struct Monster *);                   /* stop monster attacking                   */
-void   mons_dead       (struct Monster *);                   /* monster is dead - add corpse etc         */
-void   mons_anger      (struct Monster *, struct Monster *); /* monster angers another monster           */
-void   mons_calm       (struct Monster *);                   /* monster calms                            */
 
 /* effects */
 void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */
@@ -283,6 +272,17 @@ void   mons_take_off   (struct Monster *, struct Item *);    /* take off an item
 void   mons_take_damage(struct Monster *, struct Monster *,  /* take damage                              */
 	int, enum ATTK_TYPE);
 void   mons_kill       (struct Monster *, struct Monster *); /* kill a given monster                     */
+void   mons_dead       (struct Monster *);                   /* monster is dead - add corpse etc         */
+void   mons_start_move (struct Monster *, int, int, Tick);   /* start monster moving in a given direction*/
+void   mons_stop_move  (struct Monster *);                   /* stop monster moving                      */
+void   mons_start_hit  (struct Monster *, int, int, int,     /* start monster attacking                  */
+	Tick);
+void   mons_stop_hit   (struct Monster *);                   /* stop monster attacking                   */
+void   mons_anger      (struct Monster *, struct Monster *); /* monster angers another monster           */
+void   mons_calm       (struct Monster *);                   /* monster calms                            */
+void   mons_stats_changed(struct Monster *);                 /* update HP etc to reflect stats           */
+void   mons_exercise   (struct Monster *, struct Item *);    /* exercise a weapon use                    */
+void   mons_ex_skill   (struct Monster *, Skill);            /* exercise a skill                         */
 
 /* player functions */
 int    mons_gen_type   (void);                               /* get a valid monster type for fighting    */

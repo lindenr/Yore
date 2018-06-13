@@ -50,6 +50,9 @@ int      dlv_dn     (int);
 int      dlv_up     (int);
 void     dlv_fill_player_dist (struct DLevel *);
 
+/* effect a tile burn */
+void dlv_tile_burn (struct DLevel *dlvl, int yloc, int xloc);
+
 extern Vector all_dlevels;
 extern Vector all_ids;
 extern int    cur_level;

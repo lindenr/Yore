@@ -4,6 +4,7 @@
 #include "include/thing.h"
 #include "include/graphics.h"
 #include "include/heap.h"
+#include "include/rand.h"
 
 // TODO: make this all non-global in a nice struct somewhere
 Vector all_ids;
@@ -126,6 +127,19 @@ struct TileDist
 int cmp_tile (const struct TileDist *t1, const struct TileDist *t2)
 {
 	return t1->dist > t2->dist;
+}
+
+void dlv_tile_burn (struct DLevel *dlvl, int yloc, int xloc)
+{
+	// mons_burn (mons); TODO
+	int i = map_buffer (yloc, xloc);
+	struct Monster *mons = v_at (dlvl->mons, dlvl->monsIDs[i]);
+	if (mons->ID)
+		mons_take_damage (mons, NULL, rn(5), ATYP_PHYS);
+	Vector items = dlvl->items[i];
+	int n;
+	for (n = 0; n < items->len; ++ n)
+		it_burn (v_at (items, n));
 }
 
 #define MAX_DIST 10

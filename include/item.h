@@ -188,8 +188,11 @@ void item_gen       (union ItemLoc);
 
 extern char *item_appearance[];
 
+/* Item helper functions.
+ * no side-effects: */
+
 /* are two items equal? */
-int  items_equal    (struct Item *, struct Item *);
+int  items_equal (struct Item *, struct Item *);
 
 /* get near and far descriptions */
 void it_desc (char *out, const struct Item *item, const struct Monster *player);
@@ -203,9 +206,6 @@ int it_persistent (const struct Item *item);
 /* can wear in a particular place */
 int it_canwear (const struct Item *item, enum MONS_BODYPART part);
 
-/* freeze an item; return whether item still exists */
-int it_freeze (struct Item *item);
-
 /* calculate base item damage */
 int it_projdamage (const struct Item *item);
 
@@ -214,6 +214,14 @@ enum SK_TYPE it_skill (const struct Item *item);
 
 /* get associated item category */
 enum ITCAT it_category (enum ITSORT type);
+
+/* Side-effects: */
+
+/* freeze an item; return whether item still exists */
+int it_freeze (struct Item *item);
+
+/* burn an item; return whether item still exists */
+int it_burn (struct Item *item);
 
 /* merge second stack to first stack if possible */
 int it_merge (struct Item *it1, struct Item *it2);

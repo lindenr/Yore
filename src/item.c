@@ -10,6 +10,7 @@
 #include "include/dlevel.h"
 #include "include/rand.h"
 #include "include/skills.h"
+#include "include/event.h"
 
 #include <stdio.h>
 
@@ -182,6 +183,15 @@ int it_freeze (struct Item *it)
 		p_msg ("The water freezes into an ice bolt!");
 		return 1;
 	}
+	return 1;
+}
+
+int it_burn (struct Item *it)
+{
+	if (it->type.type != ITSORT_SHARD)
+		return 1;
+
+	ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, it->ID, 5}});
 	return 1;
 }
 

@@ -373,7 +373,16 @@ void walls_test ()
 // more restrictive; gives less away
 //#define US(w) ((!sq_cansee[w])*2 + (!sq_attr[w]))
 // better-looking but leaks some info about layout
-#define US(w) (lvl->attr[w]?(!lvl->seen[w])*2:1)
+#define US(w) (has_wall(lvl,w)?1:((lvl->seen[w] == 0 || !lvl->attr[w])*2))
+
+int has_wall (struct DLevel *lvl, int w)
+{
+	int i;
+	for (i = 0; i < lvl->things[w]->len; ++ i)
+		if (((struct Thing *)v_at(lvl->things[w], i))->thing.mis.gl == ACS_WALL)
+			return 1;
+	return 0;
+}
 
 gflags map_flags;
 glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
@@ -454,13 +463,15 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 			//int dist = lvl->escape_dist[w] + (5*lvl->player_dist[w])/3;
 			//if (looking && m->gl == ACS_BIGDOT && dist >= 0)
 			//	return '0' + dist%10;
-			if (looking || m->gl != ACS_BIGDOT)	
+			if (looking || !(m->gl == ACS_BIGDOT || m->gl == ACS_CORRIDOR))
 				return m->gl
 					//| ((dist==-1)?0:COL_BG (
 					//	dist < 30 ? 15 - dist/2 : 0, dist<14 ? 14-dist : 0, dist<20?8:(50-dist)/4))
 					;
-			else
+			else if (m->gl == ACS_BIGDOT)
 				return ACS_DOT;
+			else
+				return ACS_DIMCORRIDOR;
 		case THING_NONE:
 			printf ("%d %d %d\n", w, i, th->type);
 			panic ("THING_NONE type exists in glyph_to_draw");

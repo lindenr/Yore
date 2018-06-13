@@ -146,10 +146,9 @@ void generate_auto (double *nums, int yout, int xout, uint16_t *output, int a_st
 	}*/
 }
 
-
-bool check_area (struct DLevel *lvl, int y, int x, int ys, int xs)
+char *cur_gen = NULL;
+bool check_area (int y, int x, int ys, int xs)
 {
-	Vector *things = lvl->things;
 	int i, j, k;
 	if (y < 0 || y + ys >= map_graph->h ||
 		x < 0 || x + xs >= map_graph->w)
@@ -162,7 +161,7 @@ bool check_area (struct DLevel *lvl, int y, int x, int ys, int xs)
 		while (j)
 		{
 			i = map_buffer (y+j, x+k);
-			if (things[i]->len != 0) return false;
+			if (cur_gen[i] == ACS_BIGDOT) return false;
 			-- j;
 		}
 		-- k;
@@ -171,10 +170,10 @@ bool check_area (struct DLevel *lvl, int y, int x, int ys, int xs)
 }
 
 int total_rooms = 0;
-bool attempt_room (struct DLevel *lvl, int y, int x, int ys, int xs)
+bool attempt_room (int y, int x, int ys, int xs)
 {
 	int i, j, k;
-	if (!check_area (lvl, y-2, x-2, ys+4, xs+4)) return false;
+	if (!check_area (y-2, x-2, ys+4, xs+4)) return false;
 
 	k = xs;
 	while (k)
@@ -183,60 +182,80 @@ bool attempt_room (struct DLevel *lvl, int y, int x, int ys, int xs)
 		while (j)
 		{
 			i = map_buffer (y+j, x+k);
-			ADD_MAP (DGN_GROUND, i);
+			cur_gen[i] = ACS_BIGDOT;
 			-- j;
 		}
 		-- k;
+	}
+	for (k = 0; k <= xs+1; ++ k)
+	{
+		cur_gen[map_buffer (y, x+k)] = ACS_WALL;
+		cur_gen[map_buffer (y+ys+1, x+k)] = ACS_WALL;
+	}
+	for (j = 0; j <= ys+1; ++ j)
+	{
+		cur_gen[map_buffer (y+j, x)] = ACS_WALL;
+		cur_gen[map_buffer (y+j, x+xs+1)] = ACS_WALL;
 	}
 	++ total_rooms;
 	return true;
 }
 
-void add_another_room (struct DLevel *lvl)
+void add_another_room ()
 {
-	Vector *things = lvl->things;
 	int i;
 
 	do
 		i = rn(map_graph->a);
-	while (things[i]->len == 0);
+	while (cur_gen[i] != ACS_BIGDOT);
 
-	if (things[i+1]->len == 0)
+	if (cur_gen[i+1] != ACS_BIGDOT)
 	{
 		int x = (i+1)%map_graph->w, y = (i+1)/map_graph->w;
-		if (attempt_room (lvl, y - 2 - rn(3), x + 1, 6 + rn(3), 6))
+		if (attempt_room (y +1- 2 - rn(3), x + 4, 6 + rn(3), 6))
 		{
-			ADD_MAP(DGN_GROUND, i+1);
-			ADD_MAP(DGN_DOOR, i+1);
-			ADD_MAP(DGN_GROUND, i+2);
+			cur_gen[i+1] = ACS_BIGDOT;
+		//	cur_gen[i+1] = ACS_BIGDOT;
+			cur_gen[i+2] = ACS_CORRIDOR;
+			cur_gen[i+3] = ACS_CORRIDOR;
+			cur_gen[i+3+map_graph->w] = ACS_CORRIDOR;
+			cur_gen[i+4+map_graph->w] = ACS_CORRIDOR;
+			/*cur_gen[i+2-map_graph->w] = ACS_BIGDOT;
+			///cur_gen[i+3-map_graph->w] = ACS_BIGDOT;
+			//cur_gen[i+4-map_graph->w] = ACS_BIGDOT;
+			cur_gen[i+4] = ACS_BIGDOT;
+			cur_gen[i+2+map_graph->w] = ACS_BIGDOT;
+			cur_gen[i+3+2*map_graph->w] = ACS_BIGDOT;
+			cur_gen[i+4+2*map_graph->w] = ACS_BIGDOT;*/
+			cur_gen[i+5+map_graph->w] = ACS_BIGDOT;
 		}
 	}
-	else if (things[i-1]->len == 0)
+	else if (cur_gen[i-1] != ACS_BIGDOT)
 	{
 		int x = (i-1)%map_graph->w, y = (i-1)/map_graph->w;
-		if (attempt_room (lvl, y - 2 - rn(3), x - 8, 6 + rn(3), 6))
+		if (attempt_room (y - 2 - rn(3), x - 8, 6 + rn(3), 6))
 		{
-			ADD_MAP(DGN_GROUND, i-1);
-			ADD_MAP(DGN_GROUND, i-2);
-			ADD_MAP(DGN_OPENDOOR, i-2);
+			cur_gen[i-1] = ACS_BIGDOT;
+			cur_gen[i-2] = ACS_BIGDOT;
+		//	cur_gen[i-2] = ACS_BIGDOT;
 		}
 	}
-	else if (things[i-map_graph->w]->len == 0)
+	else if (cur_gen[i-map_graph->w] != ACS_BIGDOT)
 	{
 		int x = (i-map_graph->w)%map_graph->w, y = (i-map_graph->w)/map_graph->w;
-		if (attempt_room (lvl, y - 8, x - 3 - rn(5), 6, 8 + rn(5)))
+		if (attempt_room (y - 8, x - 3 - rn(5), 6, 8 + rn(5)))
 		{
-			ADD_MAP(DGN_GROUND, i-map_graph->w);
-			ADD_MAP(DGN_GROUND, i-map_graph->w*2);
+			cur_gen[i-map_graph->w] = ACS_BIGDOT;
+			cur_gen[i-map_graph->w*2] = ACS_BIGDOT;
 		}
 	}
-	else if (things[i+map_graph->w]->len == 0)
+	else if (cur_gen[i+map_graph->w] != ACS_BIGDOT)
 	{
 		int x = (i+map_graph->w)%map_graph->w, y = (i+map_graph->w)/map_graph->w;
-		if (attempt_room (lvl, y + 1, x - 3 - rn(5), 6, 8 + rn(5)))
+		if (attempt_room (y + 1, x - 3 - rn(5), 6, 8 + rn(5)))
 		{
-			ADD_MAP(DGN_GROUND, i+map_graph->w);
-			ADD_MAP(DGN_GROUND, i+map_graph->w*2);
+			cur_gen[i+map_graph->w] = ACS_BIGDOT;
+			cur_gen[i+map_graph->w*2] = ACS_BIGDOT;
 		}
 	}
 }
@@ -262,11 +281,14 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 	if (type == LEVEL_NORMAL)
 	{
 		int i;
+		cur_gen = malloc (map_graph->a);
+		for (i = 0; i < map_graph->a; ++ i)
+			cur_gen[i] = 0;
 
 		total_rooms = 0;
-		attempt_room (lvl, map_graph->h/2 - 2 - rn(3), map_graph->w/2 - 3 - rn(5), 15, 20);
-		do add_another_room (lvl);
-		while (total_rooms < 100);
+		attempt_room (map_graph->h/2 - 2 - rn(3), map_graph->w/2 - 3 - rn(5), 15, 20);
+		do add_another_room ();
+		while (total_rooms < 20);
 
 		start = map_buffer (map_graph->h/2, map_graph->w/2);
 		/* Down-stair */
@@ -284,7 +306,17 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		/* fill the rest up with walls */
 		for (i = 0; i < map_graph->a; ++i)
 			if (things[i]->len == 0)
-				ADD_MAP (DGN_WALL, i);
+			{
+				if (cur_gen[i] == ACS_WALL)
+					ADD_MAP (DGN_WALL, i);
+				else if (cur_gen[i] == ACS_BIGDOT)
+					ADD_MAP (DGN_GROUND, i);
+				else if (cur_gen[i] == ACS_CORRIDOR)
+					ADD_MAP (DGN_CORRIDOR, i);
+				else
+					ADD_MAP (DGN_ROCK, i);
+			}
+		free (cur_gen);
 
 		//for (i = 0; i < 100; ++ i)
 		//{
@@ -410,7 +442,9 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 3}});
 	mons_wear (pl, item, offsetof (struct WoW, torsos[0]));
 	myitem = new_item (ityps[ITYP_FORCE_SHARD]);
-	item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 4}});
+	int i;
+	for (i = 4; i < 10; ++ i)
+		item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, i}});
 	/*int i;
 	for (i = 4; i < 40; ++ i)
 	{

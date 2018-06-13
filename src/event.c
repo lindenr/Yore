@@ -206,7 +206,7 @@ void ev_do (const union Event *ev)
 		{
 			if (item->type.type == ITSORT_SHARD)
 			{
-				ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, itemID, 10}});
+				ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, itemID, 5}});
 				return;
 			}
 			ev_queue (0, (union Event) { .proj_done = {EV_PROJ_DONE, itemID}});
@@ -282,7 +282,7 @@ void ev_do (const union Event *ev)
 	case EV_ITEM_EXPLODE:
 		itemID = ev->item_explode.itemID;
 		item = it_at(itemID);
-		if (!it_flight (item))
+		if (NO_ITEM (item))
 			return;
 		ydest = item->loc.fl.yloc; xdest = item->loc.fl.xloc;
 		struct BresState bres;
@@ -309,12 +309,8 @@ void ev_do (const union Event *ev)
 			ev_queue (50, (union Event) { .line_explode = {EV_LINE_EXPLODE, ev->line_explode.dlevel, bres, ev->line_explode.dist + 1}});
 			return;
 		}
+		dlv_tile_burn (dlvl, bres.cy, bres.cx);
 		i = map_buffer (bres.cy, bres.cx);
-		mons = v_at (dlvl->mons, dlvl->monsIDs[i]);
-		if (mons->ID)
-		{
-			mons_take_damage (mons, NULL, 5, ATYP_PHYS);
-		}
 		if (dlvl->num_fires[i])
 		{
 			dlvl->num_fires[i] --;
@@ -704,6 +700,7 @@ void ev_loop ()
 		{
 			ev_should_refresh = 0;
 			gr_refresh ();
+			gr_wait (50);
 		}
 		curtick = qe->tick;
 
