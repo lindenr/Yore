@@ -427,21 +427,21 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
 	struct Monster *pl = new_mons (cur_dlevel, upsy, upsx, &m1);
 	struct Item *item;
-	int num = rn(40)+20;
-	struct Item myitem = new_items (ityps[ITYP_GOLD_PIECE], num);
+	//int num = rn(40)+20;
+	struct Item myitem = new_item (ITYP_GOLD_PIECE);
 	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}});
-	struct Item myaxe = new_item (ityps[ITYP_DAGGER]);
+	struct Item myaxe = new_item (ITYP_DAGGER);
 	item = item_put (&myaxe, (union ItemLoc) { .dlvl = {LOC_INV, pl->ID, 1}});
 	mons_wield (pl, 0, item);
 	struct Skill skill = {SK_USE_DAGGER, 19, 0};
 	v_push (pl->skills, &skill);
-	myitem = new_item (ityps[ITYP_LEATHER_HAT]);
+	myitem = new_item (ITYP_LEATHER_HAT);
 	item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 2}});
 	mons_wear (pl, item, offsetof (struct WoW, heads[0]));
-	myitem = new_item (ityps[ITYP_CLOTH_TUNIC]);
+	myitem = new_item (ITYP_CLOTH_TUNIC);
 	item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 3}});
 	mons_wear (pl, item, offsetof (struct WoW, torsos[0]));
-	myitem = new_item (ityps[ITYP_FORCE_SHARD]);
+	myitem = new_item (ITYP_FORCE_SHARD);
 	int i;
 	for (i = 4; i < 10; ++ i)
 		item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, i}});
@@ -499,7 +499,7 @@ struct Monster *gen_boss (int yloc, int xloc)
 		p.ctr.mode = CTR_AI_TIMID;
 	p.level = 1; //mons[p.type].exp? TODO
 	struct Monster *th = new_mons (cur_dlevel, yloc, xloc, &p);
-	struct Item myaxe = new_item (ityps[ITYP_BATTLE_AXE]);
+	struct Item myaxe = new_item (ITYP_BATTLE_AXE);
 	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, th->ID, 0}});
 	return th;
 }

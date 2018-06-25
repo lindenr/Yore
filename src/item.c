@@ -19,9 +19,9 @@
    5000g or so */
 
 #define ITYP(nm,tp,wt,attk,def,gl,st) {nm,tp,wt,attk,def,gl,st}
-#define DMG(a,b) (((a)<<4)+(b))
+//#define DMG(a,b) (((a)<<4)+(b))
 
-/* No corpse -- they are a custom item (see src/monst.c). */
+/* No corpse -- they are a custom item (see src/monst.c). TODO change */
 Ityp ityps[] = {
 /*  item name              type              weight attributes     display                      */
 	ITYP("long sword",     ITSORT_LONGSWORD,  2000,  10, 0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
@@ -38,6 +38,7 @@ Ityp ityps[] = {
 	ITYP("leather hat",    ITSORT_HELM,       50,    0,  1,      ITCH_ARMOUR | COL_TXT( 8, 8, 2), 0),
 	ITYP("helmet",         ITSORT_HELM,       2000,  0,  3,      ITCH_ARMOUR | COL_TXT(11,11, 2), 0),
 	ITYP("gold piece",     ITSORT_MONEY,      1,     0,  0,      ITCH_DOSH   | COL_TXT(15,15, 0), 1),
+	ITYP("corpse",         ITSORT_CORPSE,     100,   0,  0,      ITCH_CORPSE | COL_TXT(10,10, 0), 1),
 	ITYP("bone",           ITSORT_BONE,       100,   0,  0,      ITCH_CORPSE | COL_TXT(15,15,15), 1),
 	ITYP("fireball",       ITSORT_ARCANE,     0,     0,  0,      0x09        | COL_TXT(15, 4, 0), 0),
 	ITYP("water bolt",     ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 8,15), 0),
@@ -59,80 +60,88 @@ void ityp_init ()
 
 void it_desc (char *out, const struct Item *item, const struct Monster *pl)
 {
-	char temp2[120];
-	char temp[115];
-	if (item->name != NULL && item->name[0] != '\0')
+	char temp[120];
+	//char temp[115];
+	/*if (item->name != NULL && item->name[0] != '\0')
 	{
 		p_msg ("NULULULULUL");
 	}
 	else
-	{
+	{*/
 		char ench_string[60] = "";
-		if (item->attk && pl)
+		int a = it_attk (item), d = it_def (item);
+		if (a && pl)
 			snprintf (ench_string, 60, " (#nF3300000%d+%d#nBBB00000 dmg)",
-				item->attk, mons_attk_bonus (pl, item));
-		else if (item->attk)
-			snprintf (ench_string, 60, " (#nF3300000%d#nBBB00000 dmg)",
-				item->attk);
-		else if (item->def)
-			snprintf (ench_string, 60, " (#nF7000000%d#nBBB00000 def)", item->def);
-		snprintf (temp, 115, "%s%s%s%s%s%s%s",
+				a, mons_attk_bonus (pl, item));
+		else if (a)
+			snprintf (ench_string, 60, " (#nF3300000%d#nBBB00000 dmg)", a);
+		else if (d)
+			snprintf (ench_string, 60, " (#nF7000000%d#nBBB00000 def)", d);
+		snprintf (temp, 115, "%s%s%s%s",
 		         /* beatitude */
-		         (!(item->attr & ITEM_KBUC)) ? "" :
-		           (item->attr & ITEM_BLES)  ? "blessed " :
-		           (item->attr & ITEM_CURS)  ? "cursed "  : "uncursed ",
+		         //(!it_kbuc (item)) ? "" :
+		         //  it_buc (item) == 1  ? "blessed " :
+		         //  it_buc (item) == -1  ? "cursed "  : "uncursed ",
 		         /* greasedness */
-		         (item->attr & ITEM_GREASED) ? "greased " : "",
+		         //(item->attr & ITEM_GREASED) ? "greased " : "",
 		         /* name */
-				 item->type.name,
-		         item->stacksize == 1 ? "" : "s",
+				 it_typename (item),
+		         //item->stacksize == 1 ? "" : "s",
 		         /* enchantment value */
 				 ench_string,
 		         /* wielded */
 		         it_wieldedID (item) ? " (wielded)" : "",
-				 item_worn (item) ? " (worn)" : ""
+				 it_worn (item) ? " (worn)" : ""
 				 );
-		w_some (temp2, temp, item->stacksize, 128);
-		snprintf (out, 128, "#g%s %s", gl_format (item->type.gl), temp2);
-	}
+		//w_some (temp2, temp, item->stacksize, 128);
+		snprintf (out, 128, "#g%s %s", gl_format (it_gl (item)), temp);
+	//}
 }
 
-int it_can_merge (const struct Item *item1, const struct Item *item2)
+const char *it_typename (const struct Item *item)
+{
+	if (!item)
+		panic ("NULL item in it_typename");
+		//return NULL;
+	return ityps[it_type (item)].name;
+}
+
+/*int it_can_merge (const struct Item *item1, const struct Item *item2)
 {
 	return NO_ITEM(item1) || NO_ITEM(item2) ||
-		(item1->type.stackable &&
-		 (!memcmp(&item1->type, &item2->type, sizeof(Ityp))) &&
+		(it_stackable (item1) &&
+		 (!memcmp(&item1->atype, &item2->atype, sizeof(Ityp))) &&
 		 item1->name == item2->name &&
 		 item1->attr == item2->attr &&
 		 item1->attk == item2->attk &&
 		 item1->def  == item2->def);
-}
+}*/
 
-int it_weight (const struct Item *item)
+/*int it_weight (const struct Item *item)
 {
 	return item->cur_weight;
-}
+}*/
 
-int it_merge (struct Item *it1, struct Item *it2)
+/*int it_merge (struct Item *it1, struct Item *it2)
 {
 	if (!it_can_merge (it1, it2))
 		return 0;
 	it1->stacksize += it2->stacksize;
 	it1->cur_weight += it2->cur_weight;
 	return 1;
-}
+}*/
 
 void item_gen (union ItemLoc loc)
 {
 	struct Item item;
 	enum ITEM_TYPE typ = rn(14);
-	if (typ == ITYP_GOLD_PIECE)
+	/*if (typ == ITYP_GOLD_PIECE)
 	{
 		int stacksize = rn(50)+30;
 		item = new_items (ityps[typ], stacksize);
 	}
-	else
-		item = new_item (ityps[typ]);
+	else*/
+		item = new_item (typ);
 	item_put (&item, loc);
 }
 
@@ -147,7 +156,7 @@ int items_equal (struct Item *it1, struct Item *it2)
 
 int it_persistent (const struct Item *item)
 {
-	return item->type.type != ITSORT_ARCANE;
+	return it_sort (item) != ITSORT_ARCANE;
 }
 
 int it_canwear (const struct Item *item, enum MONS_BODYPART part)
@@ -155,31 +164,47 @@ int it_canwear (const struct Item *item, enum MONS_BODYPART part)
 	switch (part)
 	{
 		case MONS_HAND:
-			return item->type.type == ITSORT_GLOVE;
+			return it_sort (item) == ITSORT_GLOVE;
 		case MONS_TORSO:
-			return item->type.type == ITSORT_TUNIC ||
-			       item->type.type == ITSORT_MAIL;
+			return it_sort (item) == ITSORT_TUNIC ||
+			       it_sort (item) == ITSORT_MAIL;
 		case MONS_HEAD:
-			return item->type.type == ITSORT_HELM;
+			return it_sort (item) == ITSORT_HELM;
 		case MONS_FOOT:
 			return 0;
 	}
 	return 0;
 }
 
-int it_freeze (struct Item *it)
+void it_wear (struct Item *item, size_t offset)
 {
-	if (it->type.type != ITSORT_ARCANE)
+	if (!item)
+		panic ("NULL item in it_wear");
+	item->worn_offset = offset;
+}
+
+void it_unwear (struct Item *item)
+{
+	if (!item)
+		panic ("NULL item in it_unwear");
+	item->worn_offset = -1;
+}
+
+int it_freeze (struct Item *item)
+{
+	if (it_sort (item) != ITSORT_ARCANE)
 		return 1;
-	if (!strcmp (it->type.name, "fireball"))
+	//if (item->custom)
+	//	return 1;
+	if (it_type (item) == ITYP_FIREBALL)
 	{
-		item_free (it);
+		item_free (item);
 		p_msg ("The fire goes out!");
 		return 0;
 	}
-	if (!strcmp (it->type.name, "water bolt"))
+	if (it_type (item) == ITYP_WATER_BOLT)
 	{
-		memcpy (&it->type, &ityps[ITYP_ICE_BOLT], sizeof(Ityp));
+		it_type (item) = ITYP_ICE_BOLT;
 		p_msg ("The water freezes into an ice bolt!");
 		return 1;
 	}
@@ -188,7 +213,7 @@ int it_freeze (struct Item *it)
 
 int it_burn (struct Item *it)
 {
-	if (it->type.type != ITSORT_SHARD)
+	if (it_sort (it) != ITSORT_SHARD)
 		return 1;
 
 	ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, it->ID, 5}});
@@ -197,16 +222,95 @@ int it_burn (struct Item *it)
 
 int it_projdamage (const struct Item *item)
 {
-	if (it_category (item->type.type) == ITCAT_WEAPON)
-		return rn(item->attk + 1)/2;
+	if (it_category (it_sort (item)) == ITCAT_WEAPON)
+		return rn(it_attk (item) + 1)/2;
 	return rn(3);
+}
+
+int it_attk (const struct Item *item)
+{
+	if (!item)
+		panic ("NULL item in it_attk");
+	return item->attk;
+}
+
+void it_set_attk (struct Item *item, int attk)
+{
+	if (!item)
+		panic ("NULL item in it_set_attk");
+	item->attk = attk;
+}
+
+int it_def (const struct Item *item)
+{
+	if (!item)
+		panic ("NULL item in it_def");
+	return item->def;
+}
+
+int it_worn_offset (const struct Item *item)
+{
+	if (!item)
+		panic ("NULL item in it_worn_offset");
+	return item->worn_offset;
+}
+
+int it_worn (const struct Item *item)
+{
+	if (!item)
+		panic ("NULL item in it_worn");
+	return item->worn_offset != -1;
+}
+
+int it_weight (const struct Item *item)
+{
+	if (!item)
+		panic ("NULL item in it_weight");
+	return item->wt;
+}
+
+glyph it_gl (const struct Item *item)
+{
+	if (!item)
+		panic ("NULL item in it_gl");
+	return ityps [it_type (item)].gl;
+}
+
+enum ITSORT it_sort (const struct Item *item)
+{
+	return ityps [it_type (item)].sort;
+}
+
+void it_rem (struct Item *item)
+{
+	if (!item)
+		panic ("NULL item in it_gl");
+	item->ID = 0;
+}
+
+int it_fragile (const struct Item *item)
+{
+	if (!item)
+		panic ("NULL item in it_fragile");
+	return it_sort (item) == ITSORT_SHARD;
+}
+
+void it_break (struct Item *item)
+{
+	if (!item)
+		panic ("NULL item in it_break");
+	if (it_type (item) == ITYP_FORCE_SHARD)
+	{
+		ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, item->ID, 5}});
+		return;
+	}
 }
 
 enum SK_TYPE it_skill (const struct Item *item)
 {
 	if (NO_ITEM(item))
 		return SK_USE_MARTIAL_ARTS;
-	switch (item->type.type)
+	switch (it_sort (item))
 	{
 		case ITSORT_LONGSWORD:
 			return SK_USE_LONGSWORD;

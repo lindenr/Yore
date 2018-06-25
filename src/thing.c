@@ -102,8 +102,8 @@ void rem_itemid (TID ID)
 void item_free (struct Item *item)
 {
 	rem_itemid (item->ID);
-	if (item->name)
-		free(item->name);
+	//if (item->name)
+	//	free(item->name);
 }
 
 void item_makeID (struct Item *item)
@@ -447,8 +447,8 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 	{
 		struct Item *item = v_at (lvl->items[w], lvl->items[w]->len-1);
 		if (item->loc.loc == LOC_FLIGHT)
-			return item->type.gl | COL_BG (5,5,5);
-		return item->type.gl;
+			return it_gl (item) | COL_BG (5,5,5);
+		return it_gl (item);
 	}
 
 	/* draw topmost dungeon feature */

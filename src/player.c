@@ -162,7 +162,7 @@ int Ksdrop (struct Monster *player)
 	if (NO_ITEM(drop))
 		return 0;
 
-	if (item_worn (drop))
+	if (it_worn (drop))
 	{
 		p_msg ("You're wearing that!");
 		return 0;
@@ -239,7 +239,7 @@ int Kthrow (struct Monster *player)
 	if (NO_ITEM(throw))
 		return 0;
 
-	if (item_worn (throw))
+	if (it_worn (throw))
 	{
 		p_msg ("You're wearing that!");
 		return 0;
@@ -399,7 +399,7 @@ int Ktakeoff (struct Monster *player)
 		p_msg ("Not an item.");
 		return 0;
 	}
-	if (!item_worn (item))
+	if (!it_worn (item))
 	{
 		p_msg ("You're not wearing that!");
 		return 0;

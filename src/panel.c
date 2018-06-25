@@ -352,7 +352,7 @@ int p_status (struct Monster *player, enum PanelType type)
 	gra_fbox (sc_status, 0, 0, h-1, w-1, ' ');
 	gra_cprint (sc_status, 2, "STATUS SCREEN");
 	gra_mvprint (sc_status, 0, w-5, "(Esc)");
-	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", player->name, ACS_VLINE, player->mname);
+	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", player->name, ACS_VLINE, mons_typename (player));
 	gra_cprint (sc_status, 5, "  HP: %d/%d  %c  ST:    %d/%d",
 				player->HP, player->HP_max, ACS_VLINE, player->ST, player->ST_max);
 	gra_cprint (sc_status, 6, "LV %d:%d/infinity   %c  Speed: %d       ", player->level, player->exp, ACS_VLINE, player->speed);
@@ -857,9 +857,9 @@ void eff_mons_fail_throw (struct Monster *mons, struct Item *item)
 	if (!player_sees_mons (mons))
 		return;
 	if (mons_isplayer (mons))
-		p_msg ("You fail to throw the %s.", item->type.name);
+		p_msg ("You fail to throw the %s.", it_typename (item));
 	else
-		p_msg ("The %s fails to throw the %s.", mons->mname, item->type.name);
+		p_msg ("The %s fails to throw the %s.", mons_typename (mons), it_typename (item));
 	return;
 }
 
@@ -867,21 +867,21 @@ void eff_item_dissipates (struct Item *item)
 {
 	if (!player_sees_item (item))
 		return;
-	p_msg ("The %s dissipates.", item->type.name);
+	p_msg ("The %s dissipates.", it_typename (item));
 }
 
 void eff_item_absorbed (struct Item *item)
 {
 	if (!player_sees_item (item))
 		return;
-	p_msg ("The %s is absorbed.", item->type.name);
+	p_msg ("The %s is absorbed.", it_typename (item));
 }
 
 void eff_item_hits_wall (struct Item *item)
 {
 	if (!player_sees_item (item))
 		return;
-	p_msg ("The %s hits the wall.", item->type.name);
+	p_msg ("The %s hits the wall.", it_typename (item));
 }
 
 void eff_proj_misses_mons (struct Item *item, struct Monster *mons)
@@ -891,9 +891,9 @@ void eff_proj_misses_mons (struct Item *item, struct Monster *mons)
 	if (!player_sees_mons (mons))
 		return;
 	if (mons_isplayer (mons))
-		p_msg ("The %s misses you!", item->type.name);
+		p_msg ("The %s misses you!", it_typename (item));
 	else
-		p_msg ("The %s misses the %s!", item->type.name, mons->mname);
+		p_msg ("The %s misses the %s!", it_typename (item), mons_typename (mons));
 }
 
 void eff_proj_hits_mons (struct Item *item, struct Monster *mons, int damage)
@@ -903,9 +903,9 @@ void eff_proj_hits_mons (struct Item *item, struct Monster *mons, int damage)
 	if (!player_sees_mons (mons))
 		return;
 	if (mons_isplayer (mons))
-		p_msg ("The %s hits you for "COL_RED("%d")"!", item->type.name, damage);
+		p_msg ("The %s hits you for "COL_RED("%d")"!", it_typename (item), damage);
 	else
-		p_msg ("The %s hits the %s for "COL_RED("%d")"!", item->type.name, mons->mname, damage);
+		p_msg ("The %s hits the %s for "COL_RED("%d")"!", it_typename (item), mons_typename (mons), damage);
 }
 
 void eff_mons_tiredly_misses_mons (struct Monster *fr, struct Monster *to)
@@ -915,11 +915,11 @@ void eff_mons_tiredly_misses_mons (struct Monster *fr, struct Monster *to)
 	if (!player_sees_mons (to))
 		return;
 	if (mons_isplayer (to))
-		p_msg ("The %s tiredly misses you!", fr->mname);
+		p_msg ("The %s tiredly misses you!", mons_typename (fr));
 	else if (mons_isplayer (fr))
-		p_msg ("You tiredly miss the %s!", to->mname);
+		p_msg ("You tiredly miss the %s!", mons_typename (to));
 	else
-		p_msg ("The %s tiredly misses the %s!", fr->mname, to->mname);
+		p_msg ("The %s tiredly misses the %s!", mons_typename (fr), mons_typename (to));
 }
 
 void eff_mons_misses_mons (struct Monster *fr, struct Monster *to)
@@ -929,11 +929,11 @@ void eff_mons_misses_mons (struct Monster *fr, struct Monster *to)
 	if (!player_sees_mons (to))
 		return;
 	if (mons_isplayer (to))
-		p_msg ("The %s misses you!", fr->mname);
+		p_msg ("The %s misses you!", mons_typename (fr));
 	else if (mons_isplayer (fr))
-		p_msg ("You miss the %s!", to->mname);
+		p_msg ("You miss the %s!", mons_typename (to));
 	else
-		p_msg ("The %s misses the %s!", fr->mname, to->mname);
+		p_msg ("The %s misses the %s!", mons_typename (fr), mons_typename (to));
 }
 
 void eff_mons_just_misses_mons (struct Monster *fr, struct Monster *to)
@@ -943,11 +943,11 @@ void eff_mons_just_misses_mons (struct Monster *fr, struct Monster *to)
 	if (!player_sees_mons (to))
 		return;
 	if (mons_isplayer (to))
-		p_msg ("The %s just misses you!", fr->mname);
+		p_msg ("The %s just misses you!", mons_typename (fr));
 	else if (mons_isplayer (fr))
-		p_msg ("You just miss the %s!", to->mname);
+		p_msg ("You just miss the %s!", mons_typename (to));
 	else
-		p_msg ("The %s just misses the %s!", fr->mname, to->mname);
+		p_msg ("The %s just misses the %s!", mons_typename (fr), mons_typename (to));
 }
 
 void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage)
@@ -957,11 +957,11 @@ void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage)
 	if (!player_sees_mons (to))
 		return;
 	if (mons_isplayer (to))
-		p_msg ("The %s hits you for "COL_RED("%d")"!", fr->mname, damage);
+		p_msg ("The %s hits you for "COL_RED("%d")"!", mons_typename (fr), damage);
 	else if (mons_isplayer (fr))
-		p_msg ("You hit the %s for "COL_RED("%d")"!", to->mname, damage);
+		p_msg ("You hit the %s for "COL_RED("%d")"!", mons_typename (to), damage);
 	else
-		p_msg ("The %s hits the %s for "COL_RED("%d")"!", fr->mname, to->mname, damage);
+		p_msg ("The %s hits the %s for "COL_RED("%d")"!", mons_typename (fr), mons_typename (to), damage);
 }
 
 void eff_mons_kills_mons (struct Monster *fr, struct Monster *to)
@@ -971,11 +971,11 @@ void eff_mons_kills_mons (struct Monster *fr, struct Monster *to)
 	if (!player_sees_mons (to))
 		return;
 	if (mons_isplayer (to))
-		p_msg ("The %s "COL_RED("kills")" you!", fr->mname);
+		p_msg ("The %s "COL_RED("kills")" you!", mons_typename (fr));
 	else if (mons_isplayer (fr))
-		p_msg ("You "COL_RED("kill")" the %s!", to->mname);
+		p_msg ("You "COL_RED("kill")" the %s!", mons_typename (to));
 	else
-		p_msg ("The %s "COL_RED("kills")" the %s!", fr->mname, to->mname);
+		p_msg ("The %s "COL_RED("kills")" the %s!", mons_typename (fr), mons_typename (to));
 }
 
 void eff_mons_sk_levels_up (struct Monster *mons, Skill sk)
@@ -992,7 +992,7 @@ void eff_mons_levels_up (struct Monster *mons)
 	if (mons_isplayer (mons))
 		p_msg (COL_BRIGHT("Level up!")" You are now level "COL_YELLOW("%d")".", mons->level);
 	else
-		p_msg ("The %d seems more experienced.", mons->mname);
+		p_msg ("The %d seems more experienced.", mons_typename (mons));
 }
 
 static char msg[128];
@@ -1007,7 +1007,7 @@ void eff_mons_picks_up_item (struct Monster *mons, struct Item *item)
 	if (p)
 		p_msg ("%s", msg);
 	else
-		p_msg ("The %s picks up %s.", mons->mname, msg);
+		p_msg ("The %s picks up %s.", mons_typename (mons), msg);
 }
 
 void eff_mons_wields_item (struct Monster *mons, struct Item *item)
@@ -1021,7 +1021,7 @@ void eff_mons_wields_item (struct Monster *mons, struct Item *item)
 	if (p)
 		p_msg ("You wield %s.", msg);
 	else
-		p_msg ("The %s wields %s.", mons->mname, msg);
+		p_msg ("The %s wields %s.", mons_typename (mons), msg);
 }
 
 void eff_mons_unwields (struct Monster *mons)
@@ -1031,7 +1031,7 @@ void eff_mons_unwields (struct Monster *mons)
 	if (mons_isplayer (mons))
 		p_msg ("You are now empty-handed.");
 	else
-		p_msg ("The %s is now empty-handed.", mons->mname);
+		p_msg ("The %s is now empty-handed.", mons_typename (mons));
 }
 
 void eff_mons_wears_item (struct Monster *mons, struct Item *item)
@@ -1045,7 +1045,7 @@ void eff_mons_wears_item (struct Monster *mons, struct Item *item)
 	if (p)
 		p_msg ("You wear %s.", msg);
 	else
-		p_msg ("The %s wears %s.", mons->mname, msg);
+		p_msg ("The %s wears %s.", mons_typename (mons), msg);
 }
 
 void eff_mons_takes_off_item (struct Monster *mons, struct Item *item)
@@ -1059,7 +1059,7 @@ void eff_mons_takes_off_item (struct Monster *mons, struct Item *item)
 	if (p)
 		p_msg ("You take off %s.", msg);
 	else
-		p_msg ("The %s takes off %s.", mons->mname, msg);
+		p_msg ("The %s takes off %s.", mons_typename (mons), msg);
 }
 
 void eff_mons_angers_mons (struct Monster *fr, struct Monster *to)
@@ -1069,15 +1069,15 @@ void eff_mons_angers_mons (struct Monster *fr, struct Monster *to)
 	if (!player_sees_mons (to))
 		return;
 	if (mons_isplayer (fr))
-		p_msg ("You anger the %s!", to->mname);
+		p_msg ("You anger the %s!", mons_typename (to));
 	else
-		p_msg ("The %s angers the %s.", fr->mname, to->mname);
+		p_msg ("The %s angers the %s.", mons_typename (fr), mons_typename (to));
 }
 
 void eff_mons_calms (struct Monster *mons)
 {
 	if (!player_sees_mons (mons))
 		return;
-	p_msg ("The %s calms.", mons->mname);
+	p_msg ("The %s calms.", mons_typename (mons));
 }
 

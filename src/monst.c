@@ -103,17 +103,17 @@ int mons_get_wt (struct Monster *mons)
 }
 
 void mons_corpse (struct Monster *mons, struct Item *item)
-{
+{/*
 	if (!(mons->mflags & FL_FLSH))
 	{
-		int num = rn(4) + 3;
-		*item = new_items (ityps[ITYP_BONE], num);
+		//int num = rn(4) + 3;
+		*item = new_item (ITYP_BONE);
 		return;
 	}
-	/* fill in the data */
+	/ * fill in the data * /
 	Ityp itype = (Ityp) {{0,}, ITSORT_CORPSE, mons_get_wt (mons), 0, 0, ITCH_CORPSE | (mons->gl & ~0xff), 1};
-	snprintf (itype.name, ITEM_NAME_LENGTH, "%s corpse", mons->mname);
-	*item = new_item (itype);
+	snprintf (itype.name, ITEM_NAME_LENGTH, "%s corpse", mons->mname);*/
+	*item = new_item (ITYP_CORPSE);
 }
 
 int mons_get_HP (struct Monster *mons)
@@ -313,15 +313,15 @@ void mons_unwield (struct Monster *mons, struct Item *it)
 void mons_wear (struct Monster *mons, struct Item *item, size_t offset)
 {
 	*(struct Item **)((void*)&mons->wearing + offset) = item;
-	item->worn_offset = offset;
-	mons->armour += item->def;
+	it_wear (item, offset);
+	mons->armour += it_def (item);
 }
 
 void mons_take_off (struct Monster *mons, struct Item *item)
 {
-	*(struct Item **)((char*)&mons->wearing + item->worn_offset) = 0;
-	item->worn_offset = -1;
-	mons->armour -= item->def;
+	*(struct Item **)((char*)&mons->wearing + it_worn_offset (item)) = 0;
+	it_unwear (item);
+	mons->armour -= it_def (item);
 }
 
 void mons_start_move (struct Monster *mons, int y, int x, Tick arrival)
@@ -549,7 +549,7 @@ int mons_hitdmg (const struct Monster *from, const struct Monster *to, const str
 {
 	if (!with)
 		return (rn(from->str/6 + 1) + rn((from->str+3)/6 + 1));
-	int attk = with->type.attk + mons_attk_bonus (from, with);
+	int attk = it_attk (with) + mons_attk_bonus (from, with);
 	int dmg = (rn(1 + attk/2) + rn(1 + (attk+1)/2));
 	return dmg;
 }
@@ -656,6 +656,11 @@ int mons_isplayer (struct Monster *th)
 	default:
 		return 0;
 	}
+}
+
+const char *mons_typename (struct Monster *mons)
+{
+	return mons->mname;
 }
 
 int AI_weapcmp (struct Monster *ai, struct Item *w1, struct Item *w2)

@@ -18,7 +18,7 @@ Pack *pack_init ()
 struct Item *pack_rem (Pack *pack, unsigned u)
 {
 	struct Item *ret = &pack->items[u];
-	ret->type.type = ITSORT_NONE;
+	it_rem (ret);
 	return ret;
 }
 
@@ -34,14 +34,16 @@ bool pack_add (Pack **ppack, struct Item *it, int u)
 		memcpy (&pack->items[u], it, sizeof(*it));
 		return true;
 	}
-	return it_merge (&pack->items[u], it);
+	panic ("merge attempt in pack_add");
+	return false;
+	//return it_merge (&pack->items[u], it);
 }
 
 void add_desc (struct String *str, Pack *pack, int itcat, struct Monster *mons, Vector contents)
 {
 	if (itcat == ITCAT_HANDS)
 	{
-		str_catf (str, "#o#nFFF00000###nBBB00000 Your bare hands\n");
+		str_catf (str, "#o#nFFF00000%c#nBBB00000 Your bare hands\n", 0xED);
 		TID ID = 0;
 		v_push (contents, &ID);
 		return;
@@ -56,7 +58,7 @@ void add_desc (struct String *str, Pack *pack, int itcat, struct Monster *mons, 
 		struct Item *packitem = &pack->items[i];
 		if (NO_ITEM(packitem))
 			continue;
-		if (it_category (packitem->type.type) != itcat)
+		if (it_category (it_sort (packitem)) != itcat)
 			continue;
 		if (!any)
 		{
@@ -100,31 +102,4 @@ TID show_contents (struct Monster *mons, uint32_t accepted, char *msg)
 	v_free (contents);
 	return ret;
 }
-
-/*int item_type_flags (struct Item *item, uint32_t accepted)
-{
-	switch (item->type.gl & 0xFF)
-	{
-		case ITCH_WEAPON:
-			return (accepted & ITCAT_WEAPON);
-		case ITCH_TOOL:
-			return (accepted & ITCAT_TOOL);
-		case ITCH_STRANGE:
-			return (accepted & ITCAT_STRANGE);
-		case ITCH_ARMOUR:
-			return (accepted & ITCAT_ARMOUR);
-		case ITCH_FOOD:
-			return (accepted & ITCAT_FOOD);
-		case ITCH_DOSH:
-			return (accepted & ITCAT_DOSH);
-		case ITCH_CHARM:
-			return (accepted & ITCAT_CHARM);
-		case ITCH_JEWEL:
-			return (accepted & ITCAT_JEWEL);
-		case 0xFB:
-			return (accepted & ITCAT_JEWEL);
-	}
-	panic ("item_type_flags() found a strange item type.");
-	return -1;
-}*/
 

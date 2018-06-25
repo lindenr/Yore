@@ -249,8 +249,7 @@ int    mons_HP_regen   (struct Monster *);                   /* how much HP will
 int    mons_ST_regen   (struct Monster *);                   /* stamina                                  */
 int    mons_MP_regen   (struct Monster *);                   /* MP                                       */
 int    mons_isplayer   (struct Monster *);                   /* is controlled by human                   */
-int    mons_cont       (struct Monster *, MCont,             /* continuation to be called next turn      */
-	union ContData *);
+const char *mons_typename (struct Monster *);                /* get name of monster type                 */
 int    mons_get_HP     (struct Monster *);                   /* recalculates max HP                      */
 int    mons_get_ST     (struct Monster *);                   /* max stamina                              */
 int    mons_get_MP     (struct Monster *);                   /* max magic power                          */
@@ -283,6 +282,8 @@ void   mons_calm       (struct Monster *);                   /* monster calms   
 void   mons_stats_changed(struct Monster *);                 /* update HP etc to reflect stats           */
 void   mons_exercise   (struct Monster *, struct Item *);    /* exercise a weapon use                    */
 void   mons_ex_skill   (struct Monster *, Skill);            /* exercise a skill                         */
+int    mons_cont       (struct Monster *, MCont,             /* continuation to be called next turn      */
+	union ContData *);
 
 /* player functions */
 int    mons_gen_type   (void);                               /* get a valid monster type for fighting    */

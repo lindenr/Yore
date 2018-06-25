@@ -47,7 +47,7 @@ void save_block()
 		fwrite(bp->ptr, bp->len, 1, game_save_file);
 	}
 }*/
-
+/*
 void save_item (struct Item *item)
 {
 	void *p = NULL;
@@ -65,7 +65,7 @@ void save_item (struct Item *item)
 		fwrite("\0", 1, 1, game_save_file);
 	else
 		fwrite(item->name, strlen(item->name)+1, 1, game_save_file);
-}
+}*/
 
 /* The three main things needing saving are: the List all_things, the uint64_t Time, and
  * the player_struct U. There is also the list of things you have seen.

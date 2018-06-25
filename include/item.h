@@ -61,6 +61,7 @@ enum ITEM_TYPE
 	ITYP_LEATHER_HAT,
 	ITYP_HELMET,
 	ITYP_GOLD_PIECE,
+	ITYP_CORPSE,
 	ITYP_BONE,
 	ITYP_FIREBALL,
 	ITYP_WATER_BOLT,
@@ -71,15 +72,15 @@ enum ITEM_TYPE
 };
 
 /* BUC status */
-#define ITEM_CURS   0x00000001
-#define ITEM_UNCS   0x00000000
-#define ITEM_BLES   0x00000002
-#define ITEM_KBUC   0x00000004
+//#define ITEM_CURS   0x00000001
+//#define ITEM_UNCS   0x00000000
+//#define ITEM_BLES   0x00000002
+//#define ITEM_KBUC   0x00000004
 /* 1 <= n < 4 */
-#define ITEM_PLUS(n) 0x00000000+(n<<3)
-#define ITEM_MINS(n) 0x00000020+(n<<3)
+//#define ITEM_PLUS(n) 0x00000000+(n<<3)
+//#define ITEM_MINS(n) 0x00000020+(n<<3)
 /* greased */
-#define ITEM_GREASED 0x00000040
+//#define ITEM_GREASED 0x00000040
 
 #define ITCH_WEAPON  ')'
 #define ITCH_TOOL    '('
@@ -94,13 +95,14 @@ enum ITEM_TYPE
 #define ITCAT_ALL     0xFFFFFEFF // misses out hands
 
 #define ITEM_NAME_LENGTH 20
-#define NO_ITEM(item) ((!(item)) || ((item)->type.type == ITSORT_NONE))
+#define NO_ITEM(item) ((!(item)) || ((item)->ID == 0))
+#define it_type(item) ((item)->qtype)
 
 /* type of item */
 typedef struct
 {
 	char name[ITEM_NAME_LENGTH];/* name of that type of item */
-	enum ITSORT type;           /* type */
+	enum ITSORT sort;           /* sort */
 	uint32_t wt;				/* weight */
 	int attk, def;              /* attack, defense stats */
 	glyph gl;					/* for the display */
@@ -162,20 +164,44 @@ struct Item
 {
 	TID ID;
 	union ItemLoc loc;
-	Ityp type;
-	uint32_t cur_weight;
-	char *name;
-	uint32_t attr;
+	//int custom;
+	//union
+	//{
+	//	Ityp *ptype;
+	//	Ityp type;
+	//} type;
+	//Ityp atype;
+	enum ITEM_TYPE qtype;
+	//uint32_t attr;
+	int wt;
 	int attk, def;
 	int worn_offset;
+	//Vector data;
+};
+
+// TODO use!
+struct ItemStack
+{
+	TID ID;
+	union ItemLoc loc;
 	int stacksize;
+	int custom;
+	union
+	{
+		Ityp *ptype;
+		Ityp type;
+	} type;
+	uint32_t attr;
+	Vector data;
 };
 
 extern Ityp ityps[];
 
-#define new_items(ityp,stacksize) ((struct Item)\
-	{0, { .loc = LOC_NONE}, (ityp), (ityp).wt * (stacksize), NULL, 0, (ityp).attk, (ityp).def, -1, stacksize})
-#define new_item(ityp) new_items(ityp, 1)
+//#define new_items(ityp,stacksize) ((struct Item)
+//	{0, { .loc = LOC_NONE}, (ityp), (ityp).wt * (stacksize), NULL, 0, (ityp).attk, (ityp).def, -1, stacksize})
+//#define new_item(ityp) new_items(ityp, 1)
+#define new_item(typ) ((struct Item) {0, { .loc = LOC_NONE}, typ, 0, 0, 0, -1})
+//#define new_custom(ityp) ((struct Item) {0, { .loc = LOC_NONE}, 1, { .type = (Ityp) (ityp)}, 0, NULL})
 
 extern struct Item no_item;
 
@@ -184,12 +210,11 @@ void ityp_init      ();
 void item_piles     (int, Vector, Vector);
 void item_gen       (union ItemLoc);
 
-#define item_worn(item) ((item)->worn_offset != -1)
+//#define item_worn(item) ((item)->worn_offset != -1)
 
 extern char *item_appearance[];
 
-/* Item helper functions.
- * no side-effects: */
+/* Item helper functions with no side-effects: */
 
 /* are two items equal? */
 int  items_equal (struct Item *, struct Item *);
@@ -197,23 +222,44 @@ int  items_equal (struct Item *, struct Item *);
 /* get near and far descriptions */
 void it_desc (char *out, const struct Item *item, const struct Monster *player);
 
-/* get mergibility of two item stacks */
-int it_can_merge (const struct Item *it1, const struct Item *it2);
+/* does item have a given attribute/effect? */
+int it_attr (const struct Item *item, enum ITEM_ATTR attr);
+char *it_eff (const struct Item *item, enum ITEM_EFF eff);
 
-/* can exist stably */
-int it_persistent (const struct Item *item);
+/* get item properties */
+const char *it_typename (const struct Item *item);
+int it_attk (const struct Item *item);
+int it_def (const struct Item *item);
+glyph it_gl (const struct Item *item);
+int it_stackable (const struct Item *item);
+int it_fragile (const struct Item *item); /* will break when thrown */
+int it_persistent (const struct Item *item); /* can exist stably */
+int it_projdamage (const struct Item *item);
+int it_weight (const struct Item *item);
+int it_base_weight (const struct Item *item);
+int it_worn_offset (const struct Item *item);
+int it_worn (const struct Item *item);
+
+/* get mergibility of two item stacks */
+//int it_can_merge (const struct Item *it1, const struct Item *it2);
 
 /* can wear in a particular place */
 int it_canwear (const struct Item *item, enum MONS_BODYPART part);
 
-/* calculate base item damage */
-int it_projdamage (const struct Item *item);
+/* get item ITSORT */
+enum ITSORT it_sort (const struct Item *item);
 
 /* get skill used by item */
 enum SK_TYPE it_skill (const struct Item *item);
 
 /* get associated item category */
 enum ITCAT it_category (enum ITSORT type);
+
+/* get item location */
+MID it_wieldedID (const struct Item *item);
+MID it_invID (const struct Item *item);
+int it_dlvl (const struct Item *item);
+int it_flight (const struct Item *item);
 
 /* Side-effects: */
 
@@ -224,17 +270,21 @@ int it_freeze (struct Item *item);
 int it_burn (struct Item *item);
 
 /* merge second stack to first stack if possible */
-int it_merge (struct Item *it1, struct Item *it2);
+//int it_merge (struct Item *it1, struct Item *it2);
 
-/* get weight */
-int it_weight (const struct Item *item);
-int it_base_weight (const struct Item *item);
+/* invalidate an item, but do not free it */
+void it_rem (struct Item *item);
 
-/* get item location */
-MID it_wieldedID (const struct Item *item);
-MID it_invID (const struct Item *item);
-int it_dlvl (const struct Item *item);
-int it_flight (const struct Item *item);
+/* break an item */
+void it_break (struct Item *item);
+
+/* change item worn property */
+void it_wear (struct Item *item, size_t offset);
+void it_unwear (struct Item *item);
+
+/* set item attr value */
+void it_set_attk (struct Item *item, int attk);
+void it_set_def (struct Item *item, int def);
 
 #endif /* ITEM_H_INCLUDED */
 

@@ -204,9 +204,9 @@ void ev_do (const union Event *ev)
 			return;
 		if (item->loc.fl.speed <= 0)
 		{
-			if (item->type.type == ITSORT_SHARD)
+			if (it_fragile (item))
 			{
-				ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, itemID, 5}});
+				it_break (item);
 				return;
 			}
 			ev_queue (0, (union Event) { .proj_done = {EV_PROJ_DONE, itemID}});
@@ -517,7 +517,7 @@ void ev_do (const union Event *ev)
 			return;
 		item = it_at (ev->mwear_armour.itemID); 
 		if (it_invID (item) != ev->mwear_armour.thID ||
-			item_worn (item))
+			it_worn (item))
 			return;
 		if (!mons_can_wear (mons, item, ev->mwear_armour.offset))
 			return;
@@ -530,7 +530,7 @@ void ev_do (const union Event *ev)
 			return;
 		item = it_at (ev->mtakeoff_armour.itemID); 
 		if (it_invID(item) != ev->mtakeoff_armour.thID ||
-			(!item_worn(item)))
+			(!it_worn(item)))
 			return;
 		if (!mons_can_takeoff (mons, item))
 			return;
@@ -552,21 +552,21 @@ void ev_do (const union Event *ev)
 			itemID = *(TID*)v_at (pickup, i);
 			item = it_at(itemID);
 			struct Item *packitem;
+			//for (j = 0; j < MAX_ITEMS_IN_PACK; ++ j)
+			//{
+			//	packitem = &mons->pack->items[j];
+				//if (it_can_merge (packitem, item) && !NO_ITEM(packitem))
+				//	break;
+			//}
+			//if (j < MAX_ITEMS_IN_PACK)
+			//	goto pick_up_item;
 			for (j = 0; j < MAX_ITEMS_IN_PACK; ++ j)
 			{
 				packitem = &mons->pack->items[j];
-				if (it_can_merge (packitem, item) && !NO_ITEM(packitem))
+				if (NO_ITEM (packitem))//it_can_merge (packitem, item))
 					break;
 			}
-			if (j < MAX_ITEMS_IN_PACK)
-				goto pick_up_item;
-			for (j = 0; j < MAX_ITEMS_IN_PACK; ++ j)
-			{
-				packitem = &mons->pack->items[j];
-				if (it_can_merge (packitem, item))
-					break;
-			}
-		pick_up_item:
+		//pick_up_item:
 			/* Pick up the item */
 			item_put (item, (union ItemLoc) { .inv = {LOC_INV, thID, j}});
 			/* Say so */
@@ -587,7 +587,7 @@ void ev_do (const union Event *ev)
 		for (i = 0; i < items->len; ++ i)
 		{
 			struct Item *drop = it_at(*(TID*)v_at (items, i));
-			if (item_worn(drop))
+			if (it_worn(drop))
 				continue;
 			item_put (drop, (union ItemLoc) { .dlvl = {LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
 		}
@@ -618,8 +618,8 @@ void ev_do (const union Event *ev)
 		mons = MTHIID (thID);
 		if (!mons)
 			return;
-		newitem = new_item (ityps[ITYP_FIREBALL]);
-		newitem.attk = ev->mfireball.attk;
+		newitem = new_item (ITYP_FIREBALL);
+		it_set_attk (&newitem, ev->mfireball.attk);
 		loc = (union ItemLoc) { .fl =
 			{LOC_FLIGHT, mons->dlevel, mons->yloc, mons->xloc, {0,}, mons->str, thID}};
 		bres_init (&loc.fl.bres, mons->yloc, mons->xloc, ev->mfireball.ydest, ev->mfireball.xdest);
@@ -631,8 +631,8 @@ void ev_do (const union Event *ev)
 		mons = MTHIID (thID);
 		if (!mons)
 			return;
-		newitem = new_item (ityps[ITYP_WATER_BOLT]);
-		newitem.attk = ev->mwater_bolt.attk;
+		newitem = new_item (ITYP_WATER_BOLT);
+		it_set_attk (&newitem, ev->mwater_bolt.attk);
 		loc = (union ItemLoc) { .fl =
 			{LOC_FLIGHT, mons->dlevel, mons->yloc, mons->xloc, {0,}, mons->str, thID}};
 		bres_init (&loc.fl.bres, mons->yloc, mons->xloc, ev->mwater_bolt.ydest, ev->mwater_bolt.xdest);
