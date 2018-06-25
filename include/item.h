@@ -61,26 +61,15 @@ enum ITEM_TYPE
 	ITYP_LEATHER_HAT,
 	ITYP_HELMET,
 	ITYP_GOLD_PIECE,
-	ITYP_CORPSE,
 	ITYP_BONE,
 	ITYP_FIREBALL,
 	ITYP_WATER_BOLT,
 	ITYP_ICE_BOLT,
 	ITYP_FORCE_SHARD,
 	ITYP_WIND_SHARD,
-	NUM_ITYPS
+	ITYP_NUM_ITEMS
+	/* corpses here */
 };
-
-/* BUC status */
-//#define ITEM_CURS   0x00000001
-//#define ITEM_UNCS   0x00000000
-//#define ITEM_BLES   0x00000002
-//#define ITEM_KBUC   0x00000004
-/* 1 <= n < 4 */
-//#define ITEM_PLUS(n) 0x00000000+(n<<3)
-//#define ITEM_MINS(n) 0x00000020+(n<<3)
-/* greased */
-//#define ITEM_GREASED 0x00000040
 
 #define ITCH_WEAPON  ')'
 #define ITCH_TOOL    '('
@@ -164,19 +153,11 @@ struct Item
 {
 	TID ID;
 	union ItemLoc loc;
-	//int custom;
-	//union
-	//{
-	//	Ityp *ptype;
-	//	Ityp type;
-	//} type;
-	//Ityp atype;
 	enum ITEM_TYPE qtype;
 	//uint32_t attr;
 	int wt;
 	int attk, def;
 	int worn_offset;
-	//Vector data;
 };
 
 // TODO use!
@@ -197,11 +178,7 @@ struct ItemStack
 
 extern Ityp ityps[];
 
-//#define new_items(ityp,stacksize) ((struct Item)
-//	{0, { .loc = LOC_NONE}, (ityp), (ityp).wt * (stacksize), NULL, 0, (ityp).attk, (ityp).def, -1, stacksize})
-//#define new_item(ityp) new_items(ityp, 1)
-#define new_item(typ) ((struct Item) {0, { .loc = LOC_NONE}, typ, 0, 0, 0, -1})
-//#define new_custom(ityp) ((struct Item) {0, { .loc = LOC_NONE}, 1, { .type = (Ityp) (ityp)}, 0, NULL})
+#define new_item(typ) ((struct Item) {0, { .loc = LOC_NONE}, (typ), ityps[typ].wt, ityps[typ].attk, ityps[typ].def, -1})
 
 extern struct Item no_item;
 
@@ -209,8 +186,6 @@ void ityp_init      ();
 
 void item_piles     (int, Vector, Vector);
 void item_gen       (union ItemLoc);
-
-//#define item_worn(item) ((item)->worn_offset != -1)
 
 extern char *item_appearance[];
 
@@ -221,10 +196,6 @@ int  items_equal (struct Item *, struct Item *);
 
 /* get near and far descriptions */
 void it_desc (char *out, const struct Item *item, const struct Monster *player);
-
-/* does item have a given attribute/effect? */
-int it_attr (const struct Item *item, enum ITEM_ATTR attr);
-char *it_eff (const struct Item *item, enum ITEM_EFF eff);
 
 /* get item properties */
 const char *it_typename (const struct Item *item);

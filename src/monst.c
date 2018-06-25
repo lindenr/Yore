@@ -113,7 +113,14 @@ void mons_corpse (struct Monster *mons, struct Item *item)
 	/ * fill in the data * /
 	Ityp itype = (Ityp) {{0,}, ITSORT_CORPSE, mons_get_wt (mons), 0, 0, ITCH_CORPSE | (mons->gl & ~0xff), 1};
 	snprintf (itype.name, ITEM_NAME_LENGTH, "%s corpse", mons->mname);*/
-	*item = new_item (ITYP_CORPSE);
+	*item = new_item (ITYP_NUM_ITEMS + mons_type (mons));
+}
+
+enum MTYPE mons_type (const struct Monster *mons)
+{
+	if (!mons)
+		panic ("NULL mons in mons_type");
+	return mons->mtype;
 }
 
 int mons_get_HP (struct Monster *mons)

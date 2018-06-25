@@ -405,10 +405,10 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 	return true;
 }
 
-void init_mons (struct Monster *mons, int type)
+void init_mons (struct Monster *mons, enum MTYPE type)
 {
 	memcpy (mons, &all_mons[type], sizeof(struct Monster));
-	//mons->type = type;
+	mons->mtype = type;
 }
 
 /* initialised at start of game */

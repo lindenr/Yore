@@ -19,10 +19,8 @@
    5000g or so */
 
 #define ITYP(nm,tp,wt,attk,def,gl,st) {nm,tp,wt,attk,def,gl,st}
-//#define DMG(a,b) (((a)<<4)+(b))
 
-/* No corpse -- they are a custom item (see src/monst.c). TODO change */
-Ityp ityps[] = {
+Ityp ityps[ITYP_NUM_ITEMS + MTYP_NUM_MONS] = {
 /*  item name              type              weight attributes     display                      */
 	ITYP("long sword",     ITSORT_LONGSWORD,  2000,  10, 0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
 	ITYP("fencing sword",  ITSORT_LONGSWORD,  1500,  10, 0,      ITCH_WEAPON | COL_TXT(11, 0,11), 0),
@@ -38,14 +36,12 @@ Ityp ityps[] = {
 	ITYP("leather hat",    ITSORT_HELM,       50,    0,  1,      ITCH_ARMOUR | COL_TXT( 8, 8, 2), 0),
 	ITYP("helmet",         ITSORT_HELM,       2000,  0,  3,      ITCH_ARMOUR | COL_TXT(11,11, 2), 0),
 	ITYP("gold piece",     ITSORT_MONEY,      1,     0,  0,      ITCH_DOSH   | COL_TXT(15,15, 0), 1),
-	ITYP("corpse",         ITSORT_CORPSE,     100,   0,  0,      ITCH_CORPSE | COL_TXT(10,10, 0), 1),
 	ITYP("bone",           ITSORT_BONE,       100,   0,  0,      ITCH_CORPSE | COL_TXT(15,15,15), 1),
 	ITYP("fireball",       ITSORT_ARCANE,     0,     0,  0,      0x09        | COL_TXT(15, 4, 0), 0),
 	ITYP("water bolt",     ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 8,15), 0),
 	ITYP("ice bolt",       ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0,15,15), 0),
 	ITYP("force shard",    ITSORT_SHARD,      20,    0,  0,      0xFB        | COL_TXT(15, 8, 0), 0),
 	ITYP("wind shard",     ITSORT_SHARD,      20,    0,  0,      0xFB        | COL_TXT( 0,15,15), 0),
-	ITYP("",               ITSORT_NONE,       0,     0,  0,      0                              , 0)
 /*  item name              type              weight attributes     display                      */
 };
 
@@ -55,47 +51,39 @@ const int it_displayorder[] = {ITCAT_HANDS, ITCAT_DOSH, ITCAT_WEAPON, ITCAT_ARMO
 
 void ityp_init ()
 {
-	return;
+	int i;
+	for (i = 0; i < MTYP_NUM_MONS; ++ i)
+	{
+		ityps[ITYP_NUM_ITEMS + i] = (Ityp) ITYP("", ITSORT_CORPSE, CORPSE_WEIGHTS[all_mons[i].mflags>>29], 0, 0, ITCH_CORPSE | (all_mons[i].gl & 0xFFFFFF00), 0);
+		snprintf (ityps[ITYP_NUM_ITEMS + i].name, ITEM_NAME_LENGTH, "%s corpse", all_mons[i].mname);
+	}
 }
 
 void it_desc (char *out, const struct Item *item, const struct Monster *pl)
 {
 	char temp[120];
 	//char temp[115];
-	/*if (item->name != NULL && item->name[0] != '\0')
-	{
-		p_msg ("NULULULULUL");
-	}
-	else
-	{*/
-		char ench_string[60] = "";
-		int a = it_attk (item), d = it_def (item);
-		if (a && pl)
-			snprintf (ench_string, 60, " (#nF3300000%d+%d#nBBB00000 dmg)",
-				a, mons_attk_bonus (pl, item));
-		else if (a)
-			snprintf (ench_string, 60, " (#nF3300000%d#nBBB00000 dmg)", a);
-		else if (d)
-			snprintf (ench_string, 60, " (#nF7000000%d#nBBB00000 def)", d);
-		snprintf (temp, 115, "%s%s%s%s",
-		         /* beatitude */
-		         //(!it_kbuc (item)) ? "" :
-		         //  it_buc (item) == 1  ? "blessed " :
-		         //  it_buc (item) == -1  ? "cursed "  : "uncursed ",
-		         /* greasedness */
-		         //(item->attr & ITEM_GREASED) ? "greased " : "",
-		         /* name */
-				 it_typename (item),
-		         //item->stacksize == 1 ? "" : "s",
-		         /* enchantment value */
-				 ench_string,
-		         /* wielded */
-		         it_wieldedID (item) ? " (wielded)" : "",
-				 it_worn (item) ? " (worn)" : ""
-				 );
-		//w_some (temp2, temp, item->stacksize, 128);
-		snprintf (out, 128, "#g%s %s", gl_format (it_gl (item)), temp);
-	//}
+	char ench_string[60] = "";
+	int a = it_attk (item), d = it_def (item);
+	if (a && pl)
+		snprintf (ench_string, 60, " (#nF3300000%d+%d#nBBB00000 dmg)",
+			a, mons_attk_bonus (pl, item));
+	else if (a)
+		snprintf (ench_string, 60, " (#nF3300000%d#nBBB00000 dmg)", a);
+	else if (d)
+		snprintf (ench_string, 60, " (#nF7000000%d#nBBB00000 def)", d);
+	snprintf (temp, 115, "%s%s%s%s",
+			 /* name */
+			 it_typename (item),
+			 //item->stacksize == 1 ? "" : "s",
+			 /* enchantment value */
+			 ench_string,
+			 /* wielded */
+			 it_wieldedID (item) ? " (wielded)" : "",
+			 it_worn (item) ? " (worn)" : ""
+			 );
+	//w_some (temp2, temp, item->stacksize, 128);
+	snprintf (out, 128, "#g%s a %s", gl_format (it_gl (item)), temp);
 }
 
 const char *it_typename (const struct Item *item)
@@ -194,8 +182,6 @@ int it_freeze (struct Item *item)
 {
 	if (it_sort (item) != ITSORT_ARCANE)
 		return 1;
-	//if (item->custom)
-	//	return 1;
 	if (it_type (item) == ITYP_FIREBALL)
 	{
 		item_free (item);
@@ -216,7 +202,7 @@ int it_burn (struct Item *it)
 	if (it_sort (it) != ITSORT_SHARD)
 		return 1;
 
-	ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, it->ID, 5}});
+	it_break (it);
 	return 1;
 }
 
@@ -304,6 +290,7 @@ void it_break (struct Item *item)
 		ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, item->ID, 5}});
 		return;
 	}
+	item_free (item);
 }
 
 enum SK_TYPE it_skill (const struct Item *item)

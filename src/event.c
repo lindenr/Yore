@@ -204,11 +204,6 @@ void ev_do (const union Event *ev)
 			return;
 		if (item->loc.fl.speed <= 0)
 		{
-			if (it_fragile (item))
-			{
-				it_break (item);
-				return;
-			}
 			ev_queue (0, (union Event) { .proj_done = {EV_PROJ_DONE, itemID}});
 			return;
 		}
@@ -232,6 +227,14 @@ void ev_do (const union Event *ev)
 	case EV_PROJ_DONE:
 		itemID = ev->proj_done.itemID;
 		item = it_at(itemID);
+		if (!item)
+			return;
+		if (it_fragile (item))
+		{
+			// eff_item_breaks (item); TODO
+			it_break (item);
+			return;
+		}
 		if (!it_persistent (item))
 		{
 			eff_item_dissipates (item);

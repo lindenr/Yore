@@ -55,7 +55,7 @@ typedef long long unsigned Tick;
 struct Skill;
 typedef struct Skill *Skill;
 
-enum MTYPES
+enum MTYPE
 {
 	MTYP_chicken = 0,
 	MTYP_newt,
@@ -198,6 +198,7 @@ struct Monster
 	MID ID;                /* monster ID                   */
 	int dlevel;            /* parent dungeon level         */
 	int yloc, xloc;        /* location in dungeon          */
+	enum MTYPE mtype;      /* monster type                 */
 	const char *mname;     /* name of monster type         */
 	glyph gl;              /* display glyph                */
 	union CTRState ctr;    /* state of the control method  */
@@ -261,6 +262,7 @@ int    mons_skill      (const struct Monster *,              /* get skill level 
 	const struct Item *);
 int    mons_attk_bonus (const struct Monster *,              /* get extra damage a monster does          */
 	const struct Item *);
+enum MTYPE mons_type   (const struct Monster *);             /* get monster type                         */
 
 /* effects */
 void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */
