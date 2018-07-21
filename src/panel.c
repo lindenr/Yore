@@ -53,6 +53,9 @@ void p_timeline ()
 				gra_mvaddch (gpred, (mons->status.attacking.arrival - curtick) / ticks_per_tile, 0,
 					ACS_PLUS | COL_TXT(15,0,0));
 		}
+		gra_mvaddch (gpred, (pl->speed+1)/ticks_per_tile, 0, 'M' | COL_TXT(0,15,0));
+		gra_mvaddch (gpred, (pl->speed/2)/ticks_per_tile, 0, 'P' | COL_TXT(0,15,0));
+		gra_mvaddch (gpred, (pl->speed/3)/ticks_per_tile, 0, 'E' | COL_TXT(0,15,0));
 	}
 }
 
@@ -126,6 +129,12 @@ void p_pane (struct Monster *player)
 		gra_mvaddch (gpan, 7, 1, 6 | COL_TXT(7,15,15));
 		gra_mvaddch (gpan, 8, 1, 0xE4 | COL_TXT(15,0,15));
 		gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d", player->status.defending.ydir, player->status.defending.xdir);
+		if (player->status.bleeding)
+		{
+			gpan->def = COL_TXT(15,0,0);
+			gra_mvprint (gpan, 3, 100, "BLEEDING");
+			gpan->def = COL_TXT_DEF;
+		}
 		if (player->status.charging)
 			gra_mvprint (gpan, 3, 110, "CHARGING");
 	}
@@ -175,6 +184,7 @@ void p_amsg (const char *str)
 		msg.msg[P_MSG_LEN-1] = 0;
 		v_push (messages, &msg);
 	}
+	p_ffree (formatted);
 }
 
 void p_msg (const char *str, ...)
@@ -724,7 +734,7 @@ Vector p_formatted (const char *input, int max_line_len)
 				glyph gl = 0;
 				for (j = 1; j <= 8 && input[i+j]; ++ j)
 				{
-					int k = interp_hex (input[i+j]);
+					glyph k = interp_hex (input[i+j]);
 					if (k == -1)
 						break;
 					gl += k << (4*(8-j));
@@ -741,7 +751,7 @@ Vector p_formatted (const char *input, int max_line_len)
 				glyph gl = 0;
 				for (j = 1; j <= 8 && input[i+j]; ++ j)
 				{
-					int k = interp_hex (input[i+j]);
+					glyph k = interp_hex (input[i+j]);
 					if (k == -1)
 						break;
 					gl += k << (4*(8-j));
@@ -908,46 +918,51 @@ void eff_proj_hits_mons (struct Item *item, struct Monster *mons, int damage)
 		p_msg ("The %s hits the %s for "COL_RED("%d")"!", it_typename (item), mons_typename (mons), damage);
 }
 
-void eff_mons_tiredly_misses_mons (struct Monster *fr, struct Monster *to)
+void eff_mons_starts_hit (struct Monster *mons, int y, int x, Tick arrival)
+{
+	if (!player_sees_mons (mons))
+		return;
+	if (mons_isplayer (mons))
+		return;
+	if (!player_sees_mons (mons))
+		return;
+	p_msg ("The %s swings!", mons_typename (mons));
+}
+
+void eff_aux_mons_misses_mons (struct Monster *fr, struct Monster *to, const char *adverb)
 {
 	if (!player_sees_mons (fr))
 		return;
 	if (!player_sees_mons (to))
 		return;
-	if (mons_isplayer (to))
-		p_msg ("The %s tiredly misses you!", mons_typename (fr));
+	if (to == fr)
+	{
+		if (mons_isplayer (to))
+			p_msg ("You%s miss yourself!", adverb);
+		else
+			p_msg ("The %s%s misses itself!", adverb, mons_typename (to));
+	}
+	else if (mons_isplayer (to))
+		p_msg ("The %s%s misses you!", adverb, mons_typename (fr));
 	else if (mons_isplayer (fr))
-		p_msg ("You tiredly miss the %s!", mons_typename (to));
+		p_msg ("You%s miss the %s!", adverb, mons_typename (to));
 	else
-		p_msg ("The %s tiredly misses the %s!", mons_typename (fr), mons_typename (to));
+		p_msg ("The %s%s misses the %s!", adverb, mons_typename (fr), mons_typename (to));
+}
+
+void eff_mons_tiredly_misses_mons (struct Monster *fr, struct Monster *to)
+{
+	eff_aux_mons_misses_mons (fr, to, " tiredly");
 }
 
 void eff_mons_misses_mons (struct Monster *fr, struct Monster *to)
 {
-	if (!player_sees_mons (fr))
-		return;
-	if (!player_sees_mons (to))
-		return;
-	if (mons_isplayer (to))
-		p_msg ("The %s misses you!", mons_typename (fr));
-	else if (mons_isplayer (fr))
-		p_msg ("You miss the %s!", mons_typename (to));
-	else
-		p_msg ("The %s misses the %s!", mons_typename (fr), mons_typename (to));
+	eff_aux_mons_misses_mons (fr, to, "");
 }
 
 void eff_mons_just_misses_mons (struct Monster *fr, struct Monster *to)
 {
-	if (!player_sees_mons (fr))
-		return;
-	if (!player_sees_mons (to))
-		return;
-	if (mons_isplayer (to))
-		p_msg ("The %s just misses you!", mons_typename (fr));
-	else if (mons_isplayer (fr))
-		p_msg ("You just miss the %s!", mons_typename (to));
-	else
-		p_msg ("The %s just misses the %s!", mons_typename (fr), mons_typename (to));
+	eff_aux_mons_misses_mons (fr, to, " just");
 }
 
 void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage)
@@ -956,12 +971,29 @@ void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage)
 		return;
 	if (!player_sees_mons (to))
 		return;
-	if (mons_isplayer (to))
+	if (to == fr)
+	{
+		if (mons_isplayer (to))
+			p_msg ("You hit yourself for "COL_RED("%d")"!", damage);
+		else
+			p_msg ("The %s hits itself!", mons_typename (to));
+	}
+	else if (mons_isplayer (to))
 		p_msg ("The %s hits you for "COL_RED("%d")"!", mons_typename (fr), damage);
 	else if (mons_isplayer (fr))
 		p_msg ("You hit the %s for "COL_RED("%d")"!", mons_typename (to), damage);
 	else
 		p_msg ("The %s hits the %s for "COL_RED("%d")"!", mons_typename (fr), mons_typename (to), damage);
+}
+
+void eff_mons_bleeds (struct Monster *mons, int damage)
+{
+	if (!player_sees_mons (mons))
+		return;
+	if (mons_isplayer (mons))
+		p_msg ("You bleed for "COL_RED("%d")"!", damage);
+	else
+		p_msg ("The %s bleeds!", mons_typename (mons));
 }
 
 void eff_mons_kills_mons (struct Monster *fr, struct Monster *to)
@@ -995,7 +1027,7 @@ void eff_mons_levels_up (struct Monster *mons)
 		p_msg ("The %d seems more experienced.", mons_typename (mons));
 }
 
-static char msg[128];
+static char msg[IT_DESC_LEN];
 void eff_mons_picks_up_item (struct Monster *mons, struct Item *item)
 {
 	if (!player_sees_mons (mons))

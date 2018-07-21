@@ -4,6 +4,7 @@
 #include "include/all.h"
 #include "include/vector.h"
 #include "include/graphics.h"
+#include "include/monst.h"
 
 #define NUM_TABS 3
 
@@ -105,10 +106,12 @@ void eff_item_absorbed (struct Item *item);
 void eff_item_hits_wall (struct Item *item);
 void eff_proj_misses_mons (struct Item *item, struct Monster *mons);
 void eff_proj_hits_mons (struct Item *item, struct Monster *mons, int damage);
+void eff_mons_starts_hit (struct Monster *mons, int y, int x, Tick arrival);
 void eff_mons_tiredly_misses_mons (struct Monster *fr, struct Monster *to);
 void eff_mons_misses_mons (struct Monster *fr, struct Monster *to);
 void eff_mons_just_misses_mons (struct Monster *fr, struct Monster *to);
 void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage);
+void eff_mons_bleeds (struct Monster *mons, int damage);
 void eff_mons_kills_mons (struct Monster *fr, struct Monster *to);
 void eff_mons_sk_levels_up (struct Monster *mons, Skill sk);
 void eff_mons_levels_up (struct Monster *mons);

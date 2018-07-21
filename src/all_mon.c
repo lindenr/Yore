@@ -9,7 +9,7 @@
 #define MONST(nm,ch,size,at,fl,cl,str,con,wis,agi,spd,ex) \
 {0,0,-1,-1,-1,nm,ch|cl,{.mode=CTR_NONE},0,ex,0,NULL, \
 1, 1, 1, 1, 1, 1, str, con, wis, agi, spd, NULL, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
-(struct MStatus){{0,0},{0,0,-1},0,{0,0},0,0},(fl)|(FL_SIZE(size)),NULL}
+DEF_MSTATUS,(fl)|(FL_SIZE(size)),NULL}
 
 #define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}
 #define AM(a,b) ((a)|((b)<<16))
@@ -72,7 +72,7 @@ const struct Monster all_mons[] = {
 		  COL_TXT_GREEN(11),
 		  8, 8, 5, 12, 1000, 100),
 	MONST("lich", 'L', SIZE(4),
-		  ATTK(A(2, 4, ATTK_HIT), A(2, 2, AM(ATTK_MAGIC, ATYP_CURS)), AT_NONE,
+		  ATTK(A(2, 4, ATTK_HIT), A(2, 2, ATTK_TOUCH), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_SKEL,
 		  COL_TXT_RED(11) | COL_TXT_BLUE(11),
 		  200, 200, 200, 200, 600, 10000)/*,
@@ -82,7 +82,7 @@ const struct Monster all_mons[] = {
 		  COL_TXT_GREEN(11),
 		  30, 10, 3)*/,
 	MONST("Satan", 'D', SIZE(5),
-		  ATTK(A(3, 5, ATTK_HIT), A(4, 5, AM(ATTK_MAGIC, ATYP_BEAM)), AT_NONE,
+		  ATTK(A(3, 5, ATTK_HIT), A(4, 5, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_UNIQ, COL_TXT_RED(11),
 		  300, 300, 300, 300, 1200, 12000),
 	MONST(NULL, 0, SIZE(0),

@@ -40,7 +40,7 @@ void          thing_free     (struct Thing *);
 void          rem_id         (TID);
 
 struct Monster *new_mons     (struct DLevel *, uint32_t, uint32_t, void *);
-void          monsthing_move (struct Monster *, int, int, int);
+void          mons_move      (struct Monster *, int, int, int);
 void          rem_mid        (MID);
 
 struct Monster *MTHIID       (MID);

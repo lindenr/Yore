@@ -65,7 +65,7 @@ void add_desc (struct String *str, Pack *pack, int itcat, struct Monster *mons, 
 			str_catf (str, "#n000BBB00%s#nBBB00000\n", item_appearance [itcat]);
 			any = 1;
 		}
-		it_desc (line, packitem, mons);
+		it_ndesc (line, 128, packitem, mons);
 		str_catf (str, "#o%s\n", line);
 		v_push (contents, &packitem->ID);
 	}

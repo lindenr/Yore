@@ -135,7 +135,7 @@ void dlv_tile_burn (struct DLevel *dlvl, int yloc, int xloc)
 	int i = map_buffer (yloc, xloc);
 	struct Monster *mons = v_at (dlvl->mons, dlvl->monsIDs[i]);
 	if (mons->ID)
-		mons_take_damage (mons, NULL, rn(5), ATYP_PHYS);
+		mons_take_damage (mons, NULL, rn(5), DTYP_FIRE);
 	Vector items = dlvl->items[i];
 	int n;
 	for (n = 0; n < items->len; ++ n)
@@ -201,7 +201,7 @@ void dlv_fill_player_dist (struct DLevel *dlv)
 			if (current == -1 &&
 				ylocs[cur_back]+y+1 < map_graph->h && ylocs[cur_back]+y-1 >= 0 &&
 				xlocs[cur_back]+x+1 < map_graph->w && xlocs[cur_back]+x-1 >= 0 &&
-				can_amove (get_sqattr (cur_dlevel, ylocs[cur_back]+y, xlocs[cur_back]+x)))
+				map_passable (cur_dlevel, ylocs[cur_back]+y, xlocs[cur_back]+x))
 			{
 				ylocs[cur_loc] = ylocs[cur_back]+y;
 				xlocs[cur_loc] = xlocs[cur_back]+x;

@@ -87,6 +87,7 @@ Vector w_lines (const char *msg, int max)
 	}
 	strncpy (tmp, msg + start, len+1);
 	v_pstr (lines, tmp);
+	free (tmp);
 	return lines;
 /*
 	int i = 0, len = strlen (msg);

@@ -9,6 +9,8 @@
 #include "include/event.h"
 #include "include/string.h"
 
+static char it_descstr[IT_DESC_LEN];
+
 int pl_focus_mode = 0;
 Vector player_actions = NULL;
 void pl_queue (struct Monster *player, union Event ev)
@@ -28,7 +30,7 @@ int pl_execute (Tick wait, struct Monster *player, int force)
 		ev_queue (qev->tick, qev->ev);
 	}
 	player_actions->len = 0;
-	ev_queue (wait+1, (union Event) {.mturn = {EV_MTURN, player->ID}});
+	//ev_queue (wait+1, (union Event) {.mturn = {EV_MTURN, player->ID}});
 	return 1;
 }
 
@@ -73,8 +75,10 @@ int Kwait_cand (struct Monster *player)
 
 int Kwait (struct Monster *player)
 {
-	pl_queue (player, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, player->ID}});
-	return pl_execute (player->speed/5, player, 1);
+	//pl_queue (player, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, player->ID}});
+	//return pl_execute (player->speed/5, player, 1);
+	ev_queue (player->speed/5, (union Event) { .mturn = {EV_MTURN, player->ID}});
+	return 1;
 }
 
 int Kpickup_cand (struct Monster *player)
@@ -108,8 +112,9 @@ int Kpickup (struct Monster *player)
 			return 0;
 
 	}
-	pl_queue (player, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
-	return pl_execute (player->speed, player, 0);
+	ev_queue (player->speed, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
+	//return pl_execute (player->speed, player, 0);
+	return 1;
 }
 
 /*int Keat (struct Monster *player)
@@ -121,11 +126,18 @@ int Kpickup (struct Monster *player)
 	return 1;
 }*/
 
-/*int Kevade (struct Monster *player)
+int Kevade (struct Monster *player)
 {
-	pl_queue (player, (union Event) { .mevade = {EV_MEVADE, player->ID}});
+	int ymove, xmove;
+	p_notify ("Evade in which direction?");
+	char in = p_getch (player);
+	p_endnotify ();
+	p_move (&ymove, &xmove, in);
+	if (ymove == 0 && xmove == 0)
+		return 0;
+	pl_queue (player, (union Event) { .mevade = {EV_MEVADE, player->ID, ymove, xmove}});
 	return pl_execute (player->speed/2, player, 0);
-}*/
+}
 /*
 int Kparry (struct Monster *player)
 {
@@ -286,12 +298,11 @@ int nlook_msg (struct String *str, struct Monster *player)
 		}
 	}
 
-	char desc[128];
 	for (i = 0; i < items->len; ++ i)
 	{
 		struct Item *it = v_at(items, i);
-		it_desc (desc, it, NULL);
-		str_catf (str, "%s\n", desc);
+		it_desc (it_descstr, it, NULL);
+		str_catf (str, "%s\n", it_descstr);
 		++ k;
 	}
 
@@ -524,7 +535,7 @@ struct KStruct Keys[] = {
 	{'.',    &Kwait,   &Kwait_cand},
 	{',',    &Kpickup, &Kpickup_cand},
 //	{'e', &Keat},
-//	{'e', &Kevade},
+	{'e',    &Kevade,  NULL},
 //	{'p', &Kparry},
 	{'p',    &Kshield, &Kshield_cand},
 	{'d',    &Ksdrop,  &Ksdrop_cand},
@@ -592,7 +603,7 @@ int pl_take_turn (struct Monster *player)
 		p_move (&ymove, &xmove, in);
 		if (ymove != 0 || xmove != 0)
 		{
-			int mv = mons_move (player, ymove, xmove);
+			int mv = pl_attempt_move (player, ymove, xmove);
 			if (mv)
 				break;
 			if (gra_nearedge (map_graph, player->yloc, player->xloc))
@@ -612,17 +623,51 @@ int pl_take_turn (struct Monster *player)
 	return 1;
 }
 
+/* returns whether the move was used up */
+int pl_attempt_move (struct Monster *pl, int y, int x) /* each either -1, 0 or 1 */
+{
+	struct DLevel *lvl = dlv_lvl (pl->dlevel);
+	int yloc = pl->yloc + y, xloc = pl->xloc + x;
+	if (yloc < 0 || yloc >= map_graph->h ||
+	    xloc < 0 || xloc >= map_graph->w)
+		return 0;
+	int i, n = map_buffer (yloc, xloc);
+	/* melee attack! */
+	if (lvl->monsIDs[n])
+	{
+		struct Monster *mons = MTHIID (lvl->monsIDs[n]);
+		if (mons->ctr.mode == CTR_AI_HOSTILE ||
+			mons->ctr.mode == CTR_AI_AGGRO)
+		{
+			mons_try_attack (pl, y, x);
+			return 1;
+		}
+		p_msg ("It says hi!");
+		return 0;
+	}
+	for (i = 0; i < lvl->things[n]->len; ++ i)
+	{
+		struct Thing *th = THING(lvl->things, n, i);
+		/* like a an unmoveable boulder or something */
+		if (th->type == THING_DGN && (th->thing.mis.attr & 1) == 0)
+			return 0;
+	}
+	/* you can and everything's fine, nothing doing */
+	pl_queue (pl, (union Event) { .mmove = {EV_MMOVE, pl->ID, y, x}});
+	return pl_execute (pl->speed, pl, 0);
+}
+
+
 void ask_items (const struct Monster *player, Vector it_out, Vector it_in, const char *msg)
 {
 	int i;
 	struct String *fmt = str_dinit ();
 	str_catf (fmt, "%s\n\n", msg);
-	char desc[128];
 	for (i = 0; i < it_in->len; ++ i)
 	{
 		TID itemID = *(TID *) v_at (it_in, i);
-		it_desc (desc, it_at (itemID), NULL);
-		str_catf (fmt, "#o%s\n", desc);
+		it_desc (it_descstr, it_at (itemID), NULL);
+		str_catf (fmt, "#o%s\n", it_descstr);
 	}
 	str_catf (fmt, "\n");
 	int a = p_flines (str_data (fmt));

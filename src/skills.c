@@ -65,7 +65,7 @@ void sk_fireball (struct Monster *mons, int yloc, int xloc, Skill sk)
 		return;
 	mons->MP -= 5;
 	ev_queue (mons->speed/2, (union Event) { .mfireball = {EV_MFIREBALL, mons->ID, yloc, xloc, sk->level*5}});
-	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	mons_ex_skill (mons, sk);
 }
 
@@ -75,14 +75,14 @@ void sk_water_bolt (struct Monster *mons, int yloc, int xloc, Skill sk)
 		return;
 	mons->MP -= 6;
 	ev_queue (mons->speed/2, (union Event) { .mwater_bolt = {EV_MWATER_BOLT, mons->ID, yloc, xloc, sk->level*5}});
-	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	mons_ex_skill (mons, sk);
 }
 
 void sk_frost (struct Monster *mons, int yloc, int xloc, Skill sk)
 {
 	ev_queue (0, (union Event) { .mfrost = {EV_MFROST, mons->ID, yloc, xloc, 3}});
-	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	mons_ex_skill (mons, sk);
 }
 
@@ -116,7 +116,7 @@ int chargepos (struct DLevel *dlevel, int y, int x)
 		return 0;
 	}
 	charger->ST -= SK_CHARGE_COST;
-	return mons_move (charger, dy, dx)==1;
+	return mons_try_move (charger, dy, dx)==1;
 }
 #endif
 void sk_charge (struct Monster *th, int y, int x, Skill sk)
@@ -124,11 +124,11 @@ void sk_charge (struct Monster *th, int y, int x, Skill sk)
 	if (!th->status.charging)
 	{
 		ev_queue (0, (union Event) { .mstartcharge = {EV_MSTARTCHARGE, th->ID /*, y, x*/ }});
-		ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
+		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		return;
 	}
 	ev_queue (0, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, th->ID /*, y, x*/ }});
-	ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
+	//ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 //	sk_exp (th, sk, 1);
 	
 //	chID = th->ID;
@@ -173,7 +173,7 @@ void sk_flames_overlay (struct Monster *th)
 		gr_wait (50);
 	}
 	gra_free (flames_overlay);
-	ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
+	//ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 }
 
 void sk_scry (struct Monster *mons, Skill skill)

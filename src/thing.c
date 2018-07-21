@@ -249,7 +249,7 @@ struct Monster *MTHIID (MID id)
 	return ret;
 }
 
-void monsthing_move (struct Monster *thing, int new_level, int new_y, int new_x)
+void mons_move (struct Monster *thing, int new_level, int new_y, int new_x)
 {
 	if (thing->yloc == new_y && thing->xloc == new_x && thing->dlevel == new_level)
 		return;
@@ -269,6 +269,13 @@ void monsthing_move (struct Monster *thing, int new_level, int new_y, int new_x)
 	thing->dlevel = new_level;
 	draw_map_buf (olv, old);
 	draw_map_buf (nlv, new);
+	if (mons_isplayer (thing))
+	{
+		/* re-eval paths to player */
+		dlv_fill_player_dist (cur_dlevel);
+		/* check what the player can see now */
+		update_knowledge (thing);
+	}
 }
 
 struct Monster *new_mons (struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)

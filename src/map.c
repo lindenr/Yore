@@ -9,42 +9,23 @@
 #include "include/graphics.h"
 #include "include/dlevel.h"
 
-#define MAP_MOVEABLE 3
-
 Graph map_graph = NULL;
 
-uint32_t get_sqattr (struct DLevel *lvl, int yloc, int xloc)
+int map_bpassable (struct DLevel *lvl, int n)
 {
-	uint32_t mvbl = 1;
-
-	if (yloc < 0 || yloc >= map_graph->h ||
-	    xloc < 0 || xloc >= map_graph->w)
-		return -1;
-
-	int n = map_buffer (yloc, xloc);
-	if (lvl->monsIDs[n])
-		return 2;
-	Vector *things = lvl->things;
 	int i;
-	for (i = 0; i < things[n]->len; ++ i)
+	for (i = 0; i < lvl->things[n]->len; ++ i)
 	{
-		struct Thing *th = THING(things, n, i);
-		if (th->type == THING_DGN)
-		{
-			if ((th->thing.mis.attr & 1) == 0)
-			{
-				mvbl = 0; /* unmoveable */
-			}
-		}
+		struct Thing *th = THING(lvl->things, n, i);
+		if (th->type == THING_DGN && (th->thing.mis.attr & 1) == 0)
+			return 0;
 	}
-	return mvbl;
+	return 1;
 }
 
-int can_amove (int attr)
+int map_passable (struct DLevel *lvl, int y, int x)
 {
-	if (attr == ~0)
-		return attr;
-	return (attr & MAP_MOVEABLE);
+	return map_bpassable (lvl, map_buffer (y, x));
 }
 
 #define MAPITEM(nm,gl,at) {(nm), (gl), (at)}

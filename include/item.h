@@ -68,7 +68,7 @@ enum ITEM_TYPE
 	ITYP_FORCE_SHARD,
 	ITYP_WIND_SHARD,
 	ITYP_NUM_ITEMS
-	/* corpses here */
+	/* corpses here at runtime */
 };
 
 #define ITCH_WEAPON  ')'
@@ -86,6 +86,10 @@ enum ITEM_TYPE
 #define ITEM_NAME_LENGTH 20
 #define NO_ITEM(item) ((!(item)) || ((item)->ID == 0))
 #define it_type(item) ((item)->qtype)
+#define it_ityp(item) (&ityps[it_type(item)])
+
+#define ITF_EDGE 0x1
+#define ITF_POINT 0x2
 
 /* type of item */
 typedef struct
@@ -96,6 +100,7 @@ typedef struct
 	int attk, def;              /* attack, defense stats */
 	glyph gl;					/* for the display */
 	int stackable;              /* does it stack */
+	uint32_t flags;             /* flags */
 } Ityp;
 
 enum ITEM_LOC
@@ -195,7 +200,8 @@ extern char *item_appearance[];
 int  items_equal (struct Item *, struct Item *);
 
 /* get near and far descriptions */
-void it_desc (char *out, const struct Item *item, const struct Monster *player);
+void it_ndesc (char *out, int length, const struct Item *item, const struct Monster *player);
+void it_desc (char *out, const struct Item *item, const struct Monster *player); /* using default max output length */
 
 /* get item properties */
 const char *it_typename (const struct Item *item);
@@ -210,6 +216,7 @@ int it_weight (const struct Item *item);
 int it_base_weight (const struct Item *item);
 int it_worn_offset (const struct Item *item);
 int it_worn (const struct Item *item);
+enum DMG_TYPE it_dtyp (const struct Item *item);
 
 /* get mergibility of two item stacks */
 //int it_can_merge (const struct Item *it1, const struct Item *it2);

@@ -20,7 +20,7 @@ typedef enum
 	EV_MMOVE,
 	EV_MDOMOVE,
 	EV_MEVADE,
-	EV_MUNEVADE,
+	EV_MDOEVADE,
 //	EV_MPARRY,
 	EV_MSHIELD,
 	EV_MDOSHIELD,
@@ -30,6 +30,7 @@ typedef enum
 	EV_MTURN,
 	EV_MGEN,
 	EV_MREGEN,
+	EV_MBLEED,
 	EV_MWIELD,
 	EV_MWEAR_ARMOUR,
 	EV_MTAKEOFF_ARMOUR,
@@ -122,12 +123,13 @@ union Event
 	{
 		EV_TYPE type;
 		MID thID;
+		int ydir, xdir;
 	} mevade;
 	struct
 	{
 		EV_TYPE type;
 		MID thID;
-	} munevade;
+	} mdoevade;
 	struct
 	{
 		EV_TYPE type;
@@ -171,6 +173,11 @@ union Event
 		EV_TYPE type;
 		MID thID;
 	} mregen;
+	struct
+	{
+		EV_TYPE type;
+		MID thID;
+	} mbleed;
 	struct
 	{
 		EV_TYPE type;

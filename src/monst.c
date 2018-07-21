@@ -103,16 +103,7 @@ int mons_get_wt (struct Monster *mons)
 }
 
 void mons_corpse (struct Monster *mons, struct Item *item)
-{/*
-	if (!(mons->mflags & FL_FLSH))
-	{
-		//int num = rn(4) + 3;
-		*item = new_item (ITYP_BONE);
-		return;
-	}
-	/ * fill in the data * /
-	Ityp itype = (Ityp) {{0,}, ITSORT_CORPSE, mons_get_wt (mons), 0, 0, ITCH_CORPSE | (mons->gl & ~0xff), 1};
-	snprintf (itype.name, ITEM_NAME_LENGTH, "%s corpse", mons->mname);*/
+{
 	*item = new_item (ITYP_NUM_ITEMS + mons_type (mons));
 }
 
@@ -169,7 +160,7 @@ int mons_try_wear (struct Monster *mons, struct Item *it)
 		}
 		ev_queue (0, (union Event) { .mwear_armour =
 			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, hands[i])}});
-		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+		//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
 	}
 	if (it_canwear (it, MONS_TORSO))
@@ -186,7 +177,7 @@ int mons_try_wear (struct Monster *mons, struct Item *it)
 		}
 		ev_queue (0, (union Event) { .mwear_armour =
 			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, torsos[i])}});
-		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+		//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
 	}
 	if (it_canwear (it, MONS_HEAD))
@@ -203,7 +194,7 @@ int mons_try_wear (struct Monster *mons, struct Item *it)
 		}
 		ev_queue (0, (union Event) { .mwear_armour =
 			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, heads[i])}});
-		ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+		//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
 	}
 	return 0;
@@ -219,72 +210,47 @@ int mons_try_takeoff (struct Monster *mons, struct Item *it)
 	if (NO_ITEM(it))
 		return 0;
 	ev_queue (0, (union Event) { .mtakeoff_armour = {EV_MTAKEOFF_ARMOUR, mons->ID, it->ID}});
-	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	return 1;
 }
 
 int mons_try_attack (struct Monster *mons, int y, int x)
 {
 	ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, mons->ID, 0, y, x}});
-	ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	return 1;
 }
 
-/* Return values:
- * 0 = failed to move; 1 = moved as desired;
- * 2, 3, 4 = did not move as desired but used turn */
-int mons_move (struct Monster *th, int y, int x) /* each either -1, 0 or 1 */
+int mons_can_move (struct Monster *mons, int y, int x)
 {
-	if (!(x || y))
+	if (y < -1 || y > 1 || x < -1 || x > 1)
 		return 0;
-	int can = can_amove (get_sqattr (dlv_lvl(th->dlevel), th->yloc + y, th->xloc + x));
-	/* like a an unmoveable boulder or something */
-	if (!can)
+	struct DLevel *lvl = dlv_lvl (mons->dlevel);
+	int yloc = mons->yloc + y, xloc = mons->xloc + x;
+	if (yloc < 0 || yloc >= map_graph->h ||
+	    xloc < 0 || xloc >= map_graph->w)
 		return 0;
-	/* you can and everything's fine, nothing doing */
-	else if (can == 1)
-	{
-		if (mons_isplayer (th))
-		{
-			pl_queue (th, (union Event) { .mmove = {EV_MMOVE, th->ID, y, x}});
-			return pl_execute (th->speed, th, 0);
-		}
-		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, th->ID, y, x}});
-		ev_queue (th->speed+1, (union Event) { .mturn = {EV_MTURN, th->ID}});
-		return 1;
-	}
-	/* melee attack! */
-	else if (can == 2)
-	{
-		/*if (mons_isplayer (th))
-		{
-			pl_queue (th, (union Event) { .mattkm = {EV_MATTKM, th->ID, y, x}});
-			return pl_execute (th->speed, th, 0);
-		}
-		ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, th->ID, y, x}});
-		ev_queue (th->speed+1, (union Event) { .mturn = {EV_MTURN, th->ID}}); */
-		mons_try_attack (th, y, x);
-		return 2;
-	}
-	else if (can == 3)
-	{
-		ev_queue (0, (union Event) { .mopendoor = {EV_MOPENDOOR, th->ID, y, x}});
-		return 3;
-	}
-	else if (can == 4)
-	{
-		ev_queue (0, (union Event) { .mclosedoor = {EV_MCLOSEDOOR, th->ID, y, x}});
-		return 4;
-	}
-	/* off map or something */
-	else if (can == -1)
-	{
-		/* nothing to do except return 0 (move not allowed) */
+	int n = map_buffer (yloc, xloc);
+	if (lvl->monsIDs[n])
 		return 0;
-	}
-	/* shouldn't get to here -- been a mistake */
-	panic ("mons_move() end reached");
-	return 0;
+	return map_bpassable (lvl, n);
+}
+
+void mons_try_move (struct Monster *mons, int y, int x)
+{
+	ev_queue (0, (union Event) { .mmove = {EV_MMOVE, mons->ID, y, x}});
+	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
+}
+
+void mons_try_wait (struct Monster *mons)
+{
+	ev_queue (mons->speed, (union Event) { .mwait = {EV_MWAIT, mons->ID}});
+}
+
+void mons_try_wield (struct Monster *mons, struct Item *item)
+{
+	ev_queue (mons->speed, (union Event) { .mwield = {EV_MWIELD, mons->ID, 0, item->ID}});
+	//ev_queue (mons->speed+1, (union Event) { .mwait = {EV_MWAIT, mons->ID}});
 }
 
 void mons_tilefrost (struct Monster *mons, int yloc, int xloc)
@@ -331,6 +297,18 @@ void mons_take_off (struct Monster *mons, struct Item *item)
 	mons->armour -= it_def (item);
 }
 
+void mons_start_evade (struct Monster *mons, int y, int x, Tick arrival)
+{
+	mons->status.evading = (typeof(mons->status.evading)) {y, x, arrival};
+	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
+}
+
+void mons_stop_evade (struct Monster *mons)
+{
+	mons->status.evading = (typeof(mons->status.evading)) {0, 0, 0};
+	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
+}
+
 void mons_start_move (struct Monster *mons, int y, int x, Tick arrival)
 {
 	mons->status.moving = (typeof(mons->status.moving)) {y, x, arrival};
@@ -345,6 +323,7 @@ void mons_stop_move (struct Monster *mons)
 
 void mons_start_hit (struct Monster *mons, int y, int x, int arm, Tick arrival)
 {
+	eff_mons_starts_hit (mons, y, x, arrival);
 	mons->status.attacking = (typeof(mons->status.attacking)) {y, x, arm, arrival};
 	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
 }
@@ -355,14 +334,33 @@ void mons_stop_hit (struct Monster *mons)
 	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
 }
 
-void mons_take_damage (struct Monster *mons, struct Monster *fr, int dmg, enum ATTK_TYPE type)
+int mons_take_damage (struct Monster *mons, struct Monster *fr, int dmg, enum DMG_TYPE type)
 {
 	mons->HP -= dmg;
 	if (mons->HP <= 0)
 	{
 		mons->HP = 0;
+		if (type == DTYP_BLEED && !fr)
+			p_msg ("The %s bleeds out and dies!", mons_typename (mons));
 		mons_kill (fr, mons);
+		return 0;
 	}
+	if (type == DTYP_CUT)
+		mons_startbleed (mons);
+	return 1;
+}
+
+void mons_startbleed (struct Monster *mons)
+{
+	if (mons->status.bleeding)
+		return;
+	mons->status.bleeding = 1;
+	ev_queue (1000, (union Event) { .mbleed = {EV_MBLEED, mons->ID}});
+}
+
+void mons_stopbleed (struct Monster *mons)
+{
+	mons->status.bleeding = 0;
 }
 
 void mons_kill (struct Monster *fr, struct Monster *to)
@@ -426,7 +424,7 @@ void mons_calm (struct Monster *mons)
 	eff_mons_calms (mons);
 }
 
-int mons_take_turn (struct Monster *th)
+void mons_take_turn (struct Monster *th)
 {
 	switch (th->ctr.mode)
 	{
@@ -435,7 +433,8 @@ int mons_take_turn (struct Monster *th)
 		break;
 	case CTR_PL:
 		/* player in normal mode */
-		return pl_take_turn (th);
+		pl_take_turn (th);
+		return;
 	case CTR_PL_CONT:
 	{
 		/* player in continuation mode - attempt to call the continuation */
@@ -443,23 +442,27 @@ int mons_take_turn (struct Monster *th)
 		if (res <= 0)
 			th->ctr.mode = CTR_PL;
 		if (res != -1)
-			return 1;
+			return;
 	}
 	case CTR_PL_FOCUS:
 		/* player in focus mode */
-		return pl_take_turn (th);
+		pl_take_turn (th);
+		return;
 	case CTR_AI_TIMID:
 		/* calm non-player monster */
-		return AI_TIMID_take_turn (th);
+		AI_TIMID_take_turn (th);
+		return;
 	case CTR_AI_HOSTILE:
 		/* hostile monster */
-		return AI_HOSTILE_take_turn (th);
+		AI_HOSTILE_take_turn (th);
+		return;
 	case CTR_AI_AGGRO:
 		/* aggravated monster */
-		return AI_AGGRO_take_turn (th);
+		AI_AGGRO_take_turn (th);
+		return;
 	}
 	panic ("End of mons_take_turn reached.");
-	return -1;
+	return;
 }
 
 Tick mons_tregen (struct Monster *th)
@@ -682,11 +685,10 @@ int AI_weapcmp (struct Monster *ai, struct Item *w1, struct Item *w2)
 int AI_TIMID_take_turn (struct Monster *ai)
 {
 	int y = rn(3)-1, x = rn(3)-1;
-	int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
-	if (can == 1)
-		mons_move (ai, y, x);
+	if (mons_can_move (ai, y, x))
+		mons_try_move (ai, y, x);
 	else
-		ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
+		mons_try_wait (ai);
 	return 1;
 }
 
@@ -711,11 +713,10 @@ int AI_HOSTILE_take_turn (struct Monster *ai)
 	if (!nmin)
 	{
 		y = rn(3)-1; x = rn(3)-1;
-		int can = can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x));
-		if (can == 1 && (!rn(3)))
-			mons_move (ai, y, x);
+		if (mons_can_move (ai, y, x) && (!rn(3)))
+			mons_try_move (ai, y, x);
 		else
-			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
+			mons_try_wait (ai);
 		return 1;
 	}
 	int ch = rn(nmin) + 1;
@@ -728,11 +729,12 @@ int AI_HOSTILE_take_turn (struct Monster *ai)
 			-- ch;
 		if (!ch)
 		{
-			if (can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + y, ai->xloc + x)) == 1 ||
-				min == 0)
-				mons_move (ai, y, x);
+			if (mons_can_move (ai, y, x))
+				mons_try_move (ai, y, x);
+			else if (min == 0)
+				mons_try_attack (ai, y, x);
 			else
-				ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, ai->ID}});
+				mons_try_wait (ai);
 			return 1;
 		}
 	}
@@ -742,14 +744,13 @@ int AI_HOSTILE_take_turn (struct Monster *ai)
 
 int AI_AGGRO_take_turn (struct Monster *ai)
 {
-	TID aiID = ai->ID;
 	struct Monster *to = MTHIID (ai->ctr.aggro.ID);
 	if (!to)
 	{
 		mons_calm (ai);
 		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, aiID}});
-		return mons_take_turn (ai);
-		//return 1;
+		mons_take_turn (ai);
+		return 1;
 	}
 
 	if (!ai->pack)
@@ -770,8 +771,7 @@ int AI_AGGRO_take_turn (struct Monster *ai)
 	}
 	if (bestweap != curweap)
 	{
-		ev_queue (0, (union Event) { .mwield = {EV_MWIELD, ai->ID, 0, bestweap->ID}});
-		ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
+		mons_try_wield (ai, bestweap);
 		return 1;
 	}
 
@@ -782,8 +782,11 @@ skip_weapon: ;
 	/* move randomly if you can't see your target */
 	if (!bres_draw (aiy, aix, to->yloc, to->xloc, map_graph->w, NULL, dlv_attr(ai->dlevel), NULL))
 	{
-		if (!mons_move (ai, rn(3) - 1, rn(3) - 1))
-			ev_queue (ai->speed, (union Event) { .mwait = {EV_MWAIT, aiID}});
+		int y = rn(3) - 1, x = rn(3) - 1;
+		if (mons_can_move (ai, y, x))
+			mons_try_move (ai, y, x);
+		else
+			mons_try_wait (ai);
 		return 1;
 	}
 
@@ -799,39 +802,23 @@ skip_weapon: ;
 	}
 
 	/* the direction you should go in */
-	int ymove = (aiy < toy) - (aiy > toy);
-	int xmove = (aix < tox) - (aix > tox);
+	int y = (aiy < toy) - (aiy > toy);
+	int x = (aix < tox) - (aix > tox);
 
 	/* attack if that is where your target will be */
-	if (aiy + ymove == toy && aix + xmove == tox)
-	{
-		ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, aiID, 0, ymove, xmove}});
-		ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
-		return 1;
-	}
-
+	if (aiy + y == toy && aix + x == tox)
+		mons_try_attack (ai, y, x);
 	/* move towards your target if you can */
-	if (can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + ymove, ai->xloc + xmove)))
-	{
-		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, aiID, ymove, xmove}});
-		ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
-		return 1;
-	}
-
+	else if (mons_can_move (ai, y, x))
+		mons_try_move (ai, y, x);
 	/* otherwise try similar directions */
-	if (can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc, ai->xloc + xmove)))
-	{
-		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, aiID, 0, xmove}});
-		ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
-		return 1;
-	}
-	if (can_amove (get_sqattr (dlv_lvl(ai->dlevel), ai->yloc + ymove, ai->xloc)))
-	{
-		ev_queue (0, (union Event) { .mmove = {EV_MMOVE, aiID, ymove, 0}});
-		ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
-		return 1;
-	}
-	ev_queue (ai->speed+1, (union Event) { .mturn = {EV_MTURN, aiID}});
+	else if (mons_can_move (ai, 0, x))
+		mons_try_move (ai, 0, x);
+	else if (mons_can_move (ai, y, 0))
+		mons_try_move (ai, y, 0);
+	/* give up */
+	else
+		mons_try_wait (ai);
 	return 1;
 }
 

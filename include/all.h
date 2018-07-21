@@ -16,23 +16,11 @@
 #define USING_COL
 
 #define MAX_BOX_LENGTH 40
+#define IT_DESC_LEN 128
 
 #define COL_STATUS     0xBBB22200
 #define COL_PANEL      0xBBB00020
 #define COL_SKILLS     0xBBB11100
-
-/* These crazy spellings... */
-#if !defined(AMERICAN)
-
-#define ARMOUR "armour"
-#define COLOUR "colour"
-
-#else /* AMERICAN */
-
-#define ARMOUR "armor"
-#define COLOUR "color"
-
-#endif /* !AMERICAN */
 
 #define memclr(a,l) (memset(a,0,l))
 

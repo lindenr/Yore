@@ -18,31 +18,51 @@
    be able to carry 30000g before getting burdened, and weak would be just
    5000g or so */
 
-#define ITYP(nm,tp,wt,attk,def,gl,st) {nm,tp,wt,attk,def,gl,st}
+#define ITYP(nm,tp,wt,attk,def,gl,st,fl) {nm,tp,wt,attk,def,gl,st,fl}
 
 Ityp ityps[ITYP_NUM_ITEMS + MTYP_NUM_MONS] = {
-/*  item name              type              weight attributes     display                      */
-	ITYP("long sword",     ITSORT_LONGSWORD,  2000,  10, 0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
-	ITYP("fencing sword",  ITSORT_LONGSWORD,  1500,  10, 0,      ITCH_WEAPON | COL_TXT(11, 0,11), 0),
-	ITYP("axe",            ITSORT_AXE,        3000,  8,  0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
-	ITYP("battle-axe",     ITSORT_AXE,        1000,  16, 0,      ITCH_WEAPON | COL_TXT(11,11, 0), 0),
-	ITYP("war hammer",     ITSORT_HAMMER,     5000,  16, 0,      ITCH_WEAPON | COL_TXT(15,11, 0), 0),
-	ITYP("dagger",         ITSORT_DAGGER,     100,   6,  0,      ITCH_WEAPON | COL_TXT( 0,11, 0), 0),
-	ITYP("short sword",    ITSORT_SHORTSWORD, 2000,  8,  0,      ITCH_WEAPON | COL_TXT(11, 8, 0), 0),
-	ITYP("glove",          ITSORT_GLOVE,      70,    0,  1,      ITCH_ARMOUR | COL_TXT( 0,11, 0), 0),
-	ITYP("cloth tunic",    ITSORT_TUNIC,      100,   0,  1,      ITCH_ARMOUR | COL_TXT(11, 8, 0), 0),
-	ITYP("chain mail",     ITSORT_MAIL,       5000,  0,  8,      ITCH_ARMOUR | COL_TXT( 8, 8, 8), 0),
-	ITYP("plate mail",     ITSORT_MAIL,       8000,  0,  9,      ITCH_ARMOUR | COL_TXT( 8,11, 0), 0),
-	ITYP("leather hat",    ITSORT_HELM,       50,    0,  1,      ITCH_ARMOUR | COL_TXT( 8, 8, 2), 0),
-	ITYP("helmet",         ITSORT_HELM,       2000,  0,  3,      ITCH_ARMOUR | COL_TXT(11,11, 2), 0),
-	ITYP("gold piece",     ITSORT_MONEY,      1,     0,  0,      ITCH_DOSH   | COL_TXT(15,15, 0), 1),
-	ITYP("bone",           ITSORT_BONE,       100,   0,  0,      ITCH_CORPSE | COL_TXT(15,15,15), 1),
-	ITYP("fireball",       ITSORT_ARCANE,     0,     0,  0,      0x09        | COL_TXT(15, 4, 0), 0),
-	ITYP("water bolt",     ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0, 8,15), 0),
-	ITYP("ice bolt",       ITSORT_ARCANE,     0,     0,  0,      0x07        | COL_TXT( 0,15,15), 0),
-	ITYP("force shard",    ITSORT_SHARD,      20,    0,  0,      0xFB        | COL_TXT(15, 8, 0), 0),
-	ITYP("wind shard",     ITSORT_SHARD,      20,    0,  0,      0xFB        | COL_TXT( 0,15,15), 0),
-/*  item name              type              weight attributes     display                      */
+/*  item name              type              weight   A/D     display                      */
+	ITYP("long sword",     ITSORT_LONGSWORD,  2000,  10, 0, ITCH_WEAPON | COL_TXT(11,11, 0), 0,
+		ITF_EDGE | ITF_POINT),
+	ITYP("fencing sword",  ITSORT_LONGSWORD,  1500,  10, 0, ITCH_WEAPON | COL_TXT(11, 0,11), 0,
+		ITF_POINT),
+	ITYP("axe",            ITSORT_AXE,        3000,  8,  0, ITCH_WEAPON | COL_TXT(11,11, 0), 0,
+		ITF_EDGE),
+	ITYP("battle-axe",     ITSORT_AXE,        1000,  16, 0, ITCH_WEAPON | COL_TXT(11,11, 0), 0,
+		ITF_EDGE),
+	ITYP("war hammer",     ITSORT_HAMMER,     5000,  16, 0, ITCH_WEAPON | COL_TXT(15,11, 0), 0,
+		0),
+	ITYP("dagger",         ITSORT_DAGGER,     100,   6,  0, ITCH_WEAPON | COL_TXT( 0,11, 0), 0,
+		ITF_EDGE | ITF_POINT),
+	ITYP("short sword",    ITSORT_SHORTSWORD, 2000,  8,  0, ITCH_WEAPON | COL_TXT(11, 8, 0), 0,
+		ITF_EDGE | ITF_POINT),
+	ITYP("glove",          ITSORT_GLOVE,      70,    0,  1, ITCH_ARMOUR | COL_TXT( 0,11, 0), 0,
+		0),
+	ITYP("cloth tunic",    ITSORT_TUNIC,      100,   0,  1, ITCH_ARMOUR | COL_TXT(11, 8, 0), 0,
+		0),
+	ITYP("chain mail",     ITSORT_MAIL,       5000,  0,  8, ITCH_ARMOUR | COL_TXT( 8, 8, 8), 0,
+		0),
+	ITYP("plate mail",     ITSORT_MAIL,       8000,  0,  9, ITCH_ARMOUR | COL_TXT( 8,11, 0), 0,
+		0),
+	ITYP("leather hat",    ITSORT_HELM,       50,    0,  1, ITCH_ARMOUR | COL_TXT( 8, 8, 2), 0,
+		0),
+	ITYP("helmet",         ITSORT_HELM,       2000,  0,  3, ITCH_ARMOUR | COL_TXT(11,11, 2), 0,
+		0),
+	ITYP("gold piece",     ITSORT_MONEY,      1,     0,  0, ITCH_DOSH   | COL_TXT(15,15, 0), 1,
+		0),
+	ITYP("bone",           ITSORT_BONE,       100,   0,  0, ITCH_CORPSE | COL_TXT(15,15,15), 1,
+		0),
+	ITYP("fireball",       ITSORT_ARCANE,     0,     0,  0, 0x09        | COL_TXT(15, 4, 0), 0,
+		0),
+	ITYP("water bolt",     ITSORT_ARCANE,     0,     0,  0, 0x07        | COL_TXT( 0, 8,15), 0,
+		0),
+	ITYP("ice bolt",       ITSORT_ARCANE,     0,     0,  0, 0x07        | COL_TXT( 0,15,15), 0,
+		0),
+	ITYP("force shard",    ITSORT_SHARD,      20,    0,  0, 0xFB        | COL_TXT(15, 8, 0), 0,
+		0),
+	ITYP("wind shard",     ITSORT_SHARD,      20,    0,  0, 0xFB        | COL_TXT( 0,15,15), 0,
+		0),
+/*  item name              type              weight   A/D     display                      */
 };
 
 char *item_appearance[] = {"MONEY", "WEAPONS", "ARMOUR", "FOOD, DEBRIS", "TOOLS", "", "", "CURIOS", ""};
@@ -54,15 +74,16 @@ void ityp_init ()
 	int i;
 	for (i = 0; i < MTYP_NUM_MONS; ++ i)
 	{
-		ityps[ITYP_NUM_ITEMS + i] = (Ityp) ITYP("", ITSORT_CORPSE, CORPSE_WEIGHTS[all_mons[i].mflags>>29], 0, 0, ITCH_CORPSE | (all_mons[i].gl & 0xFFFFFF00), 0);
+		ityps[ITYP_NUM_ITEMS + i] = (Ityp) ITYP("", ITSORT_CORPSE, CORPSE_WEIGHTS[all_mons[i].mflags>>29], 0, 0, ITCH_CORPSE | (all_mons[i].gl & 0xFFFFFF00), 0, 0);
 		snprintf (ityps[ITYP_NUM_ITEMS + i].name, ITEM_NAME_LENGTH, "%s corpse", all_mons[i].mname);
 	}
 }
 
-void it_desc (char *out, const struct Item *item, const struct Monster *pl)
+void it_ndesc (char *out, int length, const struct Item *item, const struct Monster *pl)
 {
-	char temp[120];
-	//char temp[115];
+	int i = snprintf (out, length, "#g%s a ", gl_format (it_gl (item)));
+	if (i >= length)
+		return;
 	char ench_string[60] = "";
 	int a = it_attk (item), d = it_def (item);
 	if (a && pl)
@@ -72,7 +93,7 @@ void it_desc (char *out, const struct Item *item, const struct Monster *pl)
 		snprintf (ench_string, 60, " (#nF3300000%d#nBBB00000 dmg)", a);
 	else if (d)
 		snprintf (ench_string, 60, " (#nF7000000%d#nBBB00000 def)", d);
-	snprintf (temp, 115, "%s%s%s%s",
+	snprintf (out + i, length - i, "%s%s%s%s",
 			 /* name */
 			 it_typename (item),
 			 //item->stacksize == 1 ? "" : "s",
@@ -83,7 +104,11 @@ void it_desc (char *out, const struct Item *item, const struct Monster *pl)
 			 it_worn (item) ? " (worn)" : ""
 			 );
 	//w_some (temp2, temp, item->stacksize, 128);
-	snprintf (out, 128, "#g%s a %s", gl_format (it_gl (item)), temp);
+}
+
+void it_desc (char *out, const struct Item *item, const struct Monster *pl)
+{
+	it_ndesc (out, IT_DESC_LEN, item, pl);
 }
 
 const char *it_typename (const struct Item *item)
@@ -91,7 +116,7 @@ const char *it_typename (const struct Item *item)
 	if (!item)
 		panic ("NULL item in it_typename");
 		//return NULL;
-	return ityps[it_type (item)].name;
+	return it_ityp (item)->name;
 }
 
 /*int it_can_merge (const struct Item *item1, const struct Item *item2)
@@ -259,7 +284,7 @@ glyph it_gl (const struct Item *item)
 {
 	if (!item)
 		panic ("NULL item in it_gl");
-	return ityps [it_type (item)].gl;
+	return it_ityp (item)->gl;
 }
 
 enum ITSORT it_sort (const struct Item *item)
@@ -291,6 +316,13 @@ void it_break (struct Item *item)
 		return;
 	}
 	item_free (item);
+}
+
+enum DMG_TYPE it_dtyp (const struct Item *item)
+{
+	if (it_ityp (item)->flags & (ITF_EDGE | ITF_POINT))
+		return DTYP_CUT;
+	return DTYP_BLUNT;
 }
 
 enum SK_TYPE it_skill (const struct Item *item)

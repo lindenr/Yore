@@ -13,8 +13,6 @@
 
 #define map_buffer(y,x) (gra_buffer (map_graph, (y), (x)))
 
-typedef uint32_t SqAttr;
-
 enum
 {
 	DGN_GROUND = 0,
@@ -37,15 +35,16 @@ struct map_item_struct
 {
 	char name[20];
 	glyph gl;
-	SqAttr attr;
+	uint32_t attr;
 };
 
 struct DLevel;
 extern struct map_item_struct map_items[];
-void  *get_sqmons      (struct DLevel *, int, int);     /* returns the monster on a square     */
-SqAttr get_sqattr      (struct DLevel *, int, int);     /* returns the SqAttr of a square      */
+
 extern Graph map_graph;
-int GETMAPITEMID(char);
+
+int map_passable (struct DLevel *, int, int);
+int map_bpassable (struct DLevel *, int);
 
 #endif /* MAP_H_INCLUDED */
 

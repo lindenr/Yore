@@ -11,8 +11,7 @@
 #define STRINGIFY(x) #x
 #define TILE_FILE "t"XSTRINGIFY(GLW)"x"XSTRINGIFY(GLH)".bmp"
 
-static int forced_refresh = 0;
-
+/* SDL globals */
 static SDL_Window *sdlWindow;
 static SDL_Renderer *sdlRenderer;
 static SDL_Surface *tiles, *screen, *glyph_col;
@@ -28,6 +27,7 @@ static gflags *gr_flags = NULL;
 int gr_h = 0, gr_w = 0; //screenY/GLH, gr_w = screenX/GLW;
 int gr_area = 0;
 
+/* all the active graphs */
 static Vector graphs = NULL;
 
 /* event callback functions */
@@ -35,6 +35,11 @@ void (*gr_onidle) () = NULL;
 void (*gr_onresize) () = NULL;
 void (*gr_onrefresh) () = NULL;
 void (*gr_quit) () = NULL;
+
+/* for internal use */
+#define BUFFER_LEN 1024
+static char temp_buffer[BUFFER_LEN];
+static int forced_refresh = 0;
 
 int gra_buffer (Graph gra, int yloc, int xloc)
 {
@@ -135,26 +140,24 @@ void gra_mvaprint (Graph gra, int yloc, int xloc, const char *str)
 void gra_mvprint (Graph gra, int yloc, int xloc, const char *str, ...)
 {
 	va_list args;
-	char out[1024];
 
 	va_start (args, str);
-	vsnprintf (out, 1024, str, args);
+	vsnprintf (temp_buffer, BUFFER_LEN, str, args);
 	va_end (args);
 
-	gra_mvaprint (gra, yloc, xloc, out);
+	gra_mvaprint (gra, yloc, xloc, temp_buffer);
 }
 
 void gra_cprint (Graph gra, int yloc, const char *str, ...)
 {
 	va_list args;
-	char out[1024];
 
 	va_start (args, str);
-	int len = vsnprintf (out, 1024, str, args);
+	int len = vsnprintf (temp_buffer, BUFFER_LEN, str, args);
 	va_end (args);
 
 	int xloc = (gra->w - len)/2;
-	gra_mvaprint (gra, yloc, xloc, out);
+	gra_mvaprint (gra, yloc, xloc, temp_buffer);
 }
 
 void gra_mvaprintex (Graph gra, int yloc, int xloc, const glyph *str)
@@ -175,10 +178,8 @@ void gra_drawline (Graph gra, int fy, int fx, int ty, int tx, glyph gl)
 	{
 		if (st.err*2 > -st.dy && st.err*2 < st.dx)
 			gra_mvaddch (gra, st.cy, st.cx, (st.sx == st.sy ? '\\' : '/') | gl);
-				//COL_BG(11,0,0) | COL_TXT(15,15,0));
 		else
 			gra_mvaddch (gra, st.cy, st.cx, (st.dx > st.dy ? ACS_HLINE : ACS_VLINE) | gl);
-				//COL_BG(11,0,0) | COL_TXT(15,15,0));
 		bres_iter (&st);
 	}
 }

@@ -40,8 +40,8 @@ Tick ev_delay (union Event *event)
 		return (MTHIID(event->mdomove.thID))->speed;
 	case EV_MEVADE:
 		return 0;
-	case EV_MUNEVADE:
-		return (MTHIID(event->munevade.thID))->speed/2;
+	case EV_MDOEVADE:
+		return 0;
 	case EV_MSHIELD:
 		return 0;
 	case EV_MDOSHIELD:
@@ -135,7 +135,7 @@ void ev_do (const union Event *ev)
 	struct Item newitem, *item;
 	TID thID, frID, toID, itemID, monsID;
 	struct DLevel *dlvl;
-	int can, ydest, xdest, damage, radius, arm, delay;
+	int ydest, xdest, damage, radius, arm, delay;
 	int i, j, ydist, xdist, dist;
 	Vector pickup, items;
 	union ItemLoc loc;
@@ -184,19 +184,19 @@ void ev_do (const union Event *ev)
 		itemID = ev->mthrow.itemID;
 		item = it_at (itemID);
 		if (!item)
-			return;
+			return mons_take_turn (mons);
 		int speed = mons_throwspeed (mons, item);
 		if (speed <= 0)
 		{
 			eff_mons_fail_throw (mons, item);
-			return;
+			return mons_take_turn (mons);
 		}
 		loc = (union ItemLoc) { .fl =
 			{LOC_FLIGHT, mons->dlevel, mons->yloc, mons->xloc, {0,}, speed, thID}};
 		bres_init (&loc.fl.bres, mons->yloc, mons->xloc, ev->mthrow.ydest, ev->mthrow.xdest);
 		item_put (item, loc);
 		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, itemID}});
-		return;
+		return mons_take_turn (mons);
 	case EV_PROJ_MOVE:
 		itemID = ev->proj_move.itemID;
 		item = it_at(itemID);
@@ -209,7 +209,7 @@ void ev_do (const union Event *ev)
 		}
 		memcpy (&loc, &item->loc, sizeof(loc));
 		bres_iter (&loc.fl.bres);
-		if (!get_sqattr (dlv_lvl(loc.fl.dlevel), loc.fl.bres.cy, loc.fl.bres.cx))
+		if (!map_passable (dlv_lvl(loc.fl.dlevel), loc.fl.bres.cy, loc.fl.bres.cx))
 		{
 			ev_queue (0, (union Event) { .proj_hit_barrier = {EV_PROJ_HIT_BARRIER, itemID}});
 			return;
@@ -275,7 +275,7 @@ void ev_do (const union Event *ev)
 		damage = proj_hitdmg (item, mons);
 		eff_proj_hits_mons (item, mons, damage);
 		fr = MTHIID (item->loc.fl.frID);
-		mons_take_damage (mons, fr, damage, ATYP_PHYS);
+		mons_take_damage (mons, fr, damage, it_dtyp (item));
 		item->loc.fl.speed = 0;
 		if (!fr)
 			return;
@@ -322,7 +322,7 @@ void ev_do (const union Event *ev)
 		if (bres.done)
 			return;
 		bres_iter (&bres);
-		if (!can_amove (get_sqattr (dlvl, bres.cy, bres.cx)))
+		if (!map_passable (dlvl, bres.cy, bres.cx))
 			return;
 		i = map_buffer (bres.cy, bres.cx);
 		dlvl->num_fires[i] ++;
@@ -336,8 +336,8 @@ void ev_do (const union Event *ev)
 		if (!mons)
 			return;
 		// Next turn
-		ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
-		return;
+		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, thID}});
+		return mons_take_turn (mons);
 	case EV_MMOVE:
 		thID = ev->mmove.thID;
 		mons = MTHIID(thID);
@@ -353,38 +353,35 @@ void ev_do (const union Event *ev)
 		if (!mons)
 			return;
 		ydest = mons->yloc + mons->status.moving.ydir; xdest = mons->xloc + mons->status.moving.xdir;
-		can = can_amove (get_sqattr (dlv_lvl(mons->dlevel), ydest, xdest));
-		mons_stop_move (mons);
-		if (can == 1)
-			monsthing_move (mons, mons->dlevel, ydest, xdest);
+		if (mons_can_move (mons, mons->status.moving.ydir, mons->status.moving.xdir))
+			mons_move (mons, mons->dlevel, ydest, xdest);
 		//else: tried and failed to move TODO
-		if (mons_isplayer (mons))
-		{
-			/* re-eval paths to player */
-			dlv_fill_player_dist (cur_dlevel);
-			/* check what the player can see now */
-			update_knowledge (mons);
-		}
+		mons_stop_move (mons);
 		if (mons->mflags & FL_SLIMY && !rn(3))
 		{
 			// TODO check if there is already slime
 			new_thing (THING_DGN, dlv_lvl (mons->dlevel), mons->yloc, mons->xloc, &map_items[DGN_SLIME]);
 		}
-		return;
+		return mons_take_turn (mons);
 	case EV_MEVADE:
 		thID = ev->mevade.thID;
 		mons = MTHIID(thID);
 		if (!mons)
 			return;
-		mons->status.evading = 1;
-		ev_queue (mons->speed/2, (union Event) { .munevade = {EV_MUNEVADE, thID}});
+		delay = mons->speed/3;
+		ev_queue (delay, (union Event) { .mdoevade = {EV_MDOEVADE, thID}});
+		mons_start_evade (mons, ev->mevade.ydir, ev->mevade.xdir, curtick + delay);
 		return;
-	case EV_MUNEVADE:
+	case EV_MDOEVADE:
 		thID = ev->mevade.thID;
 		mons = MTHIID(thID);
 		if (!mons)
 			return;
-		mons->status.evading = 0;
+		ydest = mons->yloc + mons->status.evading.ydir; xdest = mons->xloc + mons->status.evading.xdir;
+		if (mons_can_move (mons, mons->status.evading.ydir, mons->status.evading.xdir))
+			mons_move (mons, mons->dlevel, ydest, xdest);
+		mons_stop_evade (mons);
+		ev_queue (mons->speed, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return;
 	case EV_MSHIELD:
 		thID = ev->mshield.thID;
@@ -410,7 +407,7 @@ void ev_do (const union Event *ev)
 			return;
 		mons->status.defending.ydir = 0;
 		mons->status.defending.xdir = 0;
-		return;
+		return mons_take_turn (mons);
 	case EV_MATTKM:
 		thID = ev->mattkm.thID;
 		mons = MTHIID(thID);
@@ -419,7 +416,7 @@ void ev_do (const union Event *ev)
 		delay = mons->speed;
 		ev_queue (delay, (union Event) { .mdoattkm = {EV_MDOATTKM, thID}});
 		mons_start_hit (mons, ev->mattkm.ydir, ev->mattkm.xdir, ev->mattkm.arm, curtick + delay);
-		break;
+		return;
 	case EV_MDOATTKM:
 		frID = ev->mdoattkm.thID;
 		fr = MTHIID(frID); /* get from-mons */
@@ -428,12 +425,9 @@ void ev_do (const union Event *ev)
 		ydest = fr->yloc + fr->status.attacking.ydir; xdest = fr->xloc + fr->status.attacking.xdir;
 		arm = fr->status.attacking.arm;
 		mons_stop_hit (fr);
-		can = can_amove (get_sqattr (dlv_lvl(fr->dlevel), ydest, xdest));
-		if (can != 2)
-			return; // tried and failed to attack TODO
 		toID = dlv_lvl(fr->dlevel)->monsIDs[map_buffer(ydest, xdest)]; /* get to-mons */
 		if (!toID)
-			return;
+			return mons_take_turn (fr); // tried and failed to attack TODO
 		to = MTHIID(toID);
 		mons_anger (fr, to);
 		struct Item *with = fr->wearing.weaps[arm];
@@ -441,33 +435,33 @@ void ev_do (const union Event *ev)
 		if (fr->ST < stamina_cost)
 		{
 			eff_mons_tiredly_misses_mons (fr, to);
-			return;
+			return mons_take_turn (fr);
 		}
 		fr->ST -= stamina_cost;
 		if (!mons_hitm (fr, to, with))
 		{
 			eff_mons_misses_mons (fr, to);
-			return;
+			return mons_take_turn (fr);
 		}
 		damage = mons_hitdmg (fr, to, with);
 		if (damage == 0)
 		{
 			eff_mons_just_misses_mons (fr, to);
-			return;
+			return mons_take_turn (fr);
 		}
 		eff_mons_hits_mons (fr, to, damage);
-		mons_take_damage (to, fr, damage, ATYP_PHYS);
+		if (mons_take_damage (to, fr, damage, it_dtyp (with)) == 0 && to == fr)
+			return;
 		if (mons_gets_exp (fr))
 			mons_exercise (fr, with);
-		return;
+		return mons_take_turn (fr);
 	case EV_MTURN:
 		mons = MTHIID(ev->mturn.thID);
 		if (!mons)
 			return;
-		if (mons->status.helpless)
-			return;
-		mons_take_turn (mons);
-		return;
+		//if (mons->status.helpless)
+		//	return;
+		return mons_take_turn (mons);
 	case EV_MGEN:
 		mons = gen_mons_in_level ();
 		if (!mons)
@@ -496,24 +490,36 @@ void ev_do (const union Event *ev)
 		if (mons->MP > mons->MP_max)
 			mons->MP = mons->MP_max;
 		return;
+	case EV_MBLEED:
+		mons = MTHIID(ev->mbleed.thID);
+		if (!mons)
+			return;
+		if (!mons->status.bleeding)
+			return;
+		damage = rn(5);
+		eff_mons_bleeds (mons, damage);
+		if (!mons_take_damage (mons, NULL, damage, DTYP_BLEED))
+			return;
+		ev_queue (1000, (union Event) { .mbleed = {EV_MBLEED, mons->ID}});
+		return;
 	case EV_MWIELD:
 		mons = MTHIID(ev->mwield.thID);
 		if (!mons)
 			return;
 		arm = ev->mwield.arm;
 		if (mons->status.attacking.arm == arm)
-			return;
+			return mons_take_turn (mons);
 		if (mons->wearing.weaps[arm])
 			mons_unwield (mons, mons->wearing.weaps[arm]);
 		struct Item *it = it_at(ev->mwield.itemID);
 		if (it_invID (it) != ev->mwield.thID)
 		{
 			eff_mons_unwields (mons);
-			return;
+			return mons_take_turn (mons);
 		}
 		eff_mons_wields_item (mons, it);
 		mons_wield (mons, arm, it);
-		return;
+		return mons_take_turn (mons);
 	case EV_MWEAR_ARMOUR:
 		mons = MTHIID(ev->mwear_armour.thID);
 		if (!mons)
@@ -521,12 +527,12 @@ void ev_do (const union Event *ev)
 		item = it_at (ev->mwear_armour.itemID); 
 		if (it_invID (item) != ev->mwear_armour.thID ||
 			it_worn (item))
-			return;
+			return mons_take_turn (mons);
 		if (!mons_can_wear (mons, item, ev->mwear_armour.offset))
-			return;
+			return mons_take_turn (mons);
 		eff_mons_wears_item (mons, item);
 		mons_wear (mons, item, ev->mwear_armour.offset);
-		return;
+		return mons_take_turn (mons);
 	case EV_MTAKEOFF_ARMOUR:
 		mons = MTHIID(ev->mtakeoff_armour.thID);
 		if (!mons)
@@ -534,12 +540,12 @@ void ev_do (const union Event *ev)
 		item = it_at (ev->mtakeoff_armour.itemID); 
 		if (it_invID(item) != ev->mtakeoff_armour.thID ||
 			(!it_worn(item)))
-			return;
+			return mons_take_turn (mons);
 		if (!mons_can_takeoff (mons, item))
-			return;
+			return mons_take_turn (mons);
 		mons_take_off (mons, item);
 		eff_mons_takes_off_item (mons, item);
-		return;
+		return mons_take_turn (mons);
 	case EV_MPICKUP:
 		/* Put items in ret_list into inventory. The loop
 		 * continues until ret_list is done or the pack is full. */
@@ -581,7 +587,7 @@ void ev_do (const union Event *ev)
 			break;
 		}
 		v_free (pickup);
-		return;
+		return mons_take_turn (mons);
 	case EV_MDROP:
 		mons = MTHIID (ev->mdrop.thID);
 		if (!mons)
@@ -595,7 +601,7 @@ void ev_do (const union Event *ev)
 			item_put (drop, (union ItemLoc) { .dlvl = {LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
 		}
 		v_free (items);
-		return;
+		return mons_take_turn (mons);
 	case EV_MSTARTCHARGE:
 		thID = ev->mstartcharge.thID;
 		mons = MTHIID(thID);
