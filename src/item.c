@@ -28,8 +28,10 @@ Ityp ityps[ITYP_NUM_ITEMS + MTYP_NUM_MONS] = {
 		ITF_POINT),
 	ITYP("axe",            ITSORT_AXE,        3000,  8,  0, ITCH_WEAPON | COL_TXT(11,11, 0), 0,
 		ITF_EDGE),
-	ITYP("battle-axe",     ITSORT_AXE,        1000,  16, 0, ITCH_WEAPON | COL_TXT(11,11, 0), 0,
+	ITYP("battle-axe",     ITSORT_AXE,        5000,  16, 0, ITCH_WEAPON | COL_TXT(11,11, 0), 0,
 		ITF_EDGE),
+	ITYP("fire axe",       ITSORT_AXE,        3000,  16, 0, ITCH_WEAPON | COL_TXT(15,11, 0), 0,
+		ITF_EDGE | ITF_FIRE_EFFECT),
 	ITYP("war hammer",     ITSORT_HAMMER,     5000,  16, 0, ITCH_WEAPON | COL_TXT(15,11, 0), 0,
 		0),
 	ITYP("dagger",         ITSORT_DAGGER,     100,   6,  0, ITCH_WEAPON | COL_TXT( 0,11, 0), 0,
@@ -58,7 +60,7 @@ Ityp ityps[ITYP_NUM_ITEMS + MTYP_NUM_MONS] = {
 		0),
 	ITYP("ice bolt",       ITSORT_ARCANE,     0,     0,  0, 0x07        | COL_TXT( 0,15,15), 0,
 		0),
-	ITYP("force shard",    ITSORT_SHARD,      20,    0,  0, 0xFB        | COL_TXT(15, 8, 0), 0,
+	ITYP("fire shard",     ITSORT_SHARD,      20,    0,  0, 0xFB        | COL_TXT(15, 8, 0), 0,
 		0),
 	ITYP("wind shard",     ITSORT_SHARD,      20,    0,  0, 0xFB        | COL_TXT( 0,15,15), 0,
 		0),
@@ -320,6 +322,8 @@ void it_break (struct Item *item)
 
 enum DMG_TYPE it_dtyp (const struct Item *item)
 {
+	if (!item)
+		return DTYP_BLUNT;
 	if (it_ityp (item)->flags & (ITF_EDGE | ITF_POINT))
 		return DTYP_CUT;
 	return DTYP_BLUNT;

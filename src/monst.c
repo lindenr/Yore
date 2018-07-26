@@ -97,6 +97,11 @@ int mons_exp_needed (int level)
 	return -1;
 }
 
+int is (struct Monster *mons)
+{
+	return mons && mons->ID;
+}
+
 int mons_get_wt (struct Monster *mons)
 {
 	return CORPSE_WEIGHTS[mons->mflags >> 29];
@@ -371,6 +376,7 @@ void mons_kill (struct Monster *fr, struct Monster *to)
 	{
 		p_msgbox ("You die...");
 		U.playing = PLAYER_LOSTGAME;
+		rem_mid (to->ID);
 		return;
 	}
 	int exp_gain = to->exp;
@@ -426,6 +432,8 @@ void mons_calm (struct Monster *mons)
 
 void mons_take_turn (struct Monster *th)
 {
+	if (!is(th))
+		return;
 	switch (th->ctr.mode)
 	{
 	case CTR_NONE:

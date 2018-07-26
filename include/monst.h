@@ -60,6 +60,7 @@ enum MTYPE
 	MTYP_chicken = 0,
 	MTYP_newt,
 	MTYP_slime_rat,
+	MTYP_spider,
 	MTYP_skeleton,
 	MTYP_rabbit,
 	MTYP_crab,
@@ -235,6 +236,7 @@ struct Monster
 extern const struct Monster all_mons[];
 
 /* general monster functions */
+int    is              (struct Monster *);                   /* does the monster exist                   */
 int    mons_can_move   (struct Monster *, int, int);         /* can mons move in given directions        */
 void   mons_try_move   (struct Monster *, int, int);         /* move in given directions                 */
 int    mons_try_attack (struct Monster *, int, int);         /* attack in given directions               */
@@ -300,9 +302,6 @@ void   mons_startbleed (struct Monster *);                   /* start bleeding  
 
 /* player functions */
 int    mons_gen_type   (void);                               /* get a valid monster type for fighting    */
-
-/* map function? */
-int    can_amove       (int);                                /* returns if a square can be moved on to   */
 
 /* AI functions */
 int    AI_TIMID_take_turn    (struct Monster *);             /* decide what to do if not attacking       */

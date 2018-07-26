@@ -365,7 +365,7 @@ int p_status (struct Monster *player, enum PanelType type)
 	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", player->name, ACS_VLINE, mons_typename (player));
 	gra_cprint (sc_status, 5, "  HP: %d/%d  %c  ST:    %d/%d",
 				player->HP, player->HP_max, ACS_VLINE, player->ST, player->ST_max);
-	gra_cprint (sc_status, 6, "LV %d:%d/infinity   %c  Speed: %d       ", player->level, player->exp, ACS_VLINE, player->speed);
+	gra_cprint (sc_status, 6, "LV    %d:%d  %c  Speed: %d", player->level, player->exp, ACS_VLINE, player->speed);
 	gra_mvaddch (sc_status, 7, 5, GL_STR | (COL_BG_MASK & sc_status->def));
 	gra_mvprint (sc_status, 7, 7, "Str: %d", player->str);
 	gra_mvaddch (sc_status, 8, 5, GL_CON | (COL_BG_MASK & sc_status->def));
@@ -940,14 +940,14 @@ void eff_aux_mons_misses_mons (struct Monster *fr, struct Monster *to, const cha
 		if (mons_isplayer (to))
 			p_msg ("You%s miss yourself!", adverb);
 		else
-			p_msg ("The %s%s misses itself!", adverb, mons_typename (to));
+			p_msg ("The %s%s misses itself!", mons_typename (to), adverb);
 	}
 	else if (mons_isplayer (to))
-		p_msg ("The %s%s misses you!", adverb, mons_typename (fr));
+		p_msg ("The %s%s misses you!", mons_typename (fr), adverb);
 	else if (mons_isplayer (fr))
 		p_msg ("You%s miss the %s!", adverb, mons_typename (to));
 	else
-		p_msg ("The %s%s misses the %s!", adverb, mons_typename (fr), mons_typename (to));
+		p_msg ("The %s%s misses the %s!", mons_typename (fr), adverb, mons_typename (to));
 }
 
 void eff_mons_tiredly_misses_mons (struct Monster *fr, struct Monster *to)
@@ -996,13 +996,30 @@ void eff_mons_bleeds (struct Monster *mons, int damage)
 		p_msg ("The %s bleeds!", mons_typename (mons));
 }
 
+void eff_mons_burns (struct Monster *mons, int damage)
+{
+	if (!player_sees_mons (mons))
+		return;
+	if (mons_isplayer (mons))
+		p_msg ("You are burned for "COL_RED("%d")"!", damage);
+	else
+		p_msg ("The %s is burned!", mons_typename (mons));
+}
+
 void eff_mons_kills_mons (struct Monster *fr, struct Monster *to)
 {
 	if (!player_sees_mons (fr))
 		return;
 	if (!player_sees_mons (to))
 		return;
-	if (mons_isplayer (to))
+	if (fr == to)
+	{
+		if (mons_isplayer (to))
+			p_msg ("You kill yourself!");
+		else
+			p_msg ("The %s kills itself!", mons_typename (to));
+	}
+	else if (mons_isplayer (to))
 		p_msg ("The %s "COL_RED("kills")" you!", mons_typename (fr));
 	else if (mons_isplayer (fr))
 		p_msg ("You "COL_RED("kill")" the %s!", mons_typename (to));

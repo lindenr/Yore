@@ -51,6 +51,7 @@ enum ITEM_TYPE
 	ITYP_FENCING_SWORD,
 	ITYP_AXE,
 	ITYP_BATTLE_AXE,
+	ITYP_FIRE_AXE,
 	ITYP_WAR_HAMMER,
 	ITYP_DAGGER,
 	ITYP_SHORT_SWORD,
@@ -90,6 +91,7 @@ enum ITEM_TYPE
 
 #define ITF_EDGE 0x1
 #define ITF_POINT 0x2
+#define ITF_FIRE_EFFECT 0x4
 
 /* type of item */
 typedef struct

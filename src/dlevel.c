@@ -5,6 +5,7 @@
 #include "include/graphics.h"
 #include "include/heap.h"
 #include "include/rand.h"
+#include "include/panel.h"
 
 // TODO: make this all non-global in a nice struct somewhere
 Vector all_ids;
@@ -135,7 +136,11 @@ void dlv_tile_burn (struct DLevel *dlvl, int yloc, int xloc)
 	int i = map_buffer (yloc, xloc);
 	struct Monster *mons = v_at (dlvl->mons, dlvl->monsIDs[i]);
 	if (mons->ID)
-		mons_take_damage (mons, NULL, rn(5), DTYP_FIRE);
+	{
+		int damage = rn(5);
+		eff_mons_burns (mons, damage);
+		mons_take_damage (mons, NULL, damage, DTYP_FIRE);
+	}
 	Vector items = dlvl->items[i];
 	int n;
 	for (n = 0; n < items->len; ++ n)

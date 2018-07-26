@@ -20,70 +20,24 @@ Tick ev_delay (union Event *event)
 	{
 	case EV_NONE:
 		break;
-	case EV_WORLD_INIT:
-	case EV_PLAYER_INIT:
-	case EV_WORLD_HEARTBEAT:
-		return 0;
 	case EV_MTHROW:
 		return (MTHIID(event->mdrop.thID))->speed /2;
-	case EV_PROJ_MOVE:
-	case EV_PROJ_DONE:
-	case EV_PROJ_HIT_BARRIER:
-	case EV_PROJ_HIT_MONSTER:
-	case EV_ITEM_EXPLODE:
-		return 0;
 	case EV_MWAIT:
 		return (MTHIID(event->mwait.thID))->speed;
-	case EV_MMOVE:
-		return 0;
 	case EV_MDOMOVE:
 		return (MTHIID(event->mdomove.thID))->speed;
-	case EV_MEVADE:
-		return 0;
-	case EV_MDOEVADE:
-		return 0;
-	case EV_MSHIELD:
-		return 0;
-	case EV_MDOSHIELD:
-		return 0;
-	case EV_MUNSHIELD:
-		return 0;
-	case EV_MATTKM:
-		return 0;
 	case EV_MDOATTKM:
 		return (MTHIID(event->mdoattkm.thID))->speed;
-	case EV_MTURN:
-		return 0;
-	case EV_MGEN:
-		return 0;
 	case EV_MREGEN:
 		return mons_tregen (MTHIID(event->mregen.thID));
 	case EV_MWIELD:
 		// TODO: should be 0 if just unwielded something
 		return (MTHIID(event->mwield.thID))->speed;
-	case EV_MWEAR_ARMOUR:
-	case EV_MTAKEOFF_ARMOUR:
-		return 0;
 	case EV_MPICKUP:
 		return (MTHIID(event->mpickup.thID))->speed;
 	case EV_MDROP:
 		// TODO: should be 0 if just unwielded the dropped thing
 		return (MTHIID(event->mdrop.thID))->speed;
-	case EV_MSTARTCHARGE:
-		return 0;
-	case EV_MDOCHARGE:
-		return 0;
-	case EV_MSTOPCHARGE:
-		return 0;
-	case EV_MFIREBALL:
-	case EV_MWATER_BOLT:
-	case EV_MFROST:
-	case EV_CIRCLEOFFLAME:
-		return 0;
-	case EV_MOPENDOOR:
-		return 0;
-	case EV_MCLOSEDOOR:
-		return 0;
 	default:
 		return 0;
 	}
@@ -171,8 +125,8 @@ void ev_do (const union Event *ev)
 		return;
 	case EV_WORLD_HEARTBEAT:
 		/* monster generation */
-		//if (!rn(3))
-		//	ev_queue (0, (union Event) { .mgen = {EV_MGEN}});
+		if (!rn(3))
+			ev_queue (0, (union Event) { .mgen = {EV_MGEN}});
 		/* next heartbeat */
 		ev_queue (1000, (union Event) { .world_heartbeat = {EV_WORLD_HEARTBEAT}});
 		return;
@@ -450,10 +404,17 @@ void ev_do (const union Event *ev)
 			return mons_take_turn (fr);
 		}
 		eff_mons_hits_mons (fr, to, damage);
-		if (mons_take_damage (to, fr, damage, it_dtyp (with)) == 0 && to == fr)
-			return;
 		if (mons_gets_exp (fr))
 			mons_exercise (fr, with);
+		if (!mons_take_damage (to, fr, damage, it_dtyp (with)))
+			return mons_take_turn (fr);
+		if ((!NO_ITEM(with)) && (it_ityp (with)->flags & ITF_FIRE_EFFECT))
+		{
+			damage = rn(5);
+			eff_mons_burns (to, damage);
+			if (!mons_take_damage (to, fr, damage, DTYP_FIRE))
+				return mons_take_turn (fr);
+		}
 		return mons_take_turn (fr);
 	case EV_MTURN:
 		mons = MTHIID(ev->mturn.thID);
@@ -608,20 +569,20 @@ void ev_do (const union Event *ev)
 		if (!mons)
 			return;
 		mons->status.charging = 1;
-		return;
+		return mons_take_turn (mons);
 	case EV_MDOCHARGE:
 		thID = ev->mdocharge.thID;
 		mons = MTHIID(thID);
 		if (!mons)
 			return;
-		return;
+		return mons_take_turn (mons);
 	case EV_MSTOPCHARGE:
 		thID = ev->mstopcharge.thID;
 		mons = MTHIID(thID);
 		if (!mons)
 			return;
 		mons->status.charging = 0;
-		return;
+		return mons_take_turn (mons);
 	case EV_MFIREBALL:
 		thID = ev->mfireball.thID;
 		mons = MTHIID (thID);
@@ -634,7 +595,7 @@ void ev_do (const union Event *ev)
 		bres_init (&loc.fl.bres, mons->yloc, mons->xloc, ev->mfireball.ydest, ev->mfireball.xdest);
 		item = item_put (&newitem, loc);
 		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, item->ID}});
-		return;
+		return mons_take_turn (mons);
 	case EV_MWATER_BOLT:
 		thID = ev->mwater_bolt.thID;
 		mons = MTHIID (thID);
@@ -647,7 +608,7 @@ void ev_do (const union Event *ev)
 		bres_init (&loc.fl.bres, mons->yloc, mons->xloc, ev->mwater_bolt.ydest, ev->mwater_bolt.xdest);
 		item = item_put (&newitem, loc);
 		ev_queue (60, (union Event) { .proj_move = {EV_PROJ_MOVE, item->ID}});
-		return;
+		return mons_take_turn (mons);
 	case EV_MFROST:
 		thID = ev->mfrost.thID;
 		mons = MTHIID (thID);
@@ -658,14 +619,14 @@ void ev_do (const union Event *ev)
 				continue;
 			mons_tilefrost (mons, ev->mfrost.ydest + i, ev->mfrost.xdest + j);
 		}
-		return;
+		return mons_take_turn (mons);
 	case EV_CIRCLEOFFLAME:
 		thID = ev->circleofflame.thID;
 		mons = MTHIID(thID);
 		if (!mons)
 			return;
 		sk_flames_overlay (mons);
-		return;
+		return mons_take_turn (mons);
 	case EV_MOPENDOOR:
 		thID = ev->mopendoor.thID;
 		mons = MTHIID(thID);
@@ -708,6 +669,7 @@ void ev_loop ()
 		if (curtick/50 < qe->tick/50 && ev_should_refresh)
 		{
 			ev_should_refresh = 0;
+			p_pane (NULL);
 			gr_refresh ();
 			gr_wait (50);
 		}

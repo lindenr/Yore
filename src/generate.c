@@ -499,7 +499,7 @@ struct Monster *gen_boss (int yloc, int xloc)
 		p.ctr.mode = CTR_AI_TIMID;
 	p.level = 1; //mons[p.type].exp? TODO
 	struct Monster *th = new_mons (cur_dlevel, yloc, xloc, &p);
-	struct Item myaxe = new_item (ITYP_BATTLE_AXE);
+	struct Item myaxe = new_item (ITYP_FIRE_AXE);
 	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, th->ID, 0}});
 	return th;
 }
