@@ -9,6 +9,7 @@
 #define rng_init()  srand(time(0))
 #define rnd(a,b)    dice_roll((a), (b))
 #define rn(n)       ((int)(rand()%(n)))
+#define onein(n)    (!rn(n))
 
 /* Random number, simulating rolling a dice with b faces (sides). NOT UNIFORM -
    biased towards the middle range. */

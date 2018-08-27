@@ -391,16 +391,21 @@ int has_wall (struct DLevel *lvl, int w)
 	return 0;
 }
 
+glyph fire_glyph (int f)
+{
+	return 30 |
+		COL_BG (7+f>15?15:7+f, f/2>15?15:f/2, f/4-7<0?0:f/4-7>15?15:f/4-7) |
+			(f < 8 ? COL_TXT (11+f/2, 3+f/2, 0) :
+			(f < 64 ? COL_TXT (16 - f/8, f/7+6, 0) :
+			COL_TXT (16-f/8<0?0:16-f/8, 31-f/4<0?0:31-f/4, f/8-8>15?15:f/8-8)));
+}
+
 gflags map_flags;
 glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 {
 	map_flags = 0;
 	if (looking && lvl->seen[w] == 2 && lvl->num_fires[w])
-	{
-		int fires = lvl->num_fires[w];
-		int col = (fires >= 2) + (fires >= 4) + (fires >= 6) + (fires >= 8);
-		return 30 | COL_BG(7+2*col,col,0) | COL_TXT(11+col,3+col,0);
-	}
+		return fire_glyph (lvl->num_fires[w]);
 	/* draw walls */
 	if (lvl->remembered[w] == ACS_WALL && looking)
 	{
@@ -450,16 +455,18 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 	}
 
 	/* draw topmost item in pile */
-	if (lvl->items[w]->len > 0)
+	int i;
+	for (i = 0; i < lvl->items[w]->len; ++ i)
 	{
-		struct Item *item = v_at (lvl->items[w], lvl->items[w]->len-1);
-		if (item->loc.loc == LOC_FLIGHT)
+		struct Item *item = v_at (lvl->items[w], lvl->items[w]->len-1-i);
+		if (item->loc.loc == LOC_DLVL)
+			return it_gl (item);
+		else if (item->loc.loc == LOC_FLIGHT && looking)
 			return it_gl (item) | COL_BG (5,5,5);
-		return it_gl (item);
 	}
 
 	/* draw topmost dungeon feature */
-	int i = lvl->things[w]->len - 1;
+	i = lvl->things[w]->len - 1;
 	if (i >= 0)
 	{
 		struct Thing *th = v_at (lvl->things[w], i);

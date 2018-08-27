@@ -21,13 +21,14 @@ typedef enum
 	EV_MDOMOVE,
 	EV_MEVADE,
 	EV_MDOEVADE,
+	EV_MUNEVADE,
 //	EV_MPARRY,
 	EV_MSHIELD,
 	EV_MDOSHIELD,
 	EV_MUNSHIELD,
 	EV_MATTKM,
 	EV_MDOATTKM,
-	EV_MTURN,
+	EV_MPOLL,
 	EV_MGEN,
 	EV_MREGEN,
 	EV_MBLEED,
@@ -43,6 +44,8 @@ typedef enum
 	EV_MWATER_BOLT,
 	EV_MFROST,
 	EV_CIRCLEOFFLAME,
+	EV_MFLASH,
+	EV_MSTOPFLASH,
 	EV_MOPENDOOR,
 	EV_MCLOSEDOOR
 } EV_TYPE;
@@ -134,6 +137,11 @@ union Event
 	{
 		EV_TYPE type;
 		MID thID;
+	} munevade;
+	struct
+	{
+		EV_TYPE type;
+		MID thID;
 		int ydir, xdir;
 	} mshield;
 	struct
@@ -163,7 +171,7 @@ union Event
 	{
 		EV_TYPE type;
 		MID thID;
-	} mturn;
+	} mpoll;
 	struct
 	{
 		EV_TYPE type;
@@ -254,6 +262,18 @@ union Event
 		//int power, radius;
 		MID thID;
 	} circleofflame;
+	struct
+	{
+		EV_TYPE type;
+		MID thID;
+		int speed;
+		Tick duration;
+	} mflash;
+	struct
+	{
+		EV_TYPE type;
+		MID thID;
+	} mstopflash;
 	struct
 	{
 		EV_TYPE type;

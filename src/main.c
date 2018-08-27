@@ -33,13 +33,13 @@ bool game_intro ()
 	gra_mvprint (ibox, 5, 2, " flowed through the sea, and the Gods lived in ");
 	gra_mvprint (ibox, 6, 2, "  harmony with the people; it was a time when  ");
 	gra_mvprint (ibox, 7, 2, "    anything and everything was possible...    ");
-	gr_tout (666);
+	int t = 666;
 
 	while (1)
 	{
 		gra_mvprint (ibox, 11, (bw - 30)/2, "[hit the spacebar to continue]");
 		do
-			c = gr_getch();
+			c = gr_getch_int (t);
 		while (c != ' ' && c != GRK_EOF && c != 'q' && c != 'Q');
 		if (c == ' ')
 			break;
@@ -47,14 +47,13 @@ bool game_intro ()
 			goto fin;
 		gra_mvprint (ibox, 11, (bw - 30)/2, "                              ");
 		do
-			c = gr_getch();
+			c = gr_getch_int (t);
 		while (c != ' ' && c != GRK_EOF && c != 'q' && c != 'Q');
 		if (c == ' ')
 			break;
 		if (c == 'q' || c == 'Q')
 			goto fin;
 	}
-	gr_tout (0);
 	ret = true;
 
   fin:
@@ -74,6 +73,7 @@ void on_quit ()
 	exit (0);
 }
 
+//glyph fire_glyph (int);
 int main (int argc, char *argv[])
 {
 	int i;
@@ -144,6 +144,10 @@ int main (int argc, char *argv[])
 	map_graph->vis = 1;
 
 	//if (argc > 1) restore("Yore-savegame.sav");
+	/*for (i = 0; i < 200; ++ i)
+		gra_mvaddch (map_graph, 0 + i/20, 0 + i%20, fire_glyph (i));
+	gr_frefresh ();
+	gr_getch ();*/
 
 	ev_loop ();
 

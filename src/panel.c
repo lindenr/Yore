@@ -523,6 +523,9 @@ int p_skills (struct Monster *player, enum PanelType type)
 		case SK_SCRY:
 			sk_scry (player, sk);
 			return 1;
+		case SK_FLASH:
+			sk_flash (player, sk);
+			return 1;
 		case SK_USE_MARTIAL_ARTS:
 		case SK_USE_LONGSWORD:
 		case SK_USE_AXE:

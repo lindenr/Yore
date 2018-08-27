@@ -115,15 +115,15 @@ void gra_mark     (Graph, int, int);
 /* Input */
 char gr_getch     ();
 char gr_getch_text();
+char gr_getch_int (int);
 void gra_getstr   (Graph, int, int, char *, int);
-
-void gr_tout      (int);
 
 /* control-key of a lower-case character */
 #define GR_CTRL(ch) ((ch)-96)
 
 /* end-of-input reached */
 #define GRK_EOF      0xFF
+#undef EOF // causes too many promotion problems
 
 /* arrow keys */
 #define GRK_UP       0x1E
@@ -138,7 +138,7 @@ int  gr_buffer    (int, int);
 void gr_ext       (glyph *, char *, glyph);
 
 int  gra_nearedge (Graph, int, int);
-void gr_wait      (uint32_t);
+char gr_wait      (uint32_t, int);
 uint32_t gr_getms ();
 void gr_resize    (int, int);
 
@@ -199,13 +199,13 @@ void gr_resize    (int, int);
 #define DCS_PLUS     0xCE
 
 /* Colours, 0 <= n < 16 */
-#define COL_TXT_RED(n)   (((glyph)n) << 28)
-#define COL_TXT_GREEN(n) (((glyph)n) << 24)
-#define COL_TXT_BLUE(n)  (((glyph)n) << 20)
+#define COL_TXT_RED(n)   (((glyph)(n)) << 28)
+#define COL_TXT_GREEN(n) (((glyph)(n)) << 24)
+#define COL_TXT_BLUE(n)  (((glyph)(n)) << 20)
 #define COL_TXT(r,g,b)   (COL_TXT_RED(r)|COL_TXT_GREEN(g)|COL_TXT_BLUE(b))
-#define COL_BG_RED(n)    (((glyph)n) << 16)
-#define COL_BG_GREEN(n)  (((glyph)n) << 12)
-#define COL_BG_BLUE(n)   (((glyph)n) <<  8)
+#define COL_BG_RED(n)    (((glyph)(n)) << 16)
+#define COL_BG_GREEN(n)  (((glyph)(n)) << 12)
+#define COL_BG_BLUE(n)   (((glyph)(n)) <<  8)
 #define COL_BG(r,g,b)    (COL_BG_RED(r)|COL_BG_GREEN(g)|COL_BG_BLUE(b))
 
 /* Common colours */

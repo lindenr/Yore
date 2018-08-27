@@ -30,7 +30,6 @@ int pl_execute (Tick wait, struct Monster *player, int force)
 		ev_queue (qev->tick, qev->ev);
 	}
 	player_actions->len = 0;
-	//ev_queue (wait+1, (union Event) {.mturn = {EV_MTURN, player->ID}});
 	return 1;
 }
 
@@ -77,7 +76,7 @@ int Kwait (struct Monster *player)
 {
 	//pl_queue (player, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, player->ID}});
 	//return pl_execute (player->speed/5, player, 1);
-	ev_queue (player->speed/5, (union Event) { .mturn = {EV_MTURN, player->ID}});
+	ev_queue (player->speed/5, (union Event) { .mpoll = {EV_MPOLL, player->ID}});
 	return 1;
 }
 
@@ -171,7 +170,7 @@ int Ksdrop_cand (struct Monster *player)
 int Ksdrop (struct Monster *player)
 {
 	struct Item *drop = player_use_pack (player, "Drop what?", ITCAT_ALL);
-	if (NO_ITEM(drop))
+	if (it_no(drop))
 		return 0;
 
 	if (it_worn (drop))
@@ -248,7 +247,7 @@ int Kthrow_cand (struct Monster *player)
 int Kthrow (struct Monster *player)
 {
 	struct Item *throw = player_use_pack (player, "Throw what?", ITCAT_ALL);
-	if (NO_ITEM(throw))
+	if (it_no(throw))
 		return 0;
 
 	if (it_worn (throw))
@@ -392,7 +391,7 @@ int Kwear_cand (struct Monster *player)
 int Kwear (struct Monster *player)
 {
 	struct Item *wear = player_use_pack (player, "Wear what?", 1<<ITCAT_ARMOUR);
-	if (NO_ITEM(wear))
+	if (it_no(wear))
 		return 0;
 	return mons_try_wear (player, wear);
 }
@@ -405,7 +404,7 @@ int Ktakeoff_cand (struct Monster *player)
 int Ktakeoff (struct Monster *player)
 {
 	struct Item *item = player_use_pack (player, "Take off what?", 1<<ITCAT_ARMOUR);
-	if (NO_ITEM(item))
+	if (it_no (item))
 	{
 		p_msg ("Not an item.");
 		return 0;
@@ -586,10 +585,19 @@ int pl_charge_action (struct Monster *player)
 	return -1;
 }
 
-int pl_take_turn (struct Monster *player)
+/*int pl_turn_cand (struct Monster *player)
 {
-	//draw_map ();
-	//p_notify ("You see nothing here.");
+	struct MStatus *st = &player->status;
+	if (st->moving.arrival || st->attacking.arrival || st->helpless || st->evading.finish)
+		return 0;
+	return 1;
+}*/
+
+void pl_poll (struct Monster *player)
+{
+	/* Should the player be asked what to do? */
+	//if (!pl_turn_cand (player))
+	//	return;
 	if (gra_nearedge (map_graph, player->yloc, player->xloc))
 		gra_centcam (map_graph, player->yloc, player->xloc);
 	while (1)
@@ -617,10 +625,10 @@ int pl_take_turn (struct Monster *player)
 			else if (res == 0)
 				continue;
 			else
-				return 0;
+				return;
 		}
 	}
-	return 1;
+	return;
 }
 
 /* returns whether the move was used up */
@@ -707,9 +715,5 @@ void pl_choose_attr_gain (struct Monster *player, int points)
 struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
 {
 	return it_at(show_contents (th, accepted, msg));
-}
-
-void pl_redraw ()
-{
 }
 

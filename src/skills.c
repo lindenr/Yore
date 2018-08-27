@@ -14,6 +14,7 @@ const styp all_skills[] = {
 	{SK_FROST, SK_ACT, GL_WIS, "Frost", "#FROST\n[cost: free]\nLightly freezes an area."},
 	{SK_FLAMES,  SK_ACT, GL_WIS, "Circle of flame", "#CIRCLE OF FLAME\n#[cost: free]\nfiire!!!!"},
 	{SK_SCRY,  SK_ACT, GL_WIS, "Scry", "#SCRY\n#[cost: free]\nscry!!!!"},
+	{SK_FLASH,  SK_ACT, GL_AGI, "Flash", "#FLASH\n#[cost: free]\nYou briefly become inhumanly fast."},
 	{SK_USE_MARTIAL_ARTS, SK_PAS, GL_STR, "Martial arts ability", "#MARTIAL ARTS\n\nYour skill at using martial arts in combat."},
 	{SK_USE_LONGSWORD, SK_PAS, GL_STR, "Longsword ability", "#LONGSWORD\n\nYour skill at using a longsword in combat."},
 	{SK_USE_AXE, SK_PAS, GL_STR, "Axe ability", "#AXE\n\nYour skill at using an axe in combat."},
@@ -65,7 +66,6 @@ void sk_fireball (struct Monster *mons, int yloc, int xloc, Skill sk)
 		return;
 	mons->MP -= 5;
 	ev_queue (mons->speed/2, (union Event) { .mfireball = {EV_MFIREBALL, mons->ID, yloc, xloc, sk->level*5}});
-	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	mons_ex_skill (mons, sk);
 }
 
@@ -75,14 +75,12 @@ void sk_water_bolt (struct Monster *mons, int yloc, int xloc, Skill sk)
 		return;
 	mons->MP -= 6;
 	ev_queue (mons->speed/2, (union Event) { .mwater_bolt = {EV_MWATER_BOLT, mons->ID, yloc, xloc, sk->level*5}});
-	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	mons_ex_skill (mons, sk);
 }
 
 void sk_frost (struct Monster *mons, int yloc, int xloc, Skill sk)
 {
 	ev_queue (0, (union Event) { .mfrost = {EV_MFROST, mons->ID, yloc, xloc, 3}});
-	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	mons_ex_skill (mons, sk);
 }
 
@@ -124,11 +122,9 @@ void sk_charge (struct Monster *th, int y, int x, Skill sk)
 	if (!th->status.charging)
 	{
 		ev_queue (0, (union Event) { .mstartcharge = {EV_MSTARTCHARGE, th->ID /*, y, x*/ }});
-		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 		return;
 	}
 	ev_queue (0, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, th->ID /*, y, x*/ }});
-	//ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 //	sk_exp (th, sk, 1);
 	
 //	chID = th->ID;
@@ -170,13 +166,17 @@ void sk_flames_overlay (struct Monster *th)
 			gra_mvaddch (flames_overlay, y + yt - map_graph->cy, x + xt - map_graph->cx, gl);
 		}
 		gr_refresh ();
-		gr_wait (50);
+		gr_wait (50, 0);
 	}
 	gra_free (flames_overlay);
-	//ev_queue (0, (union Event) { .mturn = {EV_MTURN, th->ID}});
 }
 
 void sk_scry (struct Monster *mons, Skill skill)
 {
+}
+
+void sk_flash (struct Monster *mons, Skill skill)
+{
+	ev_queue (0, (union Event) { .mflash = {EV_MFLASH, mons->ID, 107, 500}});
 }
 

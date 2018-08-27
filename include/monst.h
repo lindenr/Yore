@@ -188,18 +188,23 @@ struct MStatus
 	struct
 	{
 		int ydir, xdir;
-		Tick arrival;
+		Tick arrival, finish;
 	} evading;
 	struct
 	{
 		int ydir, xdir;
 	} defending;
+	struct
+	{
+		int speed;
+		Tick end;
+	} flashing;
 	int charging;
 	int helpless;
 	int bleeding;
 };
 
-#define DEF_MSTATUS ((struct MStatus){{0,0,0},{0,0,-1,0},{0,0,0},{0,0},0,0,0})
+#define DEF_MSTATUS ((struct MStatus){{0,0,0},{0,0,-1,0},{0,0,0,0},{0,0},{0,0},0,0,0})
 
 struct Monster
 {
@@ -244,8 +249,8 @@ int    mons_can_wear   (struct Monster *, struct Item *,     /* can it be worn  
 	size_t);
 int    mons_try_wear   (struct Monster *, struct Item *);    /* wear some armour                         */
 int    mons_can_takeoff(struct Monster *, struct Item *);    /* can it be taken off                      */
-int    mons_try_takeoff(struct Monster *, struct Item *);    /* wear some armour                         */
-void   mons_take_turn  (struct Monster *);                   /* give a move (AI or player)               */
+int    mons_try_takeoff(struct Monster *, struct Item *);    /* take off some armour                     */
+void   mons_poll       (struct Monster *);                   /* poll for action (AI or player)           */
 void   mons_corpse     (struct Monster *, struct Item *);    /* make itype corpse type of the monster    */
 Tick   mons_tregen     (struct Monster *);                   /* time between regen events                */
 int    mons_throwspeed (struct Monster *, struct Item *);    /* how fast the item can be thrown          */
@@ -273,6 +278,7 @@ int    mons_skill      (const struct Monster *,              /* get skill level 
 int    mons_attk_bonus (const struct Monster *,              /* get extra damage a monster does          */
 	const struct Item *);
 enum MTYPE mons_type   (const struct Monster *);             /* get monster type                         */
+int    mons_can_bleed  (const struct Monster *);             /* can it bleed                             */
 
 /* effects */
 void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */
@@ -284,7 +290,8 @@ int    mons_take_damage(struct Monster *, struct Monster *,  /* returns whether 
 	int, enum DMG_TYPE);
 void   mons_kill       (struct Monster *, struct Monster *); /* kill a given monster                     */
 void   mons_dead       (struct Monster *);                   /* monster is dead - add corpse etc         */
-void   mons_start_evade(struct Monster *, int, int, Tick);   /* start evading in a given direction       */
+void   mons_start_evade(struct Monster *, int, int, Tick,    /* start evading in a given direction       */
+	Tick);
 void   mons_stop_evade (struct Monster *);                   /* stop evading                             */
 void   mons_start_move (struct Monster *, int, int, Tick);   /* start moving in a given direction        */
 void   mons_stop_move  (struct Monster *);                   /* stop moving                              */
@@ -304,9 +311,9 @@ void   mons_startbleed (struct Monster *);                   /* start bleeding  
 int    mons_gen_type   (void);                               /* get a valid monster type for fighting    */
 
 /* AI functions */
-int    AI_TIMID_take_turn    (struct Monster *);             /* decide what to do if not attacking       */
-int    AI_HOSTILE_take_turn  (struct Monster *);             /* if hostile TODO                          */
-int    AI_AGGRO_take_turn    (struct Monster *);             /* if attacking                             */
+void   AI_TIMID_poll   (struct Monster *);                   /* decide what to do if not attacking       */
+void   AI_HOSTILE_poll (struct Monster *);                   /* if hostile TODO                          */
+void   AI_AGGRO_poll   (struct Monster *);                   /* if attacking                             */
 
 #endif /* MONST_H_INCLUDED */
 

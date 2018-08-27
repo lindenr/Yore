@@ -11,24 +11,9 @@
 #define STRINGIFY(x) #x
 #define TILE_FILE "t"XSTRINGIFY(GLW)"x"XSTRINGIFY(GLH)".bmp"
 
-/* SDL globals */
-static SDL_Window *sdlWindow;
-static SDL_Renderer *sdlRenderer;
-static SDL_Surface *tiles, *screen, *glyph_col;
-static SDL_Texture *sdlTexture;
-
-/* starting and current size */
-static int screenY = 0, screenX = 0;
-
-static glyph *gr_map = NULL;
-static gflags *gr_flags = NULL;
-
 /* window dimensions (in glyphs) */
 int gr_h = 0, gr_w = 0; //screenY/GLH, gr_w = screenX/GLW;
 int gr_area = 0;
-
-/* all the active graphs */
-static Vector graphs = NULL;
 
 /* event callback functions */
 void (*gr_onidle) () = NULL;
@@ -36,10 +21,50 @@ void (*gr_onresize) () = NULL;
 void (*gr_onrefresh) () = NULL;
 void (*gr_quit) () = NULL;
 
-/* for internal use */
+/* The following static variables are for internal use */
+
+/* SDL globals */
+static SDL_Window *sdlWindow;
+static SDL_Renderer *sdlRenderer;
+static SDL_Surface *tiles, *screen, *glyph_col;
+static SDL_Texture *sdlTexture;
+
+/* all the active graphs */
+static Vector graphs = NULL;
+
+/* what's currently on display */
+static glyph *gr_map = NULL;
+static gflags *gr_flags = NULL;
+
+/* starting and current size */
+static int screenY = 0, screenX = 0;
+
+/* for text copying */
 #define BUFFER_LEN 1024
 static char temp_buffer[BUFFER_LEN];
-static int forced_refresh = 0;
+
+/* will the next refresh redraw everything? */
+static int gr_forced_refresh = 0;
+
+/* timing parameters for held keys */
+static uint32_t gr_kinitdelay = 180, gr_kdelay = 40;
+
+/* state for keys being held down */
+static uint32_t key_fire_ms = 0;
+static char cur_key_down = 0;
+static int num_keys_down = 0;
+
+/* state for key timeout */
+static uint32_t end = 0;
+
+/* state for animation-skipping */
+static char peeked = GRK_EOF;
+static int gr_skip_anim = 0;
+
+#ifdef DEBUG_GETCH_TIME
+static uint32_t lastref = 0;
+#endif
+
 
 int gra_buffer (Graph gra, int yloc, int xloc)
 {
@@ -68,7 +93,7 @@ void gra_movecam (Graph gra, int yloc, int xloc)
 	gra->cy = yloc;
 	gra->cx = xloc;
 	
-	forced_refresh = 1;
+	gr_forced_refresh = 1;
 }
 
 void gra_centcam (Graph gra, int yloc, int xloc)
@@ -275,40 +300,25 @@ void gra_cshow (Graph gra)
 void gra_hide (Graph gra)
 {
 	gra->vis = 0;
-	forced_refresh = 1;
+	gr_forced_refresh = 1;
 }
 
 void gra_show (Graph gra)
 {
 	gra->vis = 1;
-	forced_refresh = 1;
+	gr_forced_refresh = 1;
 }
 
 void gra_mark (Graph gra, int yloc, int xloc)
 {
 	gra->flags[gra_buffer(gra, yloc, xloc)] |= 1;
 }
-/*
-void gra_bsetbox (Graph gra, int b, gflags flags)
-{
-	gra->flags[b] = 1|flags;
-}*/
 
 #define setpixel(y,x) {*(uint32_t*) ((uint8_t*) pixels + 4*(x) + screen->pitch*(y)) = col;}
 void gr_drawboxes (int y, int x, gflags f)
 {
-	if (SDL_MUSTLOCK (screen)) // TODO draw all boxes under one lock
+	if (SDL_MUSTLOCK (screen)) // TODO draw everything under one lock
 		SDL_LockSurface (screen);
-	/*int type;
-	for (type = 1; type < 8; ++ type)
-	{
-		if (!(f&(1<<type))) continue;
-		int py = y * GLH + BOXPOS[type][0], px = x * GLW + BOXPOS[type][1];
-		int r = BOXCOL[type][0], g = BOXCOL[type][1], b = BOXCOL[type][2];
-		uint32_t *pixels = (uint32_t *) ((uintptr_t) screen->pixels + py*screen->pitch + px*4);
-		uint32_t col = SDL_MapRGB (screen->format, r, g, b);
-		setpixel(0,0); setpixel(0,1); setpixel(1,0); setpixel(1,1);
-	}*/
 
 	int ismoving = 1 & (f>>12), isattacking = 1 & (f>>17), code, px, py, i;
 	uint32_t col, *pixels;
@@ -400,7 +410,7 @@ void gr_refresh ()
 				int gr_c = gr_buffer (gr_y, gr_x);
 				if (gra_c != -1 && gr_c != -1)
 				{
-					if ((gra->flags[gra_c]&1) || forced_refresh || gr_flags[gr_c] ||
+					if ((gra->flags[gra_c]&1) || gr_forced_refresh || gr_flags[gr_c] ||
 						gra->old[gra_c] != gra->data[gra_c])
 					{
 						glyph gl = gra->data[gra_c];
@@ -435,7 +445,7 @@ void gr_refresh ()
 	{
 		for (x = 0; x < gr_w; ++ x, ++ gr_c)
 		{
-			if (gr_flags[gr_c] || forced_refresh)
+			if (gr_flags[gr_c] || gr_forced_refresh)
 			{
 				if (umost > y)
 					umost = y;
@@ -460,9 +470,9 @@ void gr_refresh ()
 	//fprintf(stderr, "drawn: %d\n", drawn);
 	if (gr_onrefresh)
 		gr_onrefresh ();
-	if (drawn || forced_refresh)
+	if (drawn || gr_forced_refresh)
 	{
-		if (1 || forced_refresh)
+		if (1 || gr_forced_refresh)
 			SDL_UpdateTexture (sdlTexture, NULL, screen->pixels, screenX * sizeof(Uint32));
 		else
 		{
@@ -483,7 +493,7 @@ void gr_refresh ()
 		SDL_RenderCopy (sdlRenderer, sdlTexture, NULL, NULL);
 		SDL_RenderPresent (sdlRenderer);
 	}
-	forced_refresh = 0;
+	gr_forced_refresh = 0;
 #ifdef DEBUG_REFRESH_TIME
 	fprintf(stderr, "time: %ums\n\n", gr_getms() - asdf);
 #endif
@@ -491,7 +501,7 @@ void gr_refresh ()
 
 void gr_frefresh ()
 {
-	forced_refresh = 1;
+	gr_forced_refresh = 1;
 	gr_refresh ();
 }
 
@@ -519,14 +529,6 @@ void gra_invert (Graph gra, int yloc, int xloc)
 	gra->flags[b] |= 1;
 }
 
-int tout_num = 0;
-void gr_tout (int t)
-{
-	tout_num = t;
-}
-
-int echoing = 1;
-
 int gr_inputcode (SDL_Keycode code)
 {
 	return (code >= 32 && code < 128);
@@ -537,23 +539,25 @@ int gr_inputch (char in)
 	return (in >= 32 && in < 128);
 }
 
-uint32_t gr_kinitdelay = 180, gr_kdelay = 40;
-uint32_t end = 0, key_fire_ms = 0;
-char cur_key_down = 0;
-int num_keys_down = 0;
-
-#ifdef DEBUG_GETCH_TIME
-uint32_t lastref = 0;
-#endif
-
 // TODO: is text parameter necessary? Could just check if it is an input code
-char gr_getch_aux (int text)
+char gr_getch_aux (int text, int tout_num, int get)
 {
 	uint32_t ticks = gr_getms ();
 #ifdef DEBUG_GETCH_TIME
 	fprintf(stderr, "Time since last getch: %d\n", ticks - lastref);
 #endif
 	gr_refresh ();
+
+	if (peeked != GRK_EOF)
+	{
+		char ret = peeked;
+		if (get)
+		{
+			peeked = GRK_EOF;
+			gr_skip_anim = 0;
+		}
+		return ret;
+	}
 
 	if (tout_num && end <= ticks)
 		end = tout_num + ticks;
@@ -581,7 +585,7 @@ char gr_getch_aux (int text)
 			}
 			if (gr_onidle)
 				gr_onidle ();
-			gr_wait (10);
+			gr_wait (10, 0);
 			continue;
 		}
 
@@ -663,6 +667,8 @@ char gr_getch_aux (int text)
 			#ifdef DEBUG_GETCH_TIME
 			lastref = ticks;
 			#endif
+			if (!get)
+				peeked = input_key;
 			return input_key;
 		}
 	}
@@ -671,12 +677,17 @@ char gr_getch_aux (int text)
 
 char gr_getch ()
 {
-	return gr_getch_aux (0);
+	return gr_getch_aux (0, 0, 1);
 }
 
 char gr_getch_text ()
 {
-	return gr_getch_aux (1);
+	return gr_getch_aux (1, 0, 1);
+}
+
+char gr_getch_int (int t)
+{
+	return gr_getch_aux (0, t, 1);
 }
 
 void gra_getstr (Graph gra, int yloc, int xloc, char *out, int len)
@@ -731,24 +742,11 @@ void gr_resize (int ysiz, int xsiz)
 	gr_flags = realloc (gr_flags, sizeof(gflags) * gr_area);
 	memset (gr_flags, 0, sizeof(gflags) * gr_area);
 
-	forced_refresh = 1;
+	gr_forced_refresh = 1;
 
 	if (gr_onresize)
 		gr_onresize ();
 }
-
-Uint32
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	rmask = 0xff000000,
-	gmask = 0x00ff0000,
-	bmask = 0x0000ff00,
-	amask = 0x000000ff;
-#else
-	rmask = 0x000000ff,
-	gmask = 0x0000ff00,
-	bmask = 0x00ff0000,
-	amask = 0xff000000;
-#endif
 
 #define GR_TRY_TILES(a,b)\
 snprintf (filepath, 100, a, b);\
@@ -858,15 +856,31 @@ void gra_free (Graph gra)
 			free (gra->flags);
 			free (gra);
 			v_rem (graphs, i);
-			forced_refresh = 1;
+			gr_forced_refresh = 1;
 			break;
 		}
 	}
 }
 
-void gr_wait (uint32_t ms)
+char gr_wait (uint32_t ms, int interrupt)
 {
-	SDL_Delay (ms);
+	if (!ms)
+		return GRK_EOF;
+	if (!interrupt)
+	{
+		SDL_Delay (ms);
+		return GRK_EOF;
+	}
+	if (gr_skip_anim)
+	{
+		/* don't want to hang */
+		SDL_Delay (1);
+		return GRK_EOF;
+	}
+	char out = gr_getch_aux (0, ms, 0);
+	if (out != GRK_EOF)
+		gr_skip_anim = 1;
+	return out;
 }
 
 uint32_t gr_getms ()

@@ -22,7 +22,7 @@ int expcmp (int p_exp, int m_exp)
 		return (m_exp < 7);
 	return p_exp >= ((m_exp*(m_exp-1))/2);/*
 	if (p_exp >= m_exp * 100)
-		return !rn(p_exp/(m_exp*200) + 1);
+		return onein (p_exp/(m_exp*200) + 1);
 	if (p_exp >= m_exp * 2)
 		return 40;
 	if ((p_exp * 20) + 20 >= m_exp * 19)
@@ -45,7 +45,7 @@ const int maxlevel = sizeof(explevel)/sizeof(explevel[0]);
 
 int mons_gen_type ()
 {
-	//return MTYP_slime_rat;
+	return MTYP_skeleton;
 	int i, array[MTYP_NUM_MONS];
 	int level = MTHIID(*(TID*)v_at(cur_dlevel->playerIDs,0))->level;
 	uint32_t p_exp = level < maxlevel ? explevel[level] : explevel[maxlevel-1]*2;
@@ -58,13 +58,13 @@ int mons_gen_type ()
 		total_weight += array[i];
 	}
 
+	int r = rn(total_weight);
 	for (i = 0; i < MTYP_NUM_MONS; ++i)
 	{
-		if (array[i] > rn(total_weight))
-			break;
-		total_weight -= array[i];
+		if (array[i] > r)
+			return i;
+		r -= array[i];
 	}
-	if (i < MTYP_NUM_MONS) return i;
 
 	/* If the player has no exp this will happen */
 	return 0;
@@ -100,11 +100,6 @@ int mons_exp_needed (int level)
 int is (struct Monster *mons)
 {
 	return mons && mons->ID;
-}
-
-int mons_get_wt (struct Monster *mons)
-{
-	return CORPSE_WEIGHTS[mons->mflags >> 29];
 }
 
 void mons_corpse (struct Monster *mons, struct Item *item)
@@ -165,7 +160,6 @@ int mons_try_wear (struct Monster *mons, struct Item *it)
 		}
 		ev_queue (0, (union Event) { .mwear_armour =
 			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, hands[i])}});
-		//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
 	}
 	if (it_canwear (it, MONS_TORSO))
@@ -182,7 +176,6 @@ int mons_try_wear (struct Monster *mons, struct Item *it)
 		}
 		ev_queue (0, (union Event) { .mwear_armour =
 			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, torsos[i])}});
-		//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
 	}
 	if (it_canwear (it, MONS_HEAD))
@@ -199,7 +192,6 @@ int mons_try_wear (struct Monster *mons, struct Item *it)
 		}
 		ev_queue (0, (union Event) { .mwear_armour =
 			{EV_MWEAR_ARMOUR, mons->ID, it->ID, offsetof (struct WoW, heads[i])}});
-		//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 		return 1;
 	}
 	return 0;
@@ -212,17 +204,15 @@ int mons_can_takeoff (struct Monster *mons, struct Item *it)
 
 int mons_try_takeoff (struct Monster *mons, struct Item *it)
 {
-	if (NO_ITEM(it))
+	if (it_no(it))
 		return 0;
 	ev_queue (0, (union Event) { .mtakeoff_armour = {EV_MTAKEOFF_ARMOUR, mons->ID, it->ID}});
-	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	return 1;
 }
 
 int mons_try_attack (struct Monster *mons, int y, int x)
 {
 	ev_queue (0, (union Event) { .mattkm = {EV_MATTKM, mons->ID, 0, y, x}});
-	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 	return 1;
 }
 
@@ -244,7 +234,6 @@ int mons_can_move (struct Monster *mons, int y, int x)
 void mons_try_move (struct Monster *mons, int y, int x)
 {
 	ev_queue (0, (union Event) { .mmove = {EV_MMOVE, mons->ID, y, x}});
-	//ev_queue (mons->speed+1, (union Event) { .mturn = {EV_MTURN, mons->ID}});
 }
 
 void mons_try_wait (struct Monster *mons)
@@ -302,15 +291,15 @@ void mons_take_off (struct Monster *mons, struct Item *item)
 	mons->armour -= it_def (item);
 }
 
-void mons_start_evade (struct Monster *mons, int y, int x, Tick arrival)
+void mons_start_evade (struct Monster *mons, int y, int x, Tick arrival, Tick recovery)
 {
-	mons->status.evading = (typeof(mons->status.evading)) {y, x, arrival};
+	mons->status.evading = (typeof(mons->status.evading)) {y, x, arrival, recovery};
 	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
 }
 
 void mons_stop_evade (struct Monster *mons)
 {
-	mons->status.evading = (typeof(mons->status.evading)) {0, 0, 0};
+	mons->status.evading = (typeof(mons->status.evading)) {0, 0, 0, 0};
 	draw_map_buf (dlv_lvl (mons->dlevel), map_buffer (mons->yloc, mons->xloc));
 }
 
@@ -350,9 +339,14 @@ int mons_take_damage (struct Monster *mons, struct Monster *fr, int dmg, enum DM
 		mons_kill (fr, mons);
 		return 0;
 	}
-	if (type == DTYP_CUT)
+	if (type == DTYP_CUT && mons_can_bleed (mons))
 		mons_startbleed (mons);
 	return 1;
+}
+
+int mons_can_bleed (const struct Monster *mons)
+{
+	return mons->mflags&FL_FLSH;
 }
 
 void mons_startbleed (struct Monster *mons)
@@ -392,7 +386,7 @@ void mons_dead (struct Monster *mons)
 	for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
 	{
 		struct Item *packitem = &mons->pack->items[i];
-		if (NO_ITEM(packitem))
+		if (it_no(packitem))
 			continue;
 		item_put (packitem, (union ItemLoc) { .dlvl =
 			{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
@@ -401,7 +395,7 @@ void mons_dead (struct Monster *mons)
 
 mcorpse: ;
 	/* item drops */
-	if (!rn(5))
+	if (onein (5))
 		item_gen ((union ItemLoc) { .dlvl =
 			{LOC_DLVL, mons->dlevel, mons->yloc, mons->xloc}});
 	/* add corpse */
@@ -430,9 +424,12 @@ void mons_calm (struct Monster *mons)
 	eff_mons_calms (mons);
 }
 
-void mons_take_turn (struct Monster *th)
+void mons_poll (struct Monster *th)
 {
-	if (!is(th))
+	if (!is (th))
+		return;
+	struct MStatus *st = &th->status;
+	if (st->moving.arrival || st->attacking.arrival || st->helpless || st->evading.finish)
 		return;
 	switch (th->ctr.mode)
 	{
@@ -441,7 +438,7 @@ void mons_take_turn (struct Monster *th)
 		break;
 	case CTR_PL:
 		/* player in normal mode */
-		pl_take_turn (th);
+		pl_poll (th);
 		return;
 	case CTR_PL_CONT:
 	{
@@ -454,22 +451,22 @@ void mons_take_turn (struct Monster *th)
 	}
 	case CTR_PL_FOCUS:
 		/* player in focus mode */
-		pl_take_turn (th);
+		pl_poll (th);
 		return;
 	case CTR_AI_TIMID:
 		/* calm non-player monster */
-		AI_TIMID_take_turn (th);
+		AI_TIMID_poll (th);
 		return;
 	case CTR_AI_HOSTILE:
 		/* hostile monster */
-		AI_HOSTILE_take_turn (th);
+		AI_HOSTILE_poll (th);
 		return;
 	case CTR_AI_AGGRO:
 		/* aggravated monster */
-		AI_AGGRO_take_turn (th);
+		AI_AGGRO_poll (th);
 		return;
 	}
-	panic ("End of mons_take_turn reached.");
+	panic ("End of mons_poll reached.");
 	return;
 }
 
@@ -560,7 +557,7 @@ int mons_hitm (const struct Monster *from, const struct Monster *to, const struc
 	    to->status.defending.ydir + to->yloc == from->yloc &&
 	    to->status.defending.xdir + to->xloc == from->xloc)
 		return 0;
-	return rn(20) && ((!rn(20)) || (5 + mons_skill (from, with) >= rn(to->armour*2 + 7)));
+	return rn(20) && (onein (20) || (5 + mons_skill (from, with) >= rn(to->armour*2 + 7)));
 }
 
 int mons_hitdmg (const struct Monster *from, const struct Monster *to, const struct Item *with)
@@ -581,7 +578,7 @@ int mons_ST_hit (struct Monster *from, struct Item *with)
 
 int mons_HP_regen (struct Monster *th)
 {
-	return (!rn(8)) * (rn(th->str) >= 4);
+	return onein (8) * (rn(th->str) >= 4);
 }
 
 int mons_ST_regen (struct Monster *th)
@@ -591,7 +588,7 @@ int mons_ST_regen (struct Monster *th)
 
 int mons_MP_regen (struct Monster *th)
 {
-	return (!rn(10)) * rn(1 + (th->wis + rn(4))/4);
+	return onein (10) * rn(1 + (th->wis + rn(4))/4);
 }
 
 void mons_stats_changed (struct Monster *mons)
@@ -683,24 +680,23 @@ const char *mons_typename (struct Monster *mons)
 
 int AI_weapcmp (struct Monster *ai, struct Item *w1, struct Item *w2)
 {
-	if (NO_ITEM(w2))
-		return !NO_ITEM(w1);
-	if (NO_ITEM(w1))
+	if (it_no(w2))
+		return !it_no(w1);
+	if (it_no(w1))
 		return -1;
 	return ((uintptr_t)w1) > ((uintptr_t)w2);
 }
 
-int AI_TIMID_take_turn (struct Monster *ai)
+void AI_TIMID_poll (struct Monster *ai)
 {
 	int y = rn(3)-1, x = rn(3)-1;
 	if (mons_can_move (ai, y, x))
 		mons_try_move (ai, y, x);
 	else
 		mons_try_wait (ai);
-	return 1;
 }
 
-int AI_HOSTILE_take_turn (struct Monster *ai)
+void AI_HOSTILE_poll (struct Monster *ai)
 {
 	int y, x, min = 999999, nmin = 0;
 	for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
@@ -721,11 +717,11 @@ int AI_HOSTILE_take_turn (struct Monster *ai)
 	if (!nmin)
 	{
 		y = rn(3)-1; x = rn(3)-1;
-		if (mons_can_move (ai, y, x) && (!rn(3)))
+		if (mons_can_move (ai, y, x) && onein (3))
 			mons_try_move (ai, y, x);
 		else
 			mons_try_wait (ai);
-		return 1;
+		return;
 	}
 	int ch = rn(nmin) + 1;
 	for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
@@ -743,22 +739,20 @@ int AI_HOSTILE_take_turn (struct Monster *ai)
 				mons_try_attack (ai, y, x);
 			else
 				mons_try_wait (ai);
-			return 1;
+			return;
 		}
 	}
-	panic("end of AI_HOSTILE_take_turn reached");
-	return 0;
+	panic("end of AI_HOSTILE_poll reached");
 }
 
-int AI_AGGRO_take_turn (struct Monster *ai)
+void AI_AGGRO_poll (struct Monster *ai)
 {
 	struct Monster *to = MTHIID (ai->ctr.aggro.ID);
 	if (!to)
 	{
 		mons_calm (ai);
-		//ev_queue (0, (union Event) { .mturn = {EV_MTURN, aiID}});
-		mons_take_turn (ai);
-		return 1;
+		mons_poll (ai);
+		return;
 	}
 
 	if (!ai->pack)
@@ -772,7 +766,7 @@ int AI_AGGRO_take_turn (struct Monster *ai)
 	for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
 	{
 		struct Item *item = &ai->pack->items[i];
-		if (NO_ITEM(item))
+		if (it_no(item))
 			continue;
 		if (AI_weapcmp (ai, item, bestweap) > 0)
 			bestweap = item;
@@ -780,7 +774,7 @@ int AI_AGGRO_take_turn (struct Monster *ai)
 	if (bestweap != curweap)
 	{
 		mons_try_wield (ai, bestweap);
-		return 1;
+		return;
 	}
 
 skip_weapon: ;
@@ -795,7 +789,7 @@ skip_weapon: ;
 			mons_try_move (ai, y, x);
 		else
 			mons_try_wait (ai);
-		return 1;
+		return;
 	}
 
 	/* otherwise you can see your target; this is where you aim to travel */
@@ -827,6 +821,5 @@ skip_weapon: ;
 	/* give up */
 	else
 		mons_try_wait (ai);
-	return 1;
 }
 

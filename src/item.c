@@ -123,7 +123,7 @@ const char *it_typename (const struct Item *item)
 
 /*int it_can_merge (const struct Item *item1, const struct Item *item2)
 {
-	return NO_ITEM(item1) || NO_ITEM(item2) ||
+	return it_no(item1) || it_no(item2) ||
 		(it_stackable (item1) &&
 		 (!memcmp(&item1->atype, &item2->atype, sizeof(Ityp))) &&
 		 item1->name == item2->name &&
@@ -164,7 +164,7 @@ int items_equal (struct Item *it1, struct Item *it2)
 {
 	if (it1 == it2)
 		return 1;
-	if (NO_ITEM(it1) && NO_ITEM(it2))
+	if (it_no(it1) && it_no(it2))
 		return 1;
 	return 0;
 }
@@ -314,7 +314,7 @@ void it_break (struct Item *item)
 		panic ("NULL item in it_break");
 	if (it_type (item) == ITYP_FORCE_SHARD)
 	{
-		ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, item->ID, 5}});
+		ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, item->ID, rn(5)+5}});
 		return;
 	}
 	item_free (item);
@@ -331,7 +331,7 @@ enum DMG_TYPE it_dtyp (const struct Item *item)
 
 enum SK_TYPE it_skill (const struct Item *item)
 {
-	if (NO_ITEM(item))
+	if (it_no(item))
 		return SK_USE_MARTIAL_ARTS;
 	switch (it_sort (item))
 	{
@@ -394,7 +394,7 @@ MID it_wieldedID (const struct Item *item)
 
 MID it_invID (const struct Item *item)
 {
-	if (!item)
+	if (it_no (item))
 		return 0;
 	if (item->loc.loc == LOC_INV)
 		return item->loc.inv.monsID;
@@ -403,11 +403,15 @@ MID it_invID (const struct Item *item)
 
 int it_dlvl (const struct Item *item)
 {
+	if (it_no (item))
+		return 0;
 	return item->loc.loc == LOC_DLVL;
 }
 
 int it_flight (const struct Item *item)
 {
+	if (it_no (item))
+		return 0;
 	return item->loc.loc == LOC_FLIGHT;
 }
 

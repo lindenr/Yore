@@ -85,7 +85,7 @@ enum ITEM_TYPE
 #define ITCAT_ALL     0xFFFFFEFF // misses out hands
 
 #define ITEM_NAME_LENGTH 20
-#define NO_ITEM(item) ((!(item)) || ((item)->ID == 0))
+#define it_no(item) ((!(item)) || ((item)->ID == 0))
 #define it_type(item) ((item)->qtype)
 #define it_ityp(item) (&ityps[it_type(item)])
 

@@ -28,7 +28,7 @@ bool pack_add (Pack **ppack, struct Item *it, int u)
 		*ppack = pack_init ();
 	Pack *pack = *ppack;
 
-	if (NO_ITEM(&pack->items[u]))
+	if (it_no(&pack->items[u]))
 	{
 		/* Put in pack */
 		memcpy (&pack->items[u], it, sizeof(*it));
@@ -56,7 +56,7 @@ void add_desc (struct String *str, Pack *pack, int itcat, struct Monster *mons, 
 	for (i = any = 0; i < MAX_ITEMS_IN_PACK; ++i)
 	{
 		struct Item *packitem = &pack->items[i];
-		if (NO_ITEM(packitem))
+		if (it_no (packitem))
 			continue;
 		if (it_category (it_sort (packitem)) != itcat)
 			continue;

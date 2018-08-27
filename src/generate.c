@@ -425,6 +425,7 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FIREBALL, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FROST, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
+	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLASH, 0, 1}));
 	struct Monster *pl = new_mons (cur_dlevel, upsy, upsx, &m1);
 	struct Item *item;
 	//int num = rn(40)+20;

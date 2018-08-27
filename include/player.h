@@ -25,7 +25,7 @@ int  p_move       (int *, int *, char);
 int  key_lookup   (struct Monster *, char);
 void pl_queue     (struct Monster *, union Event);
 int  pl_execute   (Tick, struct Monster *, int);
-int  pl_take_turn (struct Monster *);
+void pl_poll      (struct Monster *);
 int  pl_attempt_move (struct Monster *, int, int);
 void pl_init      ();
 
