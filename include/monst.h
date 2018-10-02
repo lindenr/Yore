@@ -1,6 +1,7 @@
 #ifndef MONST_H_INCLUDED
 #define MONST_H_INCLUDED
 
+#include "include/all.h"
 #include "include/graphics.h"
 #include "include/pack.h"
 #include "include/map.h"
@@ -139,6 +140,9 @@ typedef enum
 	CTR_PL,         /* player control (standard) */
 	CTR_PL_CONT,    /* player control (continuation) */
 	CTR_PL_FOCUS,   /* player control (focus mode) */
+#ifdef SIM
+	CTR_AI_SIM_FARMER,
+#endif /* SIM */
 	CTR_AI_TIMID,   /* neutral non-player monster */
 	CTR_AI_HOSTILE, /* will anger on sight */
 	CTR_AI_AGGRO    /* angry non-player monster */
@@ -210,7 +214,7 @@ struct Monster
 {
 	MID ID;                /* monster ID                   */
 	int dlevel;            /* parent dungeon level         */
-	int yloc, xloc;        /* location in dungeon          */
+	int zloc, yloc, xloc;  /* location in dungeon          */
 	enum MTYPE mtype;      /* monster type                 */
 	const char *mname;     /* name of monster type         */
 	glyph gl;              /* display glyph                */
@@ -240,17 +244,45 @@ struct Monster
 
 extern const struct Monster all_mons[];
 
-/* general monster functions */
 int    is              (struct Monster *);                   /* does the monster exist                   */
-int    mons_can_move   (struct Monster *, int, int);         /* can mons move in given directions        */
+void   mons_poll       (struct Monster *);                   /* poll for action (AI or player)           */
+
+/* monster action functions */
+
+/* move */
+int    mons_can_move   (struct Monster *, int, int);         /* can mons move in given direction         */
 void   mons_try_move   (struct Monster *, int, int);         /* move in given directions                 */
-int    mons_try_attack (struct Monster *, int, int);         /* attack in given directions               */
+void   mons_start_move (struct Monster *, int, int, Tick);   /* start moving in a given direction        */
+void   mons_stop_move  (struct Monster *);                   /* stop moving                              */
+
+/* hit */
+void   mons_try_hitm   (struct Monster *, int, int);         /* attack a given monster                   */
+void   mons_try_hit    (struct Monster *, int, int);         /* attack in given direction                */
+void   mons_start_hit  (struct Monster *, int, int, int,     /* start attacking                          */
+	Tick);
+void   mons_stop_hit   (struct Monster *);                   /* stop attacking                           */
+
+/* evade */
+void   mons_try_evade  (struct Monster *, int, int);         /* evade in given direction                 */
+void   mons_start_evade(struct Monster *, int, int, Tick,    /* start evading in a given direction       */
+	Tick);
+void   mons_stop_evade (struct Monster *);                   /* stop evading                             */
+
+/* wear/take off */
 int    mons_can_wear   (struct Monster *, struct Item *,     /* can it be worn                           */
 	size_t);
-int    mons_try_wear   (struct Monster *, struct Item *);    /* wear some armour                         */
+int    mons_try_wear   (struct Monster *, struct Item *);    /* wear something                           */
+void   mons_wear       (struct Monster *, struct Item *, size_t); /* start wearing an item               */
+void   mons_take_off   (struct Monster *, struct Item *);    /* take off an item                         */
 int    mons_can_takeoff(struct Monster *, struct Item *);    /* can it be taken off                      */
 int    mons_try_takeoff(struct Monster *, struct Item *);    /* take off some armour                     */
-void   mons_poll       (struct Monster *);                   /* poll for action (AI or player)           */
+
+/* wield/unwield */
+void   mons_try_wield  (struct Monster *, struct Item *);    /* wield an item                            */
+void   mons_wield      (struct Monster *, int, struct Item *); /* wield an item in an arm                */
+void   mons_unwield    (struct Monster *, int);              /* unwield an item from a given arm         */
+
+/* misc */
 void   mons_corpse     (struct Monster *, struct Item *);    /* make itype corpse type of the monster    */
 Tick   mons_tregen     (struct Monster *);                   /* time between regen events                */
 int    mons_throwspeed (struct Monster *, struct Item *);    /* how fast the item can be thrown          */
@@ -279,25 +311,14 @@ int    mons_attk_bonus (const struct Monster *,              /* get extra damage
 	const struct Item *);
 enum MTYPE mons_type   (const struct Monster *);             /* get monster type                         */
 int    mons_can_bleed  (const struct Monster *);             /* can it bleed                             */
+int    mons_index      (const struct Monster *);             /* dlevel index of the monster              */
 
-/* effects */
-void   mons_tilefrost  (struct Monster *, int, int);         /* induce a frost effect                    */
-void   mons_wield      (struct Monster *, int, struct Item *); /* wield an item in an arm                */
-void   mons_unwield    (struct Monster *, struct Item *);    /* unwield an item */
-void   mons_wear       (struct Monster *, struct Item *, size_t); /* wear an item                        */
-void   mons_take_off   (struct Monster *, struct Item *);    /* take off an item                         */
+/* other effects */
+void   mons_tilefrost  (struct Monster *, int, int, int);    /* induce a frost effect                    */
 int    mons_take_damage(struct Monster *, struct Monster *,  /* returns whether to-monster still alive   */
 	int, enum DMG_TYPE);
 void   mons_kill       (struct Monster *, struct Monster *); /* kill a given monster                     */
 void   mons_dead       (struct Monster *);                   /* monster is dead - add corpse etc         */
-void   mons_start_evade(struct Monster *, int, int, Tick,    /* start evading in a given direction       */
-	Tick);
-void   mons_stop_evade (struct Monster *);                   /* stop evading                             */
-void   mons_start_move (struct Monster *, int, int, Tick);   /* start moving in a given direction        */
-void   mons_stop_move  (struct Monster *);                   /* stop moving                              */
-void   mons_start_hit  (struct Monster *, int, int, int,     /* start attacking                          */
-	Tick);
-void   mons_stop_hit   (struct Monster *);                   /* stop attacking                           */
 void   mons_anger      (struct Monster *, struct Monster *); /* monster angers another monster           */
 void   mons_calm       (struct Monster *);                   /* monster calms                            */
 void   mons_stats_changed(struct Monster *);                 /* update HP etc to reflect stats           */

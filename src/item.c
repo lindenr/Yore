@@ -1,6 +1,5 @@
 /* item.c */
 
-#include "include/all.h"
 #include "include/thing.h"
 #include "include/words.h"
 #include "include/monst.h"
@@ -11,6 +10,7 @@
 #include "include/rand.h"
 #include "include/skills.h"
 #include "include/event.h"
+#include "include/debug.h"
 
 #include <stdio.h>
 
@@ -413,5 +413,42 @@ int it_flight (const struct Item *item)
 	if (it_no (item))
 		return 0;
 	return item->loc.loc == LOC_FLIGHT;
+}
+
+int it_index (const union ItemLoc *loc)
+{
+	if (!loc)
+		return -1;
+	switch (loc->loc)
+	{
+	case LOC_NONE:
+		return -1;
+	case LOC_DLVL:
+		return dlv_index (dlv_lvl (loc->dlvl.dlevel), loc->dlvl.zloc, loc->dlvl.yloc, loc->dlvl.xloc);
+	case LOC_INV:
+		return -1;
+	case LOC_WIELDED:
+		return -1;
+	case LOC_FLIGHT:
+		return dlv_index (dlv_lvl (loc->fl.dlevel), loc->fl.zloc, loc->fl.yloc, loc->fl.xloc);
+	}
+	return -1;
+}
+
+void it_fl_to_dlv (struct Item *item)
+{
+	item_put (item, (union ItemLoc) { .dlvl =
+		{LOC_DLVL, item->loc.fl.dlevel, item->loc.fl.zloc, item->loc.fl.yloc, item->loc.fl.xloc}});
+}
+
+void it_monsfloc (struct Monster *mons, union ItemLoc *loc, int speed)
+{
+	*loc = (union ItemLoc) { .fl =
+		{LOC_FLIGHT, mons->dlevel, mons->zloc, mons->yloc, mons->xloc, {0,}, speed, mons->ID}};
+}
+
+union ItemLoc it_monsdloc (struct Monster *mons)
+{
+	return (union ItemLoc) {.dlvl = {LOC_DLVL, mons->dlevel, mons->zloc, mons->yloc, mons->xloc}};
 }
 

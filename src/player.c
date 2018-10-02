@@ -33,27 +33,28 @@ int pl_execute (Tick wait, struct Monster *player, int force)
 	return 1;
 }
 
+extern Graph map_graph;
 int Kcamup (struct Monster *player)
 {
-	gra_movecam (map_graph, map_graph->cy - 10, map_graph->cx);
+	grx_movecam (map_graph, 0, map_graph->cy - 10, map_graph->cx, 2);
 	return 0;
 }
 
 int Kcamdn (struct Monster *player)
 {
-	gra_movecam (map_graph, map_graph->cy + 10, map_graph->cx);
+	grx_movecam (map_graph, 0, map_graph->cy + 10, map_graph->cx, 2);
 	return 0;
 }
 
-int Kcamlf (struct Monster *player)
+int Kcamlt (struct Monster *player)
 {
-	gra_movecam (map_graph, map_graph->cy, map_graph->cx - 10);
+	grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx - 10, 2);
 	return 0;
 }
 
 int Kcamrt (struct Monster *player)
 {
-	gra_movecam (map_graph, map_graph->cy, map_graph->cx + 10);
+	grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx + 10, 2);
 	return 0;
 }
 
@@ -74,8 +75,6 @@ int Kwait_cand (struct Monster *player)
 
 int Kwait (struct Monster *player)
 {
-	//pl_queue (player, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, player->ID}});
-	//return pl_execute (player->speed/5, player, 1);
 	ev_queue (player->speed/5, (union Event) { .mpoll = {EV_MPOLL, player->ID}});
 	return 1;
 }
@@ -87,7 +86,7 @@ int Kpickup_cand (struct Monster *player)
 
 int Kpickup (struct Monster *player)
 {
-	int n = map_buffer (player->yloc, player->xloc);
+	int n = mons_index (player);
 	Vector ground = dlv_items (player->dlevel)[n];
 
 	if (ground->len <= 0)
@@ -112,7 +111,6 @@ int Kpickup (struct Monster *player)
 
 	}
 	ev_queue (player->speed, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
-	//return pl_execute (player->speed, player, 0);
 	return 1;
 }
 
@@ -134,8 +132,8 @@ int Kevade (struct Monster *player)
 	p_move (&ymove, &xmove, in);
 	if (ymove == 0 && xmove == 0)
 		return 0;
-	pl_queue (player, (union Event) { .mevade = {EV_MEVADE, player->ID, ymove, xmove}});
-	return pl_execute (player->speed/2, player, 0);
+	mons_try_evade (player, ymove, xmove);
+	return 1;
 }
 /*
 int Kparry (struct Monster *player)
@@ -204,7 +202,7 @@ int Kfmove_cand (struct Monster *player)
 int Kfmove (struct Monster *player)
 {
 	char in = p_getch (player);
-	if (in == CH_ESC)
+	if (in == GRK_ESC)
 		return 0;
 	
 	int ymove, xmove;
@@ -213,9 +211,8 @@ int Kfmove (struct Monster *player)
 		p_msg ("That's not a direction!");
 		return 0;
 	}
-	//pl_queue (player, (union Event) { .mattkm = {EV_MATTKM, player->ID, ymove, xmove}});
-	//return pl_execute (player->speed, player, 0);
-	return mons_try_attack (player, ymove, xmove);
+	mons_try_hit (player, ymove, xmove);
+	return 1;
 }
 
 int Kgmove_cand (struct Monster *player)
@@ -226,7 +223,7 @@ int Kgmove_cand (struct Monster *player)
 int Kgmove (struct Monster *player)
 {
 	char in = p_getch (player);
-	if (in == CH_ESC)
+	if (in == GRK_ESC)
 		return 0;
 	
 	int ymove, xmove;
@@ -235,8 +232,8 @@ int Kgmove (struct Monster *player)
 		p_msg ("That's not a direction!");
 		return 0;
 	}
-	pl_queue (player, (union Event) { .mmove = {EV_MMOVE, player->ID, ymove, xmove}});
-	return pl_execute (player->speed, player, 0);
+	mons_try_move (player, ymove, xmove);
+	return 1;
 }
 
 int Kthrow_cand (struct Monster *player)
@@ -256,8 +253,8 @@ int Kthrow (struct Monster *player)
 		return 0;
 	}
 
-	int yloc, xloc;
-	p_mvchoose (player, &yloc, &xloc, "Throw where?", NULL, &show_path_on_overlay);
+	int zloc, yloc, xloc;
+	p_mvchoose (player, &zloc, &yloc, &xloc, "Throw where?", NULL, &show_path_on_overlay);
 	if (yloc == -1)
 		return 0;
 
@@ -274,7 +271,7 @@ int Kinv (struct Monster *player)
 int nlook_msg (struct String *str, struct Monster *player)
 {
 	int k = 0;
-	int n = map_buffer (player->yloc, player->xloc);
+	int n = mons_index (player);
 	struct DLevel *lvl = dlv_lvl (player->dlevel);
 	Vector items = lvl->items[n];
 	Vector things = lvl->things[n];
@@ -327,19 +324,65 @@ int Knlook (struct Monster *player)
 	return 0;
 }
 
-void flook_callback (enum P_MV action, int fy, int fx, int ty, int tx)
+//static Graph info = NULL;
+void flook_callback (enum P_MV action, int dlevel, int fz, int fy, int fx, int tz, int ty, int tx)
 {
-	int n = map_buffer (ty, tx);
+	/*if (action == P_MV_END)
+	{
+		gra_free (info);
+		return;
+	}
+	else if (action == P_MV_CHOOSING)
+		gra_free (info);
+	info = gra_init (5, 5, ty + 1 - map_graph->cy, tx - 2 - map_graph->cx, 5, 5);
+	//int n = map_graph (ty, tx);
 	//glyph gl = map_graph->data[n];
 	//p_notify ("You see here: #g%s", gl_format (gl));
-	p_notify ("%d", cur_dlevel->num_fires[n]);
+	//p_notify ("%d", cur_dlevel->num_fires[n]);
+	gra_box (info, 0, 0, 4, 4);
+	gra_mvaddch (info, 0, 2, ACS_BTEE);*/
 }
 
 int Kflook (struct Monster *player)
 {
-	int y, x;
-	p_mvchoose (player, &y, &x, "What are you looking for?", NULL, flook_callback);
+	int z, y, x;
+	p_mvchoose (player, &z, &y, &x, "What are you looking for?", NULL, flook_callback);
 	p_endnotify ();
+	return 0;
+}
+
+//static Graph overlay = NULL;
+int Kscan (struct Monster *player)
+{
+/*	if (!overlay)
+		overlay = gra_init (map_graph->h, map_graph->w, 0, 0, map_graph->vh, map_graph->vw);
+	int Z = player->zloc, Y = player->yloc, X = player->xloc;
+	int y, x;
+	struct DLevel *lvl = cur_dlevel;
+	for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
+	{
+		if (y == 0 && x == 0)
+			continue;
+		int n = dlv_index (lvl, Z, Y+y, X+x);
+		if (n == -1)
+			continue;
+		MID ID = lvl->monsIDs[n];
+		if (!ID)
+			continue;
+		struct Monster *mons = MTHIID (ID);
+		struct MStatus *s = &mons->status;
+		int b_y = Y - map_graph->cy - 2 + 4*y, b_x = X - map_graph->cx - 2 + 4*x;
+		gra_fbox (overlay, b_y, b_x, 4, 4, ' ');
+		gra_box_aux (overlay, b_y, b_x, 4, 4, ACS_PLUS, ACS_PLUS, ACS_PLUS, ACS_PLUS, ACS_HLINE, ACS_VLINE);
+		gra_mvaddch (overlay, b_y+2, b_x+2, mons->gl);
+		if (s->moving.arrival)
+			gra_mvaddch (overlay, b_y+2+s->moving.ydir, b_x+2+s->moving.xdir, 'M'|COL_TXT(0,15,0));
+		else if (s->attacking.arrival)
+			gra_mvaddch (overlay, b_y+2+s->attacking.ydir, b_x+2+s->attacking.xdir, 'A'|COL_TXT(15,0,0));
+	}
+	gr_getch ();
+	gra_clear (overlay);
+	return 0;*/
 	return 0;
 }
 
@@ -526,9 +569,9 @@ int p_move (int *ymove, int *xmove, char key)
 struct KStruct Keys[] = {
 	{GRK_UP, &Kcamup,  NULL},
 	{GRK_DN, &Kcamdn,  NULL},
-	{GRK_LF, &Kcamlf,  NULL},
+	{GRK_LT, &Kcamlt,  NULL},
 	{GRK_RT, &Kcamrt,  NULL},
-	{CH_ESC, &Kstatus, NULL},
+	{GRK_ESC,&Kstatus, NULL},
 	{' ',    &Kstatus, NULL},
 	{'s',    &Kskills, NULL},
 	{'.',    &Kwait,   &Kwait_cand},
@@ -545,6 +588,7 @@ struct KStruct Keys[] = {
 	{'i',    &Kinv,    NULL},
 	{':',    &Knlook,  NULL},
 	{';',    &Kflook,  NULL},
+	{'/',    &Kscan,   NULL},
 	{'Z',    &Kdebug,  NULL},
 //	{'f',    &Kfocus,  &Kfocus_cand},
 //	{'o', &Kopen},
@@ -598,12 +642,15 @@ void pl_poll (struct Monster *player)
 	/* Should the player be asked what to do? */
 	//if (!pl_turn_cand (player))
 	//	return;
-	if (gra_nearedge (map_graph, player->yloc, player->xloc))
-		gra_centcam (map_graph, player->yloc, player->xloc);
+	//if (gra_nearedge (map_graph, player->yloc, player->xloc))
+	//	gra_centcam (map_graph, player->yloc, player->xloc);
+	//extern Graph map_graph;
+	//printf("%d %d %d   ", map_graph->cz, map_graph->cy, map_graph->cx);
+	grx_movecam (map_graph, 0, 25, -25, 2);
 	while (1)
 	{
 		nlook_auto (player);
-		gra_cmove (map_graph, player->yloc, player->xloc);
+		grx_cmove (map_graph, 0, player->yloc, player->xloc);
 
 		char in = p_getch (player);
 
@@ -614,8 +661,8 @@ void pl_poll (struct Monster *player)
 			int mv = pl_attempt_move (player, ymove, xmove);
 			if (mv)
 				break;
-			if (gra_nearedge (map_graph, player->yloc, player->xloc))
-				gra_centcam (map_graph, player->yloc, player->xloc);
+	//		if (gra_nearedge (map_graph, player->yloc, player->xloc))
+	//			gra_centcam (map_graph, player->yloc, player->xloc);
 		}
 		else
 		{
@@ -635,11 +682,11 @@ void pl_poll (struct Monster *player)
 int pl_attempt_move (struct Monster *pl, int y, int x) /* each either -1, 0 or 1 */
 {
 	struct DLevel *lvl = dlv_lvl (pl->dlevel);
-	int yloc = pl->yloc + y, xloc = pl->xloc + x;
-	if (yloc < 0 || yloc >= map_graph->h ||
-	    xloc < 0 || xloc >= map_graph->w)
+	int zloc = pl->zloc, yloc = pl->yloc + y, xloc = pl->xloc + x;
+	if (yloc < 0 || yloc >= lvl->h ||
+	    xloc < 0 || xloc >= lvl->w)
 		return 0;
-	int i, n = map_buffer (yloc, xloc);
+	int i, n = dlv_index (lvl, zloc, yloc, xloc);
 	/* melee attack! */
 	if (lvl->monsIDs[n])
 	{
@@ -647,7 +694,7 @@ int pl_attempt_move (struct Monster *pl, int y, int x) /* each either -1, 0 or 1
 		if (mons->ctr.mode == CTR_AI_HOSTILE ||
 			mons->ctr.mode == CTR_AI_AGGRO)
 		{
-			mons_try_attack (pl, y, x);
+			mons_try_hitm (pl, y, x);
 			return 1;
 		}
 		p_msg ("It says hi!");
@@ -661,8 +708,8 @@ int pl_attempt_move (struct Monster *pl, int y, int x) /* each either -1, 0 or 1
 			return 0;
 	}
 	/* you can and everything's fine, nothing doing */
-	pl_queue (pl, (union Event) { .mmove = {EV_MMOVE, pl->ID, y, x}});
-	return pl_execute (pl->speed, pl, 0);
+	mons_try_move (pl, y, x);
+	return 1;
 }
 
 

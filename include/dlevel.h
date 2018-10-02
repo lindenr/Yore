@@ -6,12 +6,12 @@
 #include "include/graphics.h"
 
 struct Monster;
-typedef int TID;
-
+typedef int TID, MID;
 
 struct DLevel
 {
 	int level;
+	int t, h, w, a, v;
 	Vector *things;
 	Vector *items;
 	TID *monsIDs;
@@ -39,7 +39,7 @@ struct DLevel
 };
 
 void dlv_init ();
-void dlv_make (int, int, int);
+void dlv_make (int l, int up, int dn, int t, int h, int w);
 void dlv_set  (int);
 
 struct DLevel *dlv_lvl (int);
@@ -49,9 +49,12 @@ uint8_t *dlv_attr   (int);
 int      dlv_dn     (int);
 int      dlv_up     (int);
 void     dlv_fill_player_dist (struct DLevel *);
+MID      dlv_mvmonsID (int level, int z, int y, int x);
+struct Monster *dlv_mvmons (int level, int z, int y, int x);
+int dlv_index (struct DLevel *, int z, int y, int x);
 
 /* effect a tile burn */
-void dlv_tile_burn (struct DLevel *dlvl, int yloc, int xloc);
+void dlv_tile_burn (struct DLevel *dlvl, int zloc, int yloc, int xloc);
 
 extern Vector all_dlevels;
 extern Vector all_ids;

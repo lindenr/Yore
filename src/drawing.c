@@ -5,11 +5,11 @@
 #include <math.h>
 
 /* adapted from wikipedia */
-bool bres_draw (int fy, int fx, int ty, int tx, int width,
+int bres_draw (int fy, int fx, int ty, int tx, int width,
 				uint8_t *grid, uint8_t *grid_t, int (*callback) (int, int))
 {
 	if ((!callback) && grid && grid[ty*width + tx] == 2)
-		return true;
+		return 1;
 	int dy, dx, sy, sx, err, e2;
 	dy = abs(ty - fy);
 	dx = abs(tx - fx);
@@ -39,7 +39,7 @@ bool bres_draw (int fy, int fx, int ty, int tx, int width,
 		if (callback)
 		{
 			if (!callback (fy, fx))
-				return false;
+				return 0;
 			continue;
 		}
 		if (fy == ty && fx == tx)
@@ -47,11 +47,11 @@ bool bres_draw (int fy, int fx, int ty, int tx, int width,
 		if (grid)
 			grid[fy*width + fx] = 2;
 		if (grid_t[fy*width + fx] == 0)
-			return false;
+			return 0;
 	}
 	if (grid)
 		grid[fy*width + fx] = 2;
-	return true;
+	return 1;
 }
 
 void bres_init (struct BresState *st, int fy, int fx, int ty, int tx)

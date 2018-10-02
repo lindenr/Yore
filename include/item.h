@@ -1,7 +1,9 @@
 #ifndef ITEM_H_INCLUDED
 #define ITEM_H_INCLUDED
 
+#include "include/all.h"
 #include "include/drawing.h"
+#include "include/vector.h"
 
 typedef int TID, MID;
 struct Pack;
@@ -118,7 +120,7 @@ struct ItemInDlvl
 {
 	enum ITEM_LOC loc;
 	int dlevel;
-	uint32_t yloc, xloc;
+	int zloc, yloc, xloc;
 };
 
 struct ItemInInv
@@ -140,7 +142,7 @@ struct ItemInFlight
 {
 	enum ITEM_LOC loc;
 	int dlevel;
-	uint32_t yloc, xloc;
+	int zloc, yloc, xloc;
 	struct BresState bres;
 	int speed;
 	TID frID;
@@ -168,7 +170,7 @@ struct Item
 };
 
 // TODO use!
-struct ItemStack
+/*struct ItemStack
 {
 	TID ID;
 	union ItemLoc loc;
@@ -181,7 +183,7 @@ struct ItemStack
 	} type;
 	uint32_t attr;
 	Vector data;
-};
+};*/
 
 extern Ityp ityps[];
 
@@ -241,6 +243,9 @@ MID it_invID (const struct Item *item);
 int it_dlvl (const struct Item *item);
 int it_flight (const struct Item *item);
 
+/* get index of item location in dlevel (assume possible) */
+int it_index (const union ItemLoc *loc);
+
 /* Side-effects: */
 
 /* freeze an item; return whether item still exists */
@@ -265,6 +270,15 @@ void it_unwear (struct Item *item);
 /* set item attr value */
 void it_set_attk (struct Item *item, int attk);
 void it_set_def (struct Item *item, int def);
+
+/* put an item on the floor */
+void it_fl_to_dlv (struct Item *item);
+
+/* fill the location for a flying object starting from a monster */
+void it_monsfloc (struct Monster *mons, union ItemLoc *loc, int speed);
+
+/* return loc for monster in dgn */
+union ItemLoc it_monsdloc (struct Monster *mons);
 
 #endif /* ITEM_H_INCLUDED */
 

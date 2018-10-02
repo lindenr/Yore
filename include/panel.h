@@ -8,6 +8,9 @@
 
 #define NUM_TABS 3
 
+#define PANE_H 10
+#define PANE_PH (PANE_H * GLH)
+
 #define PANEL_CLOSED  0
 #define PANEL_SELF    1
 #define PANEL_MSG     2
@@ -28,7 +31,7 @@ void p_amsg    (const char *);
 void p_msg     (const char *, ...);
 char p_ask     (struct Monster *, const char *, const char *);
 char p_lines   (Vector);
-void p_anotify  (const char *);
+void p_anotify (const char *);
 void p_notify  (const char *, ...);
 void p_endnotify  ();
 
@@ -73,11 +76,11 @@ int  p_flines   (const char *);
 void p_ffree    (Vector);
 int  p_status   (struct Monster *, enum PanelType);
 int  p_skills   (struct Monster *, enum PanelType);
-void p_mvchoose (struct Monster *, int *, int *, const char *, const char *,
-	void (*) (enum P_MV, int, int, int, int));
+void p_mvchoose (struct Monster *, int *, int *, int *, const char *, const char *,
+	void (*) (enum P_MV, int, int, int, int, int, int, int));
 
-void show_path_on_overlay (enum P_MV, int, int, int, int);
-void show_disc_on_overlay (enum P_MV, int, int, int, int);
+void show_path_on_overlay (enum P_MV, int dlevel, int z, int y, int x, int, int, int);
+void show_disc_on_overlay (enum P_MV, int, int, int, int, int, int, int);
 
 char p_getch (struct Monster *player);
 

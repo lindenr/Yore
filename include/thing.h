@@ -1,6 +1,7 @@
 #ifndef THING_H_INCLUDED
 #define THING_H_INCLUDED
 
+#include "include/all.h"
 #include "include/vector.h"
 #include "include/graphics.h"
 #include "include/item.h"
@@ -24,7 +25,7 @@ struct Thing
 	enum THING_TYPE type;
 	int dlevel;
 	TID ID;
-	uint32_t yloc, xloc;
+	int zloc, yloc, xloc;
 	union
 	{
 		struct map_item_struct mis;
@@ -35,19 +36,20 @@ struct Thing
 /* see dlevel.h */
 struct DLevel;
 
-struct Thing *new_thing      (uint32_t, struct DLevel *, uint32_t, uint32_t, void *);
+struct Thing *new_thing      (enum THING_TYPE, struct DLevel *, int z, int y, int x, void *);
 void          thing_free     (struct Thing *);
 void          rem_id         (TID);
 
-struct Monster *new_mons     (struct DLevel *, uint32_t, uint32_t, void *);
-void          mons_move      (struct Monster *, int, int, int);
+struct Monster *new_mons     (struct DLevel *, int z, int y, int x, void *);
+void          mons_move      (struct Monster *, int lvl, int z, int y, int x);
 void          rem_mid        (MID);
 
 struct Monster *MTHIID       (MID);
 struct Item *it_at           (TID);
-void          draw_map       ();
-void          draw_map_xy    (struct DLevel *, int, int);
-void          draw_map_buf   (struct DLevel *, int);
+void          draw_map       (struct DLevel *);
+void          draw_map_xyz   (struct DLevel *, int z, int y, int x);
+void          draw_map_buf   (struct DLevel *, int idx);
+void          draw_map_mons  (struct Monster *);
 void          update_knowledge (struct Monster *);
 void          th_init        ();
 

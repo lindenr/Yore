@@ -1,6 +1,5 @@
 /* save.c */
 
-#include "include/all.h"
 #include "include/thing.h"
 #include "include/save.h"
 #include "include/panel.h"
@@ -70,7 +69,7 @@ void save_item (struct Item *item)
 /* The three main things needing saving are: the List all_things, the uint64_t Time, and
  * the player_struct U. There is also the list of things you have seen.
  * This function saves in the following order: Time; U; all_things; sq_attr. */
-bool save (char *filename)
+int save (char *filename)
 {
 	printf("See you soon...\n");
 	/*int i;
@@ -163,9 +162,9 @@ bool save (char *filename)
 		//save_block();
 		
 		fclose (game_save_file);
-		return false;
+		return 0;
 	}*/
-	return true;
+	return 1;
 }
 
 #define LOAD_NATIVE(n) fread(&(n), sizeof(n), 1, game_save_file)
@@ -320,16 +319,16 @@ void restore (char *filename)
 	U.playing = PLAYER_PLAYING;	* success *
 }*/
 
-/* false is quit, true is stay */
-bool quit ()
+/* 0 is quit, 1 is stay */
+int quit ()
 {
 	if (p_ask (NULL, "yn", "Are you sure you want to quit?") == 'y')
 	{
 		printf ("Quitting...\n");
 		//destroy_save_file (get_filename());
-		return false;
+		return 0;
 	}
-	return true;
+	return 1;
 }
 
 #if defined(__WIN32__)

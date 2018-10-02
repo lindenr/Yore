@@ -1,6 +1,5 @@
 /* generate.c */
 
-#include "include/all.h"
 #include "include/generate.h"
 #include "include/rand.h"
 #include "include/thing.h"
@@ -25,7 +24,8 @@
                    ((s)[(y-1)*xsiz + (x)+1]<<a2) +\
                    ((s)[(y ) *xsiz + (x)+1]<<a1) +\
                    ((s)[(y+1)*xsiz + (x)+1]<<a0))
-#define ADD_MAP(type, i) new_thing (THING_DGN, lvl, (i) / map_graph->w, (i) % map_graph->w, &map_items[type])
+#define ADD_MAP(type, i) new_thing (THING_DGN, lvl, (i) / lvl->a, \
+((i) % lvl->a)/lvl->w, (i)%lvl->w, &map_items[type])
 
 void load_auto (double *nums)
 {
@@ -147,12 +147,15 @@ void generate_auto (double *nums, int yout, int xout, uint16_t *output, int a_st
 }
 
 char *cur_gen = NULL;
-bool check_area (int y, int x, int ys, int xs)
+int hmax, wmax;
+struct DLevel *gen_lvl;
+#define IDX(y,x) ((y)*wmax + x)
+int check_area (int y, int x, int ys, int xs)
 {
 	int i, j, k;
-	if (y < 0 || y + ys >= map_graph->h ||
-		x < 0 || x + xs >= map_graph->w)
-		return false;
+	if (y < 0 || y + ys >= hmax ||
+		x < 0 || x + xs >= wmax)
+		return 0;
 
 	k = xs;
 	while (k)
@@ -160,20 +163,20 @@ bool check_area (int y, int x, int ys, int xs)
 		j = ys;
 		while (j)
 		{
-			i = map_buffer (y+j, x+k);
-			if (cur_gen[i] == ACS_BIGDOT) return false;
+			i = IDX (y+j, x+k);
+			if (cur_gen[i] == ACS_BIGDOT) return 0;
 			-- j;
 		}
 		-- k;
 	}
-	return true;
+	return 1;
 }
 
 int total_rooms = 0;
-bool attempt_room (int y, int x, int ys, int xs)
+int attempt_room (int y, int x, int ys, int xs)
 {
 	int i, j, k;
-	if (!check_area (y-2, x-2, ys+4, xs+4)) return false;
+	if (!check_area (y-2, x-2, ys+4, xs+4)) return 0;
 
 	k = xs;
 	while (k)
@@ -181,7 +184,7 @@ bool attempt_room (int y, int x, int ys, int xs)
 		j = ys;
 		while (j)
 		{
-			i = map_buffer (y+j, x+k);
+			i = IDX (y+j, x+k);
 			cur_gen[i] = ACS_BIGDOT;
 			-- j;
 		}
@@ -189,16 +192,16 @@ bool attempt_room (int y, int x, int ys, int xs)
 	}
 	for (k = 0; k <= xs+1; ++ k)
 	{
-		cur_gen[map_buffer (y, x+k)] = ACS_WALL;
-		cur_gen[map_buffer (y+ys+1, x+k)] = ACS_WALL;
+		cur_gen[IDX (y, x+k)] = ACS_WALL;
+		cur_gen[IDX (y+ys+1, x+k)] = ACS_WALL;
 	}
 	for (j = 0; j <= ys+1; ++ j)
 	{
-		cur_gen[map_buffer (y+j, x)] = ACS_WALL;
-		cur_gen[map_buffer (y+j, x+xs+1)] = ACS_WALL;
+		cur_gen[IDX (y+j, x)] = ACS_WALL;
+		cur_gen[IDX (y+j, x+xs+1)] = ACS_WALL;
 	}
 	++ total_rooms;
-	return true;
+	return 1;
 }
 
 void add_another_room ()
@@ -206,20 +209,20 @@ void add_another_room ()
 	int i;
 
 	do
-		i = rn(map_graph->a);
+		i = rn(gen_lvl->a);
 	while (cur_gen[i] != ACS_BIGDOT);
 
 	if (cur_gen[i+1] != ACS_BIGDOT)
 	{
-		int x = (i+1)%map_graph->w, y = (i+1)/map_graph->w;
+		int x = (i+1)%wmax, y = (i+1)/wmax;
 		if (attempt_room (y +1- 2 - rn(3), x + 4, 6 + rn(3), 6))
 		{
 			cur_gen[i+1] = ACS_BIGDOT;
 		//	cur_gen[i+1] = ACS_BIGDOT;
 			cur_gen[i+2] = ACS_CORRIDOR;
 			cur_gen[i+3] = ACS_CORRIDOR;
-			cur_gen[i+3+map_graph->w] = ACS_CORRIDOR;
-			cur_gen[i+4+map_graph->w] = ACS_CORRIDOR;
+			cur_gen[i+3+wmax] = ACS_CORRIDOR;
+			cur_gen[i+4+wmax] = ACS_CORRIDOR;
 			/*cur_gen[i+2-map_graph->w] = ACS_BIGDOT;
 			///cur_gen[i+3-map_graph->w] = ACS_BIGDOT;
 			//cur_gen[i+4-map_graph->w] = ACS_BIGDOT;
@@ -227,12 +230,12 @@ void add_another_room ()
 			cur_gen[i+2+map_graph->w] = ACS_BIGDOT;
 			cur_gen[i+3+2*map_graph->w] = ACS_BIGDOT;
 			cur_gen[i+4+2*map_graph->w] = ACS_BIGDOT;*/
-			cur_gen[i+5+map_graph->w] = ACS_BIGDOT;
+			cur_gen[i+5+wmax] = ACS_BIGDOT;
 		}
 	}
 	else if (cur_gen[i-1] != ACS_BIGDOT)
 	{
-		int x = (i-1)%map_graph->w, y = (i-1)/map_graph->w;
+		int x = (i-1)%wmax, y = (i-1)/wmax;
 		if (attempt_room (y - 2 - rn(3), x - 8, 6 + rn(3), 6))
 		{
 			cur_gen[i-1] = ACS_BIGDOT;
@@ -240,22 +243,22 @@ void add_another_room ()
 		//	cur_gen[i-2] = ACS_BIGDOT;
 		}
 	}
-	else if (cur_gen[i-map_graph->w] != ACS_BIGDOT)
+	else if (cur_gen[i-wmax] != ACS_BIGDOT)
 	{
-		int x = (i-map_graph->w)%map_graph->w, y = (i-map_graph->w)/map_graph->w;
+		int x = (i-wmax)%wmax, y = (i-wmax)/wmax;
 		if (attempt_room (y - 8, x - 3 - rn(5), 6, 8 + rn(5)))
 		{
-			cur_gen[i-map_graph->w] = ACS_BIGDOT;
-			cur_gen[i-map_graph->w*2] = ACS_BIGDOT;
+			cur_gen[i-wmax] = ACS_BIGDOT;
+			cur_gen[i-wmax*2] = ACS_BIGDOT;
 		}
 	}
-	else if (cur_gen[i+map_graph->w] != ACS_BIGDOT)
+	else if (cur_gen[i+wmax] != ACS_BIGDOT)
 	{
-		int x = (i+map_graph->w)%map_graph->w, y = (i+map_graph->w)/map_graph->w;
+		int x = (i+wmax)%wmax, y = (i+wmax)/wmax;
 		if (attempt_room (y + 1, x - 3 - rn(5), 6, 8 + rn(5)))
 		{
-			cur_gen[i+map_graph->w] = ACS_BIGDOT;
-			cur_gen[i+map_graph->w*2] = ACS_BIGDOT;
+			cur_gen[i+wmax] = ACS_BIGDOT;
+			cur_gen[i+wmax*2] = ACS_BIGDOT;
 		}
 	}
 }
@@ -275,47 +278,59 @@ struct Item *gen_item ()
 
 void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 {
-	int start, end;
-	Vector *things = lvl->things;
+	//int start, end;
+	//Vector *things = lvl->things;
+	hmax = lvl->h; wmax = lvl->w;
+	gen_lvl = lvl;
 
 	if (type == LEVEL_NORMAL)
 	{
 		int i;
-		cur_gen = malloc (map_graph->a);
-		for (i = 0; i < map_graph->a; ++ i)
+		cur_gen = malloc (gen_lvl->a);
+		for (i = 0; i < gen_lvl->a; ++ i)
 			cur_gen[i] = 0;
 
 		total_rooms = 0;
-		attempt_room (map_graph->h/2 - 2 - rn(3), map_graph->w/2 - 3 - rn(5), 15, 20);
+		attempt_room (hmax/2 - 2 - rn(3), wmax/2 - 3 - rn(5), 15, 20);
 		do add_another_room ();
-		while (total_rooms < 20);
+		while (total_rooms < 50);
 
-		start = map_buffer (map_graph->h/2, map_graph->w/2);
+		//start = map_buffer (hmax/2, wmax/2);
 		/* Down-stair */
-		do
+		/*do
 			end = (int32_t) rn(map_graph->a);
 		while (end == start);
-		ADD_MAP(DGN_DOWNSTAIR, end);
+		ADD_MAP(DGN_DOWNSTAIR, end);*/
 		
 		/* clear space at the beginning (for the up-stair) */
-		ADD_MAP (DGN_GROUND, start);
+		//ADD_MAP (DGN_GROUND, start);
 
 		/* clear space for the down-stair */
-		ADD_MAP (DGN_GROUND, end);
+		//ADD_MAP (DGN_GROUND, end);
 
 		/* fill the rest up with walls */
-		for (i = 0; i < map_graph->a; ++i)
-			if (things[i]->len == 0)
+		for (i = 0; i < gen_lvl->a; ++i)
+		{
+			//ADD_MAP (DGN_ROCK, i);
+			//if (things[i]->len == 0)
 			{
-				if (cur_gen[i] == ACS_WALL)
-					ADD_MAP (DGN_WALL, i);
-				else if (cur_gen[i] == ACS_BIGDOT)
-					ADD_MAP (DGN_GROUND, i);
-				else if (cur_gen[i] == ACS_CORRIDOR)
-					ADD_MAP (DGN_CORRIDOR, i);
-				else
+				if (cur_gen[i] != ACS_BIGDOT)
+				{
 					ADD_MAP (DGN_ROCK, i);
+					ADD_MAP (DGN_WALL, i + lvl->a);
+				}
+				else
+				{
+				//else if (cur_gen[i] == ACS_BIGDOT)
+					ADD_MAP (DGN_GROUND, i);
+					ADD_MAP (DGN_AIR, i + lvl->a);
+				}
+				//else if (cur_gen[i] == ACS_CORRIDOR)
+				//	ADD_MAP (DGN_CORRIDOR, i);
+				//else
+				//	ADD_MAP (DGN_ROCK, i);
 			}
+		}
 		free (cur_gen);
 
 		//for (i = 0; i < 100; ++ i)
@@ -337,7 +352,7 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 	}
 	else if (type == LEVEL_TOWN)
 	{
-		uint16_t *out10x30, *out20x60, *out100x300;
+		/*uint16_t *out10x30, *out20x60, *out100x300;
 		int i, x, y;
 		out10x30 = malloc(2*10*30);
 		out20x60 = malloc(2*20*60);
@@ -374,23 +389,31 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		}
 		free(out10x30);
 		free(out20x60);
-		free(out100x300);
+		free(out100x300);*/
 	}
 	else if (type == LEVEL_MAZE)
 	{
 		/* TODO */
 	}
+	else if (type == LEVEL_SIM)
+	{
+		//int i;
+		//for (i = 0; i < map_graph->a; ++ i)
+		{
+		//	ADD_MAP (DGN_GROUND, i);
+		}
+	}
 }
 
 /* can a monster be generated here? (no monsters or walls in the way) */
-bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
+int is_safe_gen (struct DLevel *lvl, int zloc, int yloc, int xloc)
 {
 	Vector *things = lvl->things;
 	struct Thing *T;
 	struct map_item_struct *m;
-	int n = map_buffer(yloc, xloc);
+	int n = dlv_index (lvl, zloc, yloc, xloc);
 	if (lvl->monsIDs[n])
-		return false;
+		return 0;
 	int i;
 	for (i = 0; i < things[n]->len; ++ i)
 	{
@@ -399,10 +422,10 @@ bool is_safe_gen (struct DLevel *lvl, uint32_t yloc, uint32_t xloc)
 		{
 			m = &(T->thing.mis);
 			if (!(m->attr & 1))
-				return false;
+				return 0;
 		}
 	}
-	return true;
+	return 1;
 }
 
 void init_mons (struct Monster *mons, enum MTYPE type)
@@ -412,13 +435,13 @@ void init_mons (struct Monster *mons, enum MTYPE type)
 }
 
 /* initialised at start of game */
-struct Monster *gen_player (int upsy, int upsx, char *name)
+struct Monster *gen_player (int zloc, int yloc, int xloc, char *name)
 {
 	struct Monster m1;
 	init_mons (&m1, MTYP_human);
 	m1.name = name;
 	m1.skills = v_dinit (sizeof(struct Skill));
-	m1.exp = 19;
+	m1.exp = 0;
 	m1.ctr.mode = CTR_PL;
 	m1.level = 1;
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_WATER_BOLT, 0, 1}));
@@ -426,7 +449,7 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FROST, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLASH, 0, 1}));
-	struct Monster *pl = new_mons (cur_dlevel, upsy, upsx, &m1);
+	struct Monster *pl = new_mons (cur_dlevel, zloc, yloc, xloc, &m1);
 	struct Item *item;
 	//int num = rn(40)+20;
 	struct Item myitem = new_item (ITYP_GOLD_PIECE);
@@ -434,7 +457,7 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 	struct Item myaxe = new_item (ITYP_DAGGER);
 	item = item_put (&myaxe, (union ItemLoc) { .dlvl = {LOC_INV, pl->ID, 1}});
 	mons_wield (pl, 0, item);
-	struct Skill skill = {SK_USE_DAGGER, 19, 0};
+	struct Skill skill = {SK_USE_DAGGER, 0, 1};
 	v_push (pl->skills, &skill);
 	myitem = new_item (ITYP_LEATHER_HAT);
 	item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 2}});
@@ -465,14 +488,17 @@ struct Monster *gen_player (int upsy, int upsx, char *name)
 }
 
 /* start of and during level */
-struct Monster *gen_mons_in_level ()
+struct Monster *gen_mons (int near_player)
 {
 	int i;
 	uint32_t xloc, yloc;
+	int zloc = 1;
 	for (i = 0; i < 5; ++ i)
 	{
-		xloc = rn(map_graph->w), yloc = rn(map_graph->h);
-		if (is_safe_gen (cur_dlevel, yloc, xloc))
+		xloc = rn(wmax), yloc = rn(hmax);
+		//if (near_player && cur_dlevel->player_dist[map_buffer(yloc, xloc)] == -1)
+		//	continue;
+		if (is_safe_gen (cur_dlevel, zloc, yloc, xloc))
 			break;
 	}
 	if (i >= 5)
@@ -485,12 +511,22 @@ struct Monster *gen_mons_in_level ()
 	else
 		p.ctr.mode = CTR_AI_TIMID;
 	p.level = 1; //mons[p.type].exp? TODO
-	struct Monster *th = new_mons (cur_dlevel, yloc, xloc, &p);
+	struct Monster *th = new_mons (cur_dlevel, zloc, yloc, xloc, &p);
 	//printf ("successful generation \n");
 	return th;
 }
 
-struct Monster *gen_boss (int yloc, int xloc)
+struct Monster *gen_mons_in_level ()
+{
+	return gen_mons (0);
+}
+
+struct Monster *gen_mons_near_player ()
+{
+	return gen_mons (1);
+}
+
+struct Monster *gen_boss (int zloc, int yloc, int xloc)
 {
 	struct Monster p;
 	init_mons (&p, MTYP_dwarf);
@@ -499,9 +535,9 @@ struct Monster *gen_boss (int yloc, int xloc)
 	else
 		p.ctr.mode = CTR_AI_TIMID;
 	p.level = 1; //mons[p.type].exp? TODO
-	struct Monster *th = new_mons (cur_dlevel, yloc, xloc, &p);
-	struct Item myaxe = new_item (ITYP_FIRE_AXE);
-	item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, th->ID, 0}});
+	struct Monster *th = new_mons (cur_dlevel, zloc, yloc, xloc, &p);
+	//struct Item myaxe = new_item (ITYP_FIRE_AXE);
+	//item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, th->ID, 0}});
 	return th;
 }
 

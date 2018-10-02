@@ -1,6 +1,7 @@
 /* string.c */
 
 #include "include/string.h"
+#include "include/debug.h"
 
 #include <string.h>
 #include <stdio.h>

@@ -9,6 +9,7 @@ typedef enum
 	EV_WORLD_INIT,
 	EV_PLAYER_INIT,
 	EV_WORLD_HEARTBEAT,
+	EV_ITROT,
 	EV_MTHROW,
 	EV_PROJ_MOVE,
 	EV_PROJ_DONE,
@@ -16,18 +17,14 @@ typedef enum
 	EV_PROJ_HIT_MONSTER,
 	EV_ITEM_EXPLODE,
 	EV_LINE_EXPLODE,
-	EV_MWAIT,
-	EV_MMOVE,
 	EV_MDOMOVE,
-	EV_MEVADE,
 	EV_MDOEVADE,
 	EV_MUNEVADE,
 //	EV_MPARRY,
 	EV_MSHIELD,
 	EV_MDOSHIELD,
 	EV_MUNSHIELD,
-	EV_MATTKM,
-	EV_MDOATTKM,
+	EV_MDOHITM,
 	EV_MPOLL,
 	EV_MGEN,
 	EV_MREGEN,
@@ -68,9 +65,14 @@ union Event
 	struct
 	{
 		EV_TYPE type;
+		TID itemID;
+	} itrot;
+	struct
+	{
+		EV_TYPE type;
 		MID thID;
 		TID itemID;
-		int ydest, xdest;
+		int /*zdest, TODO */ ydest, xdest;
 	} mthrow;
 	struct
 	{
@@ -102,7 +104,7 @@ union Event
 	struct
 	{
 		EV_TYPE type;
-		int dlevel;
+		int dlevel, zloc;
 		struct BresState bres;
 		int dist;
 	} line_explode;
@@ -110,24 +112,7 @@ union Event
 	{
 		EV_TYPE type;
 		MID thID;
-	} mwait;
-	struct
-	{
-		EV_TYPE type;
-		MID thID;
-		int ydir, xdir;
-	} mmove;
-	struct
-	{
-		EV_TYPE type;
-		MID thID;
 	} mdomove;
-	struct
-	{
-		EV_TYPE type;
-		MID thID;
-		int ydir, xdir;
-	} mevade;
 	struct
 	{
 		EV_TYPE type;
@@ -159,14 +144,7 @@ union Event
 	{
 		EV_TYPE type;
 		MID thID;
-		int arm;
-		int ydir, xdir;
-	} mattkm;
-	struct
-	{
-		EV_TYPE type;
-		MID thID;
-	} mdoattkm;
+	} mdohitm;
 	struct
 	{
 		EV_TYPE type;

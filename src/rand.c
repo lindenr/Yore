@@ -1,6 +1,5 @@
 /* hash.c */
 
-#include "include/all.h"
 #include "include/rand.h"
 
 uint32_t dice_roll (uint32_t a, uint32_t b)

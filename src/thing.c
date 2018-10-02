@@ -1,6 +1,5 @@
 /* thing.c */
 
-#include "include/all.h"
 #include "include/thing.h"
 #include "include/item.h"
 #include "include/monst.h"
@@ -11,6 +10,7 @@
 #include "include/dlevel.h"
 #include "include/event.h"
 #include "include/rand.h"
+#include "include/debug.h"
 
 TID curID = 0;
 TID getID ()
@@ -38,8 +38,8 @@ void rem_id (TID id)
 {
 	struct Thing *th = THIID(id);
 	struct DLevel *lvl = dlv_lvl (th->dlevel);
-	int y = th->yloc, x = th->xloc;
-	int n = map_buffer (y, x);
+	int z = th->zloc, y = th->yloc, x = th->xloc;
+	int n = dlv_index (lvl, z, y, x);
 	v_rptr (lvl->things[n], th);
 	thing_watchvec (lvl->things[n]);
 	THIID(id) = NULL;
@@ -70,13 +70,13 @@ void rem_itemid (TID ID)
 	case LOC_NONE:
 		return;
 	case LOC_DLVL:
-		n = map_buffer (item->loc.dlvl.yloc, item->loc.dlvl.xloc);
 		lvl = dlv_lvl(item->loc.dlvl.dlevel);
+		n = dlv_index (lvl, item->loc.dlvl.zloc, item->loc.dlvl.yloc, item->loc.dlvl.xloc);
 		items = lvl->items[n];
 		goto end_remove;
 	case LOC_FLIGHT:
-		n = map_buffer (item->loc.fl.yloc, item->loc.fl.xloc);
 		lvl = dlv_lvl(item->loc.fl.dlevel);
+		n = dlv_index (lvl, item->loc.fl.zloc, item->loc.fl.yloc, item->loc.fl.xloc);
 		items = lvl->items[n];
 		goto end_remove;
 	end_remove:
@@ -130,13 +130,13 @@ struct Item *instantiate_item (union ItemLoc loc, struct Item *from)
 	case LOC_NONE:
 		break;
 	case LOC_DLVL:
-		n = map_buffer (loc.dlvl.yloc, loc.dlvl.xloc);
 		lvl = dlv_lvl(loc.dlvl.dlevel);
+		n = dlv_index (lvl, loc.dlvl.zloc, loc.dlvl.yloc, loc.dlvl.xloc);
 		items = lvl->items[n];
 		goto end_inst;
 	case LOC_FLIGHT:
-		n = map_buffer (loc.fl.yloc, loc.fl.xloc);
 		lvl = dlv_lvl(loc.fl.dlevel);
+		n = dlv_index (lvl, loc.fl.zloc, loc.fl.yloc, loc.fl.xloc);
 		items = lvl->items[n];
 		goto end_inst;
 	end_inst:
@@ -199,10 +199,11 @@ int TSIZ[] = {
 	sizeof (struct map_item_struct)
 };
 
-struct Thing *new_thing (uint32_t type, struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)
+struct Thing *new_thing (enum THING_TYPE type, struct DLevel *lvl,
+	int z, int y, int x, void *actual_thing)
 {
-	int n = map_buffer (y, x);
-	struct Thing t = {type, lvl->level, getID(), y, x, {}};
+	int n = dlv_index (lvl, z, y, x);
+	struct Thing t = {type, lvl->level, getID(), z, y, x, {}};
 
 	if (t.ID != all_ids->len)
 		panic ("IDs error");
@@ -222,7 +223,7 @@ void rem_mid (MID id)
 {
 	struct Monster *th = MTHIID(id);
 	struct DLevel *lvl = dlv_lvl (th->dlevel);
-	int n = map_buffer (th->yloc, th->xloc);
+	int n = dlv_index (lvl, th->zloc, th->yloc, th->xloc);
 	lvl->monsIDs[n] = 0;
 	memset (th, 0, sizeof(struct Monster));
 	draw_map_buf (lvl, n);
@@ -249,21 +250,23 @@ struct Monster *MTHIID (MID id)
 	return ret;
 }
 
-void mons_move (struct Monster *thing, int new_level, int new_y, int new_x)
+void mons_move (struct Monster *thing, int new_level, int new_z, int new_y, int new_x)
 {
-	if (thing->yloc == new_y && thing->xloc == new_x && thing->dlevel == new_level)
+	if (thing->zloc == new_z && thing->yloc == new_y &&
+		thing->xloc == new_x && thing->dlevel == new_level)
 		return;
 
 	struct DLevel *olv = dlv_lvl (thing->dlevel),
 	              *nlv = dlv_lvl (new_level);
 
-	int old = map_buffer (thing->yloc, thing->xloc),
-	    new = map_buffer (new_y, new_x);
+	int old = dlv_index (olv, thing->zloc, thing->yloc, thing->xloc),
+	    new = dlv_index (nlv, new_z, new_y, new_x);
 
 	if (nlv->monsIDs[new]) panic ("monster already there");
 	nlv->monsIDs[new] = olv->monsIDs[old];
 	olv->monsIDs[old] = 0;
 
+	thing->zloc = new_z;
 	thing->yloc = new_y;
 	thing->xloc = new_x;
 	thing->dlevel = new_level;
@@ -278,19 +281,23 @@ void mons_move (struct Monster *thing, int new_level, int new_y, int new_x)
 	}
 }
 
-struct Monster *new_mons (struct DLevel *lvl, uint32_t y, uint32_t x, void *actual_thing)
+struct Monster *new_mons (struct DLevel *lvl, int z, int y, int x, void *actual_thing)
 {
-	int n = map_buffer (y, x);
+	int n = dlv_index (lvl, z, y, x);
+	if (n == -1)
+		panic ("placement out of bounds");
 	struct Monster t;
 	memcpy (&t, actual_thing, sizeof(struct Monster));
 	t.ID = getMID();
 	t.dlevel = lvl->level;
-	t.yloc = y; t.xloc = x;
+	t.zloc = z; t.yloc = y; t.xloc = x;
 	mons_stats_changed (&t);
 	if (lvl->monsIDs[n]) panic ("monster already there!");
 	lvl->monsIDs[n] = t.ID;
 	struct Monster *ret = v_push (lvl->mons, &t);
 	draw_map_buf (lvl, n);
+	ev_queue (1000 + rn(1000), (union Event) { .mpoll = {EV_MPOLL, ret->ID}});
+	ev_queue (1, (union Event) { .mregen = {EV_MREGEN, ret->ID}});
 	return ret;
 }
 
@@ -407,7 +414,7 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 	if (looking && lvl->seen[w] == 2 && lvl->num_fires[w])
 		return fire_glyph (lvl->num_fires[w]);
 	/* draw walls */
-	if (lvl->remembered[w] == ACS_WALL && looking)
+	/*if (lvl->remembered[w] == ACS_WALL && looking)
 	{
 		int Y = w / map_graph->w, X = w % map_graph->w;
 		int h = 0, j = 0, k = 0, l = 0,
@@ -430,12 +437,12 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 		if (X < map_graph->w - 1 && Y < map_graph->h - 1)
 			n = US(w + map_graph->w + 1);
 
-		/* Finally, do the actual drawing of the wall. */
+		/ * Finally, do the actual drawing of the wall. * /
 		glyph output = WALL_TYPE (y, u, h, j, k, l, b, n);
 		if (lvl->seen[w] == 2)
 			output |= COL_TXT_BRIGHT;
 		return output;
-	}
+	}*/
 	/* draw nothing */
 	if (!lvl->seen[w])
 		return ' ';
@@ -492,18 +499,26 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 			break;
 		}
 	}
-	return ' ';
+	return 0;
 }
 
 void update_knowledge (struct Monster *player)
 {
+	/*if (!player)
+	{
+		int w;
+		for (w = 0; w < map_graph->v; ++ w)
+			cur_dlevel->seen[w] = 2; // TODO better
+		draw_map ();
+		return;
+	}*/
 	int Y, X, w;
 	int Yloc = player->yloc, Xloc = player->xloc;
-	struct DLevel *level = dlv_lvl (player->dlevel);
+	struct DLevel *lvl = dlv_lvl (player->dlevel);
 	/* Anything you could see before you can't necessarily now */
-	for (w = 0; w < map_graph->a; ++ w)
-		if (level->seen[w] == 2)
-			level->seen[w] = 1;
+	for (w = 0; w < lvl->v; ++ w)
+		if (lvl->seen[w] == 2)
+			lvl->seen[w] = 1;
 
 	/* This puts values on the grid -- whether or not we can see (or have seen) this square */
 	// TODO draw more lines (not just starting at player) so that "tile A visible to tile B"
@@ -512,33 +527,39 @@ void update_knowledge (struct Monster *player)
 	// have seen while moving between them. This doesn't currently hold (exercise); would it
 	// hold if we drew every line through the player, not just those starting there?
 	// TODO maybe add a range limit
-	for (Y = 0, w = 0; Y < map_graph->h; ++Y) for (X = 0; X < map_graph->w; ++X, ++w)
-		bres_draw (Yloc, Xloc, Y, X, map_graph->w, level->seen, level->attr, NULL);
+	for (Y = 0, w = 0; Y < lvl->h; ++Y) for (X = 0; X < lvl->w; ++X, ++w)
+		bres_draw (Yloc, Xloc, Y, X, lvl->w,
+			&lvl->seen[lvl->a * player->zloc], &lvl->attr[lvl->a * player->zloc], NULL);
+	for (w = 0; w < lvl->a; ++ w)
+		if (lvl->seen[w + lvl->a])
+			lvl->seen[w] = 2;
 
 	/* draw things you can see */
-	for (w = 0; w < map_graph->a; ++ w)
-		if (level->seen[w] == 2)
-			level->remembered[w] = glyph_to_draw (level, w, 0);
-	draw_map ();
+	for (w = 0; w < lvl->v; ++ w)
+		if (lvl->seen[w] == 2)
+			lvl->remembered[w] = glyph_to_draw (lvl, w, 0);
+
+	draw_map (lvl);
 }
 
 void th_init ()
 {
 }
 
-void draw_map ()
+void draw_map (struct DLevel *lvl)
 {
 	int w;
-	for (w = 0; w < map_graph->a; ++ w)
-		draw_map_buf (cur_dlevel, w);
+	for (w = 0; w < lvl->v; ++ w)
+		draw_map_buf (lvl, w);
 }
 
-void draw_map_xy (struct DLevel *lvl, int y, int x)
+void draw_map_xyz (struct DLevel *lvl, int z, int y, int x)
 {
-	int w = map_buffer (y, x);
+	int w = dlv_index (lvl, z, y, x);
 	draw_map_buf (lvl, w);
 }
 
+extern Graph map_graph;
 void draw_map_buf (struct DLevel *lvl, int w)
 {
 	glyph gl = glyph_to_draw (lvl, w, 1);

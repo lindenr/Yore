@@ -1,6 +1,7 @@
 /* vector.c */
 
 #include "include/vector.h"
+#include "include/debug.h"
 
 #include <string.h>
 #include <stdio.h>

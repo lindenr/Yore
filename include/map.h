@@ -9,9 +9,7 @@
 
 #define ACS_WALL 255
 
-#define PANE_H 10
-
-#define map_buffer(y,x) (gra_buffer (map_graph, (y), (x)))
+//#define map_buffer(y,x) 0//(gra_buffer (map_graph, (y), (x)))
 
 enum
 {
@@ -20,6 +18,7 @@ enum
 	DGN_GRASS2,
 	DGN_WALL,
 	DGN_ROCK,
+	DGN_AIR,
 	DGN_DOWNSTAIR,
 	DGN_UPSTAIR,
 	DGN_TREE,
@@ -41,9 +40,9 @@ struct map_item_struct
 struct DLevel;
 extern struct map_item_struct map_items[];
 
-extern Graph map_graph;
+//extern Graph map_graph;
 
-int map_passable (struct DLevel *, int, int);
+int map_passable (struct DLevel *, int z, int y, int x);
 int map_bpassable (struct DLevel *, int);
 
 #endif /* MAP_H_INCLUDED */

@@ -3,11 +3,10 @@
 #include "include/all.h"
 #include "include/thing.h"
 #include "include/panel.h"
-#include "include/rand.h"
 #include "include/monst.h"
 
 #define MONST(nm,ch,size,at,fl,cl,str,con,wis,agi,spd,ex) \
-{0,0,-1,-1,-1,nm,ch|cl,{.mode=CTR_NONE},0,ex,0,NULL, \
+{0,0,-1,-1,-1,-1,nm,ch|cl|0x11100,{.mode=CTR_NONE},0,ex,0,NULL, \
 1, 1, 1, 1, 1, 1, str, con, wis, agi, spd, NULL, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
 DEF_MSTATUS,(fl)|(FL_SIZE(size)),NULL}
 
@@ -15,7 +14,7 @@ DEF_MSTATUS,(fl)|(FL_SIZE(size)),NULL}
 #define AM(a,b) ((a)|((b)<<16))
 #define A(a,b,c) {a,b,c}
 #define AT_NONE {0,0,0}
-#define STAT(con,str,agi,dex,speed) {con,con,str,str,con,str,agi,dex,speed}
+//#define STAT(con,str,agi,dex,speed) {con,con,str*4,str*4,con,str,agi,dex,speed}
 #define SIZE(n) n
 
 const int CORPSE_WEIGHTS[7] = {0, 100, 1000, 3000, 20000, 50000, 300000};
@@ -25,27 +24,27 @@ const struct Monster all_mons[] = {
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_NEUTRAL | FL_FLSH | FL_WING,
 		  COL_TXT_RED(15) | COL_TXT_GREEN(15),
-		  2, 0, 0, 3, 1000, 3),
+		  8, 0, 0, 3, 1000, 3),
 	MONST("newt", ':', SIZE(1),
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_FLSH,
 		  COL_TXT(15, 15, 0),
-		  2, 0, 2, 3, 1000, 3),
+		  8, 0, 2, 3, 1000, 3),
 	MONST("slime rat", 'r', SIZE(1),
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_FLSH | FL_SLIMY,
 		  COL_TXT(7, 8, 0),
-		  2, 0, 2, 3, 1000, 3),
+		  8, 0, 2, 3, 1000, 3),
 	MONST("spider", 0x0F, SIZE(1),
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_FLSH,
 		  COL_TXT(0,15,0),
-		  2, 0, 2, 3, 747, 3),
+		  8, 0, 2, 3, 747, 3),
 	MONST("skeleton", 's', SIZE(4),
 		  ATTK(A(1, 2, ATTK_HIT), AT_NONE, AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_HOSTILE | FL_SKEL,
 		  COL_TXT(15, 15, 15),
-		  20, 0, 2, 3, 1000, 8),
+		  20, 5, 2, 3, 1000, 100),
 	MONST("rabbit", 'g', SIZE(2),
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_NEUTRAL | FL_FLSH,

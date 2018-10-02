@@ -11,6 +11,7 @@
 #include "include/player.h"
 #include "include/drawing.h"
 #include "include/string.h"
+#include "include/debug.h"
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -28,7 +29,7 @@ void p_timeline ()
 	int i;
 	int ticks_per_tile = 25;
 	gra_mvaddch (gpred, 0, 0, ACS_TTEE | COL_TXT_BRIGHT);
-	for (i = 1; i < gr_h; ++ i)
+	for (i = 1; i < gpred->h; ++ i)
 		gra_mvaddch (gpred, i, 0, ACS_VLINE | COL_TXT_BRIGHT);
 	int y, x;
 	for (i = 0; i < cur_dlevel->playerIDs->len; ++ i)
@@ -37,7 +38,7 @@ void p_timeline ()
 		struct Monster *pl = MTHIID (*plID);
 		for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
 		{
-			int w = map_buffer (pl->yloc + y, pl->xloc + x);
+			int w = dlv_index (cur_dlevel, pl->zloc, pl->yloc + y, pl->xloc + x);
 			if (w == -1)
 				continue;
 			MID ID = cur_dlevel->monsIDs[w];
@@ -62,7 +63,7 @@ void p_timeline ()
 void p_pane (struct Monster *player)
 {
 	int i;
-	int xpan = 0, ypan = gr_h - PANE_H;
+	int xpan = 0, ypan = (gr_ph - PANE_PH)/GLH;
 	if (!player)
 		player = cur_player;
 	cur_player = player;
@@ -75,7 +76,7 @@ void p_pane (struct Monster *player)
 
 	if (!gpred)
 	{
-		gpred = gra_init (gr_h, 1, 0, gr_w - 1, gr_h, 1);
+		gpred = gra_init (gr_ph/GLH, 1, 0, gr_pw/GLW - 1, gr_ph/GLH, 1);
 	}
 	p_timeline ();
 
@@ -148,7 +149,7 @@ void p_pane (struct Monster *player)
 	{
 		struct P_msg *msg = v_at (messages, messages->len - i - 1);
 		int len = P_MSG_LEN; //strlen (msg->msg);
-		gra_mvaprintex (gpan, 8 - i, (gr_w - len)/2, msg->msg);
+		gra_mvaprintex (gpan, 8 - i, (gr_pw - len*GLW)/2, msg->msg);
 	}
 skip2:
 	;
@@ -160,7 +161,7 @@ void p_init ()
 		messages = v_dinit (sizeof(struct P_msg));
 
 	p_height = PANE_H;
-	p_width = map_graph->vw;
+	p_width = gr_pw/GLW;
 }
 
 void p_msgbox (const char *msg)
@@ -233,9 +234,8 @@ int p_menuex (Vector lines, const char *toquit, int max_line_len)
 	int max = max_line_len + 4;
 
 	int h = lines->len + 2, w = max+4;
-	int yloc = (gr_h - h)/2, xloc = (gr_w - w)/2;
 
-	Graph box = gra_init (h, w, yloc, xloc, h, w);
+	Graph box = gra_cinit (h, w);
 	box->def = COL_BG(1,1,1)|COL_TXT_DEF;
 	gra_fbox (box, 0, 0, h-1, w-1, COL_TXT_DEF|' ');
 	if (toquit)
@@ -262,7 +262,7 @@ int p_menuex (Vector lines, const char *toquit, int max_line_len)
 	do
 	{
 		char ret = p_getch (NULL);
-		if (ret == CH_ESC || ret == ' ')
+		if (ret == GRK_ESC || ret == ' ')
 			break;
 		if (ret == '\n' || ret == '.')
 		{
@@ -329,9 +329,8 @@ char p_lines (Vector lines)
 	//}
 
 	int h = lines->len + 2, w = max+4;
-	int yloc = (gr_h - h)/2, xloc = (gr_w - w)/2;
 
-	Graph box = gra_init (h, w, yloc, xloc, h, w);
+	Graph box = gra_cinit (h, w);
 	gra_fbox (box, 0, 0, h-1, w-1, ' ');
 
 	for (i = 0; i < lines->len; ++ i)
@@ -356,8 +355,7 @@ Graph sc_status = NULL;
 int p_status (struct Monster *player, enum PanelType type)
 {
 	int h = 20, w = 81;
-	int y = (gr_h - h)/2 - 10, x = (gr_w - w)/2;
-	sc_status = gra_init (h, w, y, x, h, w);
+	sc_status = gra_cinit (h, w);
 	sc_status->def = COL_STATUS;
 	gra_fbox (sc_status, 0, 0, h-1, w-1, ' ');
 	gra_cprint (sc_status, 2, "STATUS SCREEN");
@@ -399,7 +397,7 @@ int p_status (struct Monster *player, enum PanelType type)
 	while (1)
 	{
 		char in = p_getch (player);
-		if (in == CH_ESC || in == ' ')
+		if (in == GRK_ESC || in == ' ')
 			break;
 		else if (in == 's')
 		{
@@ -451,7 +449,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 		return 0;
 	else
 	{
-		int yloc, xloc;
+		int zloc, yloc, xloc;
 		Skill sk = v_at (pskills, n);
 		switch (sk->type)
 		{
@@ -465,7 +463,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 				return 1;
 			}
 			output_colours = COL_BG(0,0,0) | COL_TXT(15,15,15);
-			p_mvchoose (player, &yloc, &xloc, "Charge where?", NULL, &show_path_on_overlay);
+			p_mvchoose (player, &zloc, &yloc, &xloc, "Charge where?", NULL, &show_path_on_overlay);
 			if (yloc == -1)
 			{
 				gra_show (sc_status);
@@ -483,7 +481,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 			}
 			gra_hide (sc_status);
 			output_colours = COL_BG(11,0,0) | COL_TXT(15,15,0);
-			p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
+			p_mvchoose (player, &zloc, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
 			if (yloc == -1)
 			{
 				gra_show (sc_status);
@@ -499,7 +497,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 			}
 			gra_hide (sc_status);
 			output_colours = COL_BG(0,0,8) | COL_TXT(8,8,15);
-			p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
+			p_mvchoose (player, &zloc, &yloc, &xloc, "Aim where?", NULL, &show_path_on_overlay);
 			if (yloc == -1)
 			{
 				gra_show (sc_status);
@@ -509,7 +507,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 			return 1;
 		case SK_FROST:
 			gra_hide (sc_status);
-			p_mvchoose (player, &yloc, &xloc, "Aim where?", NULL, &show_disc_on_overlay);
+			p_mvchoose (player, &zloc, &yloc, &xloc, "Aim where?", NULL, &show_disc_on_overlay);
 			if (yloc == -1)
 			{
 				gra_show (sc_status);
@@ -540,10 +538,10 @@ int p_skills (struct Monster *player, enum PanelType type)
 	return 0;
 }
 
-Graph overlay = NULL;
+//static Graph overlay = NULL;
 
-void show_disc_on_overlay (enum P_MV action, int fy, int fx, int ty, int tx)
-{
+void show_disc_on_overlay (enum P_MV action, int dlevel, int fz, int fy, int fx, int tz, int ty, int tx)
+{/*
 	if (action == P_MV_END)
 	{
 		gra_hide (overlay);
@@ -558,12 +556,12 @@ void show_disc_on_overlay (enum P_MV action, int fy, int fx, int ty, int tx)
 	}
 	gra_clear (overlay);
 	gra_drawdisc (overlay, ty, tx, 3, ' ');
-	//gra_mvaddch (overlay, fy, fx, 0);
+	//gra_mvaddch (overlay, fy, fx, 0);*/
 }
 
-void show_path_on_overlay (enum P_MV action, int fy, int fx, int ty, int tx)
+void show_path_on_overlay (enum P_MV action, int dlevel, int fz, int fy, int fx, int tz, int ty, int tx)
 {
-	if (action == P_MV_END)
+	/*if (action == P_MV_END)
 	{
 		gra_hide (overlay);
 		return;
@@ -577,7 +575,7 @@ void show_path_on_overlay (enum P_MV action, int fy, int fx, int ty, int tx)
 	}
 	gra_clear (overlay);
 	gra_drawline (overlay, ty, tx, fy, fx, output_colours);
-	gra_mvaddch (overlay, fy, fx, 0);
+	gra_mvaddch (overlay, fy, fx, 0);*/
 }
 
 Graph gra_n = NULL;
@@ -617,16 +615,19 @@ void p_endnotify ()
 	if (!gra_n)
 		return;
 	int w;
-	for (w = 0; w < gra_n->a; ++ w)
+	for (w = 0; w < gra_n->v; ++ w)
 		gra_baddch (gra_n, w, 0);
 }
 
-void p_mvchoose (struct Monster *player, int *yloc, int *xloc,
-	const char *instruct, const char *confirm, void (*update_output) (enum P_MV, int, int, int, int))
+void p_mvchoose (struct Monster *player, int *zloc, int *yloc, int *xloc,
+	const char *instruct, const char *confirm,
+	void (*update_output) (enum P_MV, int dlevel, int, int, int, int, int, int))
 {
-	int orig_y = map_graph->csr_y, orig_x = map_graph->csr_x;
+	int o_z = player->zloc, o_y = player->yloc, o_x = player->xloc;
+	int c_z = o_z, c_y = o_y, c_x = o_x;
+	int dlevel = player->dlevel;
 	if (update_output)
-		update_output (P_MV_START, orig_y, orig_x, orig_y, orig_x);
+		update_output (P_MV_START, dlevel, o_z, o_y, o_x, c_z, c_y, c_x);
 	if (instruct)
 		p_notify (instruct);
 	gr_refresh ();
@@ -635,16 +636,16 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc,
 	p_move (&ymove, &xmove, key);
 	while (key != '.' || (confirm && (p_ask (player, "yn", confirm) != 'y')))
 	{
-		if (key == CH_ESC)
+		if (key == GRK_ESC)
 		{
 			if (update_output)
-				update_output (P_MV_END, player->yloc, player->xloc, map_graph->csr_y, map_graph->csr_x);
+				update_output (P_MV_END, dlevel, o_z, o_y, o_x, c_z, c_y, c_x);
 			*yloc = -1;
-			gra_cmove (map_graph, orig_y, orig_x);
+			//gra_cmove (map_graph, orig_y, orig_x);
 			p_endnotify ();
 			return;
 		}
-		if (ymove == -1 && map_graph->csr_y > 0 && map_graph->csr_y - map_graph->cy > 0)
+		/*if (ymove == -1 && map_graph->csr_y > 0 && map_graph->csr_y - map_graph->cy > 0)
 			gra_cmove (map_graph, map_graph->csr_y-1, map_graph->csr_x);
 		else if (ymove == 1 && map_graph->csr_y < map_graph->h-1 &&
 			map_graph->csr_y - map_graph->cy < map_graph->vh-1)
@@ -655,17 +656,19 @@ void p_mvchoose (struct Monster *player, int *yloc, int *xloc,
 			map_graph->csr_x - map_graph->cx < map_graph->vw-1)
 			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x+1);
 		//if (gra_nearedge (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x))
-		//	gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);
+		//	gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);*/
 		if (update_output)
-			update_output (P_MV_CHOOSING, player->yloc, player->xloc, map_graph->csr_y, map_graph->csr_x);
+			update_output (P_MV_CHOOSING, dlevel, o_z, o_y, o_x, c_z, c_y, c_x);
+		c_y += ymove; c_x += xmove;
 		key = p_getch (player);
 		p_move (&ymove, &xmove, key);
 	}
-	*yloc = map_graph->csr_y;
-	*xloc = map_graph->csr_x;
-	gra_cmove (map_graph, orig_y, orig_x);
+	*zloc = c_z;
+	*yloc = c_y;
+	*xloc = c_x;
+	//gra_cmove (map_graph, orig_y, orig_x);
 	if (update_output)
-		update_output (P_MV_END, player->yloc, player->xloc, map_graph->csr_y, map_graph->csr_x);
+		update_output (P_MV_END, dlevel, o_z, o_y, o_x, c_z, c_y, c_x);
 	p_endnotify ();
 }
 
@@ -842,25 +845,27 @@ int player_sees_mons (struct Monster *mons)
 {
 	if (!mons)
 		return 1;
-	return dlv_lvl(mons->dlevel)->seen[map_buffer (mons->yloc, mons->xloc)] == 2;
+	//return dlv_lvl(mons->dlevel)->seen[map_buffer (mons->yloc, mons->xloc)] == 2;
+	return 1; // TODO
 }
 
 int player_sees_item (struct Item *item)
 {
+	struct DLevel *lvl;
 	switch (item->loc.loc)
 	{
 		case LOC_NONE:
 			panic ("item in LOC_NONE in player_sees_item");
 		case LOC_DLVL:
-			return dlv_lvl (item->loc.dlvl.dlevel)->
-				seen[map_buffer (item->loc.dlvl.yloc, item->loc.dlvl.xloc)] == 2;
+			lvl = dlv_lvl (item->loc.dlvl.dlevel);
+			return lvl->seen[it_index (&item->loc)] == 2;
 		case LOC_INV:
 			return player_sees_mons (MTHIID(item->loc.inv.monsID));
 		case LOC_WIELDED:
 			return player_sees_mons (MTHIID(item->loc.wield.monsID));
 		case LOC_FLIGHT:
-			return dlv_lvl (item->loc.fl.dlevel)->
-				seen[map_buffer (item->loc.fl.yloc, item->loc.fl.xloc)] == 2;
+			lvl = dlv_lvl (item->loc.fl.dlevel);
+			return lvl->seen[it_index (&item->loc)] == 2;
 	}
 	return 0;
 }

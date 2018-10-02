@@ -1,15 +1,11 @@
 /* map.c */
 
-#include "include/all.h"
-
 #include "include/map.h"
 #include "include/thing.h"
 #include "include/monst.h"
 #include "include/generate.h"
 #include "include/graphics.h"
 #include "include/dlevel.h"
-
-Graph map_graph = NULL;
 
 int map_bpassable (struct DLevel *lvl, int n)
 {
@@ -23,19 +19,20 @@ int map_bpassable (struct DLevel *lvl, int n)
 	return 1;
 }
 
-int map_passable (struct DLevel *lvl, int y, int x)
+int map_passable (struct DLevel *lvl, int z, int y, int x)
 {
-	return map_bpassable (lvl, map_buffer (y, x));
+	return map_bpassable (lvl, dlv_index (lvl, z, y, x));
 }
 
 #define MAPITEM(nm,gl,at) {(nm), (gl), (at)}
 
 struct map_item_struct map_items[] = {
-	MAPITEM("lit space", ACS_BIGDOT,                        M_TSPT),
+	MAPITEM("lit space", ACS_BIGDOT|COL_BG(2,2,2)|COL_TXT_DEF,          M_TSPT),
 	MAPITEM("grass",     ACS_DOT|COL_BG(0,5,0)|COL_TXT_DEF, M_TSPT),
 	MAPITEM("grass",     ACS_DOT|COL_BG(1,6,0)|COL_TXT_DEF, M_TSPT),
-	MAPITEM("wall",      ACS_WALL,                          M_OPQ ),
+	MAPITEM("wall",      '#'|0xBBB55500,                          M_OPQ ),
 	MAPITEM("rock",      ' ',                               M_OPQ ),
+	MAPITEM("air",      0,                          M_TSPT ),
 	MAPITEM("downstair", '>',                               M_TSPT),
 	MAPITEM("upstair",   '<',                               M_TSPT),
 	MAPITEM("tree",      5  |COL_TXT(2,1,0)|COL_BG(0,0,0),  M_TSPT),

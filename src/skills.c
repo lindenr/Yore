@@ -137,9 +137,9 @@ void sk_flames (struct Monster *th)
 	ev_queue (0, (union Event) { .circleofflame = {EV_CIRCLEOFFLAME, th->ID}});
 }
 
-Graph flames_overlay = NULL;
+//Graph flames_overlay = NULL;
 void sk_flames_overlay (struct Monster *th)
-{
+{/*
 	flames_overlay = gra_init (gr_h, gr_w, 0, 0, gr_h, gr_w);
 	gra_clear (flames_overlay);
 	int y = th->yloc, x = th->xloc;
@@ -168,7 +168,7 @@ void sk_flames_overlay (struct Monster *th)
 		gr_refresh ();
 		gr_wait (50, 0);
 	}
-	gra_free (flames_overlay);
+	gra_free (flames_overlay);*/
 }
 
 void sk_scry (struct Monster *mons, Skill skill)

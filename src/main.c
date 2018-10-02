@@ -17,15 +17,13 @@
 #include <stdio.h>
 #include <stddef.h>
 
-bool game_intro ()
+int game_intro ()
 {
-	bool ret = false;
-	int by, bx, bh = 9, bw = 50;
+	int ret = 0;
+	int bh = 9, bw = 50;
 	char c;
-	by = (gr_h - bh - 10)/2;
-	bx = (gr_w - bw)/2;
 
-	Graph ibox = gra_init (bh+12, bw+1, by, bx, bh+12, bw+1);
+	Graph ibox = gra_cinit (bh+12, bw+2);
 	gra_dbox (ibox, 0, 0, bh, bw);
 	gra_mvprint (ibox, 2, 2, "Back in the days of Yore, in a land far removed");
 	gra_mvprint (ibox, 3, 2, "from our current understanding of the universe,");
@@ -54,7 +52,7 @@ bool game_intro ()
 		if (c == 'q' || c == 'Q')
 			goto fin;
 	}
-	ret = true;
+	ret = 1;
 
   fin:
 	gra_free (ibox);
@@ -74,14 +72,16 @@ void on_quit ()
 }
 
 //glyph fire_glyph (int);
+extern Graph map_graph;
 int main (int argc, char *argv[])
 {
 	int i;
 	gr_init (720, 1200);
 	gr_onresize = p_init;
 	gr_quit = on_quit;
-	map_graph = gra_init (100, 300, 0, 0, gr_h - PANE_H, gr_w - 1);
+	map_graph = grx_init (2, 100, 100, GLH, GLW, -2, -1, 0, 0, gr_ph - PANE_PH, gr_pw - GLW, 1);
 	map_graph->vis = 0;
+	map_graph->ct = 2;
 
 	p_init ();
 	ev_init ();
@@ -96,6 +96,7 @@ int main (int argc, char *argv[])
 		generate_map (dlv_lvl(1), LEVEL_TOWN);
 		return 0;
 	}
+	U.playing = PLAYER_STARTING;
 
 	if (!game_intro())
 		goto quit_game;
@@ -126,22 +127,18 @@ int main (int argc, char *argv[])
 			gra_mvprint (introbox, 10, 6, "Please type in your name!");
 		gra_getstr (introbox, 8, 19, player_name, 40);
 	}
-	gra_free(introbox);
+	gra_free (introbox);
 
 	if (!player_name[0])
 		goto quit_game;
 
 	/* So you really want to play? */
-	gra_cshow (map_graph);
+	grx_cshow (map_graph);
 
-	/* If the player entered info correctly, then they should be PLAYER_PLAYING: */
-	if (U.playing != PLAYER_PLAYING)
-		goto quit_game;
-
-	//generate_map (dlv_lvl (2), LEVEL_NORMAL);
+	U.playing = PLAYER_PLAYING;
 
 	//gra_centcam (map_graph, player->yloc, player->xloc);
-	map_graph->vis = 1;
+	grx_show (map_graph);
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 	/*for (i = 0; i < 200; ++ i)

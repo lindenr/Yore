@@ -1,9 +1,9 @@
 /* words.c */
 
-#include "include/all.h"
 #include "include/thing.h"
 #include "include/words.h"
 #include "include/panel.h"
+#include "include/debug.h"
 
 #include <stdlib.h>
 #include <stdio.h>

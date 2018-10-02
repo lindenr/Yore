@@ -1,8 +1,8 @@
 #ifndef PACK_H_INCLUDED
 #define PACK_H_INCLUDED
 
+#include "include/all.h"
 #include "include/item.h"
-#include <stdbool.h>
 #include "include/graphics.h"
 
 #define MAX_ITEMS_IN_PACK 52
@@ -25,7 +25,7 @@ struct Bag
 void pack_get_letters   (Pack, char *);
 struct Item *pack_rem   (Pack *, unsigned);
 void pack_free          (Pack **);
-bool pack_add           (Pack **, struct Item *, int);
+int pack_add            (Pack **, struct Item *, int);
 int PACK_AT             (char);
 TID show_contents(struct Monster *, uint32_t, char *);
 struct Item *get_Itemc  (Pack *, char);

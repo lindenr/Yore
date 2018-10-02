@@ -1,12 +1,12 @@
 /* pack.c */
 
-#include "include/all.h"
 #include "include/thing.h"
 #include "include/pack.h"
 #include "include/item.h"
 #include "include/panel.h"
 #include "include/dlevel.h"
 #include "include/string.h"
+#include "include/debug.h"
 
 Pack *pack_init ()
 {
@@ -22,7 +22,7 @@ struct Item *pack_rem (Pack *pack, unsigned u)
 	return ret;
 }
 
-bool pack_add (Pack **ppack, struct Item *it, int u)
+int pack_add (Pack **ppack, struct Item *it, int u)
 {
 	if ((*ppack) == 0)
 		*ppack = pack_init ();
@@ -32,10 +32,10 @@ bool pack_add (Pack **ppack, struct Item *it, int u)
 	{
 		/* Put in pack */
 		memcpy (&pack->items[u], it, sizeof(*it));
-		return true;
+		return 1;
 	}
 	panic ("merge attempt in pack_add");
-	return false;
+	return 0;
 	//return it_merge (&pack->items[u], it);
 }
 
