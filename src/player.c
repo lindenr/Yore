@@ -36,25 +36,25 @@ int pl_execute (Tick wait, struct Monster *player, int force)
 extern Graph map_graph;
 int Kcamup (struct Monster *player)
 {
-	grx_movecam (map_graph, 0, map_graph->cy - 10, map_graph->cx, 2);
+	grx_movecam (map_graph, 0, map_graph->cy - 10, map_graph->cx, 0);
 	return 0;
 }
 
 int Kcamdn (struct Monster *player)
 {
-	grx_movecam (map_graph, 0, map_graph->cy + 10, map_graph->cx, 2);
+	grx_movecam (map_graph, 0, map_graph->cy + 10, map_graph->cx, 0);
 	return 0;
 }
 
 int Kcamlt (struct Monster *player)
 {
-	grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx - 10, 2);
+	grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx - 10, 0);
 	return 0;
 }
 
 int Kcamrt (struct Monster *player)
 {
-	grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx + 10, 2);
+	grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx + 10, 0);
 	return 0;
 }
 
@@ -234,6 +234,13 @@ int Kgmove (struct Monster *player)
 	}
 	mons_try_move (player, ymove, xmove);
 	return 1;
+}
+
+int Krise (struct Monster *player)
+{
+	if (player->zloc < dlv_lvl (player->dlevel)->t - 1)
+		mons_move (player, player->dlevel, player->zloc + 1, player->yloc, player->xloc);
+	return 0;
 }
 
 int Kthrow_cand (struct Monster *player)
@@ -583,6 +590,7 @@ struct KStruct Keys[] = {
 	{'d',    &Ksdrop,  &Ksdrop_cand},
 	{'D',    &Kmdrop,  &Kmdrop_cand},
 	{'F',    &Kfmove,  &Kfmove_cand},
+	{'K',    &Krise,   NULL},
 	{'m',    &Kgmove,  &Kgmove_cand},
 	{'t',    &Kthrow,  &Kthrow_cand},
 	{'i',    &Kinv,    NULL},
@@ -646,11 +654,11 @@ void pl_poll (struct Monster *player)
 	//	gra_centcam (map_graph, player->yloc, player->xloc);
 	//extern Graph map_graph;
 	//printf("%d %d %d   ", map_graph->cz, map_graph->cy, map_graph->cx);
-	grx_movecam (map_graph, 0, 25, -25, 2);
+	grx_movecam (map_graph, 0, 0, 0, 11);
 	while (1)
 	{
 		nlook_auto (player);
-		grx_cmove (map_graph, 0, player->yloc, player->xloc);
+		grx_cmove (map_graph, player->zloc, player->yloc, player->xloc);
 
 		char in = p_getch (player);
 

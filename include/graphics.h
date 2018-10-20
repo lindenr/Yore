@@ -112,7 +112,6 @@ void grx_drawdisc (Graph, int z, int y, int x, int r, glyph);
 (grx_drawdisc ((g), 0, (y), (x), (r), (gl)))
 
 void gr_refresh   ();
-//void gr_frefresh  ();
 
 void grx_csolid (Graph);
 #define gra_csolid(g) (grx_csolid ((g)))
@@ -130,8 +129,6 @@ void grx_show (Graph);
 void grx_hide (Graph);
 #define gra_hide(g) (grx_hide ((g)))
 //void grx_resize   (Graph, int, int);
-
-//void grx_mark     (Graph, int, int);
 
 /* Input */
 char gr_getch     ();

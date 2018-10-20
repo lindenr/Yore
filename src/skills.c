@@ -12,7 +12,6 @@ const styp all_skills[] = {
 	{SK_FIREBALL, SK_ACT, GL_WIS, "Fireball", "#FIREBALL\n#[cost: 5 MP]\nfireball!"},
 	{SK_WATER_BOLT, SK_ACT, GL_WIS, "Water bolt", "#WATER BOLT\n#[cost: 6 MP]\nWater!"},
 	{SK_FROST, SK_ACT, GL_WIS, "Frost", "#FROST\n[cost: free]\nLightly freezes an area."},
-	{SK_FLAMES,  SK_ACT, GL_WIS, "Circle of flame", "#CIRCLE OF FLAME\n#[cost: free]\nfiire!!!!"},
 	{SK_SCRY,  SK_ACT, GL_WIS, "Scry", "#SCRY\n#[cost: free]\nscry!!!!"},
 	{SK_FLASH,  SK_ACT, GL_AGI, "Flash", "#FLASH\n#[cost: free]\nYou briefly become inhumanly fast."},
 	{SK_USE_MARTIAL_ARTS, SK_PAS, GL_STR, "Martial arts ability", "#MARTIAL ARTS\n\nYour skill at using martial arts in combat."},
@@ -84,39 +83,6 @@ void sk_frost (struct Monster *mons, int yloc, int xloc, Skill sk)
 	mons_ex_skill (mons, sk);
 }
 
-#if 0
-void sk_exp (struct Monster *th, Skill sk, int xp)
-{
-	sk->exp += xp;
-	if (sk->level == SK_MAXLEVEL || sk->exp < xp_levels[sk->level])
-		return;
-	++ sk->level;
-	if (sk->level < SK_MAXLEVEL && sk->exp >= xp_levels[sk->level])
-		sk->exp = xp_levels[sk->level]-1;
-	if (mons_isplayer(th))
-		p_msg ("Level up! %s is now level %d", sk_name (sk), sk->level);
-}
-
-#define SK_CHARGE_COST 3
-int chID = 0;
-int chargepos (struct DLevel *dlevel, int y, int x)
-{
-	struct Monster *charger = MTHIID (chID);
-	int dy = y - charger->yloc, dx = x - charger->xloc;
-	if (dx*dx > 1 || dy*dy > 1)
-	{
-		fprintf(stderr, "AAAAAAA\n");
-		return 0;
-	}
-	if (charger->ST < SK_CHARGE_COST)
-	{
-		p_msg ("You run out of breath.");
-		return 0;
-	}
-	charger->ST -= SK_CHARGE_COST;
-	return mons_try_move (charger, dy, dx)==1;
-}
-#endif
 void sk_charge (struct Monster *th, int y, int x, Skill sk)
 {
 	if (!th->status.charging)
@@ -125,50 +91,6 @@ void sk_charge (struct Monster *th, int y, int x, Skill sk)
 		return;
 	}
 	ev_queue (0, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, th->ID /*, y, x*/ }});
-//	sk_exp (th, sk, 1);
-	
-//	chID = th->ID;
-//	th.status |= M_CHARGE;
-//	bres_draw (th->yloc, th->xloc, NULL, dlv_attr(th->dlevel), &chargepos, y, x);
-}
-
-void sk_flames (struct Monster *th)
-{
-	ev_queue (0, (union Event) { .circleofflame = {EV_CIRCLEOFFLAME, th->ID}});
-}
-
-//Graph flames_overlay = NULL;
-void sk_flames_overlay (struct Monster *th)
-{/*
-	flames_overlay = gra_init (gr_h, gr_w, 0, 0, gr_h, gr_w);
-	gra_clear (flames_overlay);
-	int y = th->yloc, x = th->xloc;
-	int i, yt, xt, max = 20;
-	for (i = 1; i < max; ++ i)
-	{
-		int i2 = (i-1)*(i-1), j2 = (i+1)*(i+1);
-		for (yt = -max; yt <= max; ++ yt) for (xt = -max; xt <= max; ++ xt)
-		{
-			int r2 = xt*xt + yt*yt;
-			if (r2 < i2 || r2 > j2)
-			{
-				gra_mvaddch (flames_overlay, y + yt - map_graph->cy, x + xt - map_graph->cx, 0);
-				continue;
-			}
-			int redness = ((15-((j2+i2-r2-r2)*(j2+i2-r2-r2)*15)/((j2-i2)*(j2-i2)))*(max-i))/max;
-			if (redness <= 5)
-			{
-				gra_mvaddch (flames_overlay, y + yt - map_graph->cy, x + xt - map_graph->cx, 0);
-				continue;
-			}
-			int out[] = {30, 30, 30, 30};//{'/', ACS_HLINE, '\\', ACS_VLINE};
-			glyph gl = out[yt?(xt?2*((yt>0)!=(xt>0)):1):3]|COL_BG_RED(redness)|COL_TXT(15,redness/2,0);
-			gra_mvaddch (flames_overlay, y + yt - map_graph->cy, x + xt - map_graph->cx, gl);
-		}
-		gr_refresh ();
-		gr_wait (50, 0);
-	}
-	gra_free (flames_overlay);*/
 }
 
 void sk_scry (struct Monster *mons, Skill skill)

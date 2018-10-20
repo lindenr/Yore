@@ -515,9 +515,6 @@ int p_skills (struct Monster *player, enum PanelType type)
 			}
 			sk_frost (player, yloc, xloc, sk);
 			return 1;
-		case SK_FLAMES:
-			sk_flames (player);
-			return 1;
 		case SK_SCRY:
 			sk_scry (player, sk);
 			return 1;

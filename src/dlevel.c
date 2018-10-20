@@ -23,7 +23,7 @@ void dlv_init ()
 	all_ids = v_dinit (sizeof(void *));
 	v_push (all_ids, &t);
 
-	dlv_make (1, 0, 0, 2, 100, 100);
+	dlv_make (1, 0, 0, 11, 50, 50);
 	//dlv_make (2, 1, 0);
 	dlv_set (1);
 }

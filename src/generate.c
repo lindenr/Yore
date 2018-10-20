@@ -278,8 +278,6 @@ struct Item *gen_item ()
 
 void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 {
-	//int start, end;
-	//Vector *things = lvl->things;
 	hmax = lvl->h; wmax = lvl->w;
 	gen_lvl = lvl;
 
@@ -295,60 +293,28 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		do add_another_room ();
 		while (total_rooms < 50);
 
-		//start = map_buffer (hmax/2, wmax/2);
-		/* Down-stair */
-		/*do
-			end = (int32_t) rn(map_graph->a);
-		while (end == start);
-		ADD_MAP(DGN_DOWNSTAIR, end);*/
-		
-		/* clear space at the beginning (for the up-stair) */
-		//ADD_MAP (DGN_GROUND, start);
-
-		/* clear space for the down-stair */
-		//ADD_MAP (DGN_GROUND, end);
-
-		/* fill the rest up with walls */
 		for (i = 0; i < gen_lvl->a; ++i)
 		{
-			//ADD_MAP (DGN_ROCK, i);
-			//if (things[i]->len == 0)
+			if (cur_gen[i] == ACS_BIGDOT)
 			{
-				if (cur_gen[i] != ACS_BIGDOT)
-				{
-					ADD_MAP (DGN_ROCK, i);
-					ADD_MAP (DGN_WALL, i + lvl->a);
-				}
-				else
-				{
-				//else if (cur_gen[i] == ACS_BIGDOT)
-					ADD_MAP (DGN_GROUND, i);
-					ADD_MAP (DGN_AIR, i + lvl->a);
-				}
-				//else if (cur_gen[i] == ACS_CORRIDOR)
-				//	ADD_MAP (DGN_CORRIDOR, i);
+				ADD_MAP (DGN_GROUND, i);
+				//if (!rn(5))
+				//	ADD_MAP (DGN_GROUND, i + lvl->a);
 				//else
-				//	ADD_MAP (DGN_ROCK, i);
+					ADD_MAP (DGN_AIR, i + lvl->a);
+			}
+			else if (cur_gen[i] == ACS_CORRIDOR)
+			{
+				ADD_MAP (DGN_CORRIDOR, i);
+				ADD_MAP (DGN_AIR, i + lvl->a);
+			}
+			else
+			{
+				ADD_MAP (DGN_AIR, i);
+				ADD_MAP (DGN_WALL, i + lvl->a);
 			}
 		}
 		free (cur_gen);
-
-		//for (i = 0; i < 100; ++ i)
-		//{
-		//	gen_mons_in_level ();
-		//	do
-		//	{
-		//		y = rn (map_graph->h);
-	//			x = rn (map_graph->w);
-	//		}
-	//		while (!is_safe_gen (lvl, y, x));
-
-//			struct Item *item = gen_item ();
-			//new_thing (THING_ITEM, lvl, y, x, item);
-//			free (item);
-//			mons_gen (cur_dlevel, 2, U.luck-30);
-		//}
-		//mons_gen (cur_dlevel, 3, 0);
 	}
 	else if (type == LEVEL_TOWN)
 	{
@@ -391,17 +357,27 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		free(out20x60);
 		free(out100x300);*/
 	}
+	else if (type == LEVEL_3D)
+	{
+		int z, y, x, i;
+		for (z = 0, i = 0; z < lvl->t; ++ z) for (y = 0; y < lvl->h; ++ y) for (x = 0; x < lvl->w; ++ x, ++ i)
+		{
+			int h = (1.0+sin(0.2 * x)) * (1.0+sin(0.2 * y)) * 2;
+			if (z < h)
+				ADD_MAP (DGN_ROCK, i);
+			else if (z == h)
+				ADD_MAP (DGN_GROUND, i);
+			else
+				ADD_MAP (DGN_AIR, i);
+		}
+	}
 	else if (type == LEVEL_MAZE)
 	{
 		/* TODO */
 	}
 	else if (type == LEVEL_SIM)
 	{
-		//int i;
-		//for (i = 0; i < map_graph->a; ++ i)
-		{
-		//	ADD_MAP (DGN_GROUND, i);
-		}
+		/* TODO? */
 	}
 }
 
@@ -447,9 +423,8 @@ struct Monster *gen_player (int zloc, int yloc, int xloc, char *name)
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_WATER_BOLT, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FIREBALL, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FROST, 0, 1}));
-	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLAMES, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLASH, 0, 1}));
-	struct Monster *pl = new_mons (cur_dlevel, zloc, yloc, xloc, &m1);
+	struct Monster *pl = new_mons (cur_dlevel, 0, cur_dlevel->h/2, cur_dlevel->w/2, &m1);
 	struct Item *item;
 	//int num = rn(40)+20;
 	struct Item myitem = new_item (ITYP_GOLD_PIECE);

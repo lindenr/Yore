@@ -11,9 +11,8 @@
 #define STRINGIFY(x) #x
 #define TILE_FILE "t"XSTRINGIFY(GLW)"x"XSTRINGIFY(GLH)".bmp"
 
-/* window dimensions (in glyphs) */
-int gr_ph = 0, gr_pw = 0; //screenY/GLH, gr_w = screenX/GLW;
-//int gr_area = 0;
+/* window dimensions (in pixels) */
+int gr_ph = 0, gr_pw = 0;
 
 /* event callback functions */
 void (*gr_onidle) () = NULL;
@@ -32,19 +31,9 @@ static SDL_Texture *sdlTexture;
 /* all the active graphs */
 static Vector graphs = NULL;
 
-/* what's currently on display */
-//static glyph *gr_map = NULL;
-//static gflags *gr_flags = NULL;
-
-/* starting and current size */
-//static int screenY = 0, screenX = 0;
-
 /* for text copying */
 #define BUFFER_LEN 1024
 static char temp_buffer[BUFFER_LEN];
-
-/* will the next refresh redraw everything? */
-//static int gr_forced_refresh = 0;
 
 /* timing parameters for held keys */
 static uint32_t gr_kinitdelay = 180, gr_kdelay = 40;
@@ -65,9 +54,6 @@ static int gr_skip_anim = 0;
 static uint32_t lastref = 0;
 #endif
 
-/* TODO remove */
-//static const int gr_xspace = 0, gr_yspace = 0;
-
 int grx_index (Graph gra, int zloc, int yloc, int xloc)
 {
 	if (zloc < 0 || zloc >= gra->t ||
@@ -76,13 +62,6 @@ int grx_index (Graph gra, int zloc, int yloc, int xloc)
 		return -1;
 	return gra->A * zloc + gra->w * yloc + xloc;
 }
-
-/*int gr_buffer (int yloc, int xloc)
-{
-	if (yloc < 0 || yloc >= gr_h || xloc < 0 || xloc >= gr_w)
-		return -1;
-	return gr_w * yloc + xloc;
-}*/
 
 void gr_ext (glyph *out, char *in, glyph def)
 {
@@ -97,9 +76,8 @@ void grx_movecam (Graph gra, int zloc, int yloc, int xloc, int ct)
 	gra->cz = zloc;
 	gra->cy = yloc;
 	gra->cx = xloc;
-	gra->ct = ct;
-	
-	//gr_forced_refresh = 1;
+	if (ct)
+		gra->ct = ct;
 }
 
 void grx_centcam (Graph gra, int zloc, int yloc, int xloc)
@@ -113,21 +91,8 @@ void grx_baddch (Graph gra, int buf, glyph gl)
 	/* what do you actually want to draw? */
 	if (gl > 0 && gl < 256)
 		gl |= gra->def & 0xFFFFFF00;
-	/* only care about the changed flag if there are other pixels */
-	//if (gra->flags[buf])
-	//	gra->flags[buf] = 1;
-	/* if the same then don't bother */
-	//if (gra->data[buf] == gl) return;
 	/* update current to new */
 	gra->data[buf] = gl;
-	/* transparent */
-	/*if (gl == 0)
-	{
-		int grx_y = buf/gra->w, grx_x = buf%gra->w;
-		int gr_y = grx_y - gra->cy + gra->vy, gr_x = grx_x - gra->cx + gra->vx;
-		int gr_c = gr_buffer (gr_y, gr_x);
-		gr_flags[gr_c] |= 1;
-	}*/
 }
 
 void grx_bgaddch (Graph gra, int buf, glyph gl)
@@ -137,21 +102,8 @@ void grx_bgaddch (Graph gra, int buf, glyph gl)
 		gl |= gra->def & 0xFFFFFF00;
 	if ((gl&COL_BG_MASK) == 0)
 		gl |= gra->data[buf] & COL_BG_MASK;
-	/* only care about the changed flag if there are other pixels */
-	//if (gra->flags[buf])
-	//	gra->flags[buf] = 1;
-	/* if the same then don't bother */
-	//if (gra->data[buf] == gl) return;
 	/* update current to new */
 	gra->data[buf] = gl;
-	/* transparent */
-	/*if (gl == 0)
-	{
-		int grx_y = buf/gra->w, grx_x = buf%gra->w;
-		int gr_y = grx_y - gra->cy + gra->vy, gr_x = grx_x - gra->cx + gra->vx;
-		int gr_c = gr_buffer (gr_y, gr_x);
-		gr_flags[gr_c] |= 1;
-	}*/
 }
 
 void grx_mvaddch (Graph gra, int zloc, int yloc, int xloc, glyph gl)
@@ -286,10 +238,6 @@ void grx_cblink (Graph gra)
 
 void grx_cmove (Graph gra, int zloc, int yloc, int xloc)
 {
-	//if (yloc == gra->csr_y && xloc == gra->csr_x)
-	//	return;
-	//grx_mark (gra, gra->csr_y, gra->csr_x);
-	//grx_mark (gra, yloc, xloc);
 	int b = grx_index (gra, zloc, yloc, xloc);
 	if (b != -1)
 		gra->csr_b = b;
@@ -308,22 +256,13 @@ void grx_cshow (Graph gra)
 void grx_hide (Graph gra)
 {
 	gra->vis = 0;
-	//gr_forced_refresh = 1;
 }
 
 void grx_show (Graph gra)
 {
 	gra->vis = 1;
-	//gr_forced_refresh = 1;
 }
 
-/*void grx_mark (Graph gra, int yloc, int xloc)
-{
-	gra->flags[grx_index(gra, yloc, xloc)] |= 1;
-}*/
-
-//#define HX 1
-//#define HY 2
 #define setpixel(y,x) {*(uint32_t*) ((uint8_t*) pixels + 4*(x) + screen->pitch*(y)) = col;}
 void gr_drawboxes (int py, int px, int glh, int glw, gflags f)
 {
@@ -333,9 +272,8 @@ void gr_drawboxes (int py, int px, int glh, int glw, gflags f)
 	if (SDL_MUSTLOCK (screen)) // TODO draw everything under one lock
 		SDL_LockSurface (screen);
 
-	int ismoving = 1 & (f>>12), isattacking = 1 & (f>>17), code, /*px, py,*/ i;
+	int ismoving = 1 & (f>>12), isattacking = 1 & (f>>17), code, i;
 	uint32_t col, *pixels;
-	//py = y * (GLH+gr_yspace) - HY*z, px = x * (GLW+gr_xspace) - HX*z;
 	pixels = (uint32_t *) ((uintptr_t) screen->pixels + py*screen->pitch + px*4);
 
 	///////////// MOVING
@@ -384,89 +322,54 @@ end_attacking:
 		SDL_UnlockSurface (screen);
 }
 
-#define GL_TRD ((gl&0xF0000000)>>24)
-#define GL_TGN ((gl&0x0F000000)>>20)
-#define GL_TBL ((gl&0x00F00000)>>16)
-#define GL_BRD ((gl&0x000F0000)>>12)
-#define GL_BGN ((gl&0x0000F000)>>8)
-#define GL_BBL ((gl&0x00000F00)>>4)
+#define ST(x) ((x)*0x11) // seventeen
+#define GL_TRD ST((gl&0xF0000000)>>28)
+#define GL_TGN ST((gl&0x0F000000)>>24)
+#define GL_TBL ST((gl&0x00F00000)>>20)
+#define GL_BRD ST((gl&0x000F0000)>>16)
+#define GL_BGN ST((gl&0x0000F000)>>12)
+#define GL_BBL ST((gl&0x00000F00)>>8)
 //#define BGS(y,x,h,w,c) do {bgsrect = (SDL_Rect) {(GLW+gr_xspace)*xloc - HX*z - gr_xspace + (x), (GLH+gr_yspace)*yloc - HY*z - gr_yspace + (y), (w), (h)}; SDL_FillRect (screen, &bgsrect, SDL_MapRGB (screen->format, (c), (c), (c)));} while (0)
-void blit_glyph (glyph gl, int py, int px, int glh, int glw)//, int tou, int tol, int tod, int tor)
+void blit_glyph (glyph gl, int py, int px, int glh, int glw,
+	int ey, int ex, int ed, int dy, int dx) /* edges: y, x, diagonal; directions: y, x */
 {
 	unsigned char ch = (unsigned char) gl;
 	SDL_Rect srcrect = {glw*(ch&15), glh*((ch>>4)&15), glw, glh};
-	//SDL_Rect dstrect = {(GLW+gr_xspace)*xloc - HX*z, (GLH+gr_yspace)*yloc - HY*z, GLW, GLH};
 	SDL_Rect dstrect = {px, py, glw, glh};
 	//SDL_Rect bgsrect;
 
-	SDL_FillRect (glyph_col, NULL, SDL_MapRGB (glyph_col->format, GL_BRD, GL_BGN, GL_BBL));
+	if (SDL_MUSTLOCK (glyph_col)) // TODO draw everything under one lock
+		SDL_LockSurface (glyph_col);
+	int y, x;
+	for (y = 0; y < glh; ++ y) for (x = 0; x < glw; ++ x)
+	{
+		int d1 = dy<0?y:dy>0?GLH-y:127;
+		int D1 = ey?d1:127;
+		int d2 = dx<0?x:dx>0?GLW-x:127;
+		int D2 = ex?d2:127;
+		int D3 = ed?d1+d2:127;
+		int D = D1<D2?D1:
+			D2 < D3?D2:D3;
+		int g = D < 3 ? 20-8*D : 0;
+		Uint8 R = GL_BRD+g > 255 ? 255 : GL_BRD+g;
+		Uint8 G = GL_BGN+g > 255 ? 255 : GL_BGN+g;
+		Uint8 B = GL_BBL+g > 255 ? 255 : GL_BBL+g;
+		*(uint32_t*) ((uint8_t*) glyph_col->pixels + 4*(x) + glyph_col->pitch*(y)) =
+			SDL_MapRGB (glyph_col->format, R, G, B);
+	}
+	if (SDL_MUSTLOCK (glyph_col))
+		SDL_UnlockSurface (glyph_col);
+	//SDL_FillRect (glyph_col, NULL, SDL_MapRGB (glyph_col->format, GL_BRD, GL_BGN, GL_BBL));
 	SDL_BlitSurface (tiles, &srcrect, glyph_col, NULL);
 
 	//BGS (0, 0, GLH+2*gr_xspace, GLW+2*gr_yspace, 0);
 	SDL_FillRect (screen, &dstrect, SDL_MapRGB (screen->format, GL_TRD, GL_TGN, GL_TBL));
 	SDL_BlitSurface (glyph_col, NULL, screen, &dstrect);
-	/*if (0&&(gl&0x000fffff) != ' ')
-	{
-		if (tou > 0)
-			BGS (0, gr_xspace, 1, GLW, 128);
-		if (tol > 0)
-			BGS (gr_yspace, 0, GLH, 1, 128);
-	}*/
 }
-
-/*int gr_z (float y, float x)
-{
-	char ch = gr_map[gr_buffer(y,x)];
-	return ch == '#';
-	return 0;
-	return 5*(y*3 < sin(x) + x) - 5*((y+4)*3 < sin(x+4) + x + 4);
-	return (sin(x/7)*2) * (sin(y/5 + 0.05*sin(y/1.616))+1);
-}*/
 
 void gr_refresh ()
 {
-	int i;//, x, y;
-	//gr_forced_refresh = 1;
-
-	/*for (i = 0; i < graphs->len; ++ i)
-	{
-		Graph gra = * (Graph *) v_at (graphs, i);
-		if (!gra->vis)
-			continue;
-
-		for (y = 0; y < gra->vh; ++ y)
-		{
-			for (x = 0; x < gra->vw; ++ x)
-			{
-				int grx_y = y + gra->cy, grx_x = x + gra->cx;
-				int gr_y = y + gra->vy, gr_x = x + gra->vx;
-				int grx_c = grx_index (gra, grx_y, grx_x);
-				int gr_c = gr_buffer (gr_y, gr_x);
-				if (grx_c != -1 && gr_c != -1)
-				{
-					if ((gra->flags[grx_c]&1) || gr_forced_refresh || gr_flags[gr_c] ||
-						gra->old[grx_c] != gra->data[grx_c])
-					{
-						glyph gl = gra->data[grx_c];
-						if (gra->csr_state && gra->csr_y == grx_y && gra->csr_x == grx_x)
-						{
-							gr_map[gr_c] = grx_glinvert (gra, gl);
-							gr_flags[gr_c] = 1|gra->flags[grx_c];
-						}
-						else if (gl)
-						{
-							gr_map[gr_c] = gl;
-							gr_flags[gr_c] = 1|gra->flags[grx_c];
-						}
-						else
-							gr_flags[gr_c] |= 1;
-						gra->old[grx_c] = gl;
-					}
-				}
-				gra->flags[grx_c] &= (~1);
-			}
-		}
-	}*/
+	int i;
 
 #ifdef DEBUG_REFRESH_TIME
 	uint32_t asdf = gr_getms();
@@ -484,7 +387,16 @@ void gr_refresh ()
 		int wmax = gra->glw + abs(gra->gldx);
 		for (grx_c = 0; grx_c < gra->v; ++ grx_c) // TODO better
 		{
+			glyph gl = gra->data[grx_c];
+			if (gra->csr_state && grx_c == gra->csr_b)
+			{
+				gl = 0x000FFF00 | (gl&0xFF);
+			}
+			if (!gl)
+				continue;
 			int z = grx_c/gra->A, y = (grx_c%gra->A)/gra->w, x = grx_c%gra->w;
+			if (z < gra->t-1 && gra->data[grx_c + gra->A])
+				continue;
 			if (z < gra->cz || z >= gra->cz + gra->ct)
 				continue;
 			int ipy = (y-gra->cy)*gra->glh + (z-gra->cz)*gra->gldy;
@@ -497,85 +409,32 @@ void gr_refresh ()
 			if (py < -hmax || py >= gr_ph ||
 				px < -wmax || px >= gr_pw)
 				continue;
-			glyph gl = gra->data[grx_c];
-			if (!gl)
-				continue;
+			int ey = (y && gra->data[grx_c-gra->w] == 0);
+			int ex = (x && gra->data[grx_c-1] == 0);
+			int ed = (y && x && gra->data[grx_c-1-gra->w] == 0);
 			SDL_Rect dstrect = {px - gra->gldx, py - gra->gldy, gra->glw, gra->glh};
 			SDL_FillRect (screen, &dstrect, SDL_MapRGB (screen->format, 0, 0, 0));
-			blit_glyph (gl, py, px, gra->glh, gra->glw);
-		}
-	}
-
-	/*int gr_c = 0;
-	int drawn = 0;
-	int lmost = gr_w-1, rmost = 0, umost = gr_h-1, dmost = 0;
-	for (y = 0; y < gr_h; ++ y)
-	{
-		for (x = 0; x < gr_w; ++ x, ++ gr_c)
-		{
-			if (gr_flags[gr_c] || gr_forced_refresh)
-			{
-				if (umost > y)
-					umost = y;
-				if (dmost < y)
-					dmost = y;
-				if (lmost > x)
-					lmost = x;
-				if (rmost < x)
-					rmost = x;
-				int h = gr_z (y, x);
-				++ drawn;
-				blit_glyph (gr_map[gr_c], y, x, h, h - gr_z (y-1, x), h - gr_z (y, x-1),
-					h - gr_z (y+1, x), h - gr_z (y, x+1));
+			blit_glyph (gl, py, px, gra->glh, gra->glw, ey, ex, ed, gra->gldy, gra->gldx);
+			/* TODO draw boxes: something like
 				gflags f = gr_flags[gr_c];
 				if (f)
-					gr_drawboxes (y, x, h, f);
-				gr_flags[gr_c] = 0;
-			}
-			//gr_map[gr_c] = 0; TODO
+					gr_drawboxes (y, x, h, f); */
 		}
 	}
-	memset (gr_map, 0, gr_area * sizeof(*gr_map));*/
 
 	//fprintf(stderr, "visible: %d\n", gr_c);
 	//fprintf(stderr, "drawn: %d\n", drawn);
 	if (gr_onrefresh)
 		gr_onrefresh ();
 
-	//if (drawn || gr_forced_refresh)
-	//{
-		//if (1 || gr_forced_refresh)
-			SDL_UpdateTexture (sdlTexture, NULL, screen->pixels, gr_pw * sizeof(Uint32));
-		/*else
-		{
-			//int asdf = gr_getms();
-			SDL_Rect rect = {lmost * GLW, umost * GLH,
-				(rmost + 1 - lmost) * GLW, (dmost + 1 - umost) * GLH};
-			void *pixels;
-			int pitch;
-			SDL_LockTexture (sdlTexture, &rect, &pixels, &pitch);
-			for (y = 0; y < rect.h; ++ y)
-				memcpy (pixels + pitch*y, screen->pixels + 4*rect.x + screen->pitch*(y+rect.y), 4*rect.w);
-			SDL_UnlockTexture (sdlTexture);
-			//printf ("area %d took %d (%d %d %d %d)\n", rect.w * rect.h, gr_getms() - asdf,
-			//	lmost, rmost, umost, dmost);
-		}*/
+	SDL_UpdateTexture (sdlTexture, NULL, screen->pixels, gr_pw * sizeof(Uint32));
+	SDL_RenderCopy (sdlRenderer, sdlTexture, NULL, NULL);
+	SDL_RenderPresent (sdlRenderer);
 
-		//SDL_RenderClear (sdlRenderer);
-		SDL_RenderCopy (sdlRenderer, sdlTexture, NULL, NULL);
-		SDL_RenderPresent (sdlRenderer);
-	//}
-	//gr_forced_refresh = 0;
 #ifdef DEBUG_REFRESH_TIME
 	fprintf(stderr, "time: %ums\n\n", gr_getms() - asdf);
 #endif
 }
-
-/*void gr_frefresh ()
-{
-	gr_forced_refresh = 1;
-	gr_refresh ();
-}*/
 
 void grx_clear (Graph gra)
 {
@@ -598,7 +457,6 @@ void grx_invert (Graph gra, int zloc, int yloc, int xloc)
 {
 	int i = grx_index (gra, zloc, yloc, xloc);
 	gra->data[i] = grx_glinvert (gra, gra->data[i]);
-	//gra->flags[b] |= 1;
 }
 
 int gr_inputcode (SDL_Keycode code)
@@ -806,18 +664,7 @@ void gr_resize (int ph, int pw)
 
 	gr_ph = ph;
 	gr_pw = pw;
-	//gr_h = ysiz/(GLH + gr_yspace);
-	//gr_w = xsiz/(GLW + gr_xspace);
-	//gr_area = gr_h * gr_w;
 	
-	//gr_map = realloc (gr_map, sizeof(glyph) * gr_area);
-	//for (i = 0; i < gr_area; ++ i)
-	//	gr_map[i] = ' ';
-	//gr_flags = realloc (gr_flags, sizeof(gflags) * gr_area);
-	//memset (gr_flags, 0, sizeof(gflags) * gr_area);
-
-	//gr_forced_refresh = 1;
-
 	if (gr_onresize)
 		gr_onresize ();
 }
@@ -844,7 +691,7 @@ void gr_load_tiles ()
   success:
 	tiles = SDL_ConvertSurfaceFormat (temp, SDL_GetWindowPixelFormat (sdlWindow), 0);
 	SDL_FreeSurface (temp);
-	SDL_SetColorKey (tiles, SDL_TRUE, SDL_MapRGB (tiles->format, 255, 0, 255));
+	SDL_SetColorKey (tiles, SDL_TRUE, SDL_MapRGB (tiles->format, 253, 0, 253));
 }
 
 void gr_cleanup ()
@@ -885,7 +732,7 @@ void gr_init (int ph, int pw)
 	sdlTexture = SDL_CreateTexture (sdlRenderer, SDL_GetWindowPixelFormat (sdlWindow), SDL_TEXTUREACCESS_STREAMING, pw, ph);
 	screen = SDL_CreateRGBSurface (0, pw, ph, 32, 0, 0, 0, 0);
 	glyph_col = SDL_CreateRGBSurface (0, GLW, GLH, 32, 0, 0, 0, 0);
-	SDL_SetColorKey (glyph_col, SDL_TRUE, SDL_MapRGB (glyph_col->format, 255, 255, 255));
+	SDL_SetColorKey (glyph_col, SDL_TRUE, SDL_MapRGB (glyph_col->format, 253, 253, 253));
 
 	gr_load_tiles ();
 	gr_resize (ph, pw);
@@ -899,11 +746,9 @@ Graph grx_init (int t, int h, int w,
 	int v = t*h*w;
 
 	glyph *data = malloc (sizeof(glyph) * v);
-	//glyph *old = malloc (sizeof(glyph) * a);
 	gflags *flags = malloc (sizeof(gflags) * v);
 
 	memset (data, 0, sizeof(glyph) * v);
-	//memset (old, 0, sizeof(glyph) * a);
 	memset (flags, 0, sizeof(gflags) * v);
 	
 	gra = malloc (sizeof(struct Graph));
@@ -928,13 +773,13 @@ Graph grx_init (int t, int h, int w,
 
 Graph gra_cinit (int h, int w)
 {
-	return grx_init (1, h, w, GLH, GLW, -2, -1,
+	return grx_init (1, h, w, GLH, GLW, 0, 0,
 		(gr_ph - h*GLH)/2, (gr_pw - w*GLW)/2, h*GLH, w*GLW, 1);
 }
 
 Graph gra_init (int h, int w, int vy, int vx, int vh, int vw)
 {
-	return grx_init (1, h, w, GLH, GLW, -2, -1,
+	return grx_init (1, h, w, GLH, GLW, 0, 0,
 		vy*GLH, vx*GLW, vh*GLH, vw*GLW, 1);
 }
 
@@ -949,11 +794,8 @@ void grx_free (Graph gra)
 		if (gra == *(Graph*)v_at(graphs, i))
 		{
 			free (gra->data);
-			//free (gra->old);
-			//free (gra->flags);
 			free (gra);
 			v_rem (graphs, i);
-			//gr_forced_refresh = 1;
 			break;
 		}
 	}

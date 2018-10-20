@@ -19,16 +19,7 @@ int expcmp (int p_exp, int m_exp)
 {
 	if (p_exp < 21)
 		return (m_exp < 7);
-	return p_exp >= ((m_exp*(m_exp-1))/2);/*
-	if (p_exp >= m_exp * 100)
-		return onein (p_exp/(m_exp*200) + 1);
-	if (p_exp >= m_exp * 2)
-		return 40;
-	if ((p_exp * 20) + 20 >= m_exp * 19)
-		return 50;
-	if ((p_exp * 2) >= m_exp)
-		return 1;
-	return 0;*/
+	return p_exp >= ((m_exp*(m_exp-1))/2);
 }
 
 int nogen (int mons_id)
@@ -742,8 +733,9 @@ void AI_TIMID_poll (struct Monster *ai)
 
 void AI_HOSTILE_poll (struct Monster *ai)
 {
+	return AI_TIMID_poll (ai);
 	//if (cur_dlevel->player_dist[map_buffer(ai->yloc, ai->xloc)] == -1)
-		return mons_try_wait (ai);
+	//	return mons_try_wait (ai);
 	/*int y, x, min = 999999, nmin = 0;
 	for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
 	{

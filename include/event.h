@@ -40,7 +40,6 @@ typedef enum
 	EV_MFIREBALL,
 	EV_MWATER_BOLT,
 	EV_MFROST,
-	EV_CIRCLEOFFLAME,
 	EV_MFLASH,
 	EV_MSTOPFLASH,
 	EV_MOPENDOOR,
@@ -233,13 +232,6 @@ union Event
 		int ydest, xdest;
 		int radius;
 	} mfrost;
-	struct
-	{
-		EV_TYPE type;
-		//int yloc, xloc;
-		//int power, radius;
-		MID thID;
-	} circleofflame;
 	struct
 	{
 		EV_TYPE type;

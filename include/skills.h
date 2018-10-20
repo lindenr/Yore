@@ -18,7 +18,6 @@ enum SK_TYPE
 	SK_FIREBALL,
 	SK_WATER_BOLT,
 	SK_FROST,
-	SK_FLAMES,
 	SK_SCRY,
 	SK_FLASH,
 	SK_USE_MARTIAL_ARTS,
@@ -58,8 +57,6 @@ int  sk_lvl    (struct Monster *, enum SK_TYPE);
 enum SK_TYPE sk_item_use (const struct Item *);
 
 void sk_charge (struct Monster *, int, int, Skill);
-void sk_flames (struct Monster *);
-void sk_flames_overlay (struct Monster *);
 void sk_fireball (struct Monster *mons, int yloc, int xloc, Skill skill);
 void sk_water_bolt (struct Monster *mons, int yloc, int xloc, Skill skill);
 void sk_frost (struct Monster *mons, int yloc, int xloc, Skill skill);

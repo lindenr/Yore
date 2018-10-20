@@ -512,8 +512,9 @@ void update_knowledge (struct Monster *player)
 		draw_map ();
 		return;
 	}*/
-	int Y, X, w;
-	int Yloc = player->yloc, Xloc = player->xloc;
+	//int Y, X, w;
+	//int Yloc = player->yloc, Xloc = player->xloc;
+	int w;
 	struct DLevel *lvl = dlv_lvl (player->dlevel);
 	/* Anything you could see before you can't necessarily now */
 	for (w = 0; w < lvl->v; ++ w)
@@ -527,12 +528,16 @@ void update_knowledge (struct Monster *player)
 	// have seen while moving between them. This doesn't currently hold (exercise); would it
 	// hold if we drew every line through the player, not just those starting there?
 	// TODO maybe add a range limit
-	for (Y = 0, w = 0; Y < lvl->h; ++Y) for (X = 0; X < lvl->w; ++X, ++w)
+	/*for (Y = 0, w = 0; Y < lvl->h; ++Y) for (X = 0; X < lvl->w; ++X, ++w)
 		bres_draw (Yloc, Xloc, Y, X, lvl->w,
 			&lvl->seen[lvl->a * player->zloc], &lvl->attr[lvl->a * player->zloc], NULL);
 	for (w = 0; w < lvl->a; ++ w)
 		if (lvl->seen[w + lvl->a])
-			lvl->seen[w] = 2;
+			lvl->seen[w] = 2;*/
+	
+	// TODO remove
+	for (w = 0; w < lvl->v; ++ w)
+		lvl->seen[w] = 2;
 
 	/* draw things you can see */
 	for (w = 0; w < lvl->v; ++ w)

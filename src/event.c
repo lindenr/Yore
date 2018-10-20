@@ -92,7 +92,7 @@ void ev_do (const union Event *ev)
 	case EV_WORLD_INIT:
 #ifndef SIM
 		ev_queue (0, (union Event) { .player_init = {EV_PLAYER_INIT}});
-		generate_map (dlv_lvl (1), LEVEL_NORMAL);
+		generate_map (dlv_lvl (1), LEVEL_3D);
 #else
 		generate_map (dlv_lvl (1), LEVEL_SIM);
 		update_knowledge (NULL);
@@ -111,12 +111,12 @@ void ev_do (const union Event *ev)
 		update_knowledge (mons);
 #endif
 		
-		gen_boss (1, 57, 60);
+		//gen_boss (1, 57, 60);
 
 		for (i = 0; i < 60; ++ i)
 		{
-			gen_mons_in_level ();
-			gen_mons_near_player ();
+			//gen_mons_in_level ();
+			//gen_mons_near_player ();
 		}
 		//draw_map ();
 		return;
@@ -600,13 +600,6 @@ void ev_do (const union Event *ev)
 			mons_tilefrost (mons, mons->zloc, ev->mfrost.ydest + i, ev->mfrost.xdest + j);
 		}
 		return mons_poll (mons);
-	case EV_CIRCLEOFFLAME:
-		thID = ev->circleofflame.thID;
-		mons = MTHIID(thID);
-		if (!mons)
-			return;
-		sk_flames_overlay (mons);
-		return mons_poll (mons);
 	case EV_MFLASH:
 		thID = ev->mflash.thID;
 		mons = MTHIID(thID);
@@ -670,7 +663,7 @@ void ev_loop ()
 			ev_should_refresh = 0;
 			p_pane (NULL);
 			gr_refresh ();
-			gr_wait (50, 1);
+			gr_wait (20, 1);
 		}
 		curtick = qe->tick;
 
