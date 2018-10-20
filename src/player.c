@@ -243,6 +243,13 @@ int Krise (struct Monster *player)
 	return 0;
 }
 
+int Klower (struct Monster *player)
+{
+	if (player->zloc > 0)
+		mons_move (player, player->dlevel, player->zloc - 1, player->yloc, player->xloc);
+	return 0;
+}
+
 int Kthrow_cand (struct Monster *player)
 {
 	return 1;
@@ -591,6 +598,7 @@ struct KStruct Keys[] = {
 	{'D',    &Kmdrop,  &Kmdrop_cand},
 	{'F',    &Kfmove,  &Kfmove_cand},
 	{'K',    &Krise,   NULL},
+	{'J',    &Klower,  NULL},
 	{'m',    &Kgmove,  &Kgmove_cand},
 	{'t',    &Kthrow,  &Kthrow_cand},
 	{'i',    &Kinv,    NULL},
