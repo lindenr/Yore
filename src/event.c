@@ -46,7 +46,7 @@ Tick ev_delay (union Event *event)
 
 void ev_print (struct QEv *qe);
 Tick curtick = 0;
-long long unsigned curQID = 0;
+static long long unsigned curQID = 0;
 void ev_queue (Tick udelay, union Event ev)
 {
 	Tick when = curtick + udelay;
@@ -74,7 +74,7 @@ void ev_print (struct QEv *qe)
 	//printf ("list %d %d\n", qe->tick, qe->ev.type);
 }
 
-int ev_should_refresh = 0;
+static int ev_should_refresh = 0;
 
 void ev_do (const union Event *ev)
 {

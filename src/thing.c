@@ -407,7 +407,7 @@ glyph fire_glyph (int f)
 			COL_TXT (16-f/8<0?0:16-f/8, 31-f/4<0?0:31-f/4, f/8-8>15?15:f/8-8)));
 }
 
-gflags map_flags;
+static gflags map_flags;
 glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 {
 	map_flags = 0;

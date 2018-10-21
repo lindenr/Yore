@@ -382,16 +382,30 @@ void gr_refresh ()
 		if (!gra->vis)
 			continue;
 
-		int grx_c;
+		// for calculating whether to draw a glyph
 		int hmax = gra->glh + abs(gra->gldy);
 		int wmax = gra->glw + abs(gra->gldx);
-		for (grx_c = 0; grx_c < gra->v; ++ grx_c) // TODO better
+
+		// for correct drawing order
+		// todo change so doesn't iterate over whole graph
+		int grx_c;
+		int z, y, x, dz, dy, dx;
+		int Y = gra->gldy < 0, X = gra->gldx < 0;
+		if (Y && X)
+			dz = 0, dy = 0, dx = 1, grx_c = 0;
+		else if (Y && (!X))
+			dz = 0, dy = 2*gra->w, dx = -1, grx_c = gra->w - 1;
+		else if ((!Y) && X)
+			dz = 2*gra->A, dy = -2*gra->w, dx = 1, grx_c = gra->A - gra->w;
+		else
+			dz = 2*gra->A, dy = 0, dx = -1, grx_c = gra->A - 1;
+		for (z = 0; z < gra->t; ++ z, grx_c += dz)
+			for (y = 0; y < gra->h; ++ y, grx_c += dy)
+				for (x = 0; x < gra->w; ++ x, grx_c += dx)
 		{
 			glyph gl = gra->data[grx_c];
 			if (gra->csr_state && grx_c == gra->csr_b)
-			{
 				gl = 0x000FFF00 | (gl&0xFF);
-			}
 			if (!gl)
 				continue;
 			int z = grx_c/gra->A, y = (grx_c%gra->A)/gra->w, x = grx_c%gra->w;

@@ -251,9 +251,14 @@ int mons_can_move (struct Monster *mons, int y, int x)
 	return map_bpassable (lvl, n);
 }
 
+int mons_getmovedelay (const struct Monster *mons)
+{
+	return mons->status.flashing.end ? mons->status.flashing.speed : mons->speed;
+}
+
 void mons_try_move (struct Monster *mons, int y, int x)
 {
-	int delay = mons->status.flashing.end ? mons->status.flashing.speed : mons->speed;
+	int delay = mons_getmovedelay (mons);
 	ev_queue (delay, (union Event) { .mdomove = {EV_MDOMOVE, mons->ID}});
 	mons_start_move (mons, y, x, curtick + delay);
 }

@@ -36,25 +36,29 @@ int pl_execute (Tick wait, struct Monster *player, int force)
 extern Graph map_graph;
 int Kcamup (struct Monster *player)
 {
-	grx_movecam (map_graph, 0, map_graph->cy - 10, map_graph->cx, 0);
+	//grx_movecam (map_graph, 0, map_graph->cy - 10, map_graph->cx, 0);
+	map_graph->gldy ++;
 	return 0;
 }
 
 int Kcamdn (struct Monster *player)
 {
-	grx_movecam (map_graph, 0, map_graph->cy + 10, map_graph->cx, 0);
+	//grx_movecam (map_graph, 0, map_graph->cy + 10, map_graph->cx, 0);
+	map_graph->gldy --;
 	return 0;
 }
 
 int Kcamlt (struct Monster *player)
 {
-	grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx - 10, 0);
+	//grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx - 10, 0);
+	map_graph->gldx ++;
 	return 0;
 }
 
 int Kcamrt (struct Monster *player)
 {
-	grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx + 10, 0);
+	//grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx + 10, 0);
+	map_graph->gldx --;
 	return 0;
 }
 
