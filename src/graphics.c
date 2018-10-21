@@ -343,9 +343,9 @@ void blit_glyph (glyph gl, int py, int px, int glh, int glw,
 	int y, x;
 	for (y = 0; y < glh; ++ y) for (x = 0; x < glw; ++ x)
 	{
-		int d1 = dy<0?y:dy>0?GLH-y:127;
+		int d1 = dy<0?y:dy>0?GLH-y-1:127;
 		int D1 = ey?d1:127;
-		int d2 = dx<0?x:dx>0?GLW-x:127;
+		int d2 = dx<0?x:dx>0?GLW-x-1:127;
 		int D2 = ex?d2:127;
 		int D3 = ed?d1+d2:127;
 		int D = D1<D2?D1:
@@ -423,8 +423,11 @@ void gr_refresh ()
 			if (py < -hmax || py >= gr_ph ||
 				px < -wmax || px >= gr_pw)
 				continue;
-			int ey = (y && gra->data[grx_c-gra->w] == 0);
-			int ex = (x && gra->data[grx_c-1] == 0);
+			int ey, ex;
+			ey = (gra->gldy < 0 && y > 0 && gra->data[grx_c-gra->w] == 0) ||
+				(gra->gldy > 0 && y < gra->h-1 && gra->data[grx_c+gra->w] == 0);
+			ex = (gra->gldx < 0 && x > 0 && gra->data[grx_c-1] == 0) ||
+				(gra->gldx > 0 && x < gra->w-1 && gra->data[grx_c+1] == 0);
 			int ed = (y && x && gra->data[grx_c-1-gra->w] == 0);
 			SDL_Rect dstrect = {px - gra->gldx, py - gra->gldy, gra->glw, gra->glh};
 			SDL_FillRect (screen, &dstrect, SDL_MapRGB (screen->format, 0, 0, 0));
