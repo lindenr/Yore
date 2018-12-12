@@ -46,7 +46,7 @@ void          rem_mid        (MID);
 
 struct Monster *MTHIID       (MID);
 struct Item *it_at           (TID);
-void          draw_map       (struct DLevel *);
+void          draw_map       (struct DLevel *, struct Monster *);
 void          draw_map_xyz   (struct DLevel *, int z, int y, int x);
 void          draw_map_buf   (struct DLevel *, int idx);
 void          draw_map_mons  (struct Monster *);

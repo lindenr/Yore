@@ -76,10 +76,10 @@ extern Graph map_graph;
 int main (int argc, char *argv[])
 {
 	int i;
-	gr_init (720, 1200);
+	gr_init (640, 1200);
 	gr_onresize = p_init;
 	gr_quit = on_quit;
-	map_graph = grx_init (11, 50, 50, GLH, GLW, -2, -1, 0, 0, gr_ph - PANE_PH, gr_pw - GLW, 11);
+	map_graph = grx_init (11, 50, 50, GLH, GLW, -2, -1, 0, 0, gr_ph - PANE_PH, gr_pw - GLW, 8);
 	map_graph->vis = 0;
 
 	p_init ();

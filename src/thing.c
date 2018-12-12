@@ -502,6 +502,8 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 	return 0;
 }
 
+/* Draws player knowledge on to lvl arrays,
+ * then renders all that on screen */
 void update_knowledge (struct Monster *player)
 {
 	/*if (!player)
@@ -544,18 +546,63 @@ void update_knowledge (struct Monster *player)
 		if (lvl->seen[w] == 2)
 			lvl->remembered[w] = glyph_to_draw (lvl, w, 0);
 
-	draw_map (lvl);
+	draw_map (lvl, player);
 }
 
 void th_init ()
 {
 }
 
-void draw_map (struct DLevel *lvl)
+extern Graph map_graph;
+void draw_map (struct DLevel *lvl, struct Monster *player)
 {
+	grx_clear (map_graph);
 	int w;
 	for (w = 0; w < lvl->v; ++ w)
 		draw_map_buf (lvl, w);
+	return;
+	uint8_t *array = malloc (sizeof(uint8_t) * (lvl->v));
+	int *queue = malloc (sizeof(int) * (lvl->v + 1));
+	int i;
+	for (i = 0; i < lvl->a; ++ i)
+		array[i] = 0;
+	queue[0] = dlv_index (lvl, player->zloc, player->yloc, player->xloc);
+	array[queue[0]] = 1;
+	int cur, head;
+	for (cur = 0, head = 1; cur < head; ++ cur)
+	{
+		w = queue[cur];
+		draw_map_buf (lvl, w);
+		while (((struct Thing *) v_at (lvl->things[w], 0))->thing.mis.gl == ' ' && w/lvl->a < lvl->t-1)
+		{
+			w += lvl->a;
+			draw_map_buf (lvl, w);
+		}
+		if (((struct Thing *) v_at (lvl->things[w], 0))->thing.mis.gl == 0)
+			continue;
+		int y = (w%lvl->a)/lvl->w, x = w%lvl->w;
+		int W = w%lvl->a;
+		#define ASDF(X) {queue[head++] = (X); array[(X)%lvl->a] = 1;}
+		if (((struct Thing *) v_at (lvl->things[w], 0))->thing.mis.gl == ' ')
+		{
+			int z = w/lvl->a;
+			if (z < lvl->t-1)
+				ASDF(w+lvl->a);
+			continue;
+		}
+		if (y > 0 && !array[W-lvl->w])
+			ASDF(w-lvl->w);
+		if (y < lvl->h-1 && !array[W+lvl->w])
+			ASDF(w+lvl->w);
+		if (x > 0 && !array[W-1])
+			ASDF(w-1);
+		if (x < lvl->w-1 && !array[W+1])
+			ASDF(w+1);
+		if (x > 0 && y > 0 && !array[w-lvl->w-1])
+			ASDF(w-lvl->w-1);
+	}
+	free (array);
+	free (queue);
 }
 
 void draw_map_xyz (struct DLevel *lvl, int z, int y, int x)
@@ -564,7 +611,6 @@ void draw_map_xyz (struct DLevel *lvl, int z, int y, int x)
 	draw_map_buf (lvl, w);
 }
 
-extern Graph map_graph;
 void draw_map_buf (struct DLevel *lvl, int w)
 {
 	glyph gl = glyph_to_draw (lvl, w, 1);

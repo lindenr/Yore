@@ -82,7 +82,7 @@ void ev_do (const union Event *ev)
 	struct Item newitem, *item;
 	TID thID, frID, toID, itemID, monsID;
 	struct DLevel *lvl;
-	int ydest, xdest, damage, radius, arm;
+	int zdest, ydest, xdest, damage, radius, arm;
 	int i, j, ydist, xdist, dist, ydir, xdir, z;
 	Vector pickup, items;
 	union ItemLoc loc;
@@ -297,9 +297,12 @@ void ev_do (const union Event *ev)
 		mons = MTHIID(thID);
 		if (!mons)
 			return;
-		ydest = mons->yloc + mons->status.moving.ydir; xdest = mons->xloc + mons->status.moving.xdir;
-		if (mons_can_move (mons, mons->status.moving.ydir, mons->status.moving.xdir))
-			mons_move (mons, mons->dlevel, mons->zloc, ydest, xdest);
+		zdest = mons->zloc + mons->status.moving.zdir;
+		ydest = mons->yloc + mons->status.moving.ydir;
+		xdest = mons->xloc + mons->status.moving.xdir;
+		if (mons_can_move (mons, mons->status.moving.zdir,
+			mons->status.moving.ydir, mons->status.moving.xdir))
+			mons_move (mons, mons->dlevel, zdest, ydest, xdest);
 		//else: tried and failed to move TODO
 		mons_stop_move (mons);
 		if (mons->mflags & FL_SLIMY && onein (3))
@@ -314,7 +317,7 @@ void ev_do (const union Event *ev)
 		if (!mons)
 			return;
 		ydest = mons->yloc + mons->status.evading.ydir; xdest = mons->xloc + mons->status.evading.xdir;
-		if (mons_can_move (mons, mons->status.evading.ydir, mons->status.evading.xdir))
+		if (mons_can_move (mons, 0, mons->status.evading.ydir, mons->status.evading.xdir))
 			mons_move (mons, mons->dlevel, mons->zloc, ydest, xdest);
 		ev_queue (mons->speed, (union Event) { .munevade = {EV_MUNEVADE, mons->ID}});
 		return mons_poll (mons);

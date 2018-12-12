@@ -236,19 +236,20 @@ void mons_try_hitm (struct Monster *mons, int y, int x)
 	mons_try_hit (mons, Y+y, X+x);
 }
 
-int mons_can_move (struct Monster *mons, int y, int x)
+int mons_can_move (struct Monster *mons, int z, int y, int x)
 {
-	if (y < -1 || y > 1 || x < -1 || x > 1)
+	if (z < -1 || z > 1 || y < -1 || y > 1 || x < -1 || x > 1)
 		return 0;
 	struct DLevel *lvl = dlv_lvl (mons->dlevel);
-	int yloc = mons->yloc + y, xloc = mons->xloc + x;
-	if (yloc < 0 || yloc >= lvl->h ||
+	int zloc = mons->zloc + z, yloc = mons->yloc + y, xloc = mons->xloc + x;
+	if (zloc < 0 || zloc >= lvl->t ||
+		yloc < 0 || yloc >= lvl->h ||
 	    xloc < 0 || xloc >= lvl->w)
 		return 0;
-	int n = dlv_index (lvl, mons->zloc, yloc, xloc);
+	int n = dlv_index (lvl, zloc, yloc, xloc);
 	if (lvl->monsIDs[n])
 		return 0;
-	return map_bpassable (lvl, n);
+	return map_bpassable (lvl, n) && !map_bpassable (lvl, dlv_index (lvl, zloc-1, yloc, xloc));
 }
 
 int mons_getmovedelay (const struct Monster *mons)
@@ -256,11 +257,11 @@ int mons_getmovedelay (const struct Monster *mons)
 	return mons->status.flashing.end ? mons->status.flashing.speed : mons->speed;
 }
 
-void mons_try_move (struct Monster *mons, int y, int x)
+void mons_try_move (struct Monster *mons, int z, int y, int x)
 {
 	int delay = mons_getmovedelay (mons);
 	ev_queue (delay, (union Event) { .mdomove = {EV_MDOMOVE, mons->ID}});
-	mons_start_move (mons, y, x, curtick + delay);
+	mons_start_move (mons, z, y, x, curtick + delay);
 }
 
 void mons_try_wait (struct Monster *mons)
@@ -342,9 +343,9 @@ void mons_stop_evade (struct Monster *mons)
 	draw_map_mons (mons);
 }
 
-void mons_start_move (struct Monster *mons, int y, int x, Tick arrival)
+void mons_start_move (struct Monster *mons, int z, int y, int x, Tick arrival)
 {
-	mons->status.moving = (typeof(mons->status.moving)) {y, x, arrival};
+	mons->status.moving = (typeof(mons->status.moving)) {z, y, x, arrival};
 	draw_map_mons (mons);
 }
 
@@ -730,8 +731,8 @@ int AI_weapcmp (struct Monster *ai, struct Item *w1, struct Item *w2)
 void AI_TIMID_poll (struct Monster *ai)
 {
 	int y = rn(3)-1, x = rn(3)-1;
-	if (mons_can_move (ai, y, x))
-		mons_try_move (ai, y, x);
+	if (mons_can_move (ai, 0, y, x))
+		mons_try_move (ai, 0, y, x);
 	else
 		mons_try_wait (ai);
 }

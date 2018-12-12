@@ -8,6 +8,7 @@
 //#define DEBUG_REFRESH_TIME // print framerate info
 //#define DEBUG_REFRESH_TIME_GR // print framerate info in game
 //#define TWOPLAYER // two player characters
+//#define FAKE_INPUT // spoofs input for profiling
 
 //#define SIM
 

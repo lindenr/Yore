@@ -180,7 +180,7 @@ struct MStatus
 {
 	struct
 	{
-		int ydir, xdir;
+		int zdir, ydir, xdir;
 		Tick arrival;
 	} moving;
 	struct
@@ -250,9 +250,9 @@ void   mons_poll       (struct Monster *);                   /* poll for action 
 /* monster action functions */
 
 /* move */
-int    mons_can_move   (struct Monster *, int, int);         /* can mons move in given direction         */
-void   mons_try_move   (struct Monster *, int, int);         /* move in given directions                 */
-void   mons_start_move (struct Monster *, int, int, Tick);   /* start moving in a given direction        */
+int    mons_can_move   (struct Monster *, int, int, int);    /* can mons move in given direction         */
+void   mons_try_move   (struct Monster *, int, int, int);    /* move in given directions                 */
+void   mons_start_move (struct Monster *, int, int, int, Tick);/* start moving in a given direction      */
 void   mons_stop_move  (struct Monster *);                   /* stop moving                              */
 
 /* hit */

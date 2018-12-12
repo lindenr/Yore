@@ -9,6 +9,8 @@
 
 int map_bpassable (struct DLevel *lvl, int n)
 {
+	if (n < 0 || n > lvl->v)
+		return 0;
 	int i;
 	for (i = 0; i < lvl->things[n]->len; ++ i)
 	{
@@ -28,8 +30,8 @@ int map_passable (struct DLevel *lvl, int z, int y, int x)
 
 struct map_item_struct map_items[] = {
 	MAPITEM("lit space", ACS_BIGDOT|COL_BG(2,2,2)|COL_TXT_DEF,          M_TSPT),
-	MAPITEM("grass",     ACS_DOT|COL_BG(0,5,0)|COL_TXT_DEF, M_TSPT),
-	MAPITEM("grass",     ACS_DOT|COL_BG(1,6,0)|COL_TXT_DEF, M_TSPT),
+	MAPITEM("grass",     ACS_BIGDOT|COL_BG(0,5,0)|COL_TXT_DEF, M_TSPT),
+	MAPITEM("grass",     ACS_BIGDOT|COL_BG(1,6,0)|COL_TXT_DEF, M_TSPT),
 	MAPITEM("wall",      '#'|0xBBB55500,                          M_OPQ ),
 	MAPITEM("rock",      ' ',                               M_OPQ ),
 	MAPITEM("air",      0,                          M_TSPT ),

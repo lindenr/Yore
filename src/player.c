@@ -236,21 +236,21 @@ int Kgmove (struct Monster *player)
 		p_msg ("That's not a direction!");
 		return 0;
 	}
-	mons_try_move (player, ymove, xmove);
+	mons_try_move (player, 0, ymove, xmove);
 	return 1;
 }
 
 int Krise (struct Monster *player)
 {
-	if (player->zloc < dlv_lvl (player->dlevel)->t - 1)
-		mons_move (player, player->dlevel, player->zloc + 1, player->yloc, player->xloc);
+	//if (player->zloc < dlv_lvl (player->dlevel)->t - 1)
+	//	mons_move (player, player->dlevel, player->zloc + 1, player->yloc, player->xloc);
 	return 0;
 }
 
 int Klower (struct Monster *player)
 {
-	if (player->zloc > 0)
-		mons_move (player, player->dlevel, player->zloc - 1, player->yloc, player->xloc);
+	//if (player->zloc > 0)
+	//	mons_move (player, player->dlevel, player->zloc - 1, player->yloc, player->xloc);
 	return 0;
 }
 
@@ -330,7 +330,7 @@ static struct String *look_str = NULL;
 void nlook_auto (struct Monster *player)
 {
 	nlook_msg (look_str, player);
-	p_notify (str_data (look_str));
+	//p_notify (str_data (look_str));
 	str_empty (look_str);
 }
 
@@ -666,9 +666,9 @@ void pl_poll (struct Monster *player)
 	//	gra_centcam (map_graph, player->yloc, player->xloc);
 	//extern Graph map_graph;
 	//printf("%d %d %d   ", map_graph->cz, map_graph->cy, map_graph->cx);
-	grx_movecam (map_graph, 0, 0, 0, 11);
 	while (1)
 	{
+	grx_movecam (map_graph, player->zloc-1, -map_graph->gldy * player->zloc, -map_graph->gldx * player->zloc, 0);
 		nlook_auto (player);
 		grx_cmove (map_graph, player->zloc, player->yloc, player->xloc);
 
@@ -706,7 +706,7 @@ int pl_attempt_move (struct Monster *pl, int y, int x) /* each either -1, 0 or 1
 	if (yloc < 0 || yloc >= lvl->h ||
 	    xloc < 0 || xloc >= lvl->w)
 		return 0;
-	int i, n = dlv_index (lvl, zloc, yloc, xloc);
+	int n = dlv_index (lvl, zloc, yloc, xloc);
 	/* melee attack! */
 	if (lvl->monsIDs[n])
 	{
@@ -720,16 +720,23 @@ int pl_attempt_move (struct Monster *pl, int y, int x) /* each either -1, 0 or 1
 		p_msg ("It says hi!");
 		return 0;
 	}
-	for (i = 0; i < lvl->things[n]->len; ++ i)
-	{
-		struct Thing *th = THING(lvl->things, n, i);
-		/* like a an unmoveable boulder or something */
-		if (th->type == THING_DGN && (th->thing.mis.attr & 1) == 0)
-			return 0;
-	}
 	/* you can and everything's fine, nothing doing */
-	mons_try_move (pl, y, x);
-	return 1;
+	if (mons_can_move (pl, 0, y, x))
+	{
+		mons_try_move (pl, 0, y, x);
+		return 1;
+	}
+	else if (mons_can_move (pl, -1, y, x))
+	{
+		mons_try_move (pl, -1, y, x);
+		return 1;
+	}
+	else if (mons_can_move (pl, 1, y, x))
+	{
+		mons_try_move (pl, 1, y, x);
+		return 1;
+	}
+	return 0;
 }
 
 

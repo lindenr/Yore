@@ -34,7 +34,7 @@ typedef struct Graph
 	int gldy, gldx;     /* change in y, x pixel coords when going up one level; must be nonpositive */
 	glyph *data;//, *old;  /* h*w*t grid of glyphs */
 	gflags *flags;      /* tracks (changes and) subpixel options */
-	int cy, cx, cz, ct; /* camera location and depth */
+	int cpy, cpx, cz, ct; /* camera location and depth */
 	int vpy, vpx, vph, vpw; /* view location and dimensions on the window */
 	int vis;            /* whether the graph is currently being shown */
 	int csr_b;          /* location of the cursor */
@@ -49,8 +49,8 @@ typedef struct Graph
 
 extern int gr_ph, gr_pw;//, gr_area;
 
-//extern void (*gr_onidle)    ();
-extern void (*gr_onresize)  ();
+//extern void (*gr_onidle) ();
+extern void (*gr_onresize) ();
 //extern void (*gr_onrefresh) ();
 extern void (*gr_quit) ();
 

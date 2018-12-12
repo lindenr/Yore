@@ -362,13 +362,21 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		int z, y, x, i;
 		for (z = 0, i = 0; z < lvl->t; ++ z) for (y = 0; y < lvl->h; ++ y) for (x = 0; x < lvl->w; ++ x, ++ i)
 		{
-			int h = (1.0+sin(0.2 * x)) * (1.0+sin(0.2 * y)) * 2;
+			if ((x/2 - 8 < z && z <= x/2 - 6) && 10 <= y && y <= 15 && z <= 9)
+				ADD_MAP (DGN_ROCK, i);
+			else if (z == 0 || (z == 9 && (10 > y || y > 15)))
+				ADD_MAP (!rn(5), i);
+			else if (z == 8 && (10 > y || y > 15))
+				ADD_MAP (DGN_ROCK, i);
+			else if (z == x/2 - 5 && 10 <= y && y <= 15)
+				ADD_MAP (rn(3), i);
+			/*int h = (1.0+sin(0.2 * x)) * (1.0+sin(0.2 * y)) * 2;
 			if (z < h)
 				ADD_MAP (DGN_ROCK, i);
 			else if (z == h)
 				ADD_MAP (DGN_GROUND, i);
 			else
-				ADD_MAP (DGN_AIR, i);
+				ADD_MAP (DGN_AIR, i);*/
 		}
 	}
 	else if (type == LEVEL_MAZE)
