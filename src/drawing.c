@@ -2,7 +2,14 @@
 
 #include "include/drawing.h"
 #include "include/graphics.h"
-#include <math.h>
+//#include <math.h>
+
+int abs (int x)
+{
+	if (x >= 0)
+		return x;
+	return -x;
+}
 
 /* adapted from wikipedia */
 int bres_draw (int fy, int fx, int ty, int tx, int width,

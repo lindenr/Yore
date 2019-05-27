@@ -8,126 +8,97 @@
 #include "include/item.h"
 #include "include/event.h"
 #include "include/string.h"
+#include "include/graphics.h"
+#include "include/monst.h"
 
 static char it_descstr[IT_DESC_LEN];
 
-int pl_focus_mode = 0;
-Vector player_actions = NULL;
-void pl_queue (struct Monster *player, union Event ev)
-{
-	struct QEv qev = {ev_delay (&ev), 0, ev};
-	v_push (player_actions, &qev);
-}
-
-int pl_execute (Tick wait, struct Monster *player, int force)
-{
-	if (force == 0 && pl_focus_mode)
-		return 0;
-	int i;
-	for (i = 0; i < player_actions->len; ++ i)
-	{
-		struct QEv *qev = v_at (player_actions, i);
-		ev_queue (qev->tick, qev->ev);
-	}
-	player_actions->len = 0;
-	return 1;
-}
-
 extern Graph map_graph;
-int Kcamup (struct Monster *player)
+int Kcamup (MonsID player)
 {
 	//grx_movecam (map_graph, 0, map_graph->cy - 10, map_graph->cx, 0);
 	map_graph->gldy ++;
 	return 0;
 }
 
-int Kcamdn (struct Monster *player)
+int Kcamdn (MonsID player)
 {
 	//grx_movecam (map_graph, 0, map_graph->cy + 10, map_graph->cx, 0);
 	map_graph->gldy --;
 	return 0;
 }
 
-int Kcamlt (struct Monster *player)
+int Kcamlt (MonsID player)
 {
 	//grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx - 10, 0);
 	map_graph->gldx ++;
 	return 0;
 }
 
-int Kcamrt (struct Monster *player)
+int Kcamrt (MonsID player)
 {
 	//grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx + 10, 0);
 	map_graph->gldx --;
 	return 0;
 }
 
-int Kstatus (struct Monster *player)
+int Kstatus (MonsID player)
 {
 	return p_status (player, P_STATUS);
 }
 
-int Kskills (struct Monster *player)
+int Kskills (MonsID player)
 {
 	return p_status (player, P_SKILLS);
 }
 
-int Kwait_cand (struct Monster *player)
+int Kwait_cand (MonsID player)
 {
-	return player->status.charging == 0;
+	return !mons_charging (player);
 }
 
-int Kwait (struct Monster *player)
+int Kwait (MonsID player)
 {
-	ev_queue (player->speed/5, (union Event) { .mpoll = {EV_MPOLL, player->ID}});
+	ev_queue (mons_speed (player)/5, mpoll, player);
 	return 1;
 }
 
-int Kpickup_cand (struct Monster *player)
+int Kpickup_cand (MonsID player)
 {
-	return player->status.charging == 0;
+	return !mons_charging (player);
 }
 
-int Kpickup (struct Monster *player)
+int Kpickup (MonsID player)
 {
 	int n = mons_index (player);
-	Vector ground = dlv_items (player->dlevel)[n];
+	V_ItemID ground = dlv_itemIDs (mons_dlevel (player))[n];
 
 	if (ground->len <= 0)
 		return 0;
 
-	Vector pickup = NULL;
-	if (ground->len == 1)
-	{
-		/* One item on ground -- pick up immediately. */
-		pickup = v_init (sizeof(TID), 1);
-		v_push (pickup, &(((struct Item *)v_at (ground, 0))->ID));
-	}
-	else if (ground->len > 1)
-	{
-		/* Multiple items - ask which to pick up. */
-		pickup = v_init (sizeof(TID), 20);
+	V_ItemID pickup = v_dinit (sizeof (ItemID));
 
-		/* Do the asking */
-		ask_items (player, pickup, ground, "Pick up what?");
-		if (pickup->len == 0)
-			return 0;
-
+	/* One or more items - ask which to pick up. */
+	ask_items (player, pickup, ground, "Pick up what?");
+	if (pickup->len == 0)
+	{
+		v_free (pickup);
+		return 0;
 	}
-	ev_queue (player->speed, (union Event) { .mpickup = {EV_MPICKUP, player->ID, pickup}});
+	ev_queue (mons_speed (player), mpickup, player, pickup);
 	return 1;
 }
 
-/*int Keat (struct Monster *player)
+/*int Keat (MonsID player)
 {
-	struct Item *food = player_use_pack ("Eat what?", ITCAT_FOOD);
+	ItemID food = player_use_pack ("Eat what?", ITCAT_FOOD);
 	if (food == NULL)
 		return 0;
 	mons_eat (player, food);
 	return 1;
 }*/
 
-int Kevade (struct Monster *player)
+int Kevade (MonsID player)
 {
 	int ymove, xmove;
 	p_notify ("Evade in which direction?");
@@ -140,18 +111,18 @@ int Kevade (struct Monster *player)
 	return 1;
 }
 /*
-int Kparry (struct Monster *player)
+int Kparry (MonsID player)
 {
-//	pl_queue (player, (union Event) { .mparry = {EV_MPARRY, player->ID}});
+//	pl_queue (player, mparry, player);
 	return 0;
 }*/
 
-int Kshield_cand (struct Monster *player)
+int Kshield_cand (MonsID player)
 {
-	return player->status.charging == 0;
+	return !mons_charging (player);
 }
 
-int Kshield (struct Monster *player)
+int Kshield (MonsID player)
 {
 	int ymove, xmove;
 	p_notify ("Shield in which direction?");
@@ -160,19 +131,21 @@ int Kshield (struct Monster *player)
 	p_move (&ymove, &xmove, in);
 	if (ymove == 0 && xmove == 0)
 		return 0;
-	pl_queue (player, (union Event) { .mshield = {EV_MSHIELD, player->ID, ymove, xmove}});
-	return pl_execute (player->speed, player, 0);
+	// TODO mons_try_shield (player, ymove, xmove);?? or are _try_ functions which do
+	// nothing much being deprecated?
+	ev_queue (0, mdoshield, player, ymove, xmove);
+	return 1;
 }
 
-int Ksdrop_cand (struct Monster *player)
+int Ksdrop_cand (MonsID player)
 {
-	return player->status.charging == 0;
+	return !mons_charging (player);
 }
 
-int Ksdrop (struct Monster *player)
+int Ksdrop (MonsID player)
 {
-	struct Item *drop = player_use_pack (player, "Drop what?", ITCAT_ALL);
-	if (it_no(drop))
+	ItemID drop = player_use_pack (player, "Drop what?", ITCAT_ALL);
+	if (!drop)
 		return 0;
 
 	if (it_worn (drop))
@@ -181,29 +154,29 @@ int Ksdrop (struct Monster *player)
 		return 0;
 	}
 
-	Vector vdrop = v_dinit (sizeof(TID));
-	v_push (vdrop, &drop->ID);
+	V_ItemID vdrop = v_dinit (sizeof(ItemID));
+	v_push (vdrop, &drop);
 
-	pl_queue (player, (union Event) { .mdrop = {EV_MDROP, player->ID, vdrop}});
-	return pl_execute (player->speed, player, 0);
+	ev_queue (mons_speed (player), mdrop, player, vdrop);
+	return 1;
 }
 
-int Kmdrop_cand (struct Monster *player)
+int Kmdrop_cand (MonsID player)
 {
-	return player->status.charging == 0;
+	return !mons_charging (player);
 }
 
-int Kmdrop (struct Monster *player)
+int Kmdrop (MonsID player)
 {
 	return 0;
 }
 
-int Kfmove_cand (struct Monster *player)
+int Kfmove_cand (MonsID player)
 {
 	return 1;
 }
 
-int Kfmove (struct Monster *player)
+int Kfmove (MonsID player)
 {
 	char in = p_getch (player);
 	if (in == GRK_ESC)
@@ -219,12 +192,12 @@ int Kfmove (struct Monster *player)
 	return 1;
 }
 
-int Kgmove_cand (struct Monster *player)
+int Kgmove_cand (MonsID player)
 {
 	return 1;
 }
 
-int Kgmove (struct Monster *player)
+int Kgmove (MonsID player)
 {
 	char in = p_getch (player);
 	if (in == GRK_ESC)
@@ -240,29 +213,29 @@ int Kgmove (struct Monster *player)
 	return 1;
 }
 
-int Krise (struct Monster *player)
+int Krise (MonsID player)
 {
 	//if (player->zloc < dlv_lvl (player->dlevel)->t - 1)
 	//	mons_move (player, player->dlevel, player->zloc + 1, player->yloc, player->xloc);
 	return 0;
 }
 
-int Klower (struct Monster *player)
+int Klower (MonsID player)
 {
 	//if (player->zloc > 0)
 	//	mons_move (player, player->dlevel, player->zloc - 1, player->yloc, player->xloc);
 	return 0;
 }
 
-int Kthrow_cand (struct Monster *player)
+int Kthrow_cand (MonsID player)
 {
 	return 1;
 }
 
-int Kthrow (struct Monster *player)
+int Kthrow (MonsID player)
 {
-	struct Item *throw = player_use_pack (player, "Throw what?", ITCAT_ALL);
-	if (it_no(throw))
+	ItemID throw = player_use_pack (player, "Throw what?", ITCAT_ALL);
+	if (!throw)
 		return 0;
 
 	if (it_worn (throw))
@@ -272,50 +245,32 @@ int Kthrow (struct Monster *player)
 	}
 
 	int zloc, yloc, xloc;
-	p_mvchoose (player, &zloc, &yloc, &xloc, "Throw where?", NULL, &show_path_on_overlay);
-	if (yloc == -1)
+	if (!p_mvchoose (player, &zloc, &yloc, &xloc, "Throw where?", NULL, &show_path_on_overlay))
 		return 0;
 
-	pl_queue (player, (union Event) { .mthrow = {EV_MTHROW, player->ID, throw->ID, yloc, xloc}});
-	return pl_execute (player->speed, player, 0);
+	ev_queue (mons_speed (player)/2, mthrow, player, throw, yloc, xloc);
+	return 1;
 }
 
-int Kinv (struct Monster *player)
+int Kinv (MonsID player)
 {
 	show_contents (player, ITCAT_ALL, "Inventory");
 	return 0;
 }
 
-int nlook_msg (struct String *str, struct Monster *player)
+int nlook_msg (struct String *str, MonsID player)
 {
 	int k = 0;
 	int n = mons_index (player);
-	struct DLevel *lvl = dlv_lvl (player->dlevel);
-	Vector items = lvl->items[n];
-	Vector things = lvl->things[n];
+	struct DLevel *lvl = mons_dlv (player);
+	V_ItemID itemIDs = lvl->itemIDs[n];
 	str_catf (str, "\n");
 
 	int i;
-	for (i = 0; i < things->len; ++ i)
+	for (i = 0; i < itemIDs->len; ++ i)
 	{
-		struct Thing *th = v_at (things, i);
-		struct map_item_struct *m = &th->thing.mis;
-		if (m->gl == map_items[DGN_SLIME].gl)
-		{
-			str_catf (str, "#g%s slime on the ground\n", gl_format (m->gl));
-			++ k;
-		}
-		else if (m->gl == map_items[DGN_OPENDOOR].gl)
-		{
-			str_catf (str, "#g%s an open door\n", gl_format (m->gl));
-			++ k;
-		}
-	}
-
-	for (i = 0; i < items->len; ++ i)
-	{
-		struct Item *it = v_at(items, i);
-		it_desc (it_descstr, it, NULL);
+		ItemID it = itemIDs->data[i];
+		it_desc (it_descstr, it, 0);
 		str_catf (str, "%s\n", it_descstr);
 		++ k;
 	}
@@ -327,14 +282,14 @@ int nlook_msg (struct String *str, struct Monster *player)
 }
 
 static struct String *look_str = NULL;
-void nlook_auto (struct Monster *player)
+void nlook_auto (MonsID player)
 {
 	nlook_msg (look_str, player);
 	//p_notify (str_data (look_str));
 	str_empty (look_str);
 }
 
-int Knlook (struct Monster *player)
+int Knlook (MonsID player)
 {
 	nlook_msg (look_str, player);
 	p_flines (str_data (look_str));
@@ -361,7 +316,7 @@ void flook_callback (enum P_MV action, int dlevel, int fz, int fy, int fx, int t
 	gra_mvaddch (info, 0, 2, ACS_BTEE);*/
 }
 
-int Kflook (struct Monster *player)
+int Kflook (MonsID player)
 {
 	int z, y, x;
 	p_mvchoose (player, &z, &y, &x, "What are you looking for?", NULL, flook_callback);
@@ -370,7 +325,7 @@ int Kflook (struct Monster *player)
 }
 
 //static Graph overlay = NULL;
-int Kscan (struct Monster *player)
+int Kscan (MonsID player)
 {
 /*	if (!overlay)
 		overlay = gra_init (map_graph->h, map_graph->w, 0, 0, map_graph->vh, map_graph->vw);
@@ -384,10 +339,10 @@ int Kscan (struct Monster *player)
 		int n = dlv_index (lvl, Z, Y+y, X+x);
 		if (n == -1)
 			continue;
-		MID ID = lvl->monsIDs[n];
+		MonsID ID = lvl->monsIDs[n];
 		if (!ID)
 			continue;
-		struct Monster *mons = MTHIID (ID);
+		MonsID mons = mons_at (ID);
 		struct MStatus *s = &mons->status;
 		int b_y = Y - map_graph->cy - 2 + 4*y, b_x = X - map_graph->cx - 2 + 4*x;
 		gra_fbox (overlay, b_y, b_x, 4, 4, ' ');
@@ -404,68 +359,57 @@ int Kscan (struct Monster *player)
 	return 0;
 }
 
-/*int Kopen (struct Monster *player)
+/*int Kopen (MonsID player)
 {
 	//int y, x;
 	return 0;
 }
 
-int Kclose (struct Monster *player)
+int Kclose (MonsID player)
 {
 	//int y, x;
 	return 0;
 }*/
 
-int Kfocus_cand (struct Monster *player)
+int Kwield_cand (MonsID player)
 {
-	return player->status.charging == 0;
+	return !mons_charging (player);
 }
 
-int Kfocus (struct Monster *player)
+int Kwield (MonsID player)
 {
-	pl_focus_mode = !pl_focus_mode;
-	return 0;
-}
-
-int Kwield_cand (struct Monster *player)
-{
-	return player->status.charging == 0;
-}
-
-int Kwield (struct Monster *player)
-{
-	TID wieldID = show_contents (player, (1<<ITCAT_WEAPON) | (1<<ITCAT_HANDS), "Wield what?");
+	ItemID wieldID = show_contents (player, (1<<ITCAT_WEAPON) | (1<<ITCAT_HANDS), "Wield what?");
 	if (wieldID == -1)
 		return 0;
-	if (player->wearing.weaps[0] && wieldID == player->wearing.weaps[0]->ID)
+	if (wieldID == mons_getweap (player, 0))
 		return 0;
 
-	pl_queue (player, (union Event) { .mwield = {EV_MWIELD, player->ID, 0, wieldID}});
-	return pl_execute (player->speed, player, 0);
+	ev_queue (mons_speed (player)/2, mwield, player, 0, wieldID);
+	return 1;
 }
 
-int Kwear_cand (struct Monster *player)
+int Kwear_cand (MonsID player)
 {
-	return player->status.charging == 0;
+	return !mons_charging (player);
 }
 
-int Kwear (struct Monster *player)
+int Kwear (MonsID player)
 {
-	struct Item *wear = player_use_pack (player, "Wear what?", 1<<ITCAT_ARMOUR);
-	if (it_no(wear))
+	ItemID wear = player_use_pack (player, "Wear what?", 1<<ITCAT_ARMOUR);
+	if (!wear)
 		return 0;
 	return mons_try_wear (player, wear);
 }
 
-int Ktakeoff_cand (struct Monster *player)
+int Ktakeoff_cand (MonsID player)
 {
-	return player->status.charging == 0;
+	return !mons_charging (player);
 }
 
-int Ktakeoff (struct Monster *player)
+int Ktakeoff (MonsID player)
 {
-	struct Item *item = player_use_pack (player, "Take off what?", 1<<ITCAT_ARMOUR);
-	if (it_no (item))
+	ItemID item = player_use_pack (player, "Take off what?", 1<<ITCAT_ARMOUR);
+	if (!item)
 	{
 		p_msg ("Not an item.");
 		return 0;
@@ -479,21 +423,21 @@ int Ktakeoff (struct Monster *player)
 }
 
 /*
-int Klookdn (struct Monster *player)
+int Klookdn (MonsID player)
 {
 	if (cur_dlevel->dnlevel != 0)
 		dlv_set (cur_dlevel->dnlevel);
 	return 0;
 }
 
-int Klookup (struct Monster *player)
+int Klookup (MonsID player)
 {
 	if (cur_dlevel->uplevel != 0)
 		dlv_set (cur_dlevel->uplevel);
 	return 0;
 }*/
 /*
-int Kgodown (struct Monster *player)
+int Kgodown (MonsID player)
 {
 	int level = cur_dlevel->dnlevel;
 	if (level == 0)
@@ -504,7 +448,7 @@ int Kgodown (struct Monster *player)
 	return 1;
 }
 
-int Kgoup (struct Monster *player)
+int Kgoup (MonsID player)
 {
 	int level = cur_dlevel->uplevel;
 	if (level == 0)
@@ -515,13 +459,13 @@ int Kgoup (struct Monster *player)
 	return 1;
 }*/
 
-/*int Ksave (struct Monster *player)
+/*int Ksave (MonsID player)
 {
 	U.playing = PLAYER_SAVEGAME;
 	return -1;
 }*/
 
-int Kquit (struct Monster *player)
+int Kquit (MonsID player)
 {
 	if (!quit())
 	{
@@ -531,9 +475,8 @@ int Kquit (struct Monster *player)
 	return 0;
 }
 
-int Kdebug (struct Monster *player)
+int Kdebug (MonsID player)
 {
-	ev_debug ();
 	return 0;
 }
 
@@ -594,7 +537,6 @@ struct KStruct Keys[] = {
 	{'s',    &Kskills, NULL},
 	{'.',    &Kwait,   &Kwait_cand},
 	{',',    &Kpickup, &Kpickup_cand},
-//	{'e', &Keat},
 	{'e',    &Kevade,  NULL},
 //	{'p', &Kparry},
 	{'p',    &Kshield, &Kshield_cand},
@@ -610,7 +552,6 @@ struct KStruct Keys[] = {
 	{';',    &Kflook,  NULL},
 	{'/',    &Kscan,   NULL},
 	{'Z',    &Kdebug,  NULL},
-//	{'f',    &Kfocus,  &Kfocus_cand},
 //	{'o', &Kopen},
 //	{'c', &Kclose},
 	{'w',    &Kwield,  &Kwield_cand},
@@ -624,7 +565,7 @@ struct KStruct Keys[] = {
 	{GR_CTRL('q'), &Kquit, NULL}
 };
 
-int key_lookup (struct Monster *player, char ch)
+int key_lookup (MonsID player, char ch)
 {
 	int i;
 	for (i = 0; i < NUM_KEYS; ++ i)
@@ -644,33 +585,24 @@ void pl_init ()
 	look_str = str_dinit ();
 }
 
-int pl_charge_action (struct Monster *player)
+int pl_charge_action (MonsID player)
 {
 	return -1;
 }
 
-/*int pl_turn_cand (struct Monster *player)
+void pl_poll (MonsID player)
 {
-	struct MStatus *st = &player->status;
-	if (st->moving.arrival || st->attacking.arrival || st->helpless || st->evading.finish)
-		return 0;
-	return 1;
-}*/
-
-void pl_poll (struct Monster *player)
-{
-	/* Should the player be asked what to do? */
-	//if (!pl_turn_cand (player))
-	//	return;
 	//if (gra_nearedge (map_graph, player->yloc, player->xloc))
 	//	gra_centcam (map_graph, player->yloc, player->xloc);
 	//extern Graph map_graph;
 	//printf("%d %d %d   ", map_graph->cz, map_graph->cy, map_graph->cx);
 	while (1)
 	{
-	grx_movecam (map_graph, player->zloc-1, -map_graph->gldy * player->zloc, -map_graph->gldx * player->zloc, 0);
+		int dlevel, z, y, x;
+		mons_getloc (player, &dlevel, &z, &y, &x);
+		grx_movecam (map_graph, z-3, -map_graph->gldy * z, -map_graph->gldx * z, 0);
 		nlook_auto (player);
-		grx_cmove (map_graph, player->zloc, player->yloc, player->xloc);
+		grx_cmove (map_graph, z, y, x);
 
 		char in = p_getch (player);
 
@@ -699,10 +631,13 @@ void pl_poll (struct Monster *player)
 }
 
 /* returns whether the move was used up */
-int pl_attempt_move (struct Monster *pl, int y, int x) /* each either -1, 0 or 1 */
+int pl_attempt_move (MonsID pl, int y, int x) /* each either -1, 0 or 1 */
 {
-	struct DLevel *lvl = dlv_lvl (pl->dlevel);
-	int zloc = pl->zloc, yloc = pl->yloc + y, xloc = pl->xloc + x;
+	struct DLevel *lvl = mons_dlv (pl);
+	int dlevel, zloc, yloc, xloc;
+	mons_getloc (pl, &dlevel, &zloc, &yloc, &xloc);
+	yloc += y;
+	xloc += x;
 	if (yloc < 0 || yloc >= lvl->h ||
 	    xloc < 0 || xloc >= lvl->w)
 		return 0;
@@ -710,9 +645,9 @@ int pl_attempt_move (struct Monster *pl, int y, int x) /* each either -1, 0 or 1
 	/* melee attack! */
 	if (lvl->monsIDs[n])
 	{
-		struct Monster *mons = MTHIID (lvl->monsIDs[n]);
-		if (mons->ctr.mode == CTR_AI_HOSTILE ||
-			mons->ctr.mode == CTR_AI_AGGRO)
+		MonsID mons = lvl->monsIDs[n];
+		CTR_MODE m = mons_ctrl (mons);
+		if (m == CTR_AI_HOSTILE || m == CTR_AI_AGGRO)
 		{
 			mons_try_hitm (pl, y, x);
 			return 1;
@@ -740,25 +675,30 @@ int pl_attempt_move (struct Monster *pl, int y, int x) /* each either -1, 0 or 1
 }
 
 
-void ask_items (const struct Monster *player, Vector it_out, Vector it_in, const char *msg)
+void ask_items (const MonsID player, V_ItemID it_out, V_ItemID it_in, const char *msg)
 {
+	if (it_in->len == 1)
+	{
+		v_push (it_out, &it_in->data[0]);
+		return;
+	}
 	int i;
 	struct String *fmt = str_dinit ();
 	str_catf (fmt, "%s\n\n", msg);
 	for (i = 0; i < it_in->len; ++ i)
 	{
-		TID itemID = *(TID *) v_at (it_in, i);
-		it_desc (it_descstr, it_at (itemID), NULL);
+		ItemID item = it_in->data[i];
+		it_desc (it_descstr, item, 0);
 		str_catf (fmt, "#o%s\n", it_descstr);
 	}
 	str_catf (fmt, "\n");
 	int a = p_flines (str_data (fmt));
 	str_free (fmt);
 	if (a != -1)
-		v_push (it_out, v_at (it_in, a));
+		v_push (it_out, &it_in->data[a]);
 }
 
-void pl_choose_attr_gain (struct Monster *player, int points)
+void pl_choose_attr_gain (MonsID player, int points)
 {
 	int choice = p_flines (
 	"#cYou gain a level! +1 to all attributes.\n"
@@ -769,7 +709,7 @@ void pl_choose_attr_gain (struct Monster *player, int points)
 	"#o#g"FMT_AGI" Agility");
 	switch (choice)
 	{
-	case 0:
+	/*case 0:
 		++ player->str;
 		return;
 	case 1:
@@ -780,14 +720,14 @@ void pl_choose_attr_gain (struct Monster *player, int points)
 		return;
 	case 3:
 		++ player->agi;
-		return;
+		return;*/
 	default:
 		return;
 	}
 }
 
-struct Item *player_use_pack (struct Monster *th, char *msg, uint32_t accepted)
+ItemID player_use_pack (MonsID th, char *msg, uint32_t accepted)
 {
-	return it_at(show_contents (th, accepted, msg));
+	return show_contents (th, accepted, msg);
 }
 

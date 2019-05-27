@@ -4,8 +4,10 @@
 #include "include/words.h"
 #include "include/panel.h"
 #include "include/debug.h"
+#include "include/vector.h"
 
-#include <stdlib.h>
+//#include <stdlib.h>
+#include <malloc.h>
 #include <stdio.h>
 #include <string.h>
 

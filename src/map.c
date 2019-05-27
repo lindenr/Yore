@@ -11,13 +11,9 @@ int map_bpassable (struct DLevel *lvl, int n)
 {
 	if (n < 0 || n > lvl->v)
 		return 0;
-	int i;
-	for (i = 0; i < lvl->things[n]->len; ++ i)
-	{
-		struct Thing *th = THING(lvl->things, n, i);
-		if (th->type == THING_DGN && (th->thing.mis.attr & 1) == 0)
-			return 0;
-	}
+	DTile t = lvl->tiles[n];
+	if (t >= DGN_WALL && t <= DGN_ROCK)
+		return 0;
 	return 1;
 }
 
@@ -29,10 +25,12 @@ int map_passable (struct DLevel *lvl, int z, int y, int x)
 #define MAPITEM(nm,gl,at) {(nm), (gl), (at)}
 
 struct map_item_struct map_items[] = {
-	MAPITEM("lit space", ACS_BIGDOT|COL_BG(2,2,2)|COL_TXT_DEF,          M_TSPT),
+	MAPITEM("lit space", ACS_BIGDOT|COL_BG(0,0,0)|COL_TXT_DEF,          M_TSPT),
 	MAPITEM("grass",     ACS_BIGDOT|COL_BG(0,5,0)|COL_TXT_DEF, M_TSPT),
 	MAPITEM("grass",     ACS_BIGDOT|COL_BG(1,6,0)|COL_TXT_DEF, M_TSPT),
-	MAPITEM("wall",      '#'|0xBBB55500,                          M_OPQ ),
+	MAPITEM("wall",      '#'|0x99933200,                          M_OPQ ),
+	MAPITEM("wall",      '#'|0x99943200,                          M_OPQ ),
+	MAPITEM("wall",      '#'|0x99934200,                          M_OPQ ),
 	MAPITEM("rock",      ' ',                               M_OPQ ),
 	MAPITEM("air",      0,                          M_TSPT ),
 	MAPITEM("downstair", '>',                               M_TSPT),

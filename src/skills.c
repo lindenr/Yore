@@ -4,6 +4,8 @@
 #include "include/drawing.h"
 #include "include/panel.h"
 #include "include/event.h"
+#include "include/monst.h"
+#include "include/vector.h"
 
 const styp all_skills[] = {
 	{SK_NONE, 0, 0, "", ""},
@@ -45,10 +47,10 @@ int sk_isact (Skill sk)
 	return all_skills[sk->type].flags == SK_ACT;
 }
 
-int sk_lvl (struct Monster *th, enum SK_TYPE type)
+int sk_lvl (MonsID mons, enum SK_TYPE type)
 {
 	int i;
-	Vector sk_vec = th->skills;
+	Vector sk_vec = mons_skills (mons);
 	for (i = 0; i < sk_vec->len; ++ i)
 	{
 		Skill sk = v_at (sk_vec, i);
@@ -58,47 +60,47 @@ int sk_lvl (struct Monster *th, enum SK_TYPE type)
 	}
 	return 0;
 }
-
-void sk_fireball (struct Monster *mons, int yloc, int xloc, Skill sk)
+/*
+void sk_fireball (MonsID mons, int yloc, int xloc, Skill sk)
 {
 	if (mons->MP < 5)
 		return;
 	mons->MP -= 5;
-	ev_queue (mons->speed/2, (union Event) { .mfireball = {EV_MFIREBALL, mons->ID, yloc, xloc, sk->level*5}});
+	ev_queue (mons->speed/2, mfireball, mons->ID, yloc, xloc, sk->level*5);
 	mons_ex_skill (mons, sk);
 }
 
-void sk_water_bolt (struct Monster *mons, int yloc, int xloc, Skill sk)
+void sk_water_bolt (MonsID mons, int yloc, int xloc, Skill sk)
 {
 	if (mons->MP < 6)
 		return;
 	mons->MP -= 6;
-	ev_queue (mons->speed/2, (union Event) { .mwater_bolt = {EV_MWATER_BOLT, mons->ID, yloc, xloc, sk->level*5}});
+	ev_queue (mons->speed/2, mwater_bolt, mons->ID, yloc, xloc, sk->level*5);
 	mons_ex_skill (mons, sk);
 }
 
-void sk_frost (struct Monster *mons, int yloc, int xloc, Skill sk)
+void sk_frost (MonsID mons, int yloc, int xloc, Skill sk)
 {
-	ev_queue (0, (union Event) { .mfrost = {EV_MFROST, mons->ID, yloc, xloc, 3}});
+	ev_queue (0, mfrost, mons->ID, yloc, xloc, 3);
 	mons_ex_skill (mons, sk);
-}
+}*/
 
-void sk_charge (struct Monster *th, int y, int x, Skill sk)
+void sk_charge (MonsID mons, int y, int x, Skill sk)
 {
-	if (!th->status.charging)
+	if (!mons_charging (mons))
 	{
-		ev_queue (0, (union Event) { .mstartcharge = {EV_MSTARTCHARGE, th->ID /*, y, x*/ }});
+		ev_queue (0, mstartcharge, mons /*, y, x*/ );
 		return;
 	}
-	ev_queue (0, (union Event) { .mstopcharge = {EV_MSTOPCHARGE, th->ID /*, y, x*/ }});
+	ev_queue (0, mstopcharge, mons /*, y, x*/ );
 }
 
-void sk_scry (struct Monster *mons, Skill skill)
+void sk_scry (MonsID mons, Skill skill)
 {
 }
 
-void sk_flash (struct Monster *mons, Skill skill)
+void sk_flash (MonsID mons, Skill skill)
 {
-	ev_queue (0, (union Event) { .mflash = {EV_MFLASH, mons->ID, 107, 500}});
+	ev_queue (0, mflash, mons, 107, 500);
 }
 

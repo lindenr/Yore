@@ -7,31 +7,20 @@
 #include "include/dlevel.h"
 #include "include/string.h"
 #include "include/debug.h"
+#include "include/vector.h"
+#include "include/monst.h"
 
-Pack *pack_init ()
+void pack_rem (Pack *pack, unsigned u)
 {
-	Pack *pack = malloc(sizeof(Pack));
-	memset (pack, 0, sizeof(Pack));
-	return pack;
+	pack->items[u] = 0;
 }
 
-struct Item *pack_rem (Pack *pack, unsigned u)
+int pack_add (Pack *pack, ItemID it, int u)
 {
-	struct Item *ret = &pack->items[u];
-	it_rem (ret);
-	return ret;
-}
-
-int pack_add (Pack **ppack, struct Item *it, int u)
-{
-	if ((*ppack) == 0)
-		*ppack = pack_init ();
-	Pack *pack = *ppack;
-
-	if (it_no(&pack->items[u]))
+	if (!pack->items[u])
 	{
 		/* Put in pack */
-		memcpy (&pack->items[u], it, sizeof(*it));
+		pack->items[u] = it;
 		return 1;
 	}
 	panic ("merge attempt in pack_add");
@@ -39,12 +28,12 @@ int pack_add (Pack **ppack, struct Item *it, int u)
 	//return it_merge (&pack->items[u], it);
 }
 
-void add_desc (struct String *str, Pack *pack, int itcat, struct Monster *mons, Vector contents)
+void add_desc (struct String *str, Pack *pack, int itcat, MonsID mons, V_ItemID contents)
 {
 	if (itcat == ITCAT_HANDS)
 	{
 		str_catf (str, "#o#nFFF00000%c#nBBB00000 Your bare hands\n", 0xED);
-		TID ID = 0;
+		ItemID ID = 0;
 		v_push (contents, &ID);
 		return;
 	}
@@ -55,34 +44,34 @@ void add_desc (struct String *str, Pack *pack, int itcat, struct Monster *mons, 
 	char line[128];
 	for (i = any = 0; i < MAX_ITEMS_IN_PACK; ++i)
 	{
-		struct Item *packitem = &pack->items[i];
-		if (it_no (packitem))
+		ItemID item = pack->items[i];
+		if (!item)
 			continue;
-		if (it_category (it_sort (packitem)) != itcat)
+		if (it_category (it_sort (item)) != itcat)
 			continue;
 		if (!any)
 		{
 			str_catf (str, "#n000BBB00%s#nBBB00000\n", item_appearance [itcat]);
 			any = 1;
 		}
-		it_ndesc (line, 128, packitem, mons);
+		it_ndesc (line, 128, item, mons);
 		str_catf (str, "#o%s\n", line);
-		v_push (contents, &packitem->ID);
+		v_push (contents, &item);
 	}
 }
 
-TID show_contents (struct Monster *mons, uint32_t accepted, char *msg)
+ItemID show_contents (MonsID mons, uint32_t accepted, char *msg)
 {
-	struct Pack *pack = mons->pack;
+	struct Pack *pack = mons_pack (mons);
 	struct String *fmt = str_dinit ();
-	Vector contents = v_init (sizeof (TID), 52); // can be larger?
+	V_ItemID contents = v_init (sizeof (ItemID), 52); // can be larger?
 	str_catf (fmt, "#nFFF00000#c%s#nBBB00000\n\n", msg);
 
 	int i;
-	for (i = 0; it_displayorder[i] != -1; ++ i)
+	for (i = 0; i != ITCAT_END; ++ i)
 	{
-		if (accepted & (1 << it_displayorder[i]))
-			add_desc (fmt, pack, it_displayorder[i], mons, contents);
+		if (accepted & (1 << i))
+			add_desc (fmt, pack, i, mons, contents);
 	}
 	if (contents->len == 0)
 	{
@@ -96,9 +85,9 @@ TID show_contents (struct Monster *mons, uint32_t accepted, char *msg)
 	if (num == -1)
 	{
 		v_free (contents);
-		return -1;
+		return 0;
 	}
-	TID ret = *(TID*)v_at (contents, num);
+	ItemID ret = contents->data[num];
 	v_free (contents);
 	return ret;
 }

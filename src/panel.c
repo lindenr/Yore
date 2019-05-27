@@ -12,8 +12,12 @@
 #include "include/drawing.h"
 #include "include/string.h"
 #include "include/debug.h"
+#include "include/monst.h"
+#include "include/vector.h"
 
-#include <stdlib.h>
+#include <string.h>
+#include <malloc.h>
+#include <stdio.h>
 #include <stdarg.h>
 
 int p_height, p_width;
@@ -22,11 +26,11 @@ Vector messages = NULL;
 
 Graph gpan = NULL, gpred = NULL;
 
-struct Monster *cur_player = NULL;
+MonsID cur_player = 0;
 
 void p_timeline ()
 {
-	int i;
+	/*int i;
 	int ticks_per_tile = 25;
 	gra_mvaddch (gpred, 0, 0, ACS_TTEE | COL_TXT_BRIGHT);
 	for (i = 1; i < gpred->h; ++ i)
@@ -34,17 +38,16 @@ void p_timeline ()
 	int y, x;
 	for (i = 0; i < cur_dlevel->playerIDs->len; ++ i)
 	{
-		MID *plID = v_at (cur_dlevel->playerIDs, i);
-		struct Monster *pl = MTHIID (*plID);
+		MonsID pl = cur_dlevel->playerIDs->data[i];
 		for (y = -1; y <= 1; ++ y) for (x = -1; x <= 1; ++ x)
 		{
-			int w = dlv_index (cur_dlevel, pl->zloc, pl->yloc + y, pl->xloc + x);
+			int w = mons_index (cur_dlevel, pl->zloc, pl->yloc + y, pl->xloc + x);
 			if (w == -1)
 				continue;
-			MID ID = cur_dlevel->monsIDs[w];
+			MonsID ID = cur_dlevel->monsIDs[w];
 			if (!ID)
 				continue;
-			struct Monster *mons = MTHIID (ID);
+			struct Monster *mons = mons_at (ID);
 			if (!mons)
 				continue;
 			if (mons->status.moving.ydir || mons->status.moving.xdir)
@@ -57,16 +60,16 @@ void p_timeline ()
 		gra_mvaddch (gpred, (pl->speed+1)/ticks_per_tile, 0, 'M' | COL_TXT(0,15,0));
 		gra_mvaddch (gpred, (pl->speed/2)/ticks_per_tile, 0, 'P' | COL_TXT(0,15,0));
 		gra_mvaddch (gpred, (pl->speed/3)/ticks_per_tile, 0, 'E' | COL_TXT(0,15,0));
-	}
+	}*/
 }
 
-void p_pane (struct Monster *player)
+void p_pane (MonsID pl)
 {
 	int i;
 	int xpan = 0, ypan = (gr_ph - PANE_PH)/GLH;
-	if (!player)
-		player = cur_player;
-	cur_player = player;
+	if (!pl)
+		pl = cur_player;
+	cur_player = pl;
 	if (!gpan)
 	{
 		gpan = gra_init (p_height, p_width, ypan, xpan, p_height, p_width);
@@ -109,8 +112,9 @@ void p_pane (struct Monster *player)
 	gra_mvprint (gpan, 1, 3, "T %llu", curtick);
 	gra_mvaddch (gpan, 1, 1, '>' | COL_TXT(15,7,0));
 
-	if (player)
+	if (pl)
 	{
+		struct Monster_internal *player = mons_internal (pl);
 		int exp_needed = mons_exp_needed (player->level);
 		gra_mvprint (gpan, 2, 3, "%s the Player", w_short (player->name, 20));
 		gra_mvprint (gpan, 3, 3, "Health  %d (%d)", player->HP, player->HP_max);
@@ -129,19 +133,17 @@ void p_pane (struct Monster *player)
 		gra_mvaddch (gpan, 6, 1, '[' | COL_TXT(11,11,0));
 		gra_mvaddch (gpan, 7, 1, 6 | COL_TXT(7,15,15));
 		gra_mvaddch (gpan, 8, 1, 0xE4 | COL_TXT(15,0,15));
-		gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d", player->status.defending.ydir, player->status.defending.xdir);
-		if (player->status.bleeding)
+		gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d",
+			player->status.shield.ydir, player->status.shield.xdir);
+		if (player->status.bleed.evID)
 		{
 			gpan->def = COL_TXT(15,0,0);
 			gra_mvprint (gpan, 3, 100, "BLEEDING");
 			gpan->def = COL_TXT_DEF;
 		}
-		if (player->status.charging)
-			gra_mvprint (gpan, 3, 110, "CHARGING");
+		//if (player->status.charging)
+		//	gra_mvprint (gpan, 3, 110, "CHARGING");
 	}
-
-	if (pl_focus_mode)
-		gra_mvprint (gpan, 1, 110, "FOCUS MODE");
 
 	if (messages == NULL)
 		goto skip2;
@@ -149,7 +151,7 @@ void p_pane (struct Monster *player)
 	{
 		struct P_msg *msg = v_at (messages, messages->len - i - 1);
 		int len = P_MSG_LEN; //strlen (msg->msg);
-		gra_mvaprintex (gpan, 8 - i, (gr_pw - len*GLW)/2, msg->msg);
+		gra_mvaprintex (gpan, 8 - i, (gr_pw - len*GLW)/GLW/2, msg->msg);
 	}
 skip2:
 	;
@@ -255,13 +257,13 @@ int p_menuex (Vector lines, const char *toquit, int max_line_len)
 	p_menu_draw (box, lines, curchoice);
 	if (curchoice == -1)
 	{
-		p_getch (NULL);
+		p_getch (0);
 		gra_free (box);
 		return -1;
 	}
 	do
 	{
-		char ret = p_getch (NULL);
+		char ret = p_getch (0);
 		if (ret == GRK_ESC || ret == ' ')
 			break;
 		if (ret == '\n' || ret == '.')
@@ -301,7 +303,7 @@ int p_menuex (Vector lines, const char *toquit, int max_line_len)
 	return -1;
 }
 
-char p_ask (struct Monster *player, const char *results, const char *question)
+char p_ask (MonsID player, const char *results, const char *question)
 {
 	p_amsg (question);
 	char in;
@@ -311,7 +313,7 @@ char p_ask (struct Monster *player, const char *results, const char *question)
 	return in;
 }
 
-char p_getch (struct Monster *pl)
+char p_getch (MonsID pl)
 {
 	p_pane (pl);
 	return gr_getch ();
@@ -343,7 +345,7 @@ char p_lines (Vector lines)
 		p_ffree (formatted);
 	}
 	gra_box (box, 0, 0, h-1, w-1);
-	char ret = p_getch (NULL);
+	char ret = p_getch (0);
 
 	gra_free (box);
 
@@ -352,7 +354,7 @@ char p_lines (Vector lines)
 
 /* Status screen */
 Graph sc_status = NULL;
-int p_status (struct Monster *player, enum PanelType type)
+int p_status (MonsID player, enum PanelType type)
 {
 	int h = 20, w = 81;
 	sc_status = gra_cinit (h, w);
@@ -360,6 +362,7 @@ int p_status (struct Monster *player, enum PanelType type)
 	gra_fbox (sc_status, 0, 0, h-1, w-1, ' ');
 	gra_cprint (sc_status, 2, "STATUS SCREEN");
 	gra_mvprint (sc_status, 0, w-5, "(Esc)");
+	/*
 	gra_cprint (sc_status, 4, "Name: %12s  %c  Race:  %s       ", player->name, ACS_VLINE, mons_typename (player));
 	gra_cprint (sc_status, 5, "  HP: %d/%d  %c  ST:    %d/%d",
 				player->HP, player->HP_max, ACS_VLINE, player->ST, player->ST_max);
@@ -372,7 +375,7 @@ int p_status (struct Monster *player, enum PanelType type)
 	gra_mvprint (sc_status, 9, 7, "Wis: %d", player->wis);
 	gra_mvaddch (sc_status, 10, 5, GL_AGI | (COL_BG_MASK & sc_status->def));
 	gra_mvprint (sc_status, 10, 7, "Agi: %d", player->agi);
-	gra_mvprint (sc_status, 12, 5, "Press 'S' to save.");
+	gra_mvprint (sc_status, 12, 5, "Press 'S' to save.");*/
 
 	switch (type)
 	{
@@ -425,9 +428,9 @@ int p_status (struct Monster *player, enum PanelType type)
 
 glyph output_colours;
 /* Skills screen */
-int p_skills (struct Monster *player, enum PanelType type)
+int p_skills (MonsID player, enum PanelType type)
 {
-	Vector pskills = player->skills;
+	Vector pskills = mons_skills (player);
 	struct String *fmt = str_dinit ();
 	str_catf (fmt, "#c#nFFF00000SKILLS#nBBB00000\n%s",
 		(pskills->len == 0) ? 
@@ -449,7 +452,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 		return 0;
 	else
 	{
-		int zloc, yloc, xloc;
+		/*int zloc, yloc, xloc;
 		Skill sk = v_at (pskills, n);
 		switch (sk->type)
 		{
@@ -457,7 +460,7 @@ int p_skills (struct Monster *player, enum PanelType type)
 			break;
 		case SK_CHARGE:
 			gra_hide (sc_status);
-			if (player->status.charging)
+			if (mons_charging (player))
 			{
 				sk_charge (player, 0, 0, sk);
 				return 1;
@@ -474,6 +477,11 @@ int p_skills (struct Monster *player, enum PanelType type)
 		case SK_DODGE:
 			break;
 		case SK_FIREBALL:
+			if (!sk_fireball_can (player))
+			{
+				// TODO report error
+				return 0;
+			}
 			if (player->MP < 5)
 			{
 				p_msgbox ("Not enough MP.");
@@ -530,7 +538,8 @@ int p_skills (struct Monster *player, enum PanelType type)
 			break;
 		case SK_NUM:
 			break;
-		}
+		}*/
+		return 0;
 	}
 	return 0;
 }
@@ -616,13 +625,13 @@ void p_endnotify ()
 		gra_baddch (gra_n, w, 0);
 }
 
-void p_mvchoose (struct Monster *player, int *zloc, int *yloc, int *xloc,
+int p_mvchoose (MonsID player, int *zloc, int *yloc, int *xloc,
 	const char *instruct, const char *confirm,
 	void (*update_output) (enum P_MV, int dlevel, int, int, int, int, int, int))
 {
-	int o_z = player->zloc, o_y = player->yloc, o_x = player->xloc;
+	int dlevel, o_z, o_y, o_x;
+	mons_getloc (player, &dlevel, &o_z, &o_y, &o_x);
 	int c_z = o_z, c_y = o_y, c_x = o_x;
-	int dlevel = player->dlevel;
 	if (update_output)
 		update_output (P_MV_START, dlevel, o_z, o_y, o_x, c_z, c_y, c_x);
 	if (instruct)
@@ -640,7 +649,7 @@ void p_mvchoose (struct Monster *player, int *zloc, int *yloc, int *xloc,
 			*yloc = -1;
 			//gra_cmove (map_graph, orig_y, orig_x);
 			p_endnotify ();
-			return;
+			return 0;
 		}
 		/*if (ymove == -1 && map_graph->csr_y > 0 && map_graph->csr_y - map_graph->cy > 0)
 			gra_cmove (map_graph, map_graph->csr_y-1, map_graph->csr_x);
@@ -667,6 +676,7 @@ void p_mvchoose (struct Monster *player, int *zloc, int *yloc, int *xloc,
 	if (update_output)
 		update_output (P_MV_END, dlevel, o_z, o_y, o_x, c_z, c_y, c_x);
 	p_endnotify ();
+	return 1;
 }
 
 int interp_hex (char in)
@@ -838,7 +848,7 @@ int p_flines (const char *input)
 	return ret;
 }
 
-int player_sees_mons (struct Monster *mons)
+int player_sees_mons (MonsID mons)
 {
 	if (!mons)
 		return 1;
@@ -846,10 +856,10 @@ int player_sees_mons (struct Monster *mons)
 	return 1; // TODO
 }
 
-int player_sees_item (struct Item *item)
+int player_sees_item (ItemID item)
 {
-	struct DLevel *lvl;
-	switch (item->loc.loc)
+	/*struct DLevel *lvl;
+	switch (it_loc (item))
 	{
 		case LOC_NONE:
 			panic ("item in LOC_NONE in player_sees_item");
@@ -857,17 +867,18 @@ int player_sees_item (struct Item *item)
 			lvl = dlv_lvl (item->loc.dlvl.dlevel);
 			return lvl->seen[it_index (&item->loc)] == 2;
 		case LOC_INV:
-			return player_sees_mons (MTHIID(item->loc.inv.monsID));
+			return player_sees_mons (mons_at(item->loc.inv.monsID));
 		case LOC_WIELDED:
-			return player_sees_mons (MTHIID(item->loc.wield.monsID));
+			return player_sees_mons (mons_at(item->loc.wield.monsID));
 		case LOC_FLIGHT:
 			lvl = dlv_lvl (item->loc.fl.dlevel);
 			return lvl->seen[it_index (&item->loc)] == 2;
-	}
+	}*/
+	return 1;
 	return 0;
 }
 
-void eff_mons_fail_throw (struct Monster *mons, struct Item *item)
+void eff_mons_fail_throw (MonsID mons, ItemID item)
 {
 	if (!player_sees_mons (mons))
 		return;
@@ -878,28 +889,28 @@ void eff_mons_fail_throw (struct Monster *mons, struct Item *item)
 	return;
 }
 
-void eff_item_dissipates (struct Item *item)
+void eff_item_dissipates (ItemID item)
 {
 	if (!player_sees_item (item))
 		return;
 	p_msg ("The %s dissipates.", it_typename (item));
 }
 
-void eff_item_absorbed (struct Item *item)
+void eff_item_absorbed (ItemID item)
 {
 	if (!player_sees_item (item))
 		return;
 	p_msg ("The %s is absorbed.", it_typename (item));
 }
 
-void eff_item_hits_wall (struct Item *item)
+void eff_item_hits_wall (ItemID item)
 {
 	if (!player_sees_item (item))
 		return;
 	p_msg ("The %s hits the wall.", it_typename (item));
 }
 
-void eff_proj_misses_mons (struct Item *item, struct Monster *mons)
+void eff_proj_misses_mons (ItemID item, MonsID mons)
 {
 	if (!player_sees_item (item))
 		return;
@@ -911,7 +922,7 @@ void eff_proj_misses_mons (struct Item *item, struct Monster *mons)
 		p_msg ("The %s misses the %s!", it_typename (item), mons_typename (mons));
 }
 
-void eff_proj_hits_mons (struct Item *item, struct Monster *mons, int damage)
+void eff_proj_hits_mons (ItemID item, MonsID mons, int damage)
 {
 	if (!player_sees_item (item))
 		return;
@@ -923,18 +934,16 @@ void eff_proj_hits_mons (struct Item *item, struct Monster *mons, int damage)
 		p_msg ("The %s hits the %s for "COL_RED("%d")"!", it_typename (item), mons_typename (mons), damage);
 }
 
-void eff_mons_starts_hit (struct Monster *mons, int y, int x, Tick arrival)
+void eff_mons_starts_hit (MonsID mons, int y, int x, Tick arrival)
 {
 	if (!player_sees_mons (mons))
 		return;
 	if (mons_isplayer (mons))
 		return;
-	if (!player_sees_mons (mons))
-		return;
 	p_msg ("The %s swings!", mons_typename (mons));
 }
 
-void eff_aux_mons_misses_mons (struct Monster *fr, struct Monster *to, const char *adverb)
+void eff_aux_mons_misses_mons (MonsID fr, MonsID to, const char *adverb)
 {
 	if (!player_sees_mons (fr))
 		return;
@@ -955,22 +964,22 @@ void eff_aux_mons_misses_mons (struct Monster *fr, struct Monster *to, const cha
 		p_msg ("The %s%s misses the %s!", mons_typename (fr), adverb, mons_typename (to));
 }
 
-void eff_mons_tiredly_misses_mons (struct Monster *fr, struct Monster *to)
+void eff_mons_tiredly_misses_mons (MonsID fr, MonsID to)
 {
 	eff_aux_mons_misses_mons (fr, to, " tiredly");
 }
 
-void eff_mons_misses_mons (struct Monster *fr, struct Monster *to)
+void eff_mons_misses_mons (MonsID fr, MonsID to)
 {
 	eff_aux_mons_misses_mons (fr, to, "");
 }
 
-void eff_mons_just_misses_mons (struct Monster *fr, struct Monster *to)
+void eff_mons_just_misses_mons (MonsID fr, MonsID to)
 {
 	eff_aux_mons_misses_mons (fr, to, " just");
 }
 
-void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage)
+void eff_mons_hits_mons (MonsID fr, MonsID to, int damage)
 {
 	if (!player_sees_mons (fr))
 		return;
@@ -991,7 +1000,7 @@ void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage)
 		p_msg ("The %s hits the %s for "COL_RED("%d")"!", mons_typename (fr), mons_typename (to), damage);
 }
 
-void eff_mons_bleeds (struct Monster *mons, int damage)
+void eff_mons_bleeds (MonsID mons, int damage)
 {
 	if (!player_sees_mons (mons))
 		return;
@@ -1001,7 +1010,7 @@ void eff_mons_bleeds (struct Monster *mons, int damage)
 		p_msg ("The %s bleeds!", mons_typename (mons));
 }
 
-void eff_mons_burns (struct Monster *mons, int damage)
+void eff_mons_burns (MonsID mons, int damage)
 {
 	if (!player_sees_mons (mons))
 		return;
@@ -1011,7 +1020,7 @@ void eff_mons_burns (struct Monster *mons, int damage)
 		p_msg ("The %s is burned!", mons_typename (mons));
 }
 
-void eff_mons_kills_mons (struct Monster *fr, struct Monster *to)
+void eff_mons_kills_mons (MonsID fr, MonsID to)
 {
 	if (!player_sees_mons (fr))
 		return;
@@ -1032,53 +1041,53 @@ void eff_mons_kills_mons (struct Monster *fr, struct Monster *to)
 		p_msg ("The %s "COL_RED("kills")" the %s!", mons_typename (fr), mons_typename (to));
 }
 
-void eff_mons_sk_levels_up (struct Monster *mons, Skill sk)
+void eff_mons_sk_levels_up (MonsID mons, Skill sk)
 {
 	if (!mons_isplayer (mons))
 		return;
 	p_msg ("Congratulations! Your %s is now level %d!", sk_name (sk), sk->level);
 }
 
-void eff_mons_levels_up (struct Monster *mons)
+void eff_mons_levels_up (MonsID mons)
 {
 	if (!player_sees_mons (mons))
 		return;
 	if (mons_isplayer (mons))
-		p_msg (COL_BRIGHT("Level up!")" You are now level "COL_YELLOW("%d")".", mons->level);
+		p_msg (COL_BRIGHT("Level up!")" You are now level "COL_YELLOW("%d")".", mons_get_level (mons));
 	else
 		p_msg ("The %d seems more experienced.", mons_typename (mons));
 }
 
 static char msg[IT_DESC_LEN];
-void eff_mons_picks_up_item (struct Monster *mons, struct Item *item)
+void eff_mons_picks_up_item (MonsID mons, ItemID item)
 {
 	if (!player_sees_mons (mons))
 		return;
 	if (!player_sees_item (item))
 		return;
 	int p = mons_isplayer (mons);
-	it_desc (msg, item, p ? mons : NULL);
+	it_desc (msg, item, p ? mons : 0);
 	if (p)
 		p_msg ("%s", msg);
 	else
 		p_msg ("The %s picks up %s.", mons_typename (mons), msg);
 }
 
-void eff_mons_wields_item (struct Monster *mons, struct Item *item)
+void eff_mons_wields_item (MonsID mons, ItemID item)
 {
 	if (!player_sees_mons (mons))
 		return;
 	if (!player_sees_item (item))
 		return;
 	int p = mons_isplayer (mons);
-	it_desc (msg, item, p ? mons : NULL);
+	it_desc (msg, item, p ? mons : 0);
 	if (p)
 		p_msg ("You wield %s.", msg);
 	else
 		p_msg ("The %s wields %s.", mons_typename (mons), msg);
 }
 
-void eff_mons_unwields (struct Monster *mons)
+void eff_mons_unwields (MonsID mons)
 {
 	if (!player_sees_mons (mons))
 		return;
@@ -1088,35 +1097,35 @@ void eff_mons_unwields (struct Monster *mons)
 		p_msg ("The %s is now empty-handed.", mons_typename (mons));
 }
 
-void eff_mons_wears_item (struct Monster *mons, struct Item *item)
+void eff_mons_wears_item (MonsID mons, ItemID item)
 {
 	if (!player_sees_mons (mons))
 		return;
 	if (!player_sees_item (item))
 		return;
 	int p = mons_isplayer (mons);
-	it_desc (msg, item, p ? mons : NULL);
+	it_desc (msg, item, p ? mons : 0);
 	if (p)
 		p_msg ("You wear %s.", msg);
 	else
 		p_msg ("The %s wears %s.", mons_typename (mons), msg);
 }
 
-void eff_mons_takes_off_item (struct Monster *mons, struct Item *item)
+void eff_mons_takes_off_item (MonsID mons, ItemID item)
 {
 	if (!player_sees_mons (mons))
 		return;
 	if (!player_sees_item (item))
 		return;
 	int p = mons_isplayer (mons);
-	it_desc (msg, item, p ? mons : NULL);
+	it_desc (msg, item, p ? mons : 0);
 	if (p)
 		p_msg ("You take off %s.", msg);
 	else
 		p_msg ("The %s takes off %s.", mons_typename (mons), msg);
 }
 
-void eff_mons_angers_mons (struct Monster *fr, struct Monster *to)
+void eff_mons_angers_mons (MonsID fr, MonsID to)
 {
 	if (!player_sees_mons (fr))
 		return;
@@ -1128,7 +1137,7 @@ void eff_mons_angers_mons (struct Monster *fr, struct Monster *to)
 		p_msg ("The %s angers the %s.", mons_typename (fr), mons_typename (to));
 }
 
-void eff_mons_calms (struct Monster *mons)
+void eff_mons_calms (MonsID mons)
 {
 	if (!player_sees_mons (mons))
 		return;

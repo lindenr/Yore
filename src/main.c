@@ -13,7 +13,6 @@
 #include "include/heap.h"
 #include "include/player.h"
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
 
@@ -79,14 +78,12 @@ int main (int argc, char *argv[])
 	gr_init (640, 1200);
 	gr_onresize = p_init;
 	gr_quit = on_quit;
-	map_graph = grx_init (11, 50, 50, GLH, GLW, -2, -1, 0, 0, gr_ph - PANE_PH, gr_pw - GLW, 8);
+	map_graph = grx_init (11, 50, 50, GLH, GLW, -2, -1, 0, 0, gr_ph - PANE_PH, gr_pw - GLW, 5);
 	map_graph->vis = 0;
-
+	
 	p_init ();
-	ev_init ();
 	dlv_init ();
 	rng_init ();
-	th_init ();
 	ityp_init ();
 	pl_init ();
 

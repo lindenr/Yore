@@ -1,9 +1,7 @@
 #ifndef GRAPHICS_H_INCLUDED
 #define GRAPHICS_H_INCLUDED
 
-#include "SDL.h"
 #include "include/all.h"
-#include <stdint.h>
 
 /* Structure of a glyph:
  * A glyph is 32 bits wide. From highest to lowest there is:
@@ -27,7 +25,7 @@ typedef uint32_t gflags;
 #define GLW 8
 #define GLH 12
 
-typedef struct Graph
+struct Graph
 {
 	int t, h, w, A, v;  /* graph dimensions: thickness, height, width, area=h*w, volume=h*w*t */
 	int glh, glw;       /* glyph dimensions */
@@ -40,7 +38,7 @@ typedef struct Graph
 	int csr_b;          /* location of the cursor */
 	int csr_state;      /* off, (blinking,) or steady */
 	glyph def;          /* default output glyph */
-} *Graph;
+};
 
 /* Prefixes:
  * gr_ is the graphics prefix for generic things to do with the screen;
@@ -173,19 +171,6 @@ void gr_resize    (int, int);
 #define ACS_PILLAR   0x07
 #define ACS_CORRIDOR 0xB1
 #define ACS_DIMCORRIDOR 0xB0
-
-#define GL_HEALTH    0xF0000003
-#define GL_STAMINA   0x0F000005
-#define GL_POWER     0x05F00004
-
-#define GL_STR       0xF00000EA
-#define FMT_STR       "F00000EA"
-#define GL_CON       0x0F0000F0
-#define FMT_CON       "0F0000F0"
-#define GL_WIS       0x05F0000F
-#define FMT_WIS       "05F0000F"
-#define GL_AGI       0xF70000AF
-#define FMT_AGI       "F70000AF"
 
 /* line graphics */
 #define ACS_VLINE    0xB3

@@ -2,9 +2,6 @@
 #define PANEL_H_INCLUDED
 
 #include "include/all.h"
-#include "include/vector.h"
-#include "include/graphics.h"
-#include "include/monst.h"
 
 #define NUM_TABS 3
 
@@ -18,18 +15,16 @@
 
 #define P_MSG_LEN 45
 
-struct Monster;
-
 struct P_msg
 {
 	glyph msg[P_MSG_LEN];
 };
 
 void p_init    ();
-void p_pane    (struct Monster *);
+void p_pane    (MonsID);
 void p_amsg    (const char *);
 void p_msg     (const char *, ...);
-char p_ask     (struct Monster *, const char *, const char *);
+char p_ask     (MonsID, const char *, const char *);
 char p_lines   (Vector);
 void p_anotify (const char *);
 void p_notify  (const char *, ...);
@@ -74,15 +69,15 @@ int  p_menuex   (Vector lines, const char *toquit, int max_line_len);
 Vector p_formatted(const char *input, int max_line_len);
 int  p_flines   (const char *);
 void p_ffree    (Vector);
-int  p_status   (struct Monster *, enum PanelType);
-int  p_skills   (struct Monster *, enum PanelType);
-void p_mvchoose (struct Monster *, int *, int *, int *, const char *, const char *,
+int  p_status   (MonsID, enum PanelType);
+int  p_skills   (MonsID, enum PanelType);
+int  p_mvchoose (MonsID, int *, int *, int *, const char *, const char *,
 	void (*) (enum P_MV, int, int, int, int, int, int, int));
 
 void show_path_on_overlay (enum P_MV, int dlevel, int z, int y, int x, int, int, int);
 void show_disc_on_overlay (enum P_MV, int, int, int, int, int, int, int);
 
-char p_getch (struct Monster *player);
+char p_getch (MonsID player);
 
 void p_msgbox (const char *msg);
 
@@ -103,29 +98,29 @@ struct Skill;
 typedef struct Skill *Skill;
 
 /* effects the player might observe */
-void eff_mons_fail_throw (struct Monster *mons, struct Item *item);
-void eff_item_dissipates (struct Item *item);
-void eff_item_absorbed (struct Item *item);
-void eff_item_hits_wall (struct Item *item);
-void eff_proj_misses_mons (struct Item *item, struct Monster *mons);
-void eff_proj_hits_mons (struct Item *item, struct Monster *mons, int damage);
-void eff_mons_starts_hit (struct Monster *mons, int y, int x, Tick arrival);
-void eff_mons_tiredly_misses_mons (struct Monster *fr, struct Monster *to);
-void eff_mons_misses_mons (struct Monster *fr, struct Monster *to);
-void eff_mons_just_misses_mons (struct Monster *fr, struct Monster *to);
-void eff_mons_hits_mons (struct Monster *fr, struct Monster *to, int damage);
-void eff_mons_bleeds (struct Monster *mons, int damage);
-void eff_mons_burns (struct Monster *mons, int damage);
-void eff_mons_kills_mons (struct Monster *fr, struct Monster *to);
-void eff_mons_sk_levels_up (struct Monster *mons, Skill sk);
-void eff_mons_levels_up (struct Monster *mons);
-void eff_mons_picks_up_item (struct Monster *mons, struct Item *item);
-void eff_mons_wields_item (struct Monster *mons, struct Item *item);
-void eff_mons_unwields (struct Monster *mons);
-void eff_mons_wears_item (struct Monster *mons, struct Item *item);
-void eff_mons_takes_off_item (struct Monster *mons, struct Item *item);
-void eff_mons_angers_mons (struct Monster *fr, struct Monster *to);
-void eff_mons_calms (struct Monster *mons);
+void eff_mons_fail_throw (MonsID mons, ItemID item);
+void eff_item_dissipates (ItemID item);
+void eff_item_absorbed (ItemID item);
+void eff_item_hits_wall (ItemID item);
+void eff_proj_misses_mons (ItemID item, MonsID mons);
+void eff_proj_hits_mons (ItemID item, MonsID mons, int damage);
+void eff_mons_starts_hit (MonsID mons, int y, int x, Tick arrival);
+void eff_mons_tiredly_misses_mons (MonsID fr, MonsID to);
+void eff_mons_misses_mons (MonsID fr, MonsID to);
+void eff_mons_just_misses_mons (MonsID fr, MonsID to);
+void eff_mons_hits_mons (MonsID fr, MonsID to, int damage);
+void eff_mons_bleeds (MonsID mons, int damage);
+void eff_mons_burns (MonsID mons, int damage);
+void eff_mons_kills_mons (MonsID fr, MonsID to);
+void eff_mons_sk_levels_up (MonsID mons, Skill sk);
+void eff_mons_levels_up (MonsID mons);
+void eff_mons_picks_up_item (MonsID mons, ItemID item);
+void eff_mons_wields_item (MonsID mons, ItemID item);
+void eff_mons_unwields (MonsID mons);
+void eff_mons_wears_item (MonsID mons, ItemID item);
+void eff_mons_takes_off_item (MonsID mons, ItemID item);
+void eff_mons_angers_mons (MonsID fr, MonsID to);
+void eff_mons_calms (MonsID mons);
 
 #endif /* PANEL_H_INCLUDED */
 

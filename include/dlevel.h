@@ -2,21 +2,15 @@
 #define DLEVEL_H_INCLUDED
 
 #include "include/all.h"
-#include "include/vector.h"
-#include "include/graphics.h"
-
-struct Monster;
-typedef int TID, MID;
 
 struct DLevel
 {
 	int level;
 	int t, h, w, a, v;
-	Vector *things;
-	Vector *items;
-	TID *monsIDs;
-	Vector mons;
-	Vector playerIDs;
+	DTile *tiles;    // state for each tile
+	V_ItemID *itemIDs; // a vector of item IDs for each tile
+	MonsID *monsIDs; // a monster ID for each tile (0 = no monster)
+	V_MonsID playerIDs;
 	int *player_dist;
 	int *escape_dist;
 	int *num_fires;
@@ -44,20 +38,20 @@ void dlv_set  (int);
 
 struct DLevel *dlv_lvl (int);
 Vector  *dlv_things (int);
-Vector  *dlv_items  (int);
+V_ItemID*dlv_itemIDs(int);
 uint8_t *dlv_attr   (int);
 int      dlv_dn     (int);
 int      dlv_up     (int);
 void     dlv_fill_player_dist (struct DLevel *);
-MID      dlv_mvmonsID (int level, int z, int y, int x);
-struct Monster *dlv_mvmons (int level, int z, int y, int x);
+MonsID dlv_mvmons (int level, int z, int y, int x);
 int dlv_index (struct DLevel *, int z, int y, int x);
 
 /* effect a tile burn */
 void dlv_tile_burn (struct DLevel *dlvl, int zloc, int yloc, int xloc);
 
-extern Vector all_dlevels;
-extern Vector all_ids;
+extern V_DLevel all_dlevels;
+extern V_Item all_items;
+extern V_Mons all_mons;
 extern int    cur_level;
 extern struct DLevel *cur_dlevel;
 extern char *player_name;

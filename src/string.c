@@ -3,11 +3,10 @@
 #include "include/string.h"
 #include "include/debug.h"
 
-#include <string.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include <stdlib.h>
+#include <malloc.h>
 
 #define S_DEFAULT_LENGTH 128
 struct String *str_dinit ()

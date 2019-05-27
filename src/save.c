@@ -1,6 +1,6 @@
 /* save.c */
 
-#include "include/thing.h"
+/*#include "include/thing.h"
 #include "include/save.h"
 #include "include/panel.h"
 #include "include/monst.h"
@@ -8,16 +8,17 @@
 #include "include/pack.h"
 #include "include/map.h"
 #include "include/graphics.h"
-#include "include/dlevel.h"
+#include "include/dlevel.h"*/
+#include "include/panel.h"
+  
+//#include <stdlib.h>
+//#include <stdio.h>
+//#include <assert.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-
-FILE *game_save_file;
+//FILE *game_save_file;
 
 /* Saves a native type (eg int, char). Not pointers. Also, multiple evaluations. */
-#define SAVE_NATIVE(n) fwrite(&(n), sizeof(n), 1, game_save_file)
+//#define SAVE_NATIVE(n) fwrite(&(n), sizeof(n), 1, game_save_file)
 /*
 struct ref_it_type
 {
@@ -71,7 +72,7 @@ void save_item (struct Item *item)
  * This function saves in the following order: Time; U; all_things; sq_attr. */
 int save (char *filename)
 {
-	printf("See you soon...\n");
+	//printf("See you soon...\n");
 	/*int i;
 	if (p_ask ("yn", "Save and quit?") == 'y')
 	{
@@ -147,7 +148,7 @@ int save (char *filename)
 				case THING_DGN:
 				{
 					struct map_item_struct *mapit = &th->thing.mis;
-					long type = GETMAPITEMID(mapit->ch);
+					long type = GETMAPITEMonsID(mapit->ch);
 					SAVE_NATIVE (type);
 				}
 				default:
@@ -322,9 +323,9 @@ void restore (char *filename)
 /* 0 is quit, 1 is stay */
 int quit ()
 {
-	if (p_ask (NULL, "yn", "Are you sure you want to quit?") == 'y')
+	if (p_ask (0, "yn", "Are you sure you want to quit?") == 'y')
 	{
-		printf ("Quitting...\n");
+	//	printf ("Quitting...\n");
 		//destroy_save_file (get_filename());
 		return 0;
 	}
@@ -339,12 +340,12 @@ int quit ()
 
 void destroy_save_file (char *filename)
 {
-	char str[1000];
+	/*char str[1000];
 
     FILE *file = fopen (filename, "wb+");
     fwrite ("", 1, 1, file);
     fclose (file);
 
 	snprintf (str, 1000, "%s %s", SH_RM, filename);
-	system (str);
+	system (str);*/
 }

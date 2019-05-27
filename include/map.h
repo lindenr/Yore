@@ -2,21 +2,20 @@
 #define MAP_H_INCLUDED
 
 #include "include/all.h"
-#include "include/graphics.h"
 
 #define M_OPQ  0
 #define M_TSPT 1
 
 #define ACS_WALL 255
 
-//#define map_buffer(y,x) 0//(gra_buffer (map_graph, (y), (x)))
-
-enum
+enum DTile
 {
 	DGN_GROUND = 0,
 	DGN_GRASS1,
 	DGN_GRASS2,
 	DGN_WALL,
+	DGN_WALL1,
+	DGN_WALL2,
 	DGN_ROCK,
 	DGN_AIR,
 	DGN_DOWNSTAIR,
@@ -39,8 +38,6 @@ struct map_item_struct
 
 struct DLevel;
 extern struct map_item_struct map_items[];
-
-//extern Graph map_graph;
 
 int map_passable (struct DLevel *, int z, int y, int x);
 int map_bpassable (struct DLevel *, int);

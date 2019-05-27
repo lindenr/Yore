@@ -3,25 +3,21 @@
 
 #include "include/all.h"
 #include "include/drawing.h"
-#include "include/vector.h"
 
-typedef int TID, MID;
-struct Pack;
-struct Monster;
 enum MONS_BODYPART;
 enum SK_TYPE;
 
 enum ITCAT
 {
-	ITCAT_DOSH = 0,
+	ITCAT_HANDS = 0,
+	ITCAT_DOSH,
 	ITCAT_WEAPON,
 	ITCAT_ARMOUR,
 	ITCAT_FOOD,
 	ITCAT_TOOL,
 	ITCAT_STRANGE,
-	ITCAT_CHARM,
 	ITCAT_JEWEL,
-	ITCAT_HANDS
+	ITCAT_END
 };
 
 enum ITSORT
@@ -41,7 +37,8 @@ enum ITSORT
 	ITSORT_BONE,
 	ITSORT_MONEY,
 	ITSORT_ARCANE,
-	ITSORT_SHARD
+	ITSORT_SHARD,
+	ITSORT_TURRET
 };
 
 extern const int it_displayorder[];
@@ -70,6 +67,7 @@ enum ITEM_TYPE
 	ITYP_ICE_BOLT,
 	ITYP_FORCE_SHARD,
 	ITYP_WIND_SHARD,
+	ITYP_FIRE_TURRET,
 	ITYP_NUM_ITEMS
 	/* corpses here at runtime */
 };
@@ -87,8 +85,6 @@ enum ITEM_TYPE
 #define ITCAT_ALL     0xFFFFFEFF // misses out hands
 
 #define ITEM_NAME_LENGTH 20
-#define it_no(item) ((!(item)) || ((item)->ID == 0))
-#define it_type(item) ((item)->qtype)
 #define it_ityp(item) (&ityps[it_type(item)])
 
 #define ITF_EDGE 0x1
@@ -126,14 +122,14 @@ struct ItemInDlvl
 struct ItemInInv
 {
 	enum ITEM_LOC loc;
-	TID monsID;
+	MonsID monsID;
 	int invnum;
 };
 
 struct ItemWielded
 {
 	enum ITEM_LOC loc;
-	TID monsID;
+	MonsID monsID;
 	int invnum;
 	int arm;
 };
@@ -145,8 +141,12 @@ struct ItemInFlight
 	int zloc, yloc, xloc;
 	struct BresState bres;
 	int speed;
-	TID frID;
+	MonsID frID;
 };
+
+#define switch_loc(item) \
+struct ItemInDlvl dlvl; struct ItemInInv inv; struct ItemWielded wield; struct ItemInFlight fl;\
+switch (it_get_loc ((item), &dlvl, &inv, &wield, &fl))
 
 union ItemLoc
 {
@@ -158,9 +158,9 @@ union ItemLoc
 };
 
 /* an actual physical item */
-struct Item
+struct Item_internal
 {
-	TID ID;
+	ItemID ID;
 	union ItemLoc loc;
 	enum ITEM_TYPE qtype;
 	//uint32_t attr;
@@ -172,7 +172,7 @@ struct Item
 // TODO use!
 /*struct ItemStack
 {
-	TID ID;
+	ItemID ID;
 	union ItemLoc loc;
 	int stacksize;
 	int custom;
@@ -187,9 +187,7 @@ struct Item
 
 extern Ityp ityps[];
 
-#define new_item(typ) ((struct Item) {0, { .loc = LOC_NONE}, (typ), ityps[typ].wt, ityps[typ].attk, ityps[typ].def, -1})
-
-extern struct Item no_item;
+#define new_item(typ) ((struct Item_internal) {0, { .loc = LOC_NONE}, (typ), ityps[typ].wt, ityps[typ].attk, ityps[typ].def, -1})
 
 void ityp_init      ();
 
@@ -201,84 +199,92 @@ extern char *item_appearance[];
 /* Item helper functions with no side-effects: */
 
 /* are two items equal? */
-int  items_equal (struct Item *, struct Item *);
+int  items_equal (ItemID , ItemID );
 
 /* get near and far descriptions */
-void it_ndesc (char *out, int length, const struct Item *item, const struct Monster *player);
-void it_desc (char *out, const struct Item *item, const struct Monster *player); /* using default max output length */
+void it_ndesc (char *out, int length, ItemID item, MonsID player);
+void it_desc (char *out, ItemID item, MonsID player); /* using default max output length */
 
 /* get item properties */
-const char *it_typename (const struct Item *item);
-int it_attk (const struct Item *item);
-int it_def (const struct Item *item);
-glyph it_gl (const struct Item *item);
-int it_stackable (const struct Item *item);
-int it_fragile (const struct Item *item); /* will break when thrown */
-int it_persistent (const struct Item *item); /* can exist stably */
-int it_projdamage (const struct Item *item);
-int it_weight (const struct Item *item);
-int it_base_weight (const struct Item *item);
-int it_worn_offset (const struct Item *item);
-int it_worn (const struct Item *item);
-enum DMG_TYPE it_dtyp (const struct Item *item);
+int it_is (ItemID item);
+struct Item_internal *it_internal (ItemID item);
+
+enum ITEM_TYPE it_type (ItemID item);
+const char *it_typename (ItemID item);
+int it_attk (ItemID item);
+int it_def (ItemID item);
+glyph it_gl (ItemID item);
+int it_stackable (ItemID item);
+int it_fragile (ItemID item); /* will break when thrown */
+int it_persistent (ItemID item); /* can exist stably */
+int it_projdamage (ItemID item);
+int it_weight (ItemID item);
+int it_base_weight (ItemID item);
+int it_worn_offset (ItemID item);
+int it_worn (ItemID item);
+enum DMG_TYPE it_dtyp (ItemID item);
 
 /* get mergibility of two item stacks */
-//int it_can_merge (const struct Item *it1, const struct Item *it2);
+//int it_can_merge (const ItemID it1, const ItemID it2);
+
+int it_flag (ItemID, int);
+
+enum ITEM_TYPE it_type (ItemID);
 
 /* can wear in a particular place */
-int it_canwear (const struct Item *item, enum MONS_BODYPART part);
+int it_canwear (ItemID item, enum MONS_BODYPART part);
 
 /* get item ITSORT */
-enum ITSORT it_sort (const struct Item *item);
+enum ITSORT it_sort (ItemID item);
 
 /* get skill used by item */
-enum SK_TYPE it_skill (const struct Item *item);
+enum SK_TYPE it_skill (ItemID item);
 
 /* get associated item category */
 enum ITCAT it_category (enum ITSORT type);
 
 /* get item location */
-MID it_wieldedID (const struct Item *item);
-MID it_invID (const struct Item *item);
-int it_dlvl (const struct Item *item);
-int it_flight (const struct Item *item);
-
-/* get index of item location in dlevel (assume possible) */
-int it_index (const union ItemLoc *loc);
+enum ITEM_LOC it_loc (ItemID item);
+enum ITEM_LOC it_get_loc (ItemID item,
+	struct ItemInDlvl *, struct ItemInInv *, struct ItemWielded *, struct ItemInFlight *);
+int it_dlvl (ItemID item, struct ItemInDlvl *);
+int it_inv (ItemID item, struct ItemInInv *);
+int it_wield (ItemID item, struct ItemWielded *);
+int it_flight (ItemID item, struct ItemInFlight *);
 
 /* Side-effects: */
 
 /* freeze an item; return whether item still exists */
-int it_freeze (struct Item *item);
+int it_freeze (ItemID item);
 
 /* burn an item; return whether item still exists */
-int it_burn (struct Item *item);
+int it_burn (ItemID item);
 
 /* merge second stack to first stack if possible */
-//int it_merge (struct Item *it1, struct Item *it2);
-
-/* invalidate an item, but do not free it */
-void it_rem (struct Item *item);
+//int it_merge (ItemID it1, ItemID it2);
 
 /* break an item */
-void it_break (struct Item *item);
+void it_break (ItemID item);
 
 /* change item worn property */
-void it_wear (struct Item *item, size_t offset);
-void it_unwear (struct Item *item);
+void it_wear (ItemID item, size_t offset);
+void it_unwear (ItemID item);
 
 /* set item attr value */
-void it_set_attk (struct Item *item, int attk);
-void it_set_def (struct Item *item, int def);
+void it_set_attk (ItemID item, int attk);
+void it_set_def (ItemID item, int def);
 
 /* put an item on the floor */
-void it_fl_to_dlv (struct Item *item);
+void it_fl_to_dlv (ItemID item);
 
 /* fill the location for a flying object starting from a monster */
-void it_monsfloc (struct Monster *mons, union ItemLoc *loc, int speed);
+union ItemLoc it_monsfloc (MonsID mons, int speed);
 
 /* return loc for monster in dgn */
-union ItemLoc it_monsdloc (struct Monster *mons);
+union ItemLoc it_monsdloc (MonsID mons);
+
+/* shoot an item */
+void it_shoot (ItemID item, int zloc, int yloc, int xloc);
 
 #endif /* ITEM_H_INCLUDED */
 

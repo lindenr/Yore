@@ -4,6 +4,8 @@
 #include "include/vector.h"
 #include "include/drawing.h"
 
+#include "SDL.h"
+
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -35,7 +37,7 @@ static SDL_Renderer *sdlRenderer;
 static SDL_Texture *sdlTexture;
 
 /* all the active graphs */
-static Vector graphs = NULL;
+static V_Graph graphs = NULL;
 
 /* for text copying */
 #define BUFFER_LEN 1024
@@ -382,15 +384,14 @@ void blit_glyph_2d (glyph gl, int py, int px, int glh, int glw)
 	}
 }
 
-static int total_reftime = 0, numrefs = -10;
+//static int total_reftime = 0, numrefs = -10;
 void gr_refresh ()
 {
 	int i;
-
-	uint32_t asdf = gr_getms();
+	//uint32_t asdf = gr_getms();
 	for (i = 0; i < graphs->len; ++ i)
 	{
-		Graph gra = * (Graph *) v_at (graphs, i);
+		Graph gra = graphs->data[i];
 		if (!gra->vis)
 			continue;
 
@@ -417,14 +418,16 @@ void gr_refresh ()
 			for (y = 0; y < gra->h; ++ y, grx_c += dy)
 				for (x = 0; x < gra->w; ++ x, grx_c += dx)
 		{
+			int z = grx_c/gra->A, y = (grx_c%gra->A)/gra->w, x = grx_c%gra->w;
+			if (z < 0 || z >= gra->t || y < 0 || y >= gra->h || x < 0 || x >= gra->w)
+				continue;
 			glyph gl = gra->data[grx_c];
 			if (gra->csr_state && grx_c == gra->csr_b)
 				gl = 0x000FFF00 | (gl&0xFF);
 			if (!gl)
 				continue;
-			int z = grx_c/gra->A, y = (grx_c%gra->A)/gra->w, x = grx_c%gra->w;
-			//if (z < gra->t-1 && gra->data[grx_c + gra->A]) // could get rid of this?
-			//	continue;
+			if (z < gra->t-2 && z < gra->cz+gra->ct-1 && gra->data[grx_c + gra->A]) // could get rid of this?
+				continue;
 			int ipy = y*gra->glh - gra->cpy + (z-gra->cz)*gra->gldy;
 			int ipx = x*gra->glw - gra->cpx + (z-gra->cz)*gra->gldx;
 			if (ipy < -hmax || ipy >= gra->vph ||
@@ -481,7 +484,7 @@ void gr_refresh ()
 #ifdef DEBUG_REFRESH_TIME
 	fprintf(stderr, "| total: %ums\n", gr_getms() - asdf);
 #endif
-	fprintf(stderr, "| total: %ums\n", gr_getms() - asdf);
+	//fprintf(stderr, "| total: %ums\n", gr_getms() - asdf);
 	//if ((numrefs++) >= 0)
 	//	total_reftime += gr_getms() - asdf;
 	memclr (gr_pixels, gr_pitch * gr_ph);
@@ -716,7 +719,7 @@ void grx_getstr (Graph gra, int zloc, int yloc, int xloc, char *out, int len)
 	gra->csr_state = 0;
 	out[i] = 0;
 }
-#include <math.h>
+//#include <math.h>
 void gr_resize (int ph, int pw)
 {
 	gr_ph = ph;
@@ -777,8 +780,8 @@ void gr_cleanup ()
 	SDL_DestroyRenderer (sdlRenderer);
 	SDL_DestroyWindow (sdlWindow);
 	SDL_Quit ();
-	fprintf (stderr, "average refresh time: %fms, %dms over %d frames\n",
-		((float)total_reftime)/numrefs, total_reftime, numrefs);
+	//fprintf (stderr, "average refresh time: %fms, %dms over %d frames\n",
+	//	((float)total_reftime)/numrefs, total_reftime, numrefs);
 }
 
 void gr_init (int ph, int pw)
@@ -867,9 +870,10 @@ void grx_free (Graph gra)
 	int i;
 	for (i = 0; i < graphs->len; ++ i)
 	{
-		if (gra == *(Graph*)v_at(graphs, i))
+		if (gra == graphs->data[i])
 		{
 			free (gra->data);
+			free (gra->flags);
 			free (gra);
 			v_rem (graphs, i);
 			break;

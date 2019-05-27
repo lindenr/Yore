@@ -4,7 +4,6 @@
 #include "include/all.h"
 #include <time.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #define rng_init()  srand(time(0))
 #define rnd(a,b)    dice_roll((a), (b))

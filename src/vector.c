@@ -7,15 +7,16 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include <stdlib.h>
+#include <malloc.h>
+
 
 #define V_DEFAULT_LENGTH 2
-Vector v_dinit (size_t siz)
+void *v_dinit (size_t siz)
 {
 	return v_init (siz, V_DEFAULT_LENGTH);
 }
 
-Vector v_init (size_t siz, size_t mlen)
+void *v_init (size_t siz, size_t mlen)
 {
 	Vector vec = malloc (sizeof(*vec));
 	vec->data = malloc (siz * mlen);
@@ -27,7 +28,7 @@ Vector v_init (size_t siz, size_t mlen)
 
 #define V_NEXT_LENGTH(cur) (1 + (cur)*2)
 #define DATA(i)            (vec->data + ((i)*(vec->siz)))
-void *v_push (Vector vec, const void *data)
+void *v_push_ (Vector vec, const void *data)
 {
 	if (vec->data == NULL)
 		panic("NULL vector");
@@ -77,7 +78,7 @@ void *v_pstrf (Vector vec, char *data, ...)
 	return v_at (vec, vec->len - 1);
 }
 
-void v_rem (Vector vec, size_t rem)
+void v_rem_ (Vector vec, size_t rem)
 {
 	int i;
 	if (rem >= vec->len) return;
@@ -87,7 +88,7 @@ void v_rem (Vector vec, size_t rem)
 	-- vec->len;
 }
 
-void v_rptr (Vector vec, void *data)
+void v_rptr_ (Vector vec, void *data)
 {
 	uintptr_t p = (uintptr_t) data;
 	if (p < (uintptr_t) vec->data || p >= (uintptr_t) vec->data + vec->len * vec->siz)
@@ -97,7 +98,7 @@ void v_rptr (Vector vec, void *data)
 	v_rem (vec, p);
 }
 
-void v_free (Vector vec)
+void v_free_ (Vector vec)
 {
 	free (vec->data);
 	free (vec);

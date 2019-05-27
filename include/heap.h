@@ -2,7 +2,6 @@
 #define HEAP_H_INCLUDED
 
 #include "include/all.h"
-#include <stddef.h>
 
 /* predicate type; should be strict and total but not necessarily trichotomous */
 typedef int (*h_pred) (const void *, const void *);
@@ -13,7 +12,7 @@ struct Heap
 	size_t siz; /* elements of this size */
 	size_t len; /* this many of them */
 	size_t mlen; /* with space for this many in total */
-	h_pred cmp; /* ordered by this predicate */
+	h_pred lt; /* ordered by this predicate */
 };
 
 /* default init */

@@ -2,7 +2,6 @@
 #define SKILL_H_INCLUDED
 
 #include "include/all.h"
-#include "include/thing.h"
 
 #define SK_NAME_LEN 30
 #define SK_DESC_LEN 400
@@ -51,17 +50,15 @@ const char *sk_name (Skill);
 const char *sk_desc (Skill);
 glyph       sk_gl   (Skill);
 int  sk_isact  (Skill);
-void sk_exp    (struct Monster *, Skill, int);
-int  sk_lvl    (struct Monster *, enum SK_TYPE);
+void sk_exp    (MonsID, Skill, int);
+int  sk_lvl    (MonsID, enum SK_TYPE);
 
-enum SK_TYPE sk_item_use (const struct Item *);
-
-void sk_charge (struct Monster *, int, int, Skill);
-void sk_fireball (struct Monster *mons, int yloc, int xloc, Skill skill);
-void sk_water_bolt (struct Monster *mons, int yloc, int xloc, Skill skill);
-void sk_frost (struct Monster *mons, int yloc, int xloc, Skill skill);
-void sk_scry (struct Monster *mons, Skill skill);
-void sk_flash (struct Monster *mons, Skill skill);
+void sk_charge (MonsID mon, int, int, Skill);
+void sk_fireball (MonsID mons, int yloc, int xloc, Skill skill);
+void sk_water_bolt (MonsID mons, int yloc, int xloc, Skill skill);
+void sk_frost (MonsID mons, int yloc, int xloc, Skill skill);
+void sk_scry (MonsID mons, Skill skill);
+void sk_flash (MonsID mons, Skill skill);
 
 #endif /* SKILL_H_INCLUDED */
 

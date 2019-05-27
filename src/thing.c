@@ -11,294 +11,185 @@
 #include "include/event.h"
 #include "include/rand.h"
 #include "include/debug.h"
+#include "include/vector.h"
 
-TID curID = 0;
-TID getID ()
-{
-	return (++curID);
-}
+#include <string.h>
 
-MID curMID = 0;
-MID getMID ()
-{
-	return (++curMID);
-}
-
-void thing_watchvec (Vector vec)
+void rem_ItemID (V_ItemID v, ItemID ID)
 {
 	int i;
-	for (i = 0; i < vec->len; ++ i)
+	for (i = 0; i < v->len; ++ i)
 	{
-		struct Thing *th = v_at (vec, i);
-		THIID (th->ID) = th;
+		if (ID == v->data[i])
+		{
+			v_rem (v, i);
+			return;
+		}
 	}
 }
 
-void rem_id (TID id)
+void item_rem (ItemID item)
 {
-	struct Thing *th = THIID(id);
-	struct DLevel *lvl = dlv_lvl (th->dlevel);
-	int z = th->zloc, y = th->yloc, x = th->xloc;
-	int n = dlv_index (lvl, z, y, x);
-	v_rptr (lvl->things[n], th);
-	thing_watchvec (lvl->things[n]);
-	THIID(id) = NULL;
-	draw_map_buf (lvl, n);
-}
-
-void update_item_pointers (Vector vec)
-{
-	int i;
-	for (i = 0; i < vec->len; ++ i)
-	{
-		struct Item *item = v_at (vec, i);
-		ITEMID (item->ID) = item;
-	}
-}
-
-void rem_itemid (TID ID)
-{
-	struct Item *item = it_at(ID);
-	if (!item)
-		return;
 	int n;
-	Vector items;
-	struct DLevel *lvl = NULL;
-	struct Monster *mons;
-	switch (item->loc.loc)
+	V_ItemID items;
+	struct DLevel *lvl;
+	switch_loc (item)
 	{
 	case LOC_NONE:
 		return;
 	case LOC_DLVL:
-		lvl = dlv_lvl(item->loc.dlvl.dlevel);
-		n = dlv_index (lvl, item->loc.dlvl.zloc, item->loc.dlvl.yloc, item->loc.dlvl.xloc);
-		items = lvl->items[n];
-		goto end_remove;
+		lvl = dlv_lvl (dlvl.dlevel);
+		n = dlv_index (lvl, dlvl.zloc, dlvl.yloc, dlvl.xloc);
+		items = lvl->itemIDs[n];
+		rem_ItemID (items, item);
+		draw_map_buf (lvl, n);
+		return;
 	case LOC_FLIGHT:
-		lvl = dlv_lvl(item->loc.fl.dlevel);
-		n = dlv_index (lvl, item->loc.fl.zloc, item->loc.fl.yloc, item->loc.fl.xloc);
-		items = lvl->items[n];
-		goto end_remove;
-	end_remove:
-		ITEMID(ID) = NULL;
-		v_rptr (items, item);
-		update_item_pointers (items);
+		lvl = dlv_lvl (fl.dlevel);
+		n = dlv_index (lvl, fl.zloc, fl.yloc, fl.xloc);
+		items = lvl->itemIDs[n];
+		rem_ItemID (items, item);
 		draw_map_buf (lvl, n);
 		return;
 	case LOC_INV:
-		ITEMID(item->ID) = NULL;
-		pack_rem (MTHIID(item->loc.inv.monsID)->pack, item->loc.inv.invnum);
+		pack_rem (mons_pack (inv.monsID), inv.invnum);
 		return;
 	case LOC_WIELDED:
-		ITEMID(item->ID) = NULL;
-		mons = MTHIID(item->loc.wield.monsID);
-		mons->wearing.weaps[item->loc.wield.arm] = NULL;
-		pack_rem (mons->pack, item->loc.wield.invnum);
+		mons_setweap (wield.monsID, wield.arm, 0);
+		pack_rem (mons_pack (wield.monsID), wield.invnum);
 		return;
 	}
-	panic("End of rem_itemid reached");
+	panic("End of item_rem reached");
 }
 
-void item_free (struct Item *item)
+void it_destroy (ItemID item)
 {
-	rem_itemid (item->ID);
+	item_rem (item);
+	it_internal (item)->ID = 0;
 	//if (item->name)
 	//	free(item->name);
 }
 
-void item_makeID (struct Item *item)
+// locate an extant item
+void item_locate (ItemID item, union ItemLoc loc)
 {
-	if (!item->ID)
-	{
-		item->ID = getID();
-		v_push (all_ids, &item);
-	}
-	else
-		ITEMID(item->ID) = item;
-}
-
-struct Item *instantiate_item (union ItemLoc loc, struct Item *from)
-{
-	struct Item it;
-	struct Item *ret;
 	int n;
-	Vector items;
-	struct DLevel *lvl = NULL;
-	struct Monster *th;
-	switch (loc.loc)
+	MonsID mons;
+	struct DLevel *lvl;
+	struct Item_internal *ii = it_internal (item);
+	memcpy (&ii->loc, &loc, sizeof(loc));
+	switch_loc (item)
 	{
 	case LOC_NONE:
 		break;
 	case LOC_DLVL:
-		lvl = dlv_lvl(loc.dlvl.dlevel);
-		n = dlv_index (lvl, loc.dlvl.zloc, loc.dlvl.yloc, loc.dlvl.xloc);
-		items = lvl->items[n];
-		goto end_inst;
-	case LOC_FLIGHT:
-		lvl = dlv_lvl(loc.fl.dlevel);
-		n = dlv_index (lvl, loc.fl.zloc, loc.fl.yloc, loc.fl.xloc);
-		items = lvl->items[n];
-		goto end_inst;
-	end_inst:
-		memcpy (&it, from, sizeof(struct Item));
-		memcpy (&it.loc, &loc, sizeof(loc));
-		ret = v_push (items, &it);
-		item_makeID (ret);
-		update_item_pointers (items);
+		lvl = dlv_lvl(dlvl.dlevel);
+		n = dlv_index (lvl, dlvl.zloc, dlvl.yloc, dlvl.xloc);
+		v_push (lvl->itemIDs[n], &item);
 		draw_map_buf (lvl, n);
-		return ret;
-	case LOC_INV:
-		memcpy (&it, from, sizeof(struct Item));
-		memcpy (&it.loc, &loc, sizeof(loc));
-		th = MTHIID (loc.inv.monsID);
-		if (!pack_add (&th->pack, &it, loc.inv.invnum))
-			panic("item already in inventory location in instantiate_item");
-		ret = &th->pack->items[loc.inv.invnum];
-		item_makeID (ret);
-		return ret;
-	case LOC_WIELDED:
-		memcpy (&it, from, sizeof(struct Item));
-		memcpy (&it.loc, &loc, sizeof(loc));
-		th = MTHIID (loc.wield.monsID);
-		if (!pack_add (&th->pack, &it, loc.wield.invnum))
-			panic("item already in inventory location in instantiate_item");
-		ret = &th->pack->items[loc.wield.invnum];
-		item_makeID (ret);
-		if (th->wearing.weaps[loc.wield.arm])
-			panic("already wielding an item in instantiate_item");
-		th->wearing.weaps[loc.wield.arm] = ret;
-		return ret;
-	}
-	panic("end of instantiate_item reached");
-	return 0;
-}
-
-struct Item *item_put (struct Item *item, union ItemLoc loc)
-{
-	struct Item temp;
-	memcpy (&temp, item, sizeof(temp));
-	rem_itemid (item->ID);
-	return instantiate_item (loc, &temp);
-}
-
-void thing_free (struct Thing *thing)
-{
-	if (!thing)
 		return;
-
-	switch (thing->type)
-	{
-		case THING_DGN:
-		case THING_NONE:
-			break;
+	case LOC_FLIGHT:
+		lvl = dlv_lvl(fl.dlevel);
+		n = dlv_index (lvl, fl.zloc, fl.yloc, fl.xloc);
+		v_push (lvl->itemIDs[n], &item);
+		draw_map_buf (lvl, n);
+		return;
+	case LOC_INV:
+		mons = inv.monsID;
+		if (!pack_add (mons_pack (mons), item, inv.invnum))
+			panic("item already in inventory location in item_locate");
+		return;
+	case LOC_WIELDED:
+		mons = wield.monsID;
+		if (!pack_add (mons_pack (mons), item, wield.invnum))
+			panic("item already in inventory location in item_locate");
+		if (mons_getweap (mons, wield.arm))
+			panic("already wielding an item in item_locate");
+		mons_setweap (mons, wield.arm, item);
+		return;
 	}
+	panic("end of item_locate reached");
 }
 
-int TSIZ[] = {
-	0,
-	sizeof (struct map_item_struct)
-};
-
-struct Thing *new_thing (enum THING_TYPE type, struct DLevel *lvl,
-	int z, int y, int x, void *actual_thing)
+// allocate memory for new item
+ItemID item_create (struct Item_internal *ii, union ItemLoc loc)
 {
-	int n = dlv_index (lvl, z, y, x);
-	struct Thing t = {type, lvl->level, getID(), z, y, x, {}};
-
-	if (t.ID != all_ids->len)
-		panic ("IDs error");
-
-	memcpy (&t.thing, actual_thing, TSIZ[type]);
-	struct Thing *ret;
-	ret = v_push (lvl->things[n], &t);
-	v_push (all_ids, &ret);
-	thing_watchvec (lvl->things[n]);
-	lvl->attr[n] = ret->thing.mis.attr & 1;
-	draw_map_buf (lvl, n);
-
-	return ret;
+	ii = v_push (all_items, ii);
+	ItemID item = ii->ID = all_items->len - 1;
+	item_locate (item, loc);
+	return item;
 }
 
-void rem_mid (MID id)
+// change location of an extant item
+void item_put (ItemID item, union ItemLoc loc)
 {
-	struct Monster *th = MTHIID(id);
-	struct DLevel *lvl = dlv_lvl (th->dlevel);
-	int n = dlv_index (lvl, th->zloc, th->yloc, th->xloc);
+	item_rem (item);
+	item_locate (item, loc);
+}
+
+void set_tile (struct DLevel *lvl, DTile type, int w)
+{
+	lvl->tiles[w] = type;
+}
+
+void mons_destroy (MonsID mons)
+{
+	struct DLevel *lvl = mons_dlv (mons);
+	int n = mons_index (mons);
 	lvl->monsIDs[n] = 0;
-	memset (th, 0, sizeof(struct Monster));
+	mons_internal (mons)->ID = 0;
 	draw_map_buf (lvl, n);
 	return;
 }
 
-struct Item *it_at (TID id)
+void mons_move (MonsID mons, int new_level, int new_z, int new_y, int new_x)
 {
-	if (id <= 0)
-		return NULL;
-	struct Item *it = *(struct Item **) v_at (all_ids, id);
-	if (it && it->ID == id)
-		return it;
-	return NULL;
-}
-
-struct Monster *MTHIID (MID id)
-{
-	if (id <= 0)
-		return NULL;
-	struct Monster *ret = v_at (cur_dlevel->mons, id);
-	if (!ret->ID)
-		return NULL;
-	return ret;
-}
-
-void mons_move (struct Monster *thing, int new_level, int new_z, int new_y, int new_x)
-{
-	if (thing->zloc == new_z && thing->yloc == new_y &&
-		thing->xloc == new_x && thing->dlevel == new_level)
-		return;
-
-	struct DLevel *olv = dlv_lvl (thing->dlevel),
+	struct DLevel *olv = mons_dlv (mons),
 	              *nlv = dlv_lvl (new_level);
 
-	int old = dlv_index (olv, thing->zloc, thing->yloc, thing->xloc),
+	int old = mons_index (mons),
 	    new = dlv_index (nlv, new_z, new_y, new_x);
+
+	if (olv == nlv && old == new)
+		return;
 
 	if (nlv->monsIDs[new]) panic ("monster already there");
 	nlv->monsIDs[new] = olv->monsIDs[old];
 	olv->monsIDs[old] = 0;
 
-	thing->zloc = new_z;
-	thing->yloc = new_y;
-	thing->xloc = new_x;
-	thing->dlevel = new_level;
+	struct Monster_internal *mi = mons_internal (mons);
+	mi->zloc = new_z;
+	mi->yloc = new_y;
+	mi->xloc = new_x;
+	mi->dlevel = new_level;
 	draw_map_buf (olv, old);
 	draw_map_buf (nlv, new);
-	if (mons_isplayer (thing))
+	if (mons_isplayer (mons))
 	{
 		/* re-eval paths to player */
 		dlv_fill_player_dist (cur_dlevel);
 		/* check what the player can see now */
-		update_knowledge (thing);
+		update_knowledge (mons);
 	}
 }
 
-struct Monster *new_mons (struct DLevel *lvl, int z, int y, int x, void *actual_thing)
+MonsID mons_create (struct DLevel *lvl, int z, int y, int x, struct Monster_internal *mi)
 {
 	int n = dlv_index (lvl, z, y, x);
 	if (n == -1)
 		panic ("placement out of bounds");
-	struct Monster t;
-	memcpy (&t, actual_thing, sizeof(struct Monster));
-	t.ID = getMID();
-	t.dlevel = lvl->level;
-	t.zloc = z; t.yloc = y; t.xloc = x;
-	mons_stats_changed (&t);
-	if (lvl->monsIDs[n]) panic ("monster already there!");
-	lvl->monsIDs[n] = t.ID;
-	struct Monster *ret = v_push (lvl->mons, &t);
+	mi = v_push (all_mons, mi);
+	MonsID mons = mi->ID = all_mons->len - 1;
+	mi->dlevel = lvl->level;
+	mi->zloc = z; mi->yloc = y; mi->xloc = x;
+	mons_stats_changed (mons);
+	if (lvl->monsIDs[n])
+		panic ("monster already there!");
+	lvl->monsIDs[n] = mons;
 	draw_map_buf (lvl, n);
-	ev_queue (1000 + rn(1000), (union Event) { .mpoll = {EV_MPOLL, ret->ID}});
-	ev_queue (1, (union Event) { .mregen = {EV_MREGEN, ret->ID}});
-	return ret;
+	ev_queue (1000 + rn(1000), mpoll, mons);
+	ev_queue (1, mregen, mons);
+	return mons;
 }
 
 /* these are in binary order, clockwise from top */
@@ -391,10 +282,10 @@ void walls_test ()
 
 int has_wall (struct DLevel *lvl, int w)
 {
-	int i;
-	for (i = 0; i < lvl->things[w]->len; ++ i)
-		if (((struct Thing *)v_at(lvl->things[w], i))->thing.mis.gl == ACS_WALL)
-			return 1;
+	//int i;
+	//for (i = 0; i < lvl->things[w]->len; ++ i)
+	//	if (((struct Thing *)v_at(lvl->things[w], i))->thing.mis.gl == ACS_WALL)
+	//		return 1;
 	return 0;
 }
 
@@ -452,59 +343,41 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 		return lvl->remembered[w];
 	
 	/* draw monster */
-	struct Monster *mons = MTHIID(lvl->monsIDs[w]);
+	MonsID mons = lvl->monsIDs[w];
+	// how draw for 3d?
 	if (mons && looking)
 	{
-		map_flags = 1 |
-			(1<<12) | ((1+mons->status.moving.ydir)*3 + (1+mons->status.moving.xdir))<<8 |
-			(1<<17) | ((1+mons->status.attacking.ydir)*3 + (1+mons->status.attacking.xdir))<<13;
-		return mons->gl;
+		map_flags = 1 ;//|
+		//	(1<<12) | ((1+mons->status.moving.ydir)*3 + (1+mons->status.moving.xdir))<<8 |
+		//	(1<<17) | ((1+mons->status.attacking.ydir)*3 + (1+mons->status.attacking.xdir))<<13;
+		return mons_gl (mons);
 	}
 
 	/* draw topmost item in pile */
 	int i;
-	for (i = 0; i < lvl->items[w]->len; ++ i)
+	for (i = 0; i < lvl->itemIDs[w]->len; ++ i)
 	{
-		struct Item *item = v_at (lvl->items[w], lvl->items[w]->len-1-i);
-		if (item->loc.loc == LOC_DLVL)
+		ItemID item = lvl->itemIDs[w]->data[lvl->itemIDs[w]->len-1-i];
+		if (it_loc (item) == LOC_DLVL)
 			return it_gl (item);
-		else if (item->loc.loc == LOC_FLIGHT && looking)
+		else if (it_loc (item) == LOC_FLIGHT && looking)
 			return it_gl (item) | COL_BG (5,5,5);
 	}
 
-	/* draw topmost dungeon feature */
-	i = lvl->things[w]->len - 1;
-	if (i >= 0)
-	{
-		struct Thing *th = v_at (lvl->things[w], i);
-		switch (th->type)
-		{
-		case THING_DGN: ;
-			struct map_item_struct *m = &th->thing.mis;
-			//int dist = lvl->escape_dist[w] + (5*lvl->player_dist[w])/3;
-			//if (looking && m->gl == ACS_BIGDOT && dist >= 0)
-			//	return '0' + dist%10;
-			if (looking || !(m->gl == ACS_BIGDOT || m->gl == ACS_CORRIDOR))
-				return m->gl
-					//| ((dist==-1)?0:COL_BG (
-					//	dist < 30 ? 15 - dist/2 : 0, dist<14 ? 14-dist : 0, dist<20?8:(50-dist)/4))
-					;
-			else if (m->gl == ACS_BIGDOT)
-				return ACS_DOT;
-			else
-				return ACS_DIMCORRIDOR;
-		case THING_NONE:
-			printf ("%d %d %d\n", w, i, th->type);
-			panic ("THING_NONE type exists in glyph_to_draw");
-			break;
-		}
-	}
+	DTile t = lvl->tiles[w];
+	if (t >= DGN_WALL && t <= DGN_WALL2)
+		return '#';
+	else if (t == DGN_AIR)
+		return 0;
+	else if (t == DGN_GROUND)
+		return ACS_BIGDOT;
+
 	return 0;
 }
 
 /* Draws player knowledge on to lvl arrays,
  * then renders all that on screen */
-void update_knowledge (struct Monster *player)
+void update_knowledge (MonsID player)
 {
 	/*if (!player)
 	{
@@ -517,7 +390,7 @@ void update_knowledge (struct Monster *player)
 	//int Y, X, w;
 	//int Yloc = player->yloc, Xloc = player->xloc;
 	int w;
-	struct DLevel *lvl = dlv_lvl (player->dlevel);
+	struct DLevel *lvl = mons_dlv (player);
 	/* Anything you could see before you can't necessarily now */
 	for (w = 0; w < lvl->v; ++ w)
 		if (lvl->seen[w] == 2)
@@ -549,12 +422,8 @@ void update_knowledge (struct Monster *player)
 	draw_map (lvl, player);
 }
 
-void th_init ()
-{
-}
-
 extern Graph map_graph;
-void draw_map (struct DLevel *lvl, struct Monster *player)
+void draw_map (struct DLevel *lvl, MonsID player)
 {
 	grx_clear (map_graph);
 	int w;
@@ -566,24 +435,24 @@ void draw_map (struct DLevel *lvl, struct Monster *player)
 	int i;
 	for (i = 0; i < lvl->a; ++ i)
 		array[i] = 0;
-	queue[0] = dlv_index (lvl, player->zloc, player->yloc, player->xloc);
+	queue[0] = mons_index (player);
 	array[queue[0]] = 1;
 	int cur, head;
 	for (cur = 0, head = 1; cur < head; ++ cur)
 	{
 		w = queue[cur];
 		draw_map_buf (lvl, w);
-		while (((struct Thing *) v_at (lvl->things[w], 0))->thing.mis.gl == ' ' && w/lvl->a < lvl->t-1)
+		while (lvl->tiles[w] == DGN_AIR && w/lvl->a < lvl->t-1)
 		{
 			w += lvl->a;
 			draw_map_buf (lvl, w);
 		}
-		if (((struct Thing *) v_at (lvl->things[w], 0))->thing.mis.gl == 0)
+		if (lvl->tiles[w] == DGN_AIR)
 			continue;
 		int y = (w%lvl->a)/lvl->w, x = w%lvl->w;
 		int W = w%lvl->a;
 		#define ASDF(X) {queue[head++] = (X); array[(X)%lvl->a] = 1;}
-		if (((struct Thing *) v_at (lvl->things[w], 0))->thing.mis.gl == ' ')
+		if (lvl->tiles[w] == DGN_AIR)
 		{
 			int z = w/lvl->a;
 			if (z < lvl->t-1)

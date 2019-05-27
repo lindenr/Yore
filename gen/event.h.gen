@@ -1,0 +1,133 @@
+// generate event lists and types
+// events are | <name>
+// event parameters are <type> <name> separated by whitespace (the type may contain whitespace)
+//	| x[0]
+//		[x[1][0],
+//		x[1][1],
+//		...]
+
+| world_init
+| player_init
+| world_heartbeat
+| itrot
+	ItemID itemID
+| mthrow
+	MonsID monsID
+	ItemID itemID
+	int ydest
+	int xdest
+| proj_move
+	ItemID itemID
+
+// TODO remove
+| proj_done
+	ItemID itemID
+// TODO remove
+| proj_hit_barrier
+	ItemID itemID
+// TODO remove
+| proj_hit_monster
+	ItemID itemID
+	MonsID monsID
+
+| item_explode
+	ItemID itemID
+	int force
+| line_explode
+	int dlevel
+	int zloc
+	struct BresState bres
+	int dist
+| mdomove .move
+	MonsID monsID
+	int zdir
+	int ydir
+	int xdir
+// state and event details are same
+| mdoevade .evade
+	MonsID monsID
+	int zdir
+	int ydir
+	int xdir
+// event details as given, state as above
+> munevade
+	MonsID monsID
+| mdoshield .shield
+	MonsID monsID
+	int ydir
+	int xdir
+> munshield
+	MonsID monsID
+| mdohit .hit
+	MonsID frID
+	int arm
+	int zdir
+	int ydir
+	int xdir
+| mpoll
+	MonsID monsID
+| mgen
+| mregen
+// no poll?
+	MonsID monsID
+| mbleed .bleed
+	MonsID monsID
+| mwield
+	MonsID monsID
+	int arm
+	ItemID itemID
+| mdowield
+	MonsID monsID
+	int arm
+	ItemID itemID
+| mwear_armour
+	MonsID monsID
+	ItemID itemID
+	size_t offset
+| mtakeoff_armour
+	MonsID monsID
+	ItemID itemID
+| mpickup
+	MonsID monsID
+	V_ItemID pickup
+| mdrop
+	MonsID monsID
+	V_ItemID items
+| mstartcharge
+	MonsID monsID
+| mdocharge
+	MonsID monsID
+| mstopcharge
+	MonsID monsID
+| mfireball
+	MonsID monsID
+	int ydest
+	int xdest
+	int attk
+| mwater_bolt
+	MonsID monsID
+	int ydest
+	int xdest
+	int attk
+| mfrost
+	MonsID monsID
+	int zdest
+	int ydest
+	int xdest
+	int radius
+| mflash
+	MonsID monsID
+	int speed
+	Tick duration
+| mstopflash
+	MonsID monsID
+| mopendoor
+	MonsID monsID
+	int ydest
+	int xdest
+| mclosedoor
+	MonsID monsID
+	int ydest
+	int xdest
+| compute
+	ItemID itemID

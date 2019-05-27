@@ -1,13 +1,13 @@
 /* all_mon.c */
 
 #include "include/all.h"
-#include "include/thing.h"
-#include "include/panel.h"
+//#include "include/thing.h"
+//#include "include/panel.h"
 #include "include/monst.h"
 
 #define MONST(nm,ch,size,at,fl,cl,str,con,wis,agi,spd,ex) \
 {0,0,-1,-1,-1,-1,nm,ch|cl|0x33100,{.mode=CTR_NONE},0,ex,0,NULL, \
-1, 1, 1, 1, 1, 1, str, con, wis, agi, spd, NULL, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
+1, 1, 1, 1, 1, 1, str, con, wis, agi, spd, {{0,}}, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
 DEF_MSTATUS,(fl)|(FL_SIZE(size)),NULL}
 
 #define ATTK(a1,a2,a3,a4,a5,a6) {a1,a2,a3,a4,a5,a6}
@@ -19,7 +19,7 @@ DEF_MSTATUS,(fl)|(FL_SIZE(size)),NULL}
 
 const int CORPSE_WEIGHTS[7] = {0, 100, 1000, 3000, 20000, 50000, 300000};
 
-const struct Monster all_mons[] = {
+const struct Monster_internal mons_types[] = {
 	MONST("chicken", 'c', SIZE(2),
 		  ATTK(A(1, 2, ATTK_BITE), A(2, 3, ATTK_CLAW), AT_NONE,
 			   AT_NONE, AT_NONE, AT_NONE), FL_NEUTRAL | FL_FLSH | FL_WING,

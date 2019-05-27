@@ -2,7 +2,6 @@
 #define WORDS_H_INCLUDED
 
 #include "include/all.h"
-#include "include/vector.h"
 
 int  w_a      (char *, char *, size_t); /* singular */
 int  w_some   (char *, char *, int, size_t); /* lots */

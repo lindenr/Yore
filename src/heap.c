@@ -34,7 +34,7 @@ void *h_push (struct Heap *h, const void *data)
 	}
 	++ h->len;
 	int i;
-	for (i = h->len-1; h->cmp (data, h_at (h, H_PAR(i))) && i; i = H_PAR(i))
+	for (i = h->len-1; h->lt (data, h_at (h, H_PAR(i))) && i; i = H_PAR(i))
 		memcpy (h_at (h, i), h_at (h, H_PAR(i)), h->siz);
 	memcpy (h_at (h, i), data, h->siz);
 	return h_at (h, i);
@@ -56,9 +56,9 @@ void h_pop (struct Heap *h, void *out)
 	for (i = 0; i < h->len; )
 	{
 		int j1 = 2*i + 1, j2 = 2*i + 2, j;
-		int a1 = j1 < h->len - 1 && h->cmp (h_at (h, j1), last);
+		int a1 = j1 < h->len - 1 && h->lt (h_at (h, j1), last);
 			j = j1;
-		int a2 = j2 < h->len - 1 && h->cmp (h_at (h, j2), last);
+		int a2 = j2 < h->len - 1 && h->lt (h_at (h, j2), last);
 			j = j2;
 		if (a1 == 0 && a2 == 0)
 			break;
@@ -69,7 +69,7 @@ void h_pop (struct Heap *h, void *out)
 		else
 		{
 			j = j1;
-			if (h->cmp (h_at (h, j2), h_at (h, j1)))
+			if (h->lt (h_at (h, j2), h_at (h, j1)))
 				j = j2;
 		}
 		memcpy (h_at (h, i), h_at (h, j), h->siz);

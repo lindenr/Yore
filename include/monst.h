@@ -4,8 +4,6 @@
 #include "include/all.h"
 #include "include/graphics.h"
 #include "include/pack.h"
-#include "include/map.h"
-#include "include/vector.h"
 
 enum MONS_BODYPART
 {
@@ -86,10 +84,10 @@ enum MTYPE
 struct WoW /* Wielded or Worn */
 {
 	int nheads, ntorsos, nlegs, narms;
-	struct Item *heads[MMAX_HEADS], *torsos[MMAX_TORSOS],
-	            *legs[MMAX_LEGS], *feet[MMAX_LEGS],
-				*hands[MMAX_ARMS]; /* armour */
-	struct Item *weaps[MMAX_ARMS]; /* weapon(s) */
+	ItemID heads[MMAX_HEADS], torsos[MMAX_TORSOS],
+		legs[MMAX_LEGS], feet[MMAX_LEGS],
+		hands[MMAX_ARMS]; /* armour */
+	ItemID weaps[MMAX_ARMS]; /* weapon(s) */
 };
 
 /* For U.playing: */
@@ -132,14 +130,12 @@ enum DMG_TYPE
 	DTYP_BLEED
 };
 
-typedef int MID;
+typedef int MonsID;
 
 typedef enum
 {
 	CTR_NONE = 0,   /* placeholder */
 	CTR_PL,         /* player control (standard) */
-	CTR_PL_CONT,    /* player control (continuation) */
-	CTR_PL_FOCUS,   /* player control (focus mode) */
 #ifdef SIM
 	CTR_AI_SIM_FARMER,
 #endif /* SIM */
@@ -148,23 +144,10 @@ typedef enum
 	CTR_AI_AGGRO    /* angry non-player monster */
 } CTR_MODE;
 
-union ContData
-{
-	struct Item *item;
-	Vector vec;
-};
-
 struct Monster;
-typedef int (*MCont) (struct Monster *);
 union CTRState
 {
 	CTR_MODE mode;
-	struct
-	{
-		CTR_MODE mode;
-		MCont cont;
-		union ContData data;
-	} cont;
 	struct
 	{
 		CTR_MODE mode;
@@ -172,47 +155,20 @@ union CTRState
 	struct
 	{
 		CTR_MODE mode;
-		MID ID;
+		MonsID ID;
 	} aggro;
 };
 
 struct MStatus
 {
-	struct
-	{
-		int zdir, ydir, xdir;
-		Tick arrival;
-	} moving;
-	struct
-	{
-		int ydir, xdir;
-		int arm;
-		Tick arrival;
-	} attacking;
-	struct
-	{
-		int ydir, xdir;
-		Tick arrival, finish;
-	} evading;
-	struct
-	{
-		int ydir, xdir;
-	} defending;
-	struct
-	{
-		int speed;
-		Tick end;
-	} flashing;
-	int charging;
-	int helpless;
-	int bleeding;
+#include "auto/monst.status.h"
 };
 
-#define DEF_MSTATUS ((struct MStatus){{0,0,0},{0,0,-1,0},{0,0,0,0},{0,0},{0,0},0,0,0})
+#define DEF_MSTATUS ((struct MStatus){{0,},})
 
-struct Monster
+struct Monster_internal
 {
-	MID ID;                /* monster ID                   */
+	MonsID ID;                /* monster ID                   */
 	int dlevel;            /* parent dungeon level         */
 	int zloc, yloc, xloc;  /* location in dungeon          */
 	enum MTYPE mtype;      /* monster type                 */
@@ -235,106 +191,126 @@ struct Monster
 	int agi;               /* agility (affects speed)      */
 	int speed;             /* speed (movement delay)       */
 
-	struct Pack *pack;     /* inventory                    */
+	struct Pack pack;      /* inventory                    */
 	struct WoW wearing;    /* stuff wielding/wearing/using */
 	struct MStatus status; /* eating, positioning info etc */
 	uint32_t mflags;       /* physical flags               */
 	Vector skills;         /* available skills             */
 };
 
-extern const struct Monster all_mons[];
+extern const struct Monster_internal mons_types[];
 
-int    is              (struct Monster *);                   /* does the monster exist                   */
-void   mons_poll       (struct Monster *);                   /* poll for action (AI or player)           */
+int    mons_is         (MonsID);             /* does the monster exist                   */
+void   mons_poll       (MonsID);             /* poll for action (AI or player)           */
+glyph  mons_gl         (MonsID);
+
+struct Monster_internal *mons_internal (MonsID);
 
 /* monster action functions */
 
 /* move */
-int    mons_can_move   (struct Monster *, int, int, int);    /* can mons move in given direction         */
-void   mons_try_move   (struct Monster *, int, int, int);    /* move in given directions                 */
-void   mons_start_move (struct Monster *, int, int, int, Tick);/* start moving in a given direction      */
-void   mons_stop_move  (struct Monster *);                   /* stop moving                              */
+int    mons_can_move   (MonsID, int, int, int);    /* can mons move in given direction   */
+void   mons_try_move   (MonsID, int, int, int);    /* move in given directions           */
+void   mons_start_move (MonsID, int, int, int, Tick);/* start moving in a given direction*/
+void   mons_stop_move  (MonsID);             /* stop moving                              */
 
 /* hit */
-void   mons_try_hitm   (struct Monster *, int, int);         /* attack a given monster                   */
-void   mons_try_hit    (struct Monster *, int, int);         /* attack in given direction                */
-void   mons_start_hit  (struct Monster *, int, int, int,     /* start attacking                          */
-	Tick);
-void   mons_stop_hit   (struct Monster *);                   /* stop attacking                           */
+void   mons_try_hitm   (MonsID, int, int);   /* attack a given monster                   */
+void   mons_try_hit    (MonsID, int, int);   /* attack in given direction                */
+void   mons_start_hit  (MonsID, int, int,    /* start attacking                          */
+	int, Tick);
+void   mons_stop_hit   (MonsID);             /* stop attacking                           */
 
 /* evade */
-void   mons_try_evade  (struct Monster *, int, int);         /* evade in given direction                 */
-void   mons_start_evade(struct Monster *, int, int, Tick,    /* start evading in a given direction       */
-	Tick);
-void   mons_stop_evade (struct Monster *);                   /* stop evading                             */
+void   mons_try_evade  (MonsID, int, int);   /* evade in given direction                 */
+void   mons_start_evade(MonsID, int, int,    /* start evading in a given direction       */
+	Tick, Tick);
+void   mons_stop_evade (MonsID);             /* stop evading                             */
 
 /* wear/take off */
-int    mons_can_wear   (struct Monster *, struct Item *,     /* can it be worn                           */
+int    mons_can_wear   (MonsID, ItemID,      /* can it be worn                           */
 	size_t);
-int    mons_try_wear   (struct Monster *, struct Item *);    /* wear something                           */
-void   mons_wear       (struct Monster *, struct Item *, size_t); /* start wearing an item               */
-void   mons_take_off   (struct Monster *, struct Item *);    /* take off an item                         */
-int    mons_can_takeoff(struct Monster *, struct Item *);    /* can it be taken off                      */
-int    mons_try_takeoff(struct Monster *, struct Item *);    /* take off some armour                     */
+int    mons_try_wear   (MonsID, ItemID);     /* wear something                           */
+void   mons_wear       (MonsID, ItemID,      /* start wearing an item                    */
+	size_t);
+void   mons_take_off   (MonsID, ItemID);     /* take off an item                         */
+int    mons_can_takeoff(MonsID, ItemID);     /* can it be taken off                      */
+int    mons_try_takeoff(MonsID, ItemID);     /* take off some armour                     */
 
 /* wield/unwield */
-void   mons_try_wield  (struct Monster *, struct Item *);    /* wield an item                            */
-void   mons_wield      (struct Monster *, int, struct Item *); /* wield an item in an arm                */
-void   mons_unwield    (struct Monster *, int);              /* unwield an item from a given arm         */
+void   mons_try_wield  (MonsID, ItemID);     /* wield an item                            */
+void   mons_wield      (MonsID, int, ItemID);/* wield an item in an arm                  */
+void   mons_unwield    (MonsID, int);        /* unwield an item from a given arm         */
+
+/* charging */
+int    mons_charging   (MonsID);
 
 /* misc */
-void   mons_corpse     (struct Monster *, struct Item *);    /* make itype corpse type of the monster    */
-Tick   mons_tregen     (struct Monster *);                   /* time between regen events                */
-int    mons_throwspeed (struct Monster *, struct Item *);    /* how fast the item can be thrown          */
-int    proj_hitm       (struct Item *, struct Monster *);    /* will the projectile hit                  */
-int    proj_hitdmg     (struct Item *, struct Monster *);    /* how much damage                          */
-int    mons_hitm       (const struct Monster *,              /* will the monster hit                     */
-	const struct Monster *,	const struct Item *);
-int    mons_hitdmg     (const struct Monster *,              /* how much damage                          */
-	const struct Monster *,	const struct Item *);
-int    mons_ST_hit     (struct Monster *, struct Item *);    /* how much stamina will it consume         */
-int    mons_HP_regen   (struct Monster *);                   /* how much HP will regen                   */
-int    mons_ST_regen   (struct Monster *);                   /* stamina                                  */
-int    mons_MP_regen   (struct Monster *);                   /* MP                                       */
-int    mons_isplayer   (struct Monster *);                   /* is controlled by human                   */
-const char *mons_typename (struct Monster *);                /* get name of monster type                 */
-int    mons_get_HP     (struct Monster *);                   /* recalculates max HP                      */
-int    mons_get_ST     (struct Monster *);                   /* max stamina                              */
-int    mons_get_MP     (struct Monster *);                   /* max magic power                          */
-int    mons_gets_exp   (struct Monster *);                   /* does the monster level up                */
-void   mons_get_exp    (struct Monster *, int);              /* gain exp                                 */
-int    mons_level      (int exp);                            /* what level a given experience is         */
-int    mons_exp_needed (int level);                          /* exp needed for next level                */
-int    mons_skill      (const struct Monster *,              /* get skill level for using an item to hit */
-	const struct Item *);
-int    mons_attk_bonus (const struct Monster *,              /* get extra damage a monster does          */
-	const struct Item *);
-enum MTYPE mons_type   (const struct Monster *);             /* get monster type                         */
-int    mons_can_bleed  (const struct Monster *);             /* can it bleed                             */
-int    mons_index      (const struct Monster *);             /* dlevel index of the monster              */
+void   mons_corpse     (MonsID,              /* make itype corpse type of the monster    */
+	struct Item_internal *);
+Tick   mons_tregen     (MonsID);             /* time between regen events                */
+int    mons_throwspeed (MonsID, ItemID);     /* how fast the item can be thrown          */
+int    proj_hitm       (ItemID, MonsID);     /* will the projectile hit                  */
+int    proj_hitdmg     (ItemID, MonsID);     /* how much damage                          */
+int    mons_hitm       (MonsID, MonsID,      /* will the monster hit                     */
+	ItemID);
+int    mons_hitdmg     (MonsID, MonsID,      /* how much damage                          */
+	ItemID);
+int    mons_ST_hit     (MonsID, ItemID);     /* how much stamina will it consume         */
+int    mons_HP_regen   (MonsID);             /* how much HP will regen                   */
+int    mons_ST_regen   (MonsID);             /* stamina                                  */
+int    mons_MP_regen   (MonsID);             /* MP                                       */
+int    mons_isplayer   (MonsID);             /* is controlled by human                   */
+const char *mons_typename (MonsID);          /* get name of monster type                 */
+int    mons_get_HP     (MonsID);             /* recalculates max HP                      */
+int    mons_get_ST     (MonsID);             /* max stamina                              */
+int    mons_get_MP     (MonsID);             /* max magic power                          */
+int    mons_speed      (MonsID);
+int    mons_gets_exp   (MonsID);             /* does the monster level up                */
+int    mons_get_level  (MonsID);
+void   mons_get_exp    (MonsID, int);        /* gain exp                                 */
+int    mons_level      (int exp);            /* what level a given experience is         */
+void   mons_getloc     (MonsID, int *, int *, int *, int *);
+int    mons_exp_needed (int level);          /* exp needed for next level                */
+int    mons_skill      (MonsID, ItemID);     /* get skill level for using an item to hit */
+Vector mons_skills     (MonsID);
+int    mons_exp        (MonsID);
+int    mons_str        (MonsID);
+int    mons_con        (MonsID);
+int    mons_wis        (MonsID);
+int    mons_armour     (MonsID);
+CTR_MODE mons_ctrl     (MonsID);
+int    mons_attk_bonus (MonsID, ItemID);     /* get extra damage a monster does          */
+enum MTYPE mons_type   (MonsID);             /* get monster type                         */
+int    mons_can_bleed  (MonsID);             /* can it bleed                             */
+int    mons_bleeding   (MonsID);
+int    mons_index      (MonsID);             /* dlevel index of the monster              */
+int    mons_dlevel     (MonsID);
+struct DLevel *mons_dlv(MonsID);
+struct Pack *mons_pack (MonsID);
+void   mons_setweap    (MonsID, int, ItemID);
+ItemID mons_getweap    (MonsID, int arm);    /* get weapon wielded in arm                */
 
 /* other effects */
-void   mons_tilefrost  (struct Monster *, int, int, int);    /* induce a frost effect                    */
-int    mons_take_damage(struct Monster *, struct Monster *,  /* returns whether to-monster still alive   */
+void   mons_tilefrost  (MonsID, int, int, int);/* induce a frost effect                   */
+int    mons_take_damage(MonsID, MonsID,       /* returns whether to-monster still alive   */
 	int, enum DMG_TYPE);
-void   mons_kill       (struct Monster *, struct Monster *); /* kill a given monster                     */
-void   mons_dead       (struct Monster *);                   /* monster is dead - add corpse etc         */
-void   mons_anger      (struct Monster *, struct Monster *); /* monster angers another monster           */
-void   mons_calm       (struct Monster *);                   /* monster calms                            */
-void   mons_stats_changed(struct Monster *);                 /* update HP etc to reflect stats           */
-void   mons_exercise   (struct Monster *, struct Item *);    /* exercise a weapon use                    */
-void   mons_ex_skill   (struct Monster *, Skill);            /* exercise a skill                         */
-int    mons_cont       (struct Monster *, MCont,             /* continuation to be called next turn      */
-	union ContData *);
-void   mons_startbleed (struct Monster *);                   /* start bleeding                           */
+void   mons_kill       (MonsID, MonsID);      /* kill a given monster                     */
+void   mons_dead       (MonsID);              /* monster is dead - add corpse etc         */
+void   mons_anger      (MonsID, MonsID);      /* monster angers another monster           */
+void   mons_calm       (MonsID);              /* monster calms                            */
+void   mons_stats_changed (MonsID);           /* update HP etc to reflect stats           */
+void   mons_exercise   (MonsID, ItemID);      /* exercise a weapon use                    */
+void   mons_ex_skill   (MonsID, Skill);       /* exercise a skill                         */
+void   mons_startbleed (MonsID);              /* start bleeding                           */
 
 /* player functions */
 int    mons_gen_type   (void);                               /* get a valid monster type for fighting    */
 
 /* AI functions */
-void   AI_TIMID_poll   (struct Monster *);                   /* decide what to do if not attacking       */
-void   AI_HOSTILE_poll (struct Monster *);                   /* if hostile TODO                          */
-void   AI_AGGRO_poll   (struct Monster *);                   /* if attacking                             */
+void   AI_TIMID_poll   (MonsID);                   /* decide what to do if not attacking       */
+void   AI_HOSTILE_poll (MonsID);                   /* if hostile TODO                          */
+void   AI_AGGRO_poll   (MonsID);                   /* if attacking                             */
 
 #endif /* MONST_H_INCLUDED */
 

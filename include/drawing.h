@@ -1,7 +1,7 @@
 #ifndef VISION_H_INCLUDED
 #define VISION_H_INCLUDED
 
-#include <stdint.h>
+#include "include/all.h"
 
 struct BresState
 {

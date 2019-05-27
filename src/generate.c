@@ -10,9 +10,10 @@
 #include "include/dlevel.h"
 #include "include/skills.h"
 #include "include/event.h"
+#include "include/item.h"
 
 #include <stdio.h>
-#include <assert.h>
+#include <string.h>
 
 #define NUM(y,x,s,a0,a1,a2,a3,a4,a5,a6,a7,a8)\
                   (((s)[(y-1)*xsiz + (x)-1]<<a8) +\
@@ -24,8 +25,6 @@
                    ((s)[(y-1)*xsiz + (x)+1]<<a2) +\
                    ((s)[(y ) *xsiz + (x)+1]<<a1) +\
                    ((s)[(y+1)*xsiz + (x)+1]<<a0))
-#define ADD_MAP(type, i) new_thing (THING_DGN, lvl, (i) / lvl->a, \
-((i) % lvl->a)/lvl->w, (i)%lvl->w, &map_items[type])
 
 void load_auto (double *nums)
 {
@@ -124,20 +123,20 @@ void generate_auto (double *nums, int yout, int xout, uint16_t *output, int a_st
 	/*for (y = 2; y < yout-2; ++ y) {for (x = 2; x < xout-2; ++ x){
 		if (output[y*xsiz+x])
 		{
-		//ADD_MAP(DGN_GROUND, map_buffer(y,x));
-		ADD_MAP(DGN_GRASS2, map_buffer(2*y,  2*x));
-		ADD_MAP(DGN_GRASS2, map_buffer(2*y+1,2*x));
-		ADD_MAP(DGN_GRASS2, map_buffer(2*y,  2*x+1));
-		ADD_MAP(DGN_GRASS2, map_buffer(2*y+1,2*x+1));
-		/ *ADD_MAP(DGN_WALL, map_buffer(3*y,3*x));
-		ADD_MAP(DGN_WALL, map_buffer(3*y+1,3*x));
-		ADD_MAP(DGN_WALL, map_buffer(3*y+2,3*x));
-		ADD_MAP(DGN_WALL, map_buffer(3*y,3*x+1));
-		ADD_MAP(DGN_WALL, map_buffer(3*y+1,3*x+1));
-		ADD_MAP(DGN_WALL, map_buffer(3*y+2,3*x+1));
-		ADD_MAP(DGN_WALL, map_buffer(3*y,3*x+2));
-		ADD_MAP(DGN_WALL, map_buffer(3*y+1,3*x+2));
-		ADD_MAP(DGN_WALL, map_buffer(3*y+2,3*x+2));* /
+		//set_tile (lvl, DGN_GROUND, map_buffer(y,x));
+		set_tile (lvl, DGN_GRASS2, map_buffer(2*y,  2*x));
+		set_tile (lvl, DGN_GRASS2, map_buffer(2*y+1,2*x));
+		set_tile (lvl, DGN_GRASS2, map_buffer(2*y,  2*x+1));
+		set_tile (lvl, DGN_GRASS2, map_buffer(2*y+1,2*x+1));
+		/ *set_tile (lvl, DGN_WALL, map_buffer(3*y,3*x));
+		set_tile (lvl, DGN_WALL, map_buffer(3*y+1,3*x));
+		set_tile (lvl, DGN_WALL, map_buffer(3*y+2,3*x));
+		set_tile (lvl, DGN_WALL, map_buffer(3*y,3*x+1));
+		set_tile (lvl, DGN_WALL, map_buffer(3*y+1,3*x+1));
+		set_tile (lvl, DGN_WALL, map_buffer(3*y+2,3*x+1));
+		set_tile (lvl, DGN_WALL, map_buffer(3*y,3*x+2));
+		set_tile (lvl, DGN_WALL, map_buffer(3*y+1,3*x+2));
+		set_tile (lvl, DGN_WALL, map_buffer(3*y+2,3*x+2));* /
 		}
 		//	printf("#");
 		//else printf(" ");
@@ -276,6 +275,29 @@ struct Item *gen_item ()
 	return NULL;
 }
 
+void gen_room (char *out, int z, int y, int x, int t, int h, int w)
+{
+	int i, j;
+	struct DLevel *lvl = cur_dlevel;
+	for (j = 0; j < t; ++ j) for (i = 0; i < h; ++ i)
+	{
+		out[dlv_index (lvl, z+j, y+i, x)] = '#';
+		out[dlv_index (lvl, z+j, y+i, x+w-1)] = '#';
+	}
+	for (j = 0; j < t; ++ j) for (i = 1; i < w-1; ++ i)
+	{
+		out[dlv_index (lvl, z+j, y, x+i)] = '#';
+		out[dlv_index (lvl, z+j, y+h-1, x+i)] = '#';
+	}
+	for (j = 1; j < h-1; ++ j) for (i = 1; i < w-1; ++ i)
+	{
+		out[dlv_index (lvl, z+t-1, y+j, x+i)] = '#';
+		//out[dlv_index (lvl, z+t, y+j, x+i)] = '.';
+	}
+}
+
+#define OUT(z,y,x) out[dlv_index (lvl, (z), (y), (x))]
+
 void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 {
 	hmax = lvl->h; wmax = lvl->w;
@@ -297,21 +319,21 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		{
 			if (cur_gen[i] == ACS_BIGDOT)
 			{
-				ADD_MAP (DGN_GROUND, i);
+				set_tile (lvl, DGN_GROUND, i);
 				//if (!rn(5))
-				//	ADD_MAP (DGN_GROUND, i + lvl->a);
+				//	set_tile (lvl, DGN_GROUND, i + lvl->a);
 				//else
-					ADD_MAP (DGN_AIR, i + lvl->a);
+					set_tile (lvl, DGN_AIR, i + lvl->a);
 			}
 			else if (cur_gen[i] == ACS_CORRIDOR)
 			{
-				ADD_MAP (DGN_CORRIDOR, i);
-				ADD_MAP (DGN_AIR, i + lvl->a);
+				set_tile (lvl, DGN_CORRIDOR, i);
+				set_tile (lvl, DGN_AIR, i + lvl->a);
 			}
 			else
 			{
-				ADD_MAP (DGN_AIR, i);
-				ADD_MAP (DGN_WALL, i + lvl->a);
+				set_tile (lvl, DGN_AIR, i);
+				set_tile (lvl, DGN_WALL, i + lvl->a);
 			}
 		}
 		free (cur_gen);
@@ -341,17 +363,17 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 		generate_auto(nums, 100, 300, out100x300, 99, 98, 100.0);
 		for (i = 0; i < map_graph->a; ++i) {
 			if (out100x300[i])
-				ADD_MAP (DGN_GRASS1, i);
+				set_tile (lvl, DGN_GRASS1, i);
 			else
-				ADD_MAP (DGN_GRASS2, i);
+				set_tile (lvl, DGN_GRASS2, i);
 
 			if (rand()%100){}
 			else if ((rand()%2))
-				ADD_MAP (DGN_FLOWER2, i);
+				set_tile (lvl, DGN_FLOWER2, i);
 			else if ((rand()%2))
-				ADD_MAP (DGN_FLOWER1, i);
+				set_tile (lvl, DGN_FLOWER1, i);
 			else
-				ADD_MAP (DGN_TREE, i);
+				set_tile (lvl, DGN_TREE, i);
 		}
 		free(out10x30);
 		free(out20x60);
@@ -359,25 +381,60 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 	}
 	else if (type == LEVEL_3D)
 	{
-		int z, y, x, i;
+		/*int z, y, x, i;
 		for (z = 0, i = 0; z < lvl->t; ++ z) for (y = 0; y < lvl->h; ++ y) for (x = 0; x < lvl->w; ++ x, ++ i)
 		{
 			if ((x/2 - 8 < z && z <= x/2 - 6) && 10 <= y && y <= 15 && z <= 9)
-				ADD_MAP (DGN_ROCK, i);
+				set_tile (lvl, DGN_ROCK, i);
 			else if (z == 0 || (z == 9 && (10 > y || y > 15)))
-				ADD_MAP (!rn(5), i);
+				set_tile (lvl, !rn(5), i);
 			else if (z == 8 && (10 > y || y > 15))
-				ADD_MAP (DGN_ROCK, i);
+				set_tile (lvl, DGN_ROCK, i);
 			else if (z == x/2 - 5 && 10 <= y && y <= 15)
-				ADD_MAP (rn(3), i);
-			/*int h = (1.0+sin(0.2 * x)) * (1.0+sin(0.2 * y)) * 2;
+				set_tile (lvl, rn(3), i);
+			/ *int h = (1.0+sin(0.2 * x)) * (1.0+sin(0.2 * y)) * 2;
 			if (z < h)
-				ADD_MAP (DGN_ROCK, i);
+				set_tile (lvl, DGN_ROCK, i);
 			else if (z == h)
-				ADD_MAP (DGN_GROUND, i);
+				set_tile (lvl, DGN_GROUND, i);
 			else
-				ADD_MAP (DGN_AIR, i);*/
+				set_tile (lvl, DGN_AIR, i);* /
+		}*/
+		char *out = malloc (lvl->v);
+		int i;
+		for (int i = 0; i < lvl->v; ++ i)
+			out[i] = i<lvl->a?'.':0;
+		gen_room (out, 0, 0, 0, 3, 8, 8);
+		OUT(0, 7, 5) = '.';
+		OUT(1, 7, 5) = 0;
+		gen_room (out, 0, 0, 7, 3, 11, 8);
+		OUT(0, 9, 7) = '.';
+		OUT(1, 9, 7) = 0;
+		gen_room (out, 0, 20, 0, 3, 15, 7);
+		gen_room (out, 0, 20, 6, 3, 6, 7);
+		gen_room (out, 0, 29, 6, 3, 6, 7);
+		gen_room (out, 0, 34, 0, 3, 3, 40);
+		gen_room (out, 0, 20, 12, 3, 15, 28);
+		gen_room (out, 0, 15, 39, 3, 22, 10);
+		gen_room (out, 0, 36, 0, 3, 8, 17);
+		gen_room (out, 0, 36, 16, 3, 8, 17);
+		gen_room (out, 0, 36, 32, 3, 8, 17);
+		OUT(0, 8, 4) = '#';
+		OUT(0, 8, 3) = '#';
+		OUT(1, 8, 3) = '#';
+		OUT(1, 8, 2) = '#';
+		OUT(2, 8, 2) = '#';
+		OUT(2, 8, 1) = '#';
+		for (i = 0; i < lvl->v; ++ i)
+		{
+			if (out[i] == '#')
+				set_tile (lvl, DGN_WALL+rn(3), i);
+			else if (out[i] == 0)
+				set_tile (lvl, DGN_AIR, i);
+			else if (out[i] == '.')
+				set_tile (lvl, DGN_GROUND, i);
 		}
+		free (out);
 	}
 	else if (type == LEVEL_MAZE)
 	{
@@ -392,36 +449,24 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 /* can a monster be generated here? (no monsters or walls in the way) */
 int is_safe_gen (struct DLevel *lvl, int zloc, int yloc, int xloc)
 {
-	Vector *things = lvl->things;
-	struct Thing *T;
-	struct map_item_struct *m;
 	int n = dlv_index (lvl, zloc, yloc, xloc);
 	if (lvl->monsIDs[n])
 		return 0;
-	int i;
-	for (i = 0; i < things[n]->len; ++ i)
-	{
-		T = THING(things, n, i);
-		if (T->type == THING_DGN)
-		{
-			m = &(T->thing.mis);
-			if (!(m->attr & 1))
-				return 0;
-		}
-	}
+	if (lvl->tiles[n] == DGN_GROUND)
+		return 0;
 	return 1;
 }
 
-void init_mons (struct Monster *mons, enum MTYPE type)
+void init_mons (struct Monster_internal *mons, enum MTYPE type)
 {
-	memcpy (mons, &all_mons[type], sizeof(struct Monster));
+	memcpy (mons, &mons_types[type], sizeof(struct Monster_internal));
 	mons->mtype = type;
 }
 
 /* initialised at start of game */
-struct Monster *gen_player (int zloc, int yloc, int xloc, char *name)
+MonsID gen_player (int zloc, int yloc, int xloc, char *name)
 {
-	struct Monster m1;
+	struct Monster_internal m1;
 	init_mons (&m1, MTYP_human);
 	m1.name = name;
 	m1.skills = v_dinit (sizeof(struct Skill));
@@ -432,46 +477,49 @@ struct Monster *gen_player (int zloc, int yloc, int xloc, char *name)
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FIREBALL, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FROST, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLASH, 0, 1}));
-	struct Monster *pl = new_mons (cur_dlevel, 0, cur_dlevel->h/2, cur_dlevel->w/2, &m1);
-	struct Item *item;
+	MonsID pl = mons_create (cur_dlevel, 0, cur_dlevel->h/2, cur_dlevel->w/2, &m1);
+	ItemID item;
 	//int num = rn(40)+20;
-	struct Item myitem = new_item (ITYP_GOLD_PIECE);
-	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 0}});
-	struct Item myaxe = new_item (ITYP_DAGGER);
-	item = item_put (&myaxe, (union ItemLoc) { .dlvl = {LOC_INV, pl->ID, 1}});
+	struct Item_internal myitem = new_item (ITYP_GOLD_PIECE);
+	item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 0}});
+	struct Item_internal myaxe = new_item (ITYP_DAGGER);
+	item = item_create (&myaxe, (union ItemLoc) { .dlvl = {LOC_INV, pl, 1}});
 	mons_wield (pl, 0, item);
-	struct Skill skill = {SK_USE_DAGGER, 0, 1};
-	v_push (pl->skills, &skill);
+	//struct Skill skill = {SK_USE_DAGGER, 0, 1};
+	//mons_skill_push (pl, &skill); TODO
 	myitem = new_item (ITYP_LEATHER_HAT);
-	item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 2}});
+	item = item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 2}});
 	mons_wear (pl, item, offsetof (struct WoW, heads[0]));
 	myitem = new_item (ITYP_CLOTH_TUNIC);
-	item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 3}});
+	item = item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 3}});
 	mons_wear (pl, item, offsetof (struct WoW, torsos[0]));
 	myitem = new_item (ITYP_FORCE_SHARD);
 	int i;
 	for (i = 4; i < 10; ++ i)
-		item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, i}});
+		item = item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, i}});
+	myitem = new_item (ITYP_FIRE_TURRET);
+	item = item_create (&myitem, (union ItemLoc) { .dlvl = {LOC_DLVL, cur_dlevel->level, 0, cur_dlevel->h/2+1, cur_dlevel->w/2+6}});
+	ev_queue (2000, compute, item);
 	/*int i;
 	for (i = 4; i < 40; ++ i)
 	{
 		myitem = new_item (ityps[ITYP_CLOTH_TUNIC]);
-		item = item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, i}});
+		item = item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, i}});
 	}*/
 	/*myitem = new_item (ityps[ITYP_GLOVE]);
-	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 3}});
+	item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 3}});
 	myitem = new_item (ityps[ITYP_CHAIN_MAIL]);
-	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 4}});
+	item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 4}});
 	myitem = new_item (ityps[ITYP_HELMET]);
-	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 5}});
+	item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 5}});
 	myitem = new_item (ityps[ITYP_GLOVE]);
-	item_put (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl->ID, 6}});*/
-	v_push (cur_dlevel->playerIDs, &pl->ID);
+	item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 6}});*/
+	v_push (cur_dlevel->playerIDs, &pl);
 	return pl;
 }
 
 /* start of and during level */
-struct Monster *gen_mons (int near_player)
+MonsID gen_mons (int near_player)
 {
 	int i;
 	uint32_t xloc, yloc;
@@ -485,42 +533,42 @@ struct Monster *gen_mons (int near_player)
 			break;
 	}
 	if (i >= 5)
-		return NULL;
+		return 0;
 
-	struct Monster p;
+	struct Monster_internal p;
 	init_mons (&p, mons_gen_type ());
 	if (p.mflags & FL_HOSTILE)
 		p.ctr.mode = CTR_AI_HOSTILE;
 	else
 		p.ctr.mode = CTR_AI_TIMID;
 	p.level = 1; //mons[p.type].exp? TODO
-	struct Monster *th = new_mons (cur_dlevel, zloc, yloc, xloc, &p);
+	MonsID mons = mons_create (cur_dlevel, zloc, yloc, xloc, &p);
 	//printf ("successful generation \n");
-	return th;
+	return mons;
 }
 
-struct Monster *gen_mons_in_level ()
+MonsID gen_mons_in_level ()
 {
 	return gen_mons (0);
 }
 
-struct Monster *gen_mons_near_player ()
+MonsID gen_mons_near_player ()
 {
 	return gen_mons (1);
 }
 
-struct Monster *gen_boss (int zloc, int yloc, int xloc)
+MonsID gen_boss (int zloc, int yloc, int xloc)
 {
-	struct Monster p;
+	struct Monster_internal p;
 	init_mons (&p, MTYP_dwarf);
 	if (p.mflags & FL_HOSTILE)
 		p.ctr.mode = CTR_AI_HOSTILE;
 	else
 		p.ctr.mode = CTR_AI_TIMID;
 	p.level = 1; //mons[p.type].exp? TODO
-	struct Monster *th = new_mons (cur_dlevel, zloc, yloc, xloc, &p);
-	//struct Item myaxe = new_item (ITYP_FIRE_AXE);
-	//item_put (&myaxe, (union ItemLoc) { .inv = {LOC_INV, th->ID, 0}});
-	return th;
+	MonsID mons = mons_create (cur_dlevel, zloc, yloc, xloc, &p);
+	//struct Item_internal myaxe = new_item (ITYP_FIRE_AXE);
+	//item_create (&myaxe, (union ItemLoc) { .inv = {LOC_INV, th->ID, 0}});
+	return mons;
 }
 

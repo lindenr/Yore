@@ -3,8 +3,6 @@
 
 #include "include/all.h"
 
-#include <stddef.h>
-
 struct String
 {
 	char *data; /* null-terminated string of the actual data */

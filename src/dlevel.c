@@ -6,25 +6,32 @@
 #include "include/heap.h"
 #include "include/rand.h"
 #include "include/panel.h"
+#include "include/vector.h"
+#include "include/monst.h"
+#include "include/map.h"
+
+#include <string.h>
 
 // TODO: make this all non-global in a nice struct somewhere
 Graph map_graph;
-Vector all_ids;
-Vector all_dlevels;
+V_DLevel all_dlevels;
+V_Item all_items;
+V_Mons all_mons;
 int    cur_level;
 struct DLevel *cur_dlevel;
 char *player_name;
 
 void dlv_init ()
 {
-	all_dlevels = v_dinit (sizeof(struct DLevel));
-
-	void *t = NULL;
-	all_ids = v_dinit (sizeof(void *));
-	v_push (all_ids, &t);
+	all_dlevels = v_dinit (sizeof(DLevel));
+	all_items = v_dinit (sizeof(Item));
+	struct Item_internal dummy_item = {0};
+	v_push (all_items, &dummy_item);
+	all_mons = v_dinit (sizeof(Mons));
+	struct Monster_internal dummy_mons = {0};
+	v_push (all_mons, &dummy_mons);
 
 	dlv_make (1, 0, 0, 11, 50, 50);
-	//dlv_make (2, 1, 0);
 	dlv_set (1);
 }
 
@@ -35,11 +42,12 @@ void dlv_make (int level, int uplevel, int dnlevel, int z, int y, int x)
 	struct DLevel new_level = {
 		level,
 		z, y, x, y*x, v,
-		malloc (sizeof(Vector) * v),
-		malloc (sizeof(Vector) * v),
-		malloc (sizeof(TID) * v),
-		v_dinit (sizeof(struct Monster)),
-		v_dinit (sizeof(TID)),
+		malloc (sizeof(DTile) * v),
+		malloc (sizeof(V_ItemID) * v),
+		//v_dinit (sizeof(struct Item)),
+		malloc (sizeof(MonsID) * v),
+		//v_dinit (sizeof(struct Monster)),
+		v_dinit (sizeof(MonsID)),
 		malloc (sizeof(int) * v),
 		malloc (sizeof(int) * v),
 		malloc (sizeof(int) * v),
@@ -58,14 +66,13 @@ void dlv_make (int level, int uplevel, int dnlevel, int z, int y, int x)
 		lvl->uplevel = level;
 	for (i = 0; i < v; ++ i)
 	{
-		new_level.things[i] = v_dinit (sizeof(struct Thing));
-		new_level.items[i] = v_dinit (sizeof(struct Item));
+		//new_level.things[i] = v_dinit (sizeof(struct Thing));
+		new_level.itemIDs[i] = v_dinit (sizeof(ItemID));
 		new_level.player_dist[i] = -1;
 		new_level.escape_dist[i] = -1;
 	}
-	struct Monster dummy_mons = {0};
-	v_push (new_level.mons, &dummy_mons);
-	memset (new_level.monsIDs, 0, sizeof(TID)*v);
+	memset (new_level.tiles, 0, sizeof(DTile)*v);
+	memset (new_level.monsIDs, 0, sizeof(MonsID)*v);
 	memset (new_level.num_fires, 0, sizeof(int)*v);
 	memset (new_level.seen, 0, sizeof(uint8_t)*v);
 	memset (new_level.attr, 0, sizeof(uint8_t)*v);
@@ -97,7 +104,7 @@ struct DLevel *dlv_lvl (int level)
 		return NULL;
 	for (i = 0; i < all_dlevels->len; ++ i)
 	{
-		lvl = v_at (all_dlevels, i);
+		lvl = &all_dlevels->data[i];
 		if (lvl->level == level)
 			break;
 	}
@@ -106,17 +113,12 @@ struct DLevel *dlv_lvl (int level)
 	return lvl;
 }
 
-Vector *dlv_things (int level)
+V_ItemID *dlv_itemIDs (int level)
 {
-	return dlv_lvl (level)->things;
+	return dlv_lvl (level)->itemIDs;
 }
 
-Vector *dlv_items (int level)
-{
-	return dlv_lvl (level)->items;
-}
-
-uint8_t *dlv_attr (int level)
+/*uint8_t *dlv_attr (int level)
 {
 	return dlv_lvl (level)->attr;
 }
@@ -129,17 +131,12 @@ int dlv_up (int level)
 int dlv_dn (int level)
 {
 	return dlv_lvl (level)->dnlevel;
-}
+}*/
 
-MID dlv_mvmonsID (int level, int z, int y, int x)
+MonsID dlv_mvmons (int level, int z, int y, int x)
 {
 	struct DLevel *lvl = dlv_lvl (level);
 	return lvl->monsIDs [dlv_index (lvl, z, y, x)];
-}
-
-struct Monster *dlv_mvmons (int level, int z, int y, int x)
-{
-	return v_at (dlv_lvl (level)->mons, dlv_mvmonsID (level, z, y, x));
 }
 
 struct TileDist
@@ -157,17 +154,17 @@ void dlv_tile_burn (struct DLevel *lvl, int zloc, int yloc, int xloc)
 {
 	// mons_burn (mons); TODO
 	int i = dlv_index (lvl, zloc, yloc, xloc);
-	struct Monster *mons = v_at (lvl->mons, lvl->monsIDs[i]);
-	if (mons->ID)
+	MonsID mons = lvl->monsIDs[i];
+	if (mons)
 	{
 		int damage = rn(5);
 		eff_mons_burns (mons, damage);
-		mons_take_damage (mons, NULL, damage, DTYP_FIRE);
+		mons_take_damage (mons, 0, damage, DTYP_FIRE);
 	}
-	Vector items = lvl->items[i];
+	V_ItemID itemIDs = lvl->itemIDs[i];
 	int n;
-	for (n = 0; n < items->len; ++ n)
-		it_burn (v_at (items, n));
+	for (n = 0; n < itemIDs->len; ++ n)
+		it_burn (itemIDs->data[n]);
 }
 
 #define MAX_DIST 10
@@ -193,7 +190,7 @@ void dlv_fill_player_dist (struct DLevel *lvl)
 	}
 	for (i = 0; i < lvl->playerIDs->len; ++ i)
 	{
-		struct Monster *player = MTHIID(*(MID*)v_at(lvl->playerIDs, i));
+		MonsID player = lvl->playerIDs->data[i];
 		ylocs[cur_loc] = player->yloc;
 		xlocs[cur_loc] = player->xloc;
 		++ cur_loc;

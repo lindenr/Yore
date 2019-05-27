@@ -1,5 +1,7 @@
 # Executable
 Yore
+# object files
+obj/*.o
 # Save files (testing)
 *.sav
 .*.swp
@@ -7,3 +9,5 @@ Yore
 ideas.md
 #errors
 errorlog
+#old resources
+res/*old*.bmp

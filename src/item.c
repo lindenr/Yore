@@ -13,6 +13,7 @@
 #include "include/debug.h"
 
 #include <stdio.h>
+#include <string.h>
 
 /* Item weight should roughly be in grams - so a stong person (St >= 18) would 
    be able to carry 30000g before getting burdened, and weak would be just
@@ -64,24 +65,44 @@ Ityp ityps[ITYP_NUM_ITEMS + MTYP_NUM_MONS] = {
 		0),
 	ITYP("wind shard",     ITSORT_SHARD,      20,    0,  0, 0xFB        | COL_TXT( 0,15,15), 0,
 		0),
+	ITYP("fire turret",    ITSORT_TURRET,     20000, 0,  0, 0xE2        | COL_TXT(15, 2, 0), 0,
+		0),
 /*  item name              type              weight   A/D     display                      */
 };
 
-char *item_appearance[] = {"MONEY", "WEAPONS", "ARMOUR", "FOOD, DEBRIS", "TOOLS", "", "", "CURIOS", ""};
-
-const int it_displayorder[] = {ITCAT_HANDS, ITCAT_DOSH, ITCAT_WEAPON, ITCAT_ARMOUR, ITCAT_FOOD, ITCAT_JEWEL, -1};
+char *item_appearance[] = {"(HANDS)", "Money", "Weapons", "Armour", "Food, debris", "Tools", "Strange objects", "Curios", ""};
 
 void ityp_init ()
 {
 	int i;
 	for (i = 0; i < MTYP_NUM_MONS; ++ i)
 	{
-		ityps[ITYP_NUM_ITEMS + i] = (Ityp) ITYP("", ITSORT_CORPSE, CORPSE_WEIGHTS[all_mons[i].mflags>>29], 0, 0, ITCH_CORPSE | (all_mons[i].gl & 0xFFFFFF00), 0, 0);
-		snprintf (ityps[ITYP_NUM_ITEMS + i].name, ITEM_NAME_LENGTH, "%s corpse", all_mons[i].mname);
+		ityps[ITYP_NUM_ITEMS + i] = (Ityp) ITYP("", ITSORT_CORPSE, CORPSE_WEIGHTS[mons_types[i].mflags>>29], 0, 0, ITCH_CORPSE | (mons_types[i].gl & 0xFFFFFF00), 0, 0);
+		snprintf (ityps[ITYP_NUM_ITEMS + i].name, ITEM_NAME_LENGTH, "%s corpse", mons_types[i].mname);
 	}
 }
 
-void it_ndesc (char *out, int length, const struct Item *item, const struct Monster *pl)
+int it_is (ItemID item)
+{
+	return all_items->data[item].ID == item;
+}
+
+struct Item_internal *it_internal (ItemID item)
+{
+	return &all_items->data[item];
+}
+
+enum ITEM_TYPE it_type (ItemID item)
+{
+	return it_internal (item)->qtype;
+}
+
+int it_flag (ItemID item, int f)
+{
+	return ityps[it_type (item)].flags&f;
+}
+
+void it_ndesc (char *out, int length, ItemID item, MonsID pl)
 {
 	int i = snprintf (out, length, "#g%s a ", gl_format (it_gl (item)));
 	if (i >= length)
@@ -102,26 +123,23 @@ void it_ndesc (char *out, int length, const struct Item *item, const struct Mons
 			 /* enchantment value */
 			 ench_string,
 			 /* wielded */
-			 it_wieldedID (item) ? " (wielded)" : "",
+			 it_wield (item, NULL) ? " (wielded)" : "",
 			 it_worn (item) ? " (worn)" : ""
 			 );
 	//w_some (temp2, temp, item->stacksize, 128);
 }
 
-void it_desc (char *out, const struct Item *item, const struct Monster *pl)
+void it_desc (char *out, ItemID item, MonsID pl)
 {
 	it_ndesc (out, IT_DESC_LEN, item, pl);
 }
 
-const char *it_typename (const struct Item *item)
+const char *it_typename (ItemID item)
 {
-	if (!item)
-		panic ("NULL item in it_typename");
-		//return NULL;
 	return it_ityp (item)->name;
 }
 
-/*int it_can_merge (const struct Item *item1, const struct Item *item2)
+/*int it_can_merge (ItemID item1, ItemID item2)
 {
 	return it_no(item1) || it_no(item2) ||
 		(it_stackable (item1) &&
@@ -132,12 +150,12 @@ const char *it_typename (const struct Item *item)
 		 item1->def  == item2->def);
 }*/
 
-/*int it_weight (const struct Item *item)
+/*int it_weight (ItemID item)
 {
 	return item->cur_weight;
 }*/
 
-/*int it_merge (struct Item *it1, struct Item *it2)
+/*int it_merge (ItemID it1, ItemID it2)
 {
 	if (!it_can_merge (it1, it2))
 		return 0;
@@ -148,7 +166,7 @@ const char *it_typename (const struct Item *item)
 
 void item_gen (union ItemLoc loc)
 {
-	struct Item item;
+	struct Item_internal item;
 	enum ITEM_TYPE typ = rn(14);
 	/*if (typ == ITYP_GOLD_PIECE)
 	{
@@ -157,24 +175,15 @@ void item_gen (union ItemLoc loc)
 	}
 	else*/
 		item = new_item (typ);
-	item_put (&item, loc);
+	item_create (&item, loc);
 }
 
-int items_equal (struct Item *it1, struct Item *it2)
-{
-	if (it1 == it2)
-		return 1;
-	if (it_no(it1) && it_no(it2))
-		return 1;
-	return 0;
-}
-
-int it_persistent (const struct Item *item)
+int it_persistent (ItemID item)
 {
 	return it_sort (item) != ITSORT_ARCANE;
 }
 
-int it_canwear (const struct Item *item, enum MONS_BODYPART part)
+int it_canwear (ItemID item, enum MONS_BODYPART part)
 {
 	switch (part)
 	{
@@ -191,40 +200,42 @@ int it_canwear (const struct Item *item, enum MONS_BODYPART part)
 	return 0;
 }
 
-void it_wear (struct Item *item, size_t offset)
+void it_wear (ItemID item, size_t offset)
 {
 	if (!item)
-		panic ("NULL item in it_wear");
-	item->worn_offset = offset;
+		panic ("invalid item in it_wear");
+	struct Item_internal *ii = it_internal (item);
+	ii->worn_offset = offset;
 }
 
-void it_unwear (struct Item *item)
+void it_unwear (ItemID item)
 {
 	if (!item)
-		panic ("NULL item in it_unwear");
-	item->worn_offset = -1;
+		panic ("invalid item in it_unwear");
+	struct Item_internal *ii = it_internal (item);
+	ii->worn_offset = -1;
 }
 
-int it_freeze (struct Item *item)
+int it_freeze (ItemID item)
 {
 	if (it_sort (item) != ITSORT_ARCANE)
 		return 1;
 	if (it_type (item) == ITYP_FIREBALL)
 	{
-		item_free (item);
+		it_destroy (item);
 		p_msg ("The fire goes out!");
 		return 0;
 	}
 	if (it_type (item) == ITYP_WATER_BOLT)
 	{
-		it_type (item) = ITYP_ICE_BOLT;
+		it_internal (item)->qtype = ITYP_ICE_BOLT;
 		p_msg ("The water freezes into an ice bolt!");
 		return 1;
 	}
 	return 1;
 }
 
-int it_burn (struct Item *it)
+int it_burn (ItemID it)
 {
 	if (it_sort (it) != ITSORT_SHARD)
 		return 1;
@@ -233,94 +244,93 @@ int it_burn (struct Item *it)
 	return 1;
 }
 
-int it_projdamage (const struct Item *item)
+int it_projdamage (ItemID item)
 {
 	if (it_category (it_sort (item)) == ITCAT_WEAPON)
 		return rn(it_attk (item) + 1)/2;
 	return rn(3);
 }
 
-int it_attk (const struct Item *item)
+int it_attk (ItemID item)
 {
 	if (!item)
 		panic ("NULL item in it_attk");
-	return item->attk;
+	struct Item_internal *ii = it_internal (item);
+	return ii->attk;
 }
 
-void it_set_attk (struct Item *item, int attk)
+void it_set_attk (ItemID item, int attk)
 {
 	if (!item)
 		panic ("NULL item in it_set_attk");
-	item->attk = attk;
+	struct Item_internal *ii = it_internal (item);
+	ii->attk = attk;
 }
 
-int it_def (const struct Item *item)
+int it_def (ItemID item)
 {
 	if (!item)
 		panic ("NULL item in it_def");
-	return item->def;
+	struct Item_internal *ii = it_internal (item);
+	return ii->def;
 }
 
-int it_worn_offset (const struct Item *item)
+int it_worn_offset (ItemID item)
 {
 	if (!item)
 		panic ("NULL item in it_worn_offset");
-	return item->worn_offset;
+	struct Item_internal *ii = it_internal (item);
+	return ii->worn_offset;
 }
 
-int it_worn (const struct Item *item)
+int it_worn (ItemID item)
 {
 	if (!item)
 		panic ("NULL item in it_worn");
-	return item->worn_offset != -1;
+	struct Item_internal *ii = it_internal (item);
+	return ii->worn_offset != -1;
 }
 
-int it_weight (const struct Item *item)
+int it_weight (ItemID item)
 {
 	if (!item)
 		panic ("NULL item in it_weight");
-	return item->wt;
+	struct Item_internal *ii = it_internal (item);
+	return ii->wt;
 }
 
-glyph it_gl (const struct Item *item)
+glyph it_gl (ItemID item)
 {
 	if (!item)
 		panic ("NULL item in it_gl");
 	return it_ityp (item)->gl;
 }
 
-enum ITSORT it_sort (const struct Item *item)
+enum ITSORT it_sort (ItemID item)
 {
 	return ityps [it_type (item)].sort;
 }
 
-void it_rem (struct Item *item)
-{
-	if (!item)
-		panic ("NULL item in it_gl");
-	item->ID = 0;
-}
-
-int it_fragile (const struct Item *item)
+int it_fragile (ItemID item)
 {
 	if (!item)
 		panic ("NULL item in it_fragile");
 	return it_sort (item) == ITSORT_SHARD;
 }
 
-void it_break (struct Item *item)
+void it_break (ItemID item)
 {
 	if (!item)
 		panic ("NULL item in it_break");
 	if (it_type (item) == ITYP_FORCE_SHARD)
 	{
-		ev_queue (0, (union Event) { .item_explode = {EV_ITEM_EXPLODE, item->ID, rn(5)+5}});
+		ev_queue (0, item_explode, item, rn(5)+5);
 		return;
 	}
-	item_free (item);
+	it_destroy (item);
 }
 
-enum DMG_TYPE it_dtyp (const struct Item *item)
+enum DMG_TYPE it_dtyp (ItemID item)
 {
 	if (!item)
 		return DTYP_BLUNT;
@@ -329,9 +339,9 @@ enum DMG_TYPE it_dtyp (const struct Item *item)
 	return DTYP_BLUNT;
 }
 
-enum SK_TYPE it_skill (const struct Item *item)
+enum SK_TYPE it_skill (ItemID item)
 {
-	if (it_no(item))
+	if (!item)
 		return SK_USE_MARTIAL_ARTS;
 	switch (it_sort (item))
 	{
@@ -378,41 +388,68 @@ enum ITCAT it_category (enum ITSORT type)
 		return ITCAT_STRANGE;
 	case ITSORT_SHARD:
 		return ITCAT_JEWEL;
+	case ITSORT_TURRET:
+		return ITCAT_STRANGE;
 	}
 	panic ("end reached in it_category");
 	return -1;
 }
 
-MID it_wieldedID (const struct Item *item)
+int it_wield (ItemID item, struct ItemWielded *w)
 {
-	if (!item)
-		return 0;
-	if (item->loc.loc == LOC_WIELDED)
+	return it_get_loc (item, NULL, NULL, w, NULL) == LOC_WIELDED;
+	/*if (!item)
+		panic ("invalid item in it_wield");
+	if (it_loc (item) loc.loc == LOC_WIELDED)
 		return item->loc.wield.monsID;
-	return 0;
+	return 0;*/
 }
 
-MID it_invID (const struct Item *item)
+int it_inv (ItemID item, struct ItemInInv *i)
 {
-	if (it_no (item))
-		return 0;
-	if (item->loc.loc == LOC_INV)
-		return item->loc.inv.monsID;
-	return 0;
+	return it_get_loc (item, NULL, i, NULL, NULL) == LOC_INV;
 }
 
-int it_dlvl (const struct Item *item)
+int it_dlvl (ItemID item, struct ItemInDlvl *d)
 {
-	if (it_no (item))
-		return 0;
-	return item->loc.loc == LOC_DLVL;
+	return it_get_loc (item, d, NULL, NULL, NULL) == LOC_DLVL;
 }
 
-int it_flight (const struct Item *item)
+int it_flight (ItemID item, struct ItemInFlight *f)
 {
-	if (it_no (item))
-		return 0;
-	return item->loc.loc == LOC_FLIGHT;
+	return it_get_loc (item, NULL, NULL, NULL, f) == LOC_FLIGHT;
+}
+
+enum ITEM_LOC it_get_loc (ItemID item, struct ItemInDlvl *d, struct ItemInInv *i, struct ItemWielded *w, struct ItemInFlight *f)
+{
+	struct Item_internal *ii = it_internal (item);
+	switch (ii->loc.loc)
+	{
+	case LOC_NONE:
+		break;
+	case LOC_DLVL:
+		if (d)
+			memcpy (d, &ii->loc.dlvl, sizeof(*d));
+		break;
+	case LOC_INV:
+		if (i)
+			memcpy (i, &ii->loc.inv, sizeof(*i));
+		break;
+	case LOC_WIELDED:
+		if (w)
+			memcpy (w, &ii->loc.wield, sizeof(*w));
+		break;
+	case LOC_FLIGHT:
+		if (f)
+			memcpy (f, &ii->loc.fl, sizeof(*f));
+		break;
+	}
+	return ii->loc.loc;
+}
+
+enum ITEM_LOC it_loc (ItemID item)
+{
+	return it_internal (item)->loc.loc;
 }
 
 int it_index (const union ItemLoc *loc)
@@ -435,20 +472,39 @@ int it_index (const union ItemLoc *loc)
 	return -1;
 }
 
-void it_fl_to_dlv (struct Item *item)
+void it_fl_to_dlv (ItemID item)
 {
-	item_put (item, (union ItemLoc) { .dlvl =
-		{LOC_DLVL, item->loc.fl.dlevel, item->loc.fl.zloc, item->loc.fl.yloc, item->loc.fl.xloc}});
+	struct ItemInFlight f;
+	if (!it_flight(item, &f))
+		return; // ??
+	item_put (item, (union ItemLoc) { .dlvl = {LOC_DLVL, f.dlevel, f.zloc, f.yloc, f.xloc}});
 }
 
-void it_monsfloc (struct Monster *mons, union ItemLoc *loc, int speed)
+union ItemLoc it_monsfloc (MonsID mons, int speed)
 {
-	*loc = (union ItemLoc) { .fl =
-		{LOC_FLIGHT, mons->dlevel, mons->zloc, mons->yloc, mons->xloc, {0,}, speed, mons->ID}};
+	int d, z, y, x;
+	mons_getloc (mons, &d, &z, &y, &x);
+	return (union ItemLoc) { .fl = {LOC_FLIGHT, d, z, y, x, {0,}, speed, mons}};
 }
 
-union ItemLoc it_monsdloc (struct Monster *mons)
+union ItemLoc it_monsdloc (MonsID mons)
 {
-	return (union ItemLoc) {.dlvl = {LOC_DLVL, mons->dlevel, mons->zloc, mons->yloc, mons->xloc}};
+	int d, z, y, x;
+	mons_getloc (mons, &d, &z, &y, &x);
+	return (union ItemLoc) {.dlvl = {LOC_DLVL, d, z, y, x}};
+}
+
+void it_shoot (ItemID item, int zdest, int ydest, int xdest)
+{
+	struct ItemInDlvl d;
+	if (!it_dlvl (item, &d))
+		return;
+	struct Item_internal newitem = new_item (ITYP_FIREBALL);
+	union ItemLoc loc = { .fl = {LOC_FLIGHT, d.dlevel, zdest, ydest, xdest, {0,}, 100, 0}};
+	bres_init (&loc.fl.bres, d.yloc, d.xloc, ydest, xdest);
+
+	ItemID bullet = item_create (&newitem, loc);
+	it_set_attk (bullet, 5);
+	ev_queue (60, proj_move, bullet);
 }
 
