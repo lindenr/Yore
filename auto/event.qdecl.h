@@ -4,7 +4,7 @@ void ev_queue_player_init (Tick udelay);
 void ev_queue_world_heartbeat (Tick udelay);
 void ev_queue_itrot (Tick udelay, ItemID itemID);
 void ev_queue_mthrow (Tick udelay, MonsID monsID, ItemID itemID, int ydest, int xdest);
-void ev_queue_proj_move (Tick udelay, ItemID itemID, struct BresState bres, int speed);
+void ev_queue_proj_move (Tick udelay, ItemID itemID, struct BresState bres, int speed, MonsID frID);
 void ev_queue_item_explode (Tick udelay, ItemID itemID, int force);
 void ev_queue_line_explode (Tick udelay, int dlevel, int zloc, struct BresState bres, int dist);
 void ev_queue_mdomove (Tick udelay, MonsID monsID, int zdir, int ydir, int xdir);

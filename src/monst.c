@@ -70,7 +70,7 @@ int mons_gets_exp (MonsID mons)
 
 int mons_is (MonsID mons)
 {
-	return all_mons->data[mons].ID == mons;
+	return mons && all_mons->data[mons].ID == mons;
 }
 
 struct Monster_internal *mons_internal (MonsID mons)

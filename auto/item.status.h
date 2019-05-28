@@ -6,6 +6,7 @@ struct
 	Tick due;
 	struct BresState bres;
 	int speed;
+	MonsID frID;
 } flight;
 struct
 {

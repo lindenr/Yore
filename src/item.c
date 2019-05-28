@@ -460,6 +460,6 @@ void it_shoot (ItemID item, int zdest, int ydest, int xdest)
 	ItemID bullet = item_create (&newitem, loc);
 	it_set_attk (bullet, 5);
 	int speed = 100;
-	ev_queue (60, proj_move, bullet, bres, speed);
+	ev_queue (60, proj_move, bullet, bres, speed, 0);
 }
 

@@ -97,7 +97,7 @@ void ev_mthrow (MonsID mons, ItemID item, int ydest, int xdest)
 	bres_init (&bres, loc.dlvl.yloc, loc.dlvl.xloc, ydest, xdest);
 	item_put (item, loc);
 	// TODO: delay (i.e. actual speed) depends on speed variable?
-	ev_queue (60, proj_move, item, bres, speed);
+	ev_queue (60, proj_move, item, bres, speed, mons);
 }
 
 void proj_done (ItemID item)
@@ -127,7 +127,7 @@ void proj_hit_barrier (ItemID item)
 	eff_item_hits_wall (item);
 }
 
-void proj_hit_monster (ItemID item, MonsID mons)
+void proj_hit_monster (ItemID item, MonsID mons, MonsID from)
 {
 	struct ItemInDlvl dl;
 	if (!it_dlvl (item, &dl))
@@ -145,13 +145,13 @@ void proj_hit_monster (ItemID item, MonsID mons)
 	mons_take_damage (mons, 0, damage, it_dtyp (item));
 
 	//item_put (item, (union ItemLoc) {.fl = fl});
-	//if (!fl.frID)
-	//	return;
-	//if (mons_gets_exp (fl.frID))
-	//	mons_exercise (fl.frID, item);
+	if (!from)
+		return;
+	if (mons_gets_exp (from))
+		mons_exercise (from, item);
 }
 
-void ev_proj_move (ItemID item, struct BresState bres, int speed)
+void ev_proj_move (ItemID item, struct BresState bres, int speed, MonsID from)
 {
 	struct ItemInDlvl dlvl;
 	if (!it_dlvl (item, &dlvl))
@@ -175,10 +175,10 @@ void ev_proj_move (ItemID item, struct BresState bres, int speed)
 	MonsID mons = lvl->monsIDs[dlv_index (lvl, dlvl.zloc, dlvl.yloc, dlvl.xloc)];
 	if (mons)
 	{
-		proj_hit_monster (item, mons);
+		proj_hit_monster (item, mons, from);
 		speed = 0;
 	}
-	ev_queue (60, proj_move, item, bres, speed);
+	ev_queue (60, proj_move, item, bres, speed, from);
 	ev_should_refresh = 1;
 }
 
@@ -482,7 +482,7 @@ void ev_mfireball (MonsID mons, int ydest, int xdest, int attk)
 	
 	ItemID item = item_create (&newitem, loc);
 	it_set_attk (item, attk);
-	ev_queue (60, proj_move, item, bres, 10);
+	ev_queue (60, proj_move, item, bres, 10, mons);
 }
 
 void ev_mwater_bolt (MonsID mons, int ydest, int xdest, int attk)
@@ -497,7 +497,7 @@ void ev_mwater_bolt (MonsID mons, int ydest, int xdest, int attk)
 	
 	ItemID item = item_create (&newitem, loc);
 	it_set_attk (item, attk);
-	ev_queue (60, proj_move, item, bres, 10);
+	ev_queue (60, proj_move, item, bres, 10, mons);
 }
 
 void ev_mfrost (MonsID mons, int zdest, int ydest, int xdest, int radius)

@@ -12,12 +12,15 @@ def prep_string(x, s):
 			struct Item *{0} = it_at (ev->{1}.{2});'''.format(s[1][:-2], x, s[1])
 	return ret
 
-def post_string(x, s):
-	if s[0] == 'MonsID':
+def mons_poll(x, s, opt):
+	if s[0] == 'MonsID' and '(nopoll)' not in opt:
 		return '''
 			if (mons_is (ev->{0}.{1}))
-				mons_poll (ev->{0}.{1});'''.format(x,s[1])
+				mons_poll (ev->{0}.{1});'''.format(x[0],s[1])
 	return ''
+
+def post_string(x):
+	return ''.join([mons_poll(x, s[0].split(), s[1]) for s in x[1]])
 
 def arg_string(x, s):
 	#if s[0] == 'MonsID' or s[0] == 'ItemID':
@@ -36,10 +39,11 @@ def and_string(x, s):
 		return 'mons_is (ev->{}.{})'.format(x,s[1])
 	elif s[0] == 'ItemID':
 		return 'it_is (ev->{}.{})'.format(x,s[1])
+	print(s[0])
 	return ''
 
-def myjoin(a, f, x):
-	return a.join ([f (x[0], (lambda a: [' '.join(a[:-1]), a[-1]]) (s[:-2].split())) for s in x[1]])
+def myjoin(st, f, x):
+	return st.join ([f (x[0], (lambda a: [' '.join(a[:-1]), a[-1]]) (s[0].split())) for s in x[1]])
 
 def if_fun(z):
 	if z == '':
@@ -54,7 +58,7 @@ struct
 {{
 	EvID evID;
 	Tick due;{}
-}} {};""".format(''.join([(lambda a: '\n\t' + ' '.join(a[:-1]) + ' ' + a[-1] + ';') (s[:-2].split()) for s in x[1][1:]]), x[2][1])
+}} {};""".format(''.join([(lambda a: '\n\t' + ' '.join(a[:-1]) + ' ' + a[-1] + ';') (s[0].split()) for s in x[1][1:]]), x[2][1])
 
 def item_status(x):
 	if len(x[1]) == 0 or x[2] == [] or x[2][0] != 'item' or x[3] == 'inherit':
@@ -64,7 +68,7 @@ struct
 {{
 	EvID evID;
 	Tick due;{}
-}} {};""".format(''.join([(lambda a: '\n\t' + ' '.join(a[:-1]) + ' ' + a[-1] + ';') (s[:-2].split()) for s in x[1][1:]]), x[2][1])
+}} {};""".format(''.join([(lambda a: '\n\t' + ' '.join(a[:-1]) + ' ' + a[-1] + ';') (s[0].split()) for s in x[1][1:]]), x[2][1])
 
 def check_state(x):
 	if x[2] == []:
@@ -72,11 +76,11 @@ def check_state(x):
 	if x[2][0] == 'mons':
 		return '''
 			if (qev->ID != mons_internal(ev->{0}.{1})->status.{2}.evID)
-				return;'''.format (x[0], x[1][0][:-2].split()[1], x[2][1])
+				return;'''.format (x[0], x[1][0][0].split()[1], x[2][1])
 	elif x[2][0] == 'item':
 		return '''
 			if (qev->ID != it_internal(ev->{0}.{1})->status.{2}.evID)
-				return;'''.format (x[0], x[1][0][:-2].split()[1], x[2][1])
+				return;'''.format (x[0], x[1][0][0].split()[1], x[2][1])
 	assert (0)
 
 def finish_state(x):
@@ -85,11 +89,11 @@ def finish_state(x):
 	if x[2][0] == 'mons':
 		return '''
 			if (mons_is (ev->{0}.{1}))
-				mons_internal (ev->{0}.{1})->status.{2}.evID = 0;'''.format (x[0], x[1][0][:-2].split()[1], x[2][1])
+				mons_internal (ev->{0}.{1})->status.{2}.evID = 0;'''.format (x[0], x[1][0][0].split()[1], x[2][1])
 	if x[2][0] == 'item':
 		return '''
 			if (it_is (ev->{0}.{1}))
-				it_internal (ev->{0}.{1})->status.{2}.evID = 0;'''.format (x[0], x[1][0][:-2].split()[1], x[2][1])
+				it_internal (ev->{0}.{1})->status.{2}.evID = 0;'''.format (x[0], x[1][0][0].split()[1], x[2][1])
 	assert (0)
 
 def case(x):
@@ -98,11 +102,11 @@ def case(x):
 		{{{5}{1}{6}
 			{4}ev_{0} ({2});{3}
 			return;
-		}}""".format (x[0], myjoin ('', prep_string, x), myjoin (', ', arg_string, x), myjoin('', post_string, x), if_fun (myjoin(' && ', and_string, [x[0],[a for a in x[1] if a.split()[0] in {'MonsID', 'ItemID'}]])), check_state(x), finish_state(x))
+		}}""".format (x[0], myjoin ('', prep_string, x), myjoin (', ', arg_string, x), post_string (x), if_fun (myjoin(' && ', and_string, [x[0], [[s[0]] for s in x[1] if s[0].split()[0] in {'MonsID', 'ItemID'} and '(optional)' not in s[1]]])), check_state(x), finish_state(x))
 
 def event_qdecl(x):
 	return """void ev_queue_{0} (Tick udelay{1});
-""".format(x[0], ''.join([', ' + s[2:-2] for s in x[1]]))
+""".format(x[0], ''.join([', ' + s[0] for s in x[1]]))
 
 def event_queue(x):
 	status_str = ''
@@ -111,16 +115,16 @@ def event_queue(x):
 		var_str = 'struct QEv *qev = '
 		if x[2][0] == 'mons':
 			status_str = '''
-	mons_internal ({0})->status.{1} = (typeof(mons_internal ({0})->status.{1})) {{qev->ID, qev->tick{2}}};'''.format(x[1][0][:-2].split()[1], x[2][1], ''.join([', ' + s[:-2].split()[-1] for s in x[1][1:]]), x[0])
+	mons_internal ({0})->status.{1} = (typeof(mons_internal ({0})->status.{1})) {{qev->ID, qev->tick{2}}};'''.format(x[1][0][0].split()[1], x[2][1], ''.join([', ' + s[0].split()[-1] for s in x[1][1:]]), x[0])
 		if x[2][0] == 'item':
 			status_str = '''
-	it_internal ({0})->status.{1} = (typeof(it_internal ({0})->status.{1})) {{qev->ID, qev->tick{2}}};'''.format(x[1][0][:-2].split()[1], x[2][1], ''.join([', ' + s[:-2].split()[-1] for s in x[1][1:]]), x[0])
+	it_internal ({0})->status.{1} = (typeof(it_internal ({0})->status.{1})) {{qev->ID, qev->tick{2}}};'''.format(x[1][0][0].split()[1], x[2][1], ''.join([', ' + s[0].split()[-1] for s in x[1][1:]]), x[0])
 	return """
 void ev_queue_{0} (Tick udelay{3})
 {{
 	{2}ev_queue_aux (udelay, (union Event) {{ .{0} = {{EV_{0}{4}}}}});{1}
 }}
-""".format(x[0], status_str, var_str, ''.join([', ' + s[2:-2] for s in x[1]]), ''.join([', ' + s[:-2].split()[-1] for s in x[1]]))
+""".format(x[0], status_str, var_str, ''.join([', ' + s[0] for s in x[1]]), ''.join([', ' + s[0].split()[-1] for s in x[1]]))
 
 def main():
 	in_file = open('gen/event.h.gen')
@@ -146,7 +150,12 @@ def main():
 		elif len(parsed) == 0:
 			print("Entry must start with '|'")
 			return
-		parsed[-1][1].append ("\t\t" + line+";\n")
+		options = set()
+		segs = line.split()
+		for seg in segs:
+			if seg[0] == '(':
+				options.add (seg)
+		parsed[-1][1].append ([' '.join([seg for seg in segs if seg[0] != '(']), options])
 	out_1 = open('auto/event.enum.h', 'w')
 	out_1.write ('//generated!\n' + ',\n'.join(['\tEV_'+x[0] for x in parsed]))
 	out_2 = open('auto/event.union.h', 'w')
@@ -154,7 +163,7 @@ def main():
 """	struct
 	{
 		EV_TYPE type;
-""" + "".join(x[1]) + "\t} " + x[0] + ";\n" for x in parsed]))
+""" + "".join(['\t\t' + s[0] + ';\n' for s in x[1]]) + "\t} " + x[0] + ";\n" for x in parsed]))
 	out_3 = open('auto/event.switch.h', 'w')
 	switch = ''.join ([case(x) for x in parsed])
 	out_3.write(

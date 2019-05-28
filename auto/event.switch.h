@@ -41,7 +41,7 @@ void ev_do (const struct QEv *qev)
 			if (it_is (ev->proj_move.itemID))
 				it_internal (ev->proj_move.itemID)->status.flight.evID = 0;
 			if (it_is (ev->proj_move.itemID))
-				ev_proj_move (ev->proj_move.itemID, ev->proj_move.bres, ev->proj_move.speed);
+				ev_proj_move (ev->proj_move.itemID, ev->proj_move.bres, ev->proj_move.speed, ev->proj_move.frID);
 			return;
 		}
 		case EV_item_explode:
@@ -140,8 +140,6 @@ void ev_do (const struct QEv *qev)
 		{
 			if (mons_is (ev->mregen.monsID))
 				ev_mregen (ev->mregen.monsID);
-			if (mons_is (ev->mregen.monsID))
-				mons_poll (ev->mregen.monsID);
 			return;
 		}
 		case EV_mbleed:

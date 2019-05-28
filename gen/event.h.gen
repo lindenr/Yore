@@ -1,10 +1,10 @@
 // generate event lists and types
 // events are | <name>
+// or         > <name>
+// for initial and follow-on events resp
 // event parameters are <type> <name> separated by whitespace (the type may contain whitespace)
-//	| x[0]
-//		[x[1][0],
-//		x[1][1],
-//		...]
+// if <type> is MonsID or ItemID it will automatically check for existence before the event unless (optional) is specified
+// if <type> is MonsID it will automatically poll the monster after the event unless (nopoll) is specified
 
 | world_init
 | player_init
@@ -20,7 +20,7 @@
 	ItemID itemID
 	struct BresState bres
 	int speed
-	//MonsID frID (optional)
+	MonsID frID (optional) (nopoll)
 | item_explode
 	ItemID itemID
 	int force
@@ -34,13 +34,11 @@
 	int zdir
 	int ydir
 	int xdir
-// state and event details are same
 | mdoevade mons.evade
 	MonsID monsID
 	int zdir
 	int ydir
 	int xdir
-// event details as given, state as above; state preserved from mdoevade to this
 > munevade
 	MonsID monsID
 | mdoshield mons.shield
@@ -59,8 +57,7 @@
 	MonsID monsID
 | mgen
 | mregen
-// no poll?
-	MonsID monsID
+	MonsID monsID (nopoll)
 | mbleed mons.bleed
 	MonsID monsID
 | mwield

@@ -25,10 +25,10 @@ void ev_queue_mthrow (Tick udelay, MonsID monsID, ItemID itemID, int ydest, int 
 	ev_queue_aux (udelay, (union Event) { .mthrow = {EV_mthrow, monsID, itemID, ydest, xdest}});
 }
 
-void ev_queue_proj_move (Tick udelay, ItemID itemID, struct BresState bres, int speed)
+void ev_queue_proj_move (Tick udelay, ItemID itemID, struct BresState bres, int speed, MonsID frID)
 {
-	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .proj_move = {EV_proj_move, itemID, bres, speed}});
-	it_internal (itemID)->status.flight = (typeof(it_internal (itemID)->status.flight)) {qev->ID, qev->tick, bres, speed};
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .proj_move = {EV_proj_move, itemID, bres, speed, frID}});
+	it_internal (itemID)->status.flight = (typeof(it_internal (itemID)->status.flight)) {qev->ID, qev->tick, bres, speed, frID};
 }
 
 void ev_queue_item_explode (Tick udelay, ItemID itemID, int force)

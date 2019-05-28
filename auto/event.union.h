@@ -30,6 +30,7 @@
 		ItemID itemID;
 		struct BresState bres;
 		int speed;
+		MonsID frID;
 	} proj_move;
 	struct
 	{
