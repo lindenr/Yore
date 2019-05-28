@@ -95,7 +95,7 @@ void ev_mthrow (MonsID mons, ItemID item, int ydest, int xdest)
 	union ItemLoc loc = it_monsdloc (mons);
 	struct BresState bres;
 	bres_init (&bres, loc.dlvl.yloc, loc.dlvl.xloc, ydest, xdest);
-	item_put (item, loc);
+	it_put (item, loc);
 	// TODO: delay (i.e. actual speed) depends on speed variable?
 	ev_queue (60, proj_move, item, bres, speed, mons);
 }
@@ -144,7 +144,7 @@ void proj_hit_monster (ItemID item, MonsID mons, MonsID from)
 	eff_proj_hits_mons (item, mons, damage);
 	mons_take_damage (mons, 0, damage, it_dtyp (item));
 
-	//item_put (item, (union ItemLoc) {.fl = fl});
+	//it_put (item, (union ItemLoc) {.fl = fl});
 	if (!from)
 		return;
 	if (mons_gets_exp (from))
@@ -171,7 +171,7 @@ void ev_proj_move (ItemID item, struct BresState bres, int speed, MonsID from)
 	dlvl.yloc = bres.cy;
 	dlvl.xloc = bres.cx;
 	speed -= 1;
-	item_put (item, (union ItemLoc) {.dlvl = dlvl});
+	it_put (item, (union ItemLoc) {.dlvl = dlvl});
 	MonsID mons = lvl->monsIDs[dlv_index (lvl, dlvl.zloc, dlvl.yloc, dlvl.xloc)];
 	if (mons)
 	{
@@ -184,10 +184,10 @@ void ev_proj_move (ItemID item, struct BresState bres, int speed, MonsID from)
 
 void ev_item_explode (ItemID item, int force)
 {
-	/*struct ItemInFlight fl;
-	if (!it_flight (item, &fl))
-		return;
-	int ydest = fl.yloc, xdest = fl.xloc;
+	struct ItemInDlvl dl;
+	if (!it_dlvl(item, &dl))
+		return; // ??
+	int y = dl.yloc, x = dl.xloc;
 	int R = force;
 	int r2 = (R-1)*(R-1), R2 = (R+1)*(R+1);
 	int i, j;
@@ -197,10 +197,10 @@ void ev_item_explode (ItemID item, int force)
 		int d2 = i*i + j*j;
 		if (d2 >= r2 && d2 <= R2)
 		{
-			bres_init (&bres, ydest, xdest, ydest + i, xdest + j);
-			ev_queue (0, line_explode, fl.dlevel, fl.zloc, fl.bres, 0);
+			bres_init (&bres, y, x, y + i, x + j);
+			ev_queue (0, line_explode, dl.dlevel, dl.zloc, bres, 0);
 		}
-	}*/ // TODO
+	}
 	it_destroy (item);
 }
 
@@ -433,7 +433,7 @@ void ev_mpickup (MonsID mons, V_ItemID pickup)
 			break;
 	//pick_up_item:
 		/* Pick up the item */
-		item_put (item, (union ItemLoc) { .inv = {LOC_INV, mons, j}});
+		it_put (item, (union ItemLoc) { .inv = {LOC_INV, mons, j}});
 		/* Say so */
 		eff_mons_picks_up_item (mons, item);
 	}
@@ -453,7 +453,7 @@ void ev_mdrop (MonsID mons, V_ItemID items)
 		ItemID drop = items->data[i];
 		if (it_worn (drop))
 			continue;
-		item_put (drop, loc);
+		it_put (drop, loc);
 	}
 	v_free (items);
 }
@@ -480,7 +480,7 @@ void ev_mfireball (MonsID mons, int ydest, int xdest, int attk)
 	struct BresState bres;
 	bres_init (&bres, y, x, ydest, xdest);
 	
-	ItemID item = item_create (&newitem, loc);
+	ItemID item = it_create (&newitem, loc);
 	it_set_attk (item, attk);
 	ev_queue (60, proj_move, item, bres, 10, mons);
 }
@@ -495,7 +495,7 @@ void ev_mwater_bolt (MonsID mons, int ydest, int xdest, int attk)
 	struct BresState bres;
 	bres_init (&bres, y, x, ydest, xdest);
 	
-	ItemID item = item_create (&newitem, loc);
+	ItemID item = it_create (&newitem, loc);
 	it_set_attk (item, attk);
 	ev_queue (60, proj_move, item, bres, 10, mons);
 }
@@ -540,7 +540,7 @@ void ev_compute (ItemID item)
 	mons_getloc (mons, &d, &z, &y, &x);
 	if (z == dl.zloc && abs(y - dl.yloc) < 10 && abs(x - dl.xloc) < 10)
 		it_shoot (item, z, y, x);
-	ev_queue (1500, compute, item);
+	ev_queue (600, compute, item);
 }
 
 #include "auto/event.switch.h"

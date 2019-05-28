@@ -64,7 +64,7 @@ void it_destroy (ItemID item)
 }
 
 // locate an extant item
-void item_locate (ItemID item, union ItemLoc loc)
+void it_locate (ItemID item, union ItemLoc loc)
 {
 	int n;
 	MonsID mons;
@@ -86,34 +86,34 @@ void item_locate (ItemID item, union ItemLoc loc)
 	case LOC_INV:
 		mons = inv.monsID;
 		if (!pack_add (mons_pack (mons), item, inv.invnum))
-			panic("item already in inventory location in item_locate");
+			panic("item already in inventory location in it_locate");
 		return;
 	case LOC_WIELDED:
 		mons = wield.monsID;
 		if (!pack_add (mons_pack (mons), item, wield.invnum))
-			panic("item already in inventory location in item_locate");
+			panic("item already in inventory location in it_locate");
 		if (mons_getweap (mons, wield.arm))
-			panic("already wielding an item in item_locate");
+			panic("already wielding an item in it_locate");
 		mons_setweap (mons, wield.arm, item);
 		return;
 	}
-	panic("end of item_locate reached");
+	panic("end of it_locate reached");
 }
 
 // allocate memory for new item
-ItemID item_create (struct Item_internal *ii, union ItemLoc loc)
+ItemID it_create (struct Item_internal *ii, union ItemLoc loc)
 {
 	ii = v_push (all_items, ii);
 	ItemID item = ii->ID = all_items->len - 1;
-	item_locate (item, loc);
+	it_locate (item, loc);
 	return item;
 }
 
 // change location of an extant item
-void item_put (ItemID item, union ItemLoc loc)
+void it_put (ItemID item, union ItemLoc loc)
 {
 	item_rem (item);
-	item_locate (item, loc);
+	it_locate (item, loc);
 }
 
 void set_tile (struct DLevel *lvl, DTile type, int w)
@@ -176,7 +176,7 @@ MonsID mons_create (struct DLevel *lvl, int z, int y, int x, struct Monster_inte
 		panic ("monster already there!");
 	lvl->monsIDs[n] = mons;
 	draw_map_buf (lvl, n);
-	ev_queue (1000 + rn(1000), mpoll, mons);
+	ev_queue (rn(100), mpoll, mons);
 	ev_queue (1, mregen, mons);
 	return mons;
 }
@@ -347,10 +347,10 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 	for (i = 0; i < lvl->itemIDs[w]->len; ++ i)
 	{
 		ItemID item = lvl->itemIDs[w]->data[lvl->itemIDs[w]->len-1-i];
+		if (it_event (item, flight))
+			return it_gl (item) | COL_BG (5,5,5);
 		if (it_loc (item) == LOC_DLVL)
 			return it_gl (item);
-		else if (it_event (item, flight))
-			return it_gl (item) | COL_BG (5,5,5);
 	}
 
 	DTile t = lvl->tiles[w];

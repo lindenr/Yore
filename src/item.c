@@ -175,7 +175,7 @@ void item_gen (union ItemLoc loc)
 	}
 	else*/
 		item = new_item (typ);
-	item_create (&item, loc);
+	it_create (&item, loc);
 }
 
 int it_persistent (ItemID item)
@@ -457,7 +457,7 @@ void it_shoot (ItemID item, int zdest, int ydest, int xdest)
 	struct BresState bres;
 	bres_init (&bres, d.yloc, d.xloc, ydest, xdest);
 
-	ItemID bullet = item_create (&newitem, loc);
+	ItemID bullet = it_create (&newitem, loc);
 	it_set_attk (bullet, 5);
 	int speed = 100;
 	ev_queue (60, proj_move, bullet, bres, speed, 0);

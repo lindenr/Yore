@@ -405,7 +405,7 @@ void mons_wield (MonsID mons, int arm, ItemID item)
 	struct ItemInInv inv;
 	if (!it_inv (item, &inv))
 		return; // what??
-	item_put (item, (union ItemLoc) { .wield = {LOC_WIELDED, mons, inv.invnum, arm}});
+	it_put (item, (union ItemLoc) { .wield = {LOC_WIELDED, mons, inv.invnum, arm}});
 }
 
 void mons_unwield (MonsID mons, int arm)
@@ -414,7 +414,7 @@ void mons_unwield (MonsID mons, int arm)
 	ItemID item = mons_getweap (mons, arm);
 	if (!it_wield (item, &wield))
 		return; // what??
-	item_put (item, (union ItemLoc) { .inv = {LOC_INV, mons, wield.invnum}});
+	it_put (item, (union ItemLoc) { .inv = {LOC_INV, mons, wield.invnum}});
 }
 
 void mons_wear (MonsID mons, ItemID item, size_t offset)
@@ -513,7 +513,7 @@ void mons_dead (MonsID mons)
 		ItemID item = p->items[i];
 		if (!item)
 			continue;
-		item_put (item, it_monsdloc (mons));
+		it_put (item, it_monsdloc (mons));
 	}
 
 	/* item drops */
@@ -522,7 +522,7 @@ void mons_dead (MonsID mons)
 	/* add corpse */
 	struct Item_internal corpse;
 	mons_corpse (mons, &corpse);
-	ItemID ret = item_create (&corpse, it_monsdloc (mons));
+	ItemID ret = it_create (&corpse, it_monsdloc (mons));
 	ev_queue (50000 + rn(10000), itrot, ret);
 
 	/* remove dead monster */

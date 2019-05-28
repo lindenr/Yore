@@ -1,8 +1,8 @@
 TARGET = Yore
-CLFLAGS = #-fsanitize=address
+CLFLAGS = -g -O0 #-fsanitize=address
 LIBS = -lm $(shell sdl2-config --libs) $(CLFLAGS)
 CC = gcc
-CFLAGS = -I$(CURDIR) -funsigned-char -Wall -Werror $(shell sdl2-config --cflags) -g -O0 $(CLFLAGS)
+CFLAGS = -I$(CURDIR) -funsigned-char -Wall -Werror $(shell sdl2-config --cflags) $(CLFLAGS)
 
 .PHONY: default all clean
 

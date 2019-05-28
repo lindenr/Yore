@@ -17,8 +17,8 @@ void    update_knowledge (MonsID);
 
 glyph   glyph_to_draw  (struct DLevel *, int, int);
 
-ItemID  item_create    (struct Item_internal *, union ItemLoc loc);
-void    item_put       (ItemID, union ItemLoc loc);
+ItemID  it_create      (struct Item_internal *, union ItemLoc loc);
+void    it_put         (ItemID, union ItemLoc loc);
 void    it_destroy     (ItemID);
 
 //void walls_test ();

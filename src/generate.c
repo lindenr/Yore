@@ -481,39 +481,39 @@ MonsID gen_player (int zloc, int yloc, int xloc, char *name)
 	ItemID item;
 	//int num = rn(40)+20;
 	struct Item_internal myitem = new_item (ITYP_GOLD_PIECE);
-	item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 0}});
+	it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 0}});
 	struct Item_internal myaxe = new_item (ITYP_DAGGER);
-	item = item_create (&myaxe, (union ItemLoc) { .dlvl = {LOC_INV, pl, 1}});
+	item = it_create (&myaxe, (union ItemLoc) { .dlvl = {LOC_INV, pl, 1}});
 	mons_wield (pl, 0, item);
 	//struct Skill skill = {SK_USE_DAGGER, 0, 1};
 	//mons_skill_push (pl, &skill); TODO
 	myitem = new_item (ITYP_LEATHER_HAT);
-	item = item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 2}});
+	item = it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 2}});
 	mons_wear (pl, item, offsetof (struct WoW, heads[0]));
 	myitem = new_item (ITYP_CLOTH_TUNIC);
-	item = item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 3}});
+	item = it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 3}});
 	mons_wear (pl, item, offsetof (struct WoW, torsos[0]));
 	myitem = new_item (ITYP_FORCE_SHARD);
 	int i;
 	for (i = 4; i < 10; ++ i)
-		item = item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, i}});
+		item = it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, i}});
 	myitem = new_item (ITYP_FIRE_TURRET);
-	item = item_create (&myitem, (union ItemLoc) { .dlvl = {LOC_DLVL, cur_dlevel->level, 0, cur_dlevel->h/2+1, cur_dlevel->w/2+6}});
+	item = it_create (&myitem, (union ItemLoc) { .dlvl = {LOC_DLVL, cur_dlevel->level, 0, cur_dlevel->h/2+1, cur_dlevel->w/2+6}});
 	//ev_queue (600, compute, item);
 	/*int i;
 	for (i = 4; i < 40; ++ i)
 	{
 		myitem = new_item (ityps[ITYP_CLOTH_TUNIC]);
-		item = item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, i}});
+		item = it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, i}});
 	}*/
 	/*myitem = new_item (ityps[ITYP_GLOVE]);
-	item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 3}});
+	it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 3}});
 	myitem = new_item (ityps[ITYP_CHAIN_MAIL]);
-	item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 4}});
+	it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 4}});
 	myitem = new_item (ityps[ITYP_HELMET]);
-	item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 5}});
+	it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 5}});
 	myitem = new_item (ityps[ITYP_GLOVE]);
-	item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 6}});*/
+	it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 6}});*/
 	v_push (cur_dlevel->playerIDs, &pl);
 	return pl;
 }
@@ -568,7 +568,7 @@ MonsID gen_boss (int zloc, int yloc, int xloc)
 	p.level = 1; //mons[p.type].exp? TODO
 	MonsID mons = mons_create (cur_dlevel, zloc, yloc, xloc, &p);
 	//struct Item_internal myaxe = new_item (ITYP_FIRE_AXE);
-	//item_create (&myaxe, (union ItemLoc) { .inv = {LOC_INV, th->ID, 0}});
+	//it_create (&myaxe, (union ItemLoc) { .inv = {LOC_INV, th->ID, 0}});
 	return mons;
 }
 
