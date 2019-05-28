@@ -265,12 +265,12 @@ void add_another_room ()
 struct Item *gen_item ()
 {
 	/*Ityp is;
-	memcpy (&is, &(all_items[rn(NUM_ITEMS)]), sizeof(is));
+	is = all_items[rn(NUM_ITEMS)];
 	struct Item it = {0, {.loc = LOC_NONE}, is, 0, is.wt, NULL};
 	//if (is.type == ITYP_JEWEL)
 	//	it.attr |= rn(NUM_JEWELS) << 16;
 	struct Item *ret = malloc(sizeof(it));
-	memcpy (ret, &it, sizeof(it));
+	*ret = it;
 	return ret;*/
 	return NULL;
 }
@@ -459,7 +459,7 @@ int is_safe_gen (struct DLevel *lvl, int zloc, int yloc, int xloc)
 
 void init_mons (struct Monster_internal *mons, enum MTYPE type)
 {
-	memcpy (mons, &mons_types[type], sizeof(struct Monster_internal));
+	*mons = mons_types[type];
 	mons->mtype = type;
 }
 

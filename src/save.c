@@ -194,7 +194,7 @@ void load_item (struct Item *item)
 		memclr (item, sizeof(*item));
 		return;
 	}
-	memcpy (&item->type, &items[0], sizeof(ityp));
+	item->type = items[0];
 	//store_load_block(&item->type, ptr, sizeof(ityp));
 	LOAD_NATIVE(item->attr);
 	LOAD_NATIVE(item->cur_weight);
@@ -295,7 +295,7 @@ void restore (char *filename)
 			{
 				long num;
 				LOAD_NATIVE(num);
-				memcpy (&th.thing.mis, &map_items[num], sizeof(*map_items));
+				th.thing.mis = map_items[num];
 				break;
 			}
 			default:

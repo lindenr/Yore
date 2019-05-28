@@ -148,7 +148,11 @@ int main (int argc, char *argv[])
 	if (U.playing == PLAYER_LOSTGAME)
 		printf("Goodbye %s...\n", player_name);
 	else if (U.playing == PLAYER_SAVEGAME)
+	{
+		printf("Saving game for %s...", player_name);
 		save (NULL);
+		printf(" done!\n");
+	}
 	else if (U.playing == PLAYER_STARTING)
 		printf("Give it a try next time...\n");
 	else if (U.playing == PLAYER_WONGAME)

@@ -459,11 +459,11 @@ int Kgoup (MonsID player)
 	return 1;
 }*/
 
-/*int Ksave (MonsID player)
+int Ksave (MonsID player)
 {
 	U.playing = PLAYER_SAVEGAME;
 	return -1;
-}*/
+}
 
 int Kquit (MonsID player)
 {
@@ -561,7 +561,7 @@ struct KStruct Keys[] = {
 //	{CONTROL_(GRK_UP), &Klookup},
 //	{'>',    &Kgodown},
 //	{'<',    &Kgoup},
-//	{'S',    &Ksave,   NULL},
+	{'S',    &Ksave,   NULL},
 	{GR_CTRL('q'), &Kquit, NULL}
 };
 

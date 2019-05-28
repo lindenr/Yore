@@ -419,15 +419,15 @@ enum ITEM_LOC it_get_loc (ItemID item, struct ItemInDlvl *d, struct ItemInInv *i
 		break;
 	case LOC_DLVL:
 		if (d)
-			memcpy (d, &ii->loc.dlvl, sizeof(*d));
+			*d = ii->loc.dlvl;
 		break;
 	case LOC_INV:
 		if (i)
-			memcpy (i, &ii->loc.inv, sizeof(*i));
+			*i = ii->loc.inv;
 		break;
 	case LOC_WIELDED:
 		if (w)
-			memcpy (w, &ii->loc.wield, sizeof(*w));
+			*w = ii->loc.wield;
 		break;
 	}
 	return ii->loc.loc;
