@@ -16,7 +16,7 @@ enum ITCAT
 	ITCAT_FOOD,
 	ITCAT_TOOL,
 	ITCAT_STRANGE,
-	ITCAT_JEWEL,
+	//ITCAT_JEWEL,
 	ITCAT_END
 };
 
@@ -108,8 +108,8 @@ enum ITEM_LOC
 	LOC_NONE = 0, /* placeholder */
 	LOC_DLVL,     /* on the ground */
 	LOC_INV,      /* in a monster inventory (or chest?) */
-	LOC_WIELDED,  /* wielded by a monster */
-	LOC_FLIGHT    /* in flight in the dungeon */
+	LOC_WIELDED//,  /* wielded by a monster */
+	//LOC_FLIGHT    /* in flight in the dungeon */
 };
 
 struct ItemInDlvl
@@ -134,19 +134,9 @@ struct ItemWielded
 	int arm;
 };
 
-struct ItemInFlight
-{
-	enum ITEM_LOC loc;
-	int dlevel;
-	int zloc, yloc, xloc;
-	struct BresState bres;
-	int speed;
-	MonsID frID;
-};
-
 #define switch_loc(item) \
-struct ItemInDlvl dlvl; struct ItemInInv inv; struct ItemWielded wield; struct ItemInFlight fl;\
-switch (it_get_loc ((item), &dlvl, &inv, &wield, &fl))
+struct ItemInDlvl dlvl; struct ItemInInv inv; struct ItemWielded wield; \
+switch (it_get_loc ((item), &dlvl, &inv, &wield))
 
 union ItemLoc
 {
@@ -154,7 +144,11 @@ union ItemLoc
 	struct ItemInDlvl dlvl;
 	struct ItemInInv inv;
 	struct ItemWielded wield;
-	struct ItemInFlight fl;
+};
+
+struct ItemStatus
+{
+#include "auto/item.status.h"
 };
 
 /* an actual physical item */
@@ -162,6 +156,7 @@ struct Item_internal
 {
 	ItemID ID;
 	union ItemLoc loc;
+	struct ItemStatus status;
 	enum ITEM_TYPE qtype;
 	//uint32_t attr;
 	int wt;
@@ -187,7 +182,7 @@ struct Item_internal
 
 extern Ityp ityps[];
 
-#define new_item(typ) ((struct Item_internal) {0, { .loc = LOC_NONE}, (typ), ityps[typ].wt, ityps[typ].attk, ityps[typ].def, -1})
+#define new_item(typ) ((struct Item_internal) {0, { .loc = LOC_NONE}, {{0,},}, (typ), ityps[typ].wt, ityps[typ].attk, ityps[typ].def, -1})
 
 void ityp_init      ();
 
@@ -227,6 +222,9 @@ enum DMG_TYPE it_dtyp (ItemID item);
 /* get mergibility of two item stacks */
 //int it_can_merge (const ItemID it1, const ItemID it2);
 
+/* is undergoing event */
+#define it_event(it, ev) (it_internal (it)->status.ev.evID)
+
 int it_flag (ItemID, int);
 
 enum ITEM_TYPE it_type (ItemID);
@@ -246,11 +244,10 @@ enum ITCAT it_category (enum ITSORT type);
 /* get item location */
 enum ITEM_LOC it_loc (ItemID item);
 enum ITEM_LOC it_get_loc (ItemID item,
-	struct ItemInDlvl *, struct ItemInInv *, struct ItemWielded *, struct ItemInFlight *);
+	struct ItemInDlvl *, struct ItemInInv *, struct ItemWielded * /*, struct ItemInFlight * */);
 int it_dlvl (ItemID item, struct ItemInDlvl *);
 int it_inv (ItemID item, struct ItemInInv *);
 int it_wield (ItemID item, struct ItemWielded *);
-int it_flight (ItemID item, struct ItemInFlight *);
 
 /* Side-effects: */
 
@@ -278,7 +275,7 @@ void it_set_def (ItemID item, int def);
 void it_fl_to_dlv (ItemID item);
 
 /* fill the location for a flying object starting from a monster */
-union ItemLoc it_monsfloc (MonsID mons, int speed);
+//union ItemLoc it_monsfloc (MonsID mons, int speed);
 
 /* return loc for monster in dgn */
 union ItemLoc it_monsdloc (MonsID mons);

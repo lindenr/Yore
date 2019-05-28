@@ -30,7 +30,7 @@ struct Graph
 	int t, h, w, A, v;  /* graph dimensions: thickness, height, width, area=h*w, volume=h*w*t */
 	int glh, glw;       /* glyph dimensions */
 	int gldy, gldx;     /* change in y, x pixel coords when going up one level; must be nonpositive */
-	glyph *data;//, *old;  /* h*w*t grid of glyphs */
+	glyph *data;        /* h*w*t grid of glyphs */
 	gflags *flags;      /* tracks (changes and) subpixel options */
 	int cpy, cpx, cz, ct; /* camera location and depth */
 	int vpy, vpx, vph, vpw; /* view location and dimensions on the window */

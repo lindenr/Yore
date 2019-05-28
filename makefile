@@ -1,7 +1,8 @@
 TARGET = Yore
-LIBS = -lm $(shell sdl2-config --libs) -fsanitize=address
+CLFLAGS = #-fsanitize=address
+LIBS = -lm $(shell sdl2-config --libs) $(CLFLAGS)
 CC = gcc
-CFLAGS = -I$(CURDIR) -funsigned-char -Wall -Werror $(shell sdl2-config --cflags) -g -O0 -fsanitize=address
+CFLAGS = -I$(CURDIR) -funsigned-char -Wall -Werror $(shell sdl2-config --cflags) -g -O0 $(CLFLAGS)
 
 .PHONY: default all clean
 
@@ -25,7 +26,7 @@ obj/%.o: src/%.c $(HEADERS) gen-target
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) $(LIBS) -o $@
-	gdb ./Yore
+	./Yore
 
 clean:
 	-rm -f *.o

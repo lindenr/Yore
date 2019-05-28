@@ -44,13 +44,6 @@ void item_rem (ItemID item)
 		rem_ItemID (items, item);
 		draw_map_buf (lvl, n);
 		return;
-	case LOC_FLIGHT:
-		lvl = dlv_lvl (fl.dlevel);
-		n = dlv_index (lvl, fl.zloc, fl.yloc, fl.xloc);
-		items = lvl->itemIDs[n];
-		rem_ItemID (items, item);
-		draw_map_buf (lvl, n);
-		return;
 	case LOC_INV:
 		pack_rem (mons_pack (inv.monsID), inv.invnum);
 		return;
@@ -77,7 +70,7 @@ void item_locate (ItemID item, union ItemLoc loc)
 	MonsID mons;
 	struct DLevel *lvl;
 	struct Item_internal *ii = it_internal (item);
-	memcpy (&ii->loc, &loc, sizeof(loc));
+	ii->loc = loc;
 	switch_loc (item)
 	{
 	case LOC_NONE:
@@ -87,12 +80,8 @@ void item_locate (ItemID item, union ItemLoc loc)
 		n = dlv_index (lvl, dlvl.zloc, dlvl.yloc, dlvl.xloc);
 		v_push (lvl->itemIDs[n], &item);
 		draw_map_buf (lvl, n);
-		return;
-	case LOC_FLIGHT:
-		lvl = dlv_lvl(fl.dlevel);
-		n = dlv_index (lvl, fl.zloc, fl.yloc, fl.xloc);
-		v_push (lvl->itemIDs[n], &item);
-		draw_map_buf (lvl, n);
+		if (it_sort (item) == ITSORT_TURRET && !it_event (item, compute))
+			ev_queue (100, compute, item);
 		return;
 	case LOC_INV:
 		mons = inv.monsID;
@@ -360,7 +349,7 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 		ItemID item = lvl->itemIDs[w]->data[lvl->itemIDs[w]->len-1-i];
 		if (it_loc (item) == LOC_DLVL)
 			return it_gl (item);
-		else if (it_loc (item) == LOC_FLIGHT && looking)
+		else if (it_event (item, flight))
 			return it_gl (item) | COL_BG (5,5,5);
 	}
 

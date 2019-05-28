@@ -168,7 +168,7 @@ struct MStatus
 
 struct Monster_internal
 {
-	MonsID ID;                /* monster ID                   */
+	MonsID ID;             /* monster ID                   */
 	int dlevel;            /* parent dungeon level         */
 	int zloc, yloc, xloc;  /* location in dungeon          */
 	enum MTYPE mtype;      /* monster type                 */

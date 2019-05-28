@@ -544,7 +544,8 @@ int p_skills (MonsID player, enum PanelType type)
 	return 0;
 }
 
-//static Graph overlay = NULL;
+static Graph overlay = NULL;
+extern Graph map_graph;
 
 void show_disc_on_overlay (enum P_MV action, int dlevel, int fz, int fy, int fx, int tz, int ty, int tx)
 {/*
@@ -567,7 +568,7 @@ void show_disc_on_overlay (enum P_MV action, int dlevel, int fz, int fy, int fx,
 
 void show_path_on_overlay (enum P_MV action, int dlevel, int fz, int fy, int fx, int tz, int ty, int tx)
 {
-	/*if (action == P_MV_END)
+	if (action == P_MV_END)
 	{
 		gra_hide (overlay);
 		return;
@@ -575,13 +576,20 @@ void show_path_on_overlay (enum P_MV action, int dlevel, int fz, int fy, int fx,
 	else if (action == P_MV_START)
 	{
 		if (!overlay)
-			overlay = gra_init (map_graph->h, map_graph->w, 0, 0, map_graph->vh, map_graph->vw);
+		{
+			overlay = grx_init (1, map_graph->h, map_graph->w,
+				12, 8, 0, 0,
+				(fz+3)*map_graph->gldy, (fz+3)*map_graph->gldx, map_graph->vph, map_graph->vpw, 1);
+			grx_cshow (overlay);
+		}
 		gra_show (overlay);
-		gra_movecam (overlay, map_graph->cy, map_graph->cx);
+		gra_movecam (overlay, map_graph->cpy, map_graph->cpx);
 	}
 	gra_clear (overlay);
-	gra_drawline (overlay, ty, tx, fy, fx, output_colours);
-	gra_mvaddch (overlay, fy, fx, 0);*/
+	gra_drawline (overlay, fy, fx, ty, tx, output_colours);
+	gra_mvaddch (overlay, fy, fx, 0);
+	grx_cmove (overlay, 0, ty, tx);
+	//gra_mvaddch (overlay, ty, tx, '.');
 }
 
 Graph gra_n = NULL;
@@ -663,9 +671,9 @@ int p_mvchoose (MonsID player, int *zloc, int *yloc, int *xloc,
 			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x+1);
 		//if (gra_nearedge (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x))
 		//	gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);*/
+		c_y += ymove; c_x += xmove;
 		if (update_output)
 			update_output (P_MV_CHOOSING, dlevel, o_z, o_y, o_x, c_z, c_y, c_x);
-		c_y += ymove; c_x += xmove;
 		key = p_getch (player);
 		p_move (&ymove, &xmove, key);
 	}

@@ -32,7 +32,7 @@ void ev_loop ();
 #include "auto/event.qdecl.h"
 
 struct QEv *ev_queue_aux (Tick udelay, union Event ev);
-#define ev_queue(tick, ev, ...) ev_queue_ ## ev ((tick), (union Event) { .ev = {EV_ ## ev, __VA_ARGS__}})
+#define ev_queue(tick, ev, ...) ev_queue_ ## ev ((tick), ##__VA_ARGS__)
 
 #endif /* EVENT_H_INCLUDED */
 

@@ -16,20 +16,11 @@
 	ItemID itemID
 	int ydest
 	int xdest
-| proj_move
+| proj_move item.flight
 	ItemID itemID
-
-// TODO remove
-| proj_done
-	ItemID itemID
-// TODO remove
-| proj_hit_barrier
-	ItemID itemID
-// TODO remove
-| proj_hit_monster
-	ItemID itemID
-	MonsID monsID
-
+	struct BresState bres
+	int speed
+	//MonsID frID (optional)
 | item_explode
 	ItemID itemID
 	int force
@@ -38,27 +29,27 @@
 	int zloc
 	struct BresState bres
 	int dist
-| mdomove .move
+| mdomove mons.move
 	MonsID monsID
 	int zdir
 	int ydir
 	int xdir
 // state and event details are same
-| mdoevade .evade
+| mdoevade mons.evade
 	MonsID monsID
 	int zdir
 	int ydir
 	int xdir
-// event details as given, state as above
+// event details as given, state as above; state preserved from mdoevade to this
 > munevade
 	MonsID monsID
-| mdoshield .shield
+| mdoshield mons.shield
 	MonsID monsID
 	int ydir
 	int xdir
 > munshield
 	MonsID monsID
-| mdohit .hit
+| mdohit mons.hit
 	MonsID frID
 	int arm
 	int zdir
@@ -70,7 +61,7 @@
 | mregen
 // no poll?
 	MonsID monsID
-| mbleed .bleed
+| mbleed mons.bleed
 	MonsID monsID
 | mwield
 	MonsID monsID
@@ -129,5 +120,5 @@
 	MonsID monsID
 	int ydest
 	int xdest
-| compute
+| compute item.compute
 	ItemID itemID

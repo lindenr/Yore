@@ -499,7 +499,7 @@ MonsID gen_player (int zloc, int yloc, int xloc, char *name)
 		item = item_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, i}});
 	myitem = new_item (ITYP_FIRE_TURRET);
 	item = item_create (&myitem, (union ItemLoc) { .dlvl = {LOC_DLVL, cur_dlevel->level, 0, cur_dlevel->h/2+1, cur_dlevel->w/2+6}});
-	ev_queue (2000, compute, item);
+	//ev_queue (600, compute, item);
 	/*int i;
 	for (i = 4; i < 40; ++ i)
 	{

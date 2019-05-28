@@ -28,23 +28,9 @@
 	{
 		EV_TYPE type;
 		ItemID itemID;
+		struct BresState bres;
+		int speed;
 	} proj_move;
-	struct
-	{
-		EV_TYPE type;
-		ItemID itemID;
-	} proj_done;
-	struct
-	{
-		EV_TYPE type;
-		ItemID itemID;
-	} proj_hit_barrier;
-	struct
-	{
-		EV_TYPE type;
-		ItemID itemID;
-		MonsID monsID;
-	} proj_hit_monster;
 	struct
 	{
 		EV_TYPE type;

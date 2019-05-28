@@ -165,13 +165,15 @@ void grx_drawline (Graph gra, int zloc, int fy, int fx, int ty, int tx, glyph gl
 {
 	struct BresState st;
 	bres_init (&st, fy, fx, ty, tx);
+	int diag = st.err*2 > -st.dy && st.err*2 < st.dx;
 	bres_iter (&st);
 	while (!st.done)
 	{
-		if (st.err*2 > -st.dy && st.err*2 < st.dx)
+		if (diag)
 			grx_mvaddch (gra, zloc, st.cy, st.cx, (st.sx == st.sy ? '\\' : '/') | gl);
 		else
 			grx_mvaddch (gra, zloc, st.cy, st.cx, (st.dx > st.dy ? ACS_HLINE : ACS_VLINE) | gl);
+		diag = st.err*2 > -st.dy && st.err*2 < st.dx;
 		bres_iter (&st);
 	}
 }

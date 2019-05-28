@@ -285,7 +285,7 @@ static struct String *look_str = NULL;
 void nlook_auto (MonsID player)
 {
 	nlook_msg (look_str, player);
-	//p_notify (str_data (look_str));
+	p_notify (str_data (look_str));
 	str_empty (look_str);
 }
 

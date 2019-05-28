@@ -65,12 +65,12 @@ Ityp ityps[ITYP_NUM_ITEMS + MTYP_NUM_MONS] = {
 		0),
 	ITYP("wind shard",     ITSORT_SHARD,      20,    0,  0, 0xFB        | COL_TXT( 0,15,15), 0,
 		0),
-	ITYP("fire turret",    ITSORT_TURRET,     20000, 0,  0, 0xE2        | COL_TXT(15, 2, 0), 0,
+	ITYP("fire turret",    ITSORT_TURRET,     20,    0,  0, 0xE2        | COL_TXT(15, 2, 0), 0,
 		0),
 /*  item name              type              weight   A/D     display                      */
 };
 
-char *item_appearance[] = {"(HANDS)", "Money", "Weapons", "Armour", "Food, debris", "Tools", "Strange objects", "Curios", ""};
+char *item_appearance[] = {"(HANDS)", "Money", "Weapons", "Armour", "Food, debris", "Tools", "Curios", ""};
 
 void ityp_init ()
 {
@@ -385,11 +385,11 @@ enum ITCAT it_category (enum ITSORT type)
 	case ITSORT_MONEY:
 		return ITCAT_DOSH;
 	case ITSORT_ARCANE:
-		return ITCAT_STRANGE;
 	case ITSORT_SHARD:
-		return ITCAT_JEWEL;
 	case ITSORT_TURRET:
 		return ITCAT_STRANGE;
+	//	return ITCAT_JEWEL;
+	//	return ITCAT_STRANGE;
 	}
 	panic ("end reached in it_category");
 	return -1;
@@ -397,30 +397,20 @@ enum ITCAT it_category (enum ITSORT type)
 
 int it_wield (ItemID item, struct ItemWielded *w)
 {
-	return it_get_loc (item, NULL, NULL, w, NULL) == LOC_WIELDED;
-	/*if (!item)
-		panic ("invalid item in it_wield");
-	if (it_loc (item) loc.loc == LOC_WIELDED)
-		return item->loc.wield.monsID;
-	return 0;*/
+	return it_get_loc (item, NULL, NULL, w) == LOC_WIELDED;
 }
 
 int it_inv (ItemID item, struct ItemInInv *i)
 {
-	return it_get_loc (item, NULL, i, NULL, NULL) == LOC_INV;
+	return it_get_loc (item, NULL, i, NULL) == LOC_INV;
 }
 
 int it_dlvl (ItemID item, struct ItemInDlvl *d)
 {
-	return it_get_loc (item, d, NULL, NULL, NULL) == LOC_DLVL;
+	return it_get_loc (item, d, NULL, NULL) == LOC_DLVL;
 }
 
-int it_flight (ItemID item, struct ItemInFlight *f)
-{
-	return it_get_loc (item, NULL, NULL, NULL, f) == LOC_FLIGHT;
-}
-
-enum ITEM_LOC it_get_loc (ItemID item, struct ItemInDlvl *d, struct ItemInInv *i, struct ItemWielded *w, struct ItemInFlight *f)
+enum ITEM_LOC it_get_loc (ItemID item, struct ItemInDlvl *d, struct ItemInInv *i, struct ItemWielded *w)
 {
 	struct Item_internal *ii = it_internal (item);
 	switch (ii->loc.loc)
@@ -439,10 +429,6 @@ enum ITEM_LOC it_get_loc (ItemID item, struct ItemInDlvl *d, struct ItemInInv *i
 		if (w)
 			memcpy (w, &ii->loc.wield, sizeof(*w));
 		break;
-	case LOC_FLIGHT:
-		if (f)
-			memcpy (f, &ii->loc.fl, sizeof(*f));
-		break;
 	}
 	return ii->loc.loc;
 }
@@ -450,41 +436,6 @@ enum ITEM_LOC it_get_loc (ItemID item, struct ItemInDlvl *d, struct ItemInInv *i
 enum ITEM_LOC it_loc (ItemID item)
 {
 	return it_internal (item)->loc.loc;
-}
-
-int it_index (const union ItemLoc *loc)
-{
-	if (!loc)
-		return -1;
-	switch (loc->loc)
-	{
-	case LOC_NONE:
-		return -1;
-	case LOC_DLVL:
-		return dlv_index (dlv_lvl (loc->dlvl.dlevel), loc->dlvl.zloc, loc->dlvl.yloc, loc->dlvl.xloc);
-	case LOC_INV:
-		return -1;
-	case LOC_WIELDED:
-		return -1;
-	case LOC_FLIGHT:
-		return dlv_index (dlv_lvl (loc->fl.dlevel), loc->fl.zloc, loc->fl.yloc, loc->fl.xloc);
-	}
-	return -1;
-}
-
-void it_fl_to_dlv (ItemID item)
-{
-	struct ItemInFlight f;
-	if (!it_flight(item, &f))
-		return; // ??
-	item_put (item, (union ItemLoc) { .dlvl = {LOC_DLVL, f.dlevel, f.zloc, f.yloc, f.xloc}});
-}
-
-union ItemLoc it_monsfloc (MonsID mons, int speed)
-{
-	int d, z, y, x;
-	mons_getloc (mons, &d, &z, &y, &x);
-	return (union ItemLoc) { .fl = {LOC_FLIGHT, d, z, y, x, {0,}, speed, mons}};
 }
 
 union ItemLoc it_monsdloc (MonsID mons)
@@ -499,12 +450,16 @@ void it_shoot (ItemID item, int zdest, int ydest, int xdest)
 	struct ItemInDlvl d;
 	if (!it_dlvl (item, &d))
 		return;
+	if (ydest == d.yloc && xdest == d.xloc)
+		return;
 	struct Item_internal newitem = new_item (ITYP_FIREBALL);
-	union ItemLoc loc = { .fl = {LOC_FLIGHT, d.dlevel, zdest, ydest, xdest, {0,}, 100, 0}};
-	bres_init (&loc.fl.bres, d.yloc, d.xloc, ydest, xdest);
+	union ItemLoc loc = { .dlvl = d};
+	struct BresState bres;
+	bres_init (&bres, d.yloc, d.xloc, ydest, xdest);
 
 	ItemID bullet = item_create (&newitem, loc);
 	it_set_attk (bullet, 5);
-	ev_queue (60, proj_move, bullet);
+	int speed = 100;
+	ev_queue (60, proj_move, bullet, bres, speed);
 }
 
