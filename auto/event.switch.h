@@ -1,4 +1,7 @@
-//generated!
+// Generated code - don't change directly or it will be overwritten.
+
+#ifndef event_switch_h
+#define event_switch_h
 
 void ev_do (const struct QEv *qev)
 {
@@ -28,6 +31,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mthrow:
 		{
+			if ((!mons_is (ev->mthrow.monsID)) ||
+				qev->ID != mons_internal(ev->mthrow.monsID)->status.throw.evID)
+				return;
+			if (mons_is (ev->mthrow.monsID))
+				mons_internal(ev->mthrow.monsID)->status.throw.evID = 0;
 			if (mons_is (ev->mthrow.monsID) && it_is (ev->mthrow.itemID))
 				ev_mthrow (ev->mthrow.monsID, ev->mthrow.itemID, ev->mthrow.ydest, ev->mthrow.xdest);
 			if (mons_is (ev->mthrow.monsID))
@@ -36,10 +44,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_proj_move:
 		{
-			if (qev->ID != it_internal(ev->proj_move.itemID)->status.flight.evID)
+			if ((!it_is (ev->proj_move.itemID)) ||
+				qev->ID != it_internal(ev->proj_move.itemID)->status.flight.evID)
 				return;
 			if (it_is (ev->proj_move.itemID))
-				it_internal (ev->proj_move.itemID)->status.flight.evID = 0;
+				it_internal(ev->proj_move.itemID)->status.flight.evID = 0;
 			if (it_is (ev->proj_move.itemID))
 				ev_proj_move (ev->proj_move.itemID, ev->proj_move.bres, ev->proj_move.speed, ev->proj_move.frID);
 			return;
@@ -57,10 +66,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mdomove:
 		{
-			if (qev->ID != mons_internal(ev->mdomove.monsID)->status.move.evID)
+			if ((!mons_is (ev->mdomove.monsID)) ||
+				qev->ID != mons_internal(ev->mdomove.monsID)->status.move.evID)
 				return;
 			if (mons_is (ev->mdomove.monsID))
-				mons_internal (ev->mdomove.monsID)->status.move.evID = 0;
+				mons_internal(ev->mdomove.monsID)->status.move.evID = 0;
 			if (mons_is (ev->mdomove.monsID))
 				ev_mdomove (ev->mdomove.monsID, ev->mdomove.zdir, ev->mdomove.ydir, ev->mdomove.xdir);
 			if (mons_is (ev->mdomove.monsID))
@@ -69,7 +79,8 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mdoevade:
 		{
-			if (qev->ID != mons_internal(ev->mdoevade.monsID)->status.evade.evID)
+			if ((!mons_is (ev->mdoevade.monsID)) ||
+				qev->ID != mons_internal(ev->mdoevade.monsID)->status.evade.evID)
 				return;
 			if (mons_is (ev->mdoevade.monsID))
 				ev_mdoevade (ev->mdoevade.monsID, ev->mdoevade.zdir, ev->mdoevade.ydir, ev->mdoevade.xdir);
@@ -79,10 +90,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_munevade:
 		{
-			if (qev->ID != mons_internal(ev->munevade.monsID)->status.evade.evID)
+			if ((!mons_is (ev->munevade.monsID)) ||
+				qev->ID != mons_internal(ev->munevade.monsID)->status.evade.evID)
 				return;
 			if (mons_is (ev->munevade.monsID))
-				mons_internal (ev->munevade.monsID)->status.evade.evID = 0;
+				mons_internal(ev->munevade.monsID)->status.evade.evID = 0;
 			if (mons_is (ev->munevade.monsID))
 				ev_munevade (ev->munevade.monsID);
 			if (mons_is (ev->munevade.monsID))
@@ -91,7 +103,8 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mdoshield:
 		{
-			if (qev->ID != mons_internal(ev->mdoshield.monsID)->status.shield.evID)
+			if ((!mons_is (ev->mdoshield.monsID)) ||
+				qev->ID != mons_internal(ev->mdoshield.monsID)->status.shield.evID)
 				return;
 			if (mons_is (ev->mdoshield.monsID))
 				ev_mdoshield (ev->mdoshield.monsID, ev->mdoshield.ydir, ev->mdoshield.xdir);
@@ -101,10 +114,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_munshield:
 		{
-			if (qev->ID != mons_internal(ev->munshield.monsID)->status.shield.evID)
+			if ((!mons_is (ev->munshield.monsID)) ||
+				qev->ID != mons_internal(ev->munshield.monsID)->status.shield.evID)
 				return;
 			if (mons_is (ev->munshield.monsID))
-				mons_internal (ev->munshield.monsID)->status.shield.evID = 0;
+				mons_internal(ev->munshield.monsID)->status.shield.evID = 0;
 			if (mons_is (ev->munshield.monsID))
 				ev_munshield (ev->munshield.monsID);
 			if (mons_is (ev->munshield.monsID))
@@ -113,10 +127,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mdohit:
 		{
-			if (qev->ID != mons_internal(ev->mdohit.frID)->status.hit.evID)
+			if ((!mons_is (ev->mdohit.frID)) ||
+				qev->ID != mons_internal(ev->mdohit.frID)->status.hit.evID)
 				return;
 			if (mons_is (ev->mdohit.frID))
-				mons_internal (ev->mdohit.frID)->status.hit.evID = 0;
+				mons_internal(ev->mdohit.frID)->status.hit.evID = 0;
 			if (mons_is (ev->mdohit.frID))
 				ev_mdohit (ev->mdohit.frID, ev->mdohit.arm, ev->mdohit.zdir, ev->mdohit.ydir, ev->mdohit.xdir);
 			if (mons_is (ev->mdohit.frID))
@@ -127,8 +142,6 @@ void ev_do (const struct QEv *qev)
 		{
 			if (mons_is (ev->mpoll.monsID))
 				ev_mpoll (ev->mpoll.monsID);
-			if (mons_is (ev->mpoll.monsID))
-				mons_poll (ev->mpoll.monsID);
 			return;
 		}
 		case EV_mgen:
@@ -144,10 +157,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mbleed:
 		{
-			if (qev->ID != mons_internal(ev->mbleed.monsID)->status.bleed.evID)
+			if ((!mons_is (ev->mbleed.monsID)) ||
+				qev->ID != mons_internal(ev->mbleed.monsID)->status.bleed.evID)
 				return;
 			if (mons_is (ev->mbleed.monsID))
-				mons_internal (ev->mbleed.monsID)->status.bleed.evID = 0;
+				mons_internal(ev->mbleed.monsID)->status.bleed.evID = 0;
 			if (mons_is (ev->mbleed.monsID))
 				ev_mbleed (ev->mbleed.monsID);
 			if (mons_is (ev->mbleed.monsID))
@@ -156,6 +170,9 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mwield:
 		{
+			if ((!mons_is (ev->mwield.monsID)) ||
+				qev->ID != mons_internal(ev->mwield.monsID)->status.wield.evID)
+				return;
 			if (mons_is (ev->mwield.monsID) && it_is (ev->mwield.itemID))
 				ev_mwield (ev->mwield.monsID, ev->mwield.arm, ev->mwield.itemID);
 			if (mons_is (ev->mwield.monsID))
@@ -164,6 +181,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mdowield:
 		{
+			if ((!mons_is (ev->mdowield.monsID)) ||
+				qev->ID != mons_internal(ev->mdowield.monsID)->status.wield.evID)
+				return;
+			if (mons_is (ev->mdowield.monsID))
+				mons_internal(ev->mdowield.monsID)->status.wield.evID = 0;
 			if (mons_is (ev->mdowield.monsID) && it_is (ev->mdowield.itemID))
 				ev_mdowield (ev->mdowield.monsID, ev->mdowield.arm, ev->mdowield.itemID);
 			if (mons_is (ev->mdowield.monsID))
@@ -172,6 +194,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mwear_armour:
 		{
+			if ((!mons_is (ev->mwear_armour.monsID)) ||
+				qev->ID != mons_internal(ev->mwear_armour.monsID)->status.wear.evID)
+				return;
+			if (mons_is (ev->mwear_armour.monsID))
+				mons_internal(ev->mwear_armour.monsID)->status.wear.evID = 0;
 			if (mons_is (ev->mwear_armour.monsID) && it_is (ev->mwear_armour.itemID))
 				ev_mwear_armour (ev->mwear_armour.monsID, ev->mwear_armour.itemID, ev->mwear_armour.offset);
 			if (mons_is (ev->mwear_armour.monsID))
@@ -180,6 +207,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mtakeoff_armour:
 		{
+			if ((!mons_is (ev->mtakeoff_armour.monsID)) ||
+				qev->ID != mons_internal(ev->mtakeoff_armour.monsID)->status.takeoff.evID)
+				return;
+			if (mons_is (ev->mtakeoff_armour.monsID))
+				mons_internal(ev->mtakeoff_armour.monsID)->status.takeoff.evID = 0;
 			if (mons_is (ev->mtakeoff_armour.monsID) && it_is (ev->mtakeoff_armour.itemID))
 				ev_mtakeoff_armour (ev->mtakeoff_armour.monsID, ev->mtakeoff_armour.itemID);
 			if (mons_is (ev->mtakeoff_armour.monsID))
@@ -188,6 +220,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mpickup:
 		{
+			if ((!mons_is (ev->mpickup.monsID)) ||
+				qev->ID != mons_internal(ev->mpickup.monsID)->status.pickup.evID)
+				return;
+			if (mons_is (ev->mpickup.monsID))
+				mons_internal(ev->mpickup.monsID)->status.pickup.evID = 0;
 			if (mons_is (ev->mpickup.monsID))
 				ev_mpickup (ev->mpickup.monsID, ev->mpickup.pickup);
 			if (mons_is (ev->mpickup.monsID))
@@ -196,22 +233,22 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mdrop:
 		{
+			if ((!mons_is (ev->mdrop.monsID)) ||
+				qev->ID != mons_internal(ev->mdrop.monsID)->status.drop.evID)
+				return;
+			if (mons_is (ev->mdrop.monsID))
+				mons_internal(ev->mdrop.monsID)->status.drop.evID = 0;
 			if (mons_is (ev->mdrop.monsID))
 				ev_mdrop (ev->mdrop.monsID, ev->mdrop.items);
 			if (mons_is (ev->mdrop.monsID))
 				mons_poll (ev->mdrop.monsID);
 			return;
 		}
-		case EV_mstartcharge:
-		{
-			if (mons_is (ev->mstartcharge.monsID))
-				ev_mstartcharge (ev->mstartcharge.monsID);
-			if (mons_is (ev->mstartcharge.monsID))
-				mons_poll (ev->mstartcharge.monsID);
-			return;
-		}
 		case EV_mdocharge:
 		{
+			if ((!mons_is (ev->mdocharge.monsID)) ||
+				qev->ID != mons_internal(ev->mdocharge.monsID)->status.charge.evID)
+				return;
 			if (mons_is (ev->mdocharge.monsID))
 				ev_mdocharge (ev->mdocharge.monsID);
 			if (mons_is (ev->mdocharge.monsID))
@@ -220,6 +257,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mstopcharge:
 		{
+			if ((!mons_is (ev->mstopcharge.monsID)) ||
+				qev->ID != mons_internal(ev->mstopcharge.monsID)->status.charge.evID)
+				return;
+			if (mons_is (ev->mstopcharge.monsID))
+				mons_internal(ev->mstopcharge.monsID)->status.charge.evID = 0;
 			if (mons_is (ev->mstopcharge.monsID))
 				ev_mstopcharge (ev->mstopcharge.monsID);
 			if (mons_is (ev->mstopcharge.monsID))
@@ -284,14 +326,17 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_compute:
 		{
-			if (qev->ID != it_internal(ev->compute.itemID)->status.compute.evID)
+			if ((!it_is (ev->compute.itemID)) ||
+				qev->ID != it_internal(ev->compute.itemID)->status.compute.evID)
 				return;
 			if (it_is (ev->compute.itemID))
-				it_internal (ev->compute.itemID)->status.compute.evID = 0;
+				it_internal(ev->compute.itemID)->status.compute.evID = 0;
 			if (it_is (ev->compute.itemID))
 				ev_compute (ev->compute.itemID);
 			return;
 		}
 	}
 }
+
+#endif /* event_switch_h */
 

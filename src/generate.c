@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #define NUM(y,x,s,a0,a1,a2,a3,a4,a5,a6,a7,a8)\
                   (((s)[(y-1)*xsiz + (x)-1]<<a8) +\
@@ -381,25 +382,28 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 	}
 	else if (type == LEVEL_3D)
 	{
-		/*int z, y, x, i;
+#if 1
+		int z, y, x, i;
 		for (z = 0, i = 0; z < lvl->t; ++ z) for (y = 0; y < lvl->h; ++ y) for (x = 0; x < lvl->w; ++ x, ++ i)
 		{
-			if ((x/2 - 8 < z && z <= x/2 - 6) && 10 <= y && y <= 15 && z <= 9)
+			/*if ((x/2 - 8 < z && z <= x/2 - 6) && 10 <= y && y <= 15 && z <= 9)
 				set_tile (lvl, DGN_ROCK, i);
 			else if (z == 0 || (z == 9 && (10 > y || y > 15)))
 				set_tile (lvl, !rn(5), i);
 			else if (z == 8 && (10 > y || y > 15))
 				set_tile (lvl, DGN_ROCK, i);
 			else if (z == x/2 - 5 && 10 <= y && y <= 15)
-				set_tile (lvl, rn(3), i);
-			/ *int h = (1.0+sin(0.2 * x)) * (1.0+sin(0.2 * y)) * 2;
+				set_tile (lvl, rn(3), i);*/
+			int h = (1.0+sin(0.2 * x)) * (1.0+sin(0.2 * y)) +
+			(1.0+sin(0.25 * x+0.3*y));
 			if (z < h)
 				set_tile (lvl, DGN_ROCK, i);
 			else if (z == h)
 				set_tile (lvl, DGN_GROUND, i);
 			else
-				set_tile (lvl, DGN_AIR, i);* /
-		}*/
+				set_tile (lvl, DGN_AIR, i);
+		}
+#else
 		char *out = malloc (lvl->v);
 		int i;
 		for (int i = 0; i < lvl->v; ++ i)
@@ -435,6 +439,7 @@ void generate_map (struct DLevel *lvl, enum LEVEL_TYPE type)
 				set_tile (lvl, DGN_GROUND, i);
 		}
 		free (out);
+#endif
 	}
 	else if (type == LEVEL_MAZE)
 	{
@@ -477,7 +482,7 @@ MonsID gen_player (int zloc, int yloc, int xloc, char *name)
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FIREBALL, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FROST, 0, 1}));
 	v_push (m1.skills, (const void *)(&(const struct Skill) {SK_FLASH, 0, 1}));
-	MonsID pl = mons_create (cur_dlevel, 0, cur_dlevel->h/2, cur_dlevel->w/2, &m1);
+	MonsID pl = mons_create (cur_dlevel, 1, cur_dlevel->h/2 - 1, cur_dlevel->w/2, &m1);
 	ItemID item;
 	//int num = rn(40)+20;
 	struct Item_internal myitem = new_item (ITYP_GOLD_PIECE);
@@ -498,7 +503,7 @@ MonsID gen_player (int zloc, int yloc, int xloc, char *name)
 	for (i = 4; i < 10; ++ i)
 		item = it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, i}});
 	myitem = new_item (ITYP_FIRE_TURRET);
-	item = it_create (&myitem, (union ItemLoc) { .dlvl = {LOC_DLVL, cur_dlevel->level, 0, cur_dlevel->h/2+1, cur_dlevel->w/2+6}});
+	item = it_create (&myitem, (union ItemLoc) { .dlvl = {LOC_DLVL, cur_dlevel->level, 0, cur_dlevel->h/2+8, cur_dlevel->w/2+2}});
 	//ev_queue (600, compute, item);
 	/*int i;
 	for (i = 4; i < 40; ++ i)

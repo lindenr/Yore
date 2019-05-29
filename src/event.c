@@ -12,6 +12,7 @@
 #include "include/skills.h"
 #include "include/heap.h"
 #include "include/map.h"
+#include "include/debug.h"
 
 #include <stdio.h>
 
@@ -28,6 +29,17 @@ struct QEv *ev_queue_aux (Tick udelay, union Event ev)
 }
 
 #include "auto/event.queue.h"
+
+int ev_mons_can (MonsID mons, Ev_type ev)
+{
+	switch (ev)
+	{
+#include "auto/event.mons_can.h"
+		default:
+			break;
+	}
+	return 1;
+}
 
 static int ev_should_refresh = 0;
 
@@ -331,7 +343,7 @@ void ev_mdohit (MonsID fr, int arm, int zdir, int ydir, int xdir)
 
 void ev_mpoll (MonsID mons)
 {
-	//mons_poll (mons);
+	mons_poll (mons);
 }
 
 void ev_mgen ()
@@ -458,9 +470,9 @@ void ev_mdrop (MonsID mons, V_ItemID items)
 	v_free (items);
 }
 
-void ev_mstartcharge (MonsID mons)
+/*void ev_mstartcharge (MonsID mons)
 {
-}
+}*/
 
 void ev_mdocharge (MonsID mons)
 {
@@ -538,7 +550,7 @@ void ev_compute (ItemID item)
 	MonsID mons = dlv_lvl(dl.dlevel)->playerIDs->data[0];
 	int d, z, y, x;
 	mons_getloc (mons, &d, &z, &y, &x);
-	if (z == dl.zloc && abs(y - dl.yloc) < 10 && abs(x - dl.xloc) < 10)
+	if (z == dl.zloc && abs(y - dl.yloc) < 6 && abs(x - dl.xloc) < 6)
 		it_shoot (item, z, y, x);
 	ev_queue (600, compute, item);
 }

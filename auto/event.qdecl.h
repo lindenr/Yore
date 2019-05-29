@@ -1,4 +1,7 @@
-//generated!
+// Generated code - don't change directly or it will be overwritten.
+
+#ifndef event_qdecl_h
+#define event_qdecl_h
 void ev_queue_world_init (Tick udelay);
 void ev_queue_player_init (Tick udelay);
 void ev_queue_world_heartbeat (Tick udelay);
@@ -23,7 +26,6 @@ void ev_queue_mwear_armour (Tick udelay, MonsID monsID, ItemID itemID, size_t of
 void ev_queue_mtakeoff_armour (Tick udelay, MonsID monsID, ItemID itemID);
 void ev_queue_mpickup (Tick udelay, MonsID monsID, V_ItemID pickup);
 void ev_queue_mdrop (Tick udelay, MonsID monsID, V_ItemID items);
-void ev_queue_mstartcharge (Tick udelay, MonsID monsID);
 void ev_queue_mdocharge (Tick udelay, MonsID monsID);
 void ev_queue_mstopcharge (Tick udelay, MonsID monsID);
 void ev_queue_mfireball (Tick udelay, MonsID monsID, int ydest, int xdest, int attk);
@@ -34,3 +36,7 @@ void ev_queue_mstopflash (Tick udelay, MonsID monsID);
 void ev_queue_mopendoor (Tick udelay, MonsID monsID, int ydest, int xdest);
 void ev_queue_mclosedoor (Tick udelay, MonsID monsID, int ydest, int xdest);
 void ev_queue_compute (Tick udelay, ItemID itemID);
+
+
+#endif /* event_qdecl_h */
+

@@ -84,17 +84,17 @@ void sk_frost (MonsID mons, int yloc, int xloc, Skill sk)
 	ev_queue (0, mfrost, mons->ID, yloc, xloc, 3);
 	mons_ex_skill (mons, sk);
 }*/
-
+#if 0
 void sk_charge (MonsID mons, int y, int x, Skill sk)
 {
-	if (!mons_charging (mons))
+	if (!mons_ev (mons, charge))
 	{
 		ev_queue (0, mstartcharge, mons /*, y, x*/ );
 		return;
 	}
 	ev_queue (0, mstopcharge, mons /*, y, x*/ );
 }
-
+#endif
 void sk_scry (MonsID mons, Skill skill)
 {
 }

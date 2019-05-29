@@ -1,24 +1,27 @@
-//generated!
+// Generated code - don't change directly or it will be overwritten.
+
+#ifndef event_union_h
+#define event_union_h
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 	} world_init;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 	} player_init;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 	} world_heartbeat;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		ItemID itemID;
 	} itrot;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		ItemID itemID;
 		int ydest;
@@ -26,7 +29,7 @@
 	} mthrow;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		ItemID itemID;
 		struct BresState bres;
 		int speed;
@@ -34,13 +37,13 @@
 	} proj_move;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		ItemID itemID;
 		int force;
 	} item_explode;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		int dlevel;
 		int zloc;
 		struct BresState bres;
@@ -48,7 +51,7 @@
 	} line_explode;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		int zdir;
 		int ydir;
@@ -56,7 +59,7 @@
 	} mdomove;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		int zdir;
 		int ydir;
@@ -64,24 +67,24 @@
 	} mdoevade;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 	} munevade;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		int ydir;
 		int xdir;
 	} mdoshield;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 	} munshield;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID frID;
 		int arm;
 		int zdir;
@@ -90,80 +93,75 @@
 	} mdohit;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 	} mpoll;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 	} mgen;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 	} mregen;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 	} mbleed;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		int arm;
 		ItemID itemID;
 	} mwield;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		int arm;
 		ItemID itemID;
 	} mdowield;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		ItemID itemID;
 		size_t offset;
 	} mwear_armour;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		ItemID itemID;
 	} mtakeoff_armour;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		V_ItemID pickup;
 	} mpickup;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		V_ItemID items;
 	} mdrop;
 	struct
 	{
-		EV_TYPE type;
-		MonsID monsID;
-	} mstartcharge;
-	struct
-	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 	} mdocharge;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 	} mstopcharge;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		int ydest;
 		int xdest;
@@ -171,7 +169,7 @@
 	} mfireball;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		int ydest;
 		int xdest;
@@ -179,7 +177,7 @@
 	} mwater_bolt;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		int zdest;
 		int ydest;
@@ -188,32 +186,36 @@
 	} mfrost;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		int speed;
 		Tick duration;
 	} mflash;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 	} mstopflash;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		int ydest;
 		int xdest;
 	} mopendoor;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		MonsID monsID;
 		int ydest;
 		int xdest;
 	} mclosedoor;
 	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 		ItemID itemID;
 	} compute;
+
+
+#endif /* event_union_h */
+

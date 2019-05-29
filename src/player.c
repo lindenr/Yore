@@ -17,28 +17,48 @@ extern Graph map_graph;
 int Kcamup (MonsID player)
 {
 	//grx_movecam (map_graph, 0, map_graph->cy - 10, map_graph->cx, 0);
-	map_graph->gldy ++;
+	if (map_graph->gldy == 2)
+		return 0;
+	map_graph->gldy = 2;
+	int dlevel, z, y, x;
+	mons_getloc (player, &dlevel, &z, &y, &x);
+	//map_graph->cpy += 4*(z - map_graph->cz);
 	return 0;
 }
 
 int Kcamdn (MonsID player)
 {
 	//grx_movecam (map_graph, 0, map_graph->cy + 10, map_graph->cx, 0);
-	map_graph->gldy --;
+	if (map_graph->gldy == -2)
+		return 0;
+	map_graph->gldy = -2;
+	int dlevel, z, y, x;
+	mons_getloc (player, &dlevel, &z, &y, &x);
+	//map_graph->cpy -= 4*(z - map_graph->cz);
 	return 0;
 }
 
 int Kcamlt (MonsID player)
 {
 	//grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx - 10, 0);
-	map_graph->gldx ++;
+	if (map_graph->gldx == 1)
+		return 0;
+	map_graph->gldx = 1;
+	int dlevel, z, y, x;
+	mons_getloc (player, &dlevel, &z, &y, &x);
+	//map_graph->cpx += 2*(z - map_graph->cz);
 	return 0;
 }
 
 int Kcamrt (MonsID player)
 {
 	//grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx + 10, 0);
-	map_graph->gldx --;
+	if (map_graph->gldx == -1)
+		return 0;
+	map_graph->gldx = -1;
+	int dlevel, z, y, x;
+	mons_getloc (player, &dlevel, &z, &y, &x);
+	//map_graph->cpx += -2*(z - map_graph->cz);
 	return 0;
 }
 
@@ -52,20 +72,10 @@ int Kskills (MonsID player)
 	return p_status (player, P_SKILLS);
 }
 
-int Kwait_cand (MonsID player)
-{
-	return !mons_charging (player);
-}
-
 int Kwait (MonsID player)
 {
 	ev_queue (mons_speed (player)/5, mpoll, player);
 	return 1;
-}
-
-int Kpickup_cand (MonsID player)
-{
-	return !mons_charging (player);
 }
 
 int Kpickup (MonsID player)
@@ -117,11 +127,6 @@ int Kparry (MonsID player)
 	return 0;
 }*/
 
-int Kshield_cand (MonsID player)
-{
-	return !mons_charging (player);
-}
-
 int Kshield (MonsID player)
 {
 	int ymove, xmove;
@@ -135,11 +140,6 @@ int Kshield (MonsID player)
 	// nothing much being deprecated?
 	ev_queue (0, mdoshield, player, ymove, xmove);
 	return 1;
-}
-
-int Ksdrop_cand (MonsID player)
-{
-	return !mons_charging (player);
 }
 
 int Ksdrop (MonsID player)
@@ -161,19 +161,9 @@ int Ksdrop (MonsID player)
 	return 1;
 }
 
-int Kmdrop_cand (MonsID player)
-{
-	return !mons_charging (player);
-}
-
 int Kmdrop (MonsID player)
 {
 	return 0;
-}
-
-int Kfmove_cand (MonsID player)
-{
-	return 1;
 }
 
 int Kfmove (MonsID player)
@@ -189,11 +179,6 @@ int Kfmove (MonsID player)
 		return 0;
 	}
 	mons_try_hit (player, ymove, xmove);
-	return 1;
-}
-
-int Kgmove_cand (MonsID player)
-{
 	return 1;
 }
 
@@ -225,11 +210,6 @@ int Klower (MonsID player)
 	//if (player->zloc > 0)
 	//	mons_move (player, player->dlevel, player->zloc - 1, player->yloc, player->xloc);
 	return 0;
-}
-
-int Kthrow_cand (MonsID player)
-{
-	return 1;
 }
 
 int Kthrow (MonsID player)
@@ -371,11 +351,6 @@ int Kclose (MonsID player)
 	return 0;
 }*/
 
-int Kwield_cand (MonsID player)
-{
-	return !mons_charging (player);
-}
-
 int Kwield (MonsID player)
 {
 	ItemID wieldID = show_contents (player, (1<<ITCAT_WEAPON) | (1<<ITCAT_HANDS), "Wield what?");
@@ -388,22 +363,12 @@ int Kwield (MonsID player)
 	return 1;
 }
 
-int Kwear_cand (MonsID player)
-{
-	return !mons_charging (player);
-}
-
 int Kwear (MonsID player)
 {
 	ItemID wear = player_use_pack (player, "Wear what?", 1<<ITCAT_ARMOUR);
 	if (!wear)
 		return 0;
 	return mons_try_wear (player, wear);
-}
-
-int Ktakeoff_cand (MonsID player)
-{
-	return !mons_charging (player);
 }
 
 int Ktakeoff (MonsID player)
@@ -528,42 +493,47 @@ int p_move (int *ymove, int *xmove, char key)
 }
 
 struct KStruct Keys[] = {
-	{GRK_UP, &Kcamup,  NULL},
-	{GRK_DN, &Kcamdn,  NULL},
-	{GRK_LT, &Kcamlt,  NULL},
-	{GRK_RT, &Kcamrt,  NULL},
-	{GRK_ESC,&Kstatus, NULL},
-	{' ',    &Kstatus, NULL},
-	{'s',    &Kskills, NULL},
-	{'.',    &Kwait,   &Kwait_cand},
-	{',',    &Kpickup, &Kpickup_cand},
-	{'e',    &Kevade,  NULL},
+	{GRK_UP, &Kcamup,  -1},
+	{GRK_DN, &Kcamdn,  -1},
+	{GRK_LT, &Kcamlt,  -1},
+	{GRK_RT, &Kcamrt,  -1},
+	{GRK_ESC,&Kstatus, -1},
+	{' ',    &Kstatus, -1},
+	{'s',    &Kskills, -1},
+	{'.',    &Kwait,   -1},
+	{',',    &Kpickup, EV_mpickup},
+	{'e',    &Kevade,  -1},
 //	{'p', &Kparry},
-	{'p',    &Kshield, &Kshield_cand},
-	{'d',    &Ksdrop,  &Ksdrop_cand},
-	{'D',    &Kmdrop,  &Kmdrop_cand},
-	{'F',    &Kfmove,  &Kfmove_cand},
-	{'K',    &Krise,   NULL},
-	{'J',    &Klower,  NULL},
-	{'m',    &Kgmove,  &Kgmove_cand},
-	{'t',    &Kthrow,  &Kthrow_cand},
-	{'i',    &Kinv,    NULL},
-	{':',    &Knlook,  NULL},
-	{';',    &Kflook,  NULL},
-	{'/',    &Kscan,   NULL},
-	{'Z',    &Kdebug,  NULL},
+	{'p',    &Kshield, EV_mdoshield},
+	{'d',    &Ksdrop,  EV_mdrop},
+	{'D',    &Kmdrop,  EV_mdrop},
+	{'F',    &Kfmove,  EV_mdohit},
+	{'K',    &Krise,   -1},
+	{'J',    &Klower,  -1},
+	{'m',    &Kgmove,  EV_mdomove},
+	{'t',    &Kthrow,  EV_mthrow},
+	{'i',    &Kinv,    -1},
+	{':',    &Knlook,  -1},
+	{';',    &Kflook,  -1},
+	{'/',    &Kscan,   -1},
+	{'Z',    &Kdebug,  -1},
 //	{'o', &Kopen},
 //	{'c', &Kclose},
-	{'w',    &Kwield,  &Kwield_cand},
-	{'W',    &Kwear,   &Kwear_cand},
-	{'T',    &Ktakeoff,&Ktakeoff_cand},
+	{'w',    &Kwield,  EV_mwield},
+	{'W',    &Kwear,   EV_mwear_armour},
+	{'T',    &Ktakeoff,EV_mtakeoff_armour},
 //	{CONTROL_(GRK_DN), &Klookdn},
 //	{CONTROL_(GRK_UP), &Klookup},
 //	{'>',    &Kgodown},
 //	{'<',    &Kgoup},
-	{'S',    &Ksave,   NULL},
-	{GR_CTRL('q'), &Kquit, NULL}
+	{'S',    &Ksave,   -1},
+	{GR_CTRL('q'), &Kquit, -1}
 };
+
+void pl_init ()
+{
+	look_str = str_dinit ();
+}
 
 int key_lookup (MonsID player, char ch)
 {
@@ -572,22 +542,12 @@ int key_lookup (MonsID player, char ch)
 	{
 		if (ch == Keys[i].key)
 		{
-			if (Keys[i].cand == NULL || (*Keys[i].cand) (player))
+			if (ev_mons_can (player, Keys[i].ev))
 				return (*Keys[i].action) (player);
 			return 0;
 		}
 	}
 	return 0;
-}
-
-void pl_init ()
-{
-	look_str = str_dinit ();
-}
-
-int pl_charge_action (MonsID player)
-{
-	return -1;
 }
 
 void pl_poll (MonsID player)
@@ -600,15 +560,16 @@ void pl_poll (MonsID player)
 	{
 		int dlevel, z, y, x;
 		mons_getloc (player, &dlevel, &z, &y, &x);
-		grx_movecam (map_graph, z-3, -map_graph->gldy * z, -map_graph->gldx * z, 0);
+		//grx_movecam (map_graph, z-3, -map_graph->gldy * z, -map_graph->gldx * z, 0);
 		nlook_auto (player);
 		grx_cmove (map_graph, z, y, x);
+		map_graph->cz = z-3;
 
 		char in = p_getch (player);
 
 		int ymove, xmove;
 		p_move (&ymove, &xmove, in);
-		if (ymove != 0 || xmove != 0)
+		if (ymove || xmove)
 		{
 			int mv = pl_attempt_move (player, ymove, xmove);
 			if (mv)
@@ -630,6 +591,18 @@ void pl_poll (MonsID player)
 	return;
 }
 
+void adjust_cam (MonsID pl, int y, int x)
+{
+	if (y > 0) 
+		Kcamup (pl);
+	else if (y < 0)
+		Kcamdn (pl);
+	if (x > 0) 
+		Kcamlt (pl);
+	else if (x < 0)
+		Kcamrt (pl);
+}
+
 /* returns whether the move was used up */
 int pl_attempt_move (MonsID pl, int y, int x) /* each either -1, 0 or 1 */
 {
@@ -645,6 +618,8 @@ int pl_attempt_move (MonsID pl, int y, int x) /* each either -1, 0 or 1 */
 	/* melee attack! */
 	if (lvl->monsIDs[n])
 	{
+		if (!ev_mons_can (pl, EV_mdohit))
+			return 0;
 		MonsID mons = lvl->monsIDs[n];
 		CTR_MODE m = mons_ctrl (mons);
 		if (m == CTR_AI_HOSTILE || m == CTR_AI_AGGRO)
@@ -664,13 +639,16 @@ int pl_attempt_move (MonsID pl, int y, int x) /* each either -1, 0 or 1 */
 	else if (mons_can_move (pl, -1, y, x))
 	{
 		mons_try_move (pl, -1, y, x);
+		adjust_cam (pl, -y, -x);
 		return 1;
 	}
 	else if (mons_can_move (pl, 1, y, x))
 	{
 		mons_try_move (pl, 1, y, x);
+		adjust_cam (pl, y, x);
 		return 1;
 	}
+	adjust_cam (pl, y, x);
 	return 0;
 }
 

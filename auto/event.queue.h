@@ -1,4 +1,7 @@
-//generated!
+// Generated code - don't change directly or it will be overwritten.
+
+#ifndef event_queue_h
+#define event_queue_h
 
 void ev_queue_world_init (Tick udelay)
 {
@@ -22,7 +25,8 @@ void ev_queue_itrot (Tick udelay, ItemID itemID)
 
 void ev_queue_mthrow (Tick udelay, MonsID monsID, ItemID itemID, int ydest, int xdest)
 {
-	ev_queue_aux (udelay, (union Event) { .mthrow = {EV_mthrow, monsID, itemID, ydest, xdest}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .mthrow = {EV_mthrow, monsID, itemID, ydest, xdest}});
+	mons_internal (monsID)->status.throw = (typeof(mons_internal (monsID)->status.throw)) {qev->ID, qev->tick, itemID, ydest, xdest};
 }
 
 void ev_queue_proj_move (Tick udelay, ItemID itemID, struct BresState bres, int speed, MonsID frID)
@@ -55,7 +59,8 @@ void ev_queue_mdoevade (Tick udelay, MonsID monsID, int zdir, int ydir, int xdir
 
 void ev_queue_munevade (Tick udelay, MonsID monsID)
 {
-	ev_queue_aux (udelay, (union Event) { .munevade = {EV_munevade, monsID}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .munevade = {EV_munevade, monsID}});
+	mons_internal (monsID)->status.evade.evID = qev->ID;
 }
 
 void ev_queue_mdoshield (Tick udelay, MonsID monsID, int ydir, int xdir)
@@ -66,7 +71,8 @@ void ev_queue_mdoshield (Tick udelay, MonsID monsID, int ydir, int xdir)
 
 void ev_queue_munshield (Tick udelay, MonsID monsID)
 {
-	ev_queue_aux (udelay, (union Event) { .munshield = {EV_munshield, monsID}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .munshield = {EV_munshield, monsID}});
+	mons_internal (monsID)->status.shield.evID = qev->ID;
 }
 
 void ev_queue_mdohit (Tick udelay, MonsID frID, int arm, int zdir, int ydir, int xdir)
@@ -98,47 +104,50 @@ void ev_queue_mbleed (Tick udelay, MonsID monsID)
 
 void ev_queue_mwield (Tick udelay, MonsID monsID, int arm, ItemID itemID)
 {
-	ev_queue_aux (udelay, (union Event) { .mwield = {EV_mwield, monsID, arm, itemID}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .mwield = {EV_mwield, monsID, arm, itemID}});
+	mons_internal (monsID)->status.wield = (typeof(mons_internal (monsID)->status.wield)) {qev->ID, qev->tick, arm, itemID};
 }
 
 void ev_queue_mdowield (Tick udelay, MonsID monsID, int arm, ItemID itemID)
 {
-	ev_queue_aux (udelay, (union Event) { .mdowield = {EV_mdowield, monsID, arm, itemID}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .mdowield = {EV_mdowield, monsID, arm, itemID}});
+	mons_internal (monsID)->status.wield.evID = qev->ID;
 }
 
 void ev_queue_mwear_armour (Tick udelay, MonsID monsID, ItemID itemID, size_t offset)
 {
-	ev_queue_aux (udelay, (union Event) { .mwear_armour = {EV_mwear_armour, monsID, itemID, offset}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .mwear_armour = {EV_mwear_armour, monsID, itemID, offset}});
+	mons_internal (monsID)->status.wear = (typeof(mons_internal (monsID)->status.wear)) {qev->ID, qev->tick, itemID, offset};
 }
 
 void ev_queue_mtakeoff_armour (Tick udelay, MonsID monsID, ItemID itemID)
 {
-	ev_queue_aux (udelay, (union Event) { .mtakeoff_armour = {EV_mtakeoff_armour, monsID, itemID}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .mtakeoff_armour = {EV_mtakeoff_armour, monsID, itemID}});
+	mons_internal (monsID)->status.takeoff = (typeof(mons_internal (monsID)->status.takeoff)) {qev->ID, qev->tick, itemID};
 }
 
 void ev_queue_mpickup (Tick udelay, MonsID monsID, V_ItemID pickup)
 {
-	ev_queue_aux (udelay, (union Event) { .mpickup = {EV_mpickup, monsID, pickup}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .mpickup = {EV_mpickup, monsID, pickup}});
+	mons_internal (monsID)->status.pickup = (typeof(mons_internal (monsID)->status.pickup)) {qev->ID, qev->tick, pickup};
 }
 
 void ev_queue_mdrop (Tick udelay, MonsID monsID, V_ItemID items)
 {
-	ev_queue_aux (udelay, (union Event) { .mdrop = {EV_mdrop, monsID, items}});
-}
-
-void ev_queue_mstartcharge (Tick udelay, MonsID monsID)
-{
-	ev_queue_aux (udelay, (union Event) { .mstartcharge = {EV_mstartcharge, monsID}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .mdrop = {EV_mdrop, monsID, items}});
+	mons_internal (monsID)->status.drop = (typeof(mons_internal (monsID)->status.drop)) {qev->ID, qev->tick, items};
 }
 
 void ev_queue_mdocharge (Tick udelay, MonsID monsID)
 {
-	ev_queue_aux (udelay, (union Event) { .mdocharge = {EV_mdocharge, monsID}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .mdocharge = {EV_mdocharge, monsID}});
+	mons_internal (monsID)->status.charge = (typeof(mons_internal (monsID)->status.charge)) {qev->ID, qev->tick};
 }
 
 void ev_queue_mstopcharge (Tick udelay, MonsID monsID)
 {
-	ev_queue_aux (udelay, (union Event) { .mstopcharge = {EV_mstopcharge, monsID}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .mstopcharge = {EV_mstopcharge, monsID}});
+	mons_internal (monsID)->status.charge.evID = qev->ID;
 }
 
 void ev_queue_mfireball (Tick udelay, MonsID monsID, int ydest, int xdest, int attk)
@@ -181,3 +190,7 @@ void ev_queue_compute (Tick udelay, ItemID itemID)
 	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .compute = {EV_compute, itemID}});
 	it_internal (itemID)->status.compute = (typeof(it_internal (itemID)->status.compute)) {qev->ID, qev->tick};
 }
+
+
+#endif /* event_queue_h */
+

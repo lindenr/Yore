@@ -355,11 +355,13 @@ glyph glyph_to_draw (struct DLevel *lvl, int w, int looking)
 
 	DTile t = lvl->tiles[w];
 	if (t >= DGN_WALL && t <= DGN_WALL2)
-		return '#';
+		return 0x888111fe;
 	else if (t == DGN_AIR)
 		return 0;
 	else if (t == DGN_GROUND)
 		return ACS_BIGDOT;
+	else if (t == DGN_ROCK)
+		return ' ';
 
 	return 0;
 }

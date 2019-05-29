@@ -133,15 +133,16 @@ void p_pane (MonsID pl)
 		gra_mvaddch (gpan, 6, 1, '[' | COL_TXT(11,11,0));
 		gra_mvaddch (gpan, 7, 1, 6 | COL_TXT(7,15,15));
 		gra_mvaddch (gpan, 8, 1, 0xE4 | COL_TXT(15,0,15));
-		gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d",
-			player->status.shield.ydir, player->status.shield.xdir);
-		if (player->status.bleed.evID)
+		if (mons_ev (pl, shield))
+			gra_mvprint (gpan, 2, 100, "SHIELD Y:%d X:%d",
+				player->status.shield.ydir, player->status.shield.xdir);
+		if (mons_ev (pl, bleed))
 		{
 			gpan->def = COL_TXT(15,0,0);
 			gra_mvprint (gpan, 3, 100, "BLEEDING");
 			gpan->def = COL_TXT_DEF;
 		}
-		//if (player->status.charging)
+		//if (mons_ev (pl, charge))
 		//	gra_mvprint (gpan, 3, 110, "CHARGING");
 	}
 
@@ -462,7 +463,8 @@ int p_skills (MonsID player, enum PanelType type)
 			gra_hide (sc_status);
 			if (mons_charging (player))
 			{
-				sk_charge (player, 0, 0, sk);
+				//sk_charge (player, 0, 0, sk);
+				ev_queue (0, mstopcharge, player);
 				return 1;
 			}
 			output_colours = COL_BG(0,0,0) | COL_TXT(15,15,15);
@@ -472,7 +474,8 @@ int p_skills (MonsID player, enum PanelType type)
 				gra_show (sc_status);
 				return 0;
 			}
-			sk_charge (player, yloc, xloc, sk);
+			//sk_charge (player, yloc, xloc, sk);
+			ev_queue (0, mstartcharge, player);
 			return 1;
 		case SK_DODGE:
 			break;

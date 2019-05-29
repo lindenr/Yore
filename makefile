@@ -12,14 +12,11 @@ all: default
 OBJECTS = $(patsubst src/%.c, obj/%.o, $(wildcard src/*.c))
 HEADERS = $(wildcard include/*.h)
 
-#$(wildcard auto/*): gen
-#auto/%.h: gen-target
-
-gen-target: codegen/gen.py $(wildcard gen/*)
+mark-gen: codegen/gen.py $(wildcard gen/*)
 	python codegen/gen.py
-	touch gen-target
+	touch mark-gen
 
-obj/%.o: src/%.c $(HEADERS) gen-target
+obj/%.o: src/%.c $(HEADERS) mark-gen
 	$(CC) $(CFLAGS) -c $< -o $@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
@@ -31,4 +28,5 @@ $(TARGET): $(OBJECTS)
 clean:
 	-rm -f *.o
 	-rm -f $(TARGET)
-	-rm -f gen-target
+	-rm -f mark-gen
+	-rm -f auto/*

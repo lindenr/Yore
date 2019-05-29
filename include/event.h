@@ -7,14 +7,11 @@
  * currently the event will only be invalidated if an Item or Monster it
  * talks about is affected */
 
-typedef enum
-{
 #include "auto/event.enum.h"
-} EV_TYPE;
 
 union Event
 {
-	EV_TYPE type;
+	Ev_type type;
 #include "auto/event.union.h"
 };
 
@@ -28,6 +25,7 @@ struct QEv
 extern Tick curtick;
 
 void ev_loop ();
+int  ev_mons_can (MonsID mons, Ev_type ev);
 
 #include "auto/event.qdecl.h"
 

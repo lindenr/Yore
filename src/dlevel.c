@@ -157,7 +157,7 @@ void dlv_tile_burn (struct DLevel *lvl, int zloc, int yloc, int xloc)
 	MonsID mons = lvl->monsIDs[i];
 	if (mons)
 	{
-		int damage = rn(5);
+		int damage = rn(3);
 		eff_mons_burns (mons, damage);
 		mons_take_damage (mons, 0, damage, DTYP_FIRE);
 	}

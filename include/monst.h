@@ -165,6 +165,7 @@ struct MStatus
 };
 
 #define DEF_MSTATUS ((struct MStatus){{0,},})
+#define mons_ev(mons, ev) (mons_internal(mons)->status.ev.evID)
 
 struct Monster_internal
 {
@@ -243,7 +244,7 @@ void   mons_wield      (MonsID, int, ItemID);/* wield an item in an arm         
 void   mons_unwield    (MonsID, int);        /* unwield an item from a given arm         */
 
 /* charging */
-int    mons_charging   (MonsID);
+//int    mons_charging   (MonsID);
 
 /* misc */
 void   mons_corpse     (MonsID,              /* make itype corpse type of the monster    */
@@ -283,7 +284,7 @@ CTR_MODE mons_ctrl     (MonsID);
 int    mons_attk_bonus (MonsID, ItemID);     /* get extra damage a monster does          */
 enum MTYPE mons_type   (MonsID);             /* get monster type                         */
 int    mons_can_bleed  (MonsID);             /* can it bleed                             */
-int    mons_bleeding   (MonsID);
+//int    mons_bleeding   (MonsID);
 int    mons_index      (MonsID);             /* dlevel index of the monster              */
 int    mons_dlevel     (MonsID);
 struct DLevel *mons_dlv(MonsID);
@@ -293,24 +294,24 @@ ItemID mons_getweap    (MonsID, int arm);    /* get weapon wielded in arm       
 
 /* other effects */
 void   mons_tilefrost  (MonsID, int, int, int);/* induce a frost effect                   */
-int    mons_take_damage(MonsID, MonsID,       /* returns whether to-monster still alive   */
+int    mons_take_damage(MonsID, MonsID,      /* returns whether to-monster still alive   */
 	int, enum DMG_TYPE);
-void   mons_kill       (MonsID, MonsID);      /* kill a given monster                     */
-void   mons_dead       (MonsID);              /* monster is dead - add corpse etc         */
-void   mons_anger      (MonsID, MonsID);      /* monster angers another monster           */
-void   mons_calm       (MonsID);              /* monster calms                            */
-void   mons_stats_changed (MonsID);           /* update HP etc to reflect stats           */
-void   mons_exercise   (MonsID, ItemID);      /* exercise a weapon use                    */
-void   mons_ex_skill   (MonsID, Skill);       /* exercise a skill                         */
-void   mons_startbleed (MonsID);              /* start bleeding                           */
+void   mons_kill       (MonsID, MonsID);     /* kill a given monster                     */
+void   mons_dead       (MonsID);             /* monster is dead - add corpse etc         */
+void   mons_anger      (MonsID, MonsID);     /* monster angers another monster           */
+void   mons_calm       (MonsID);             /* monster calms                            */
+void   mons_stats_changed (MonsID);          /* update HP etc to reflect stats           */
+void   mons_exercise   (MonsID, ItemID);     /* exercise a weapon use                    */
+void   mons_ex_skill   (MonsID, Skill);      /* exercise a skill                         */
+void   mons_startbleed (MonsID);             /* start bleeding                           */
 
 /* player functions */
-int    mons_gen_type   (void);                               /* get a valid monster type for fighting    */
+int    mons_gen_type   (void);               /* get a valid monster type for fighting    */
 
 /* AI functions */
-void   AI_TIMID_poll   (MonsID);                   /* decide what to do if not attacking       */
-void   AI_HOSTILE_poll (MonsID);                   /* if hostile TODO                          */
-void   AI_AGGRO_poll   (MonsID);                   /* if attacking                             */
+void   AI_TIMID_poll   (MonsID);             /* decide what to do if not attacking       */
+void   AI_HOSTILE_poll (MonsID);             /* if hostile TODO                          */
+void   AI_AGGRO_poll   (MonsID);             /* if attacking                             */
 
 #endif /* MONST_H_INCLUDED */
 

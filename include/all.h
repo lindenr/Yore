@@ -80,6 +80,7 @@ VECTOR(Item);
 VECTOR(Graph);
 
 typedef enum DTile DTile;
+typedef enum Ev_type Ev_type;
 
 #endif /* ALL_H_INCLUDED */
 

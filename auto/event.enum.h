@@ -1,4 +1,9 @@
-//generated!
+// Generated code - don't change directly or it will be overwritten.
+
+#ifndef event_enum_h
+#define event_enum_h
+enum Ev_type
+{
 	EV_world_init,
 	EV_player_init,
 	EV_world_heartbeat,
@@ -23,7 +28,6 @@
 	EV_mtakeoff_armour,
 	EV_mpickup,
 	EV_mdrop,
-	EV_mstartcharge,
 	EV_mdocharge,
 	EV_mstopcharge,
 	EV_mfireball,
@@ -34,3 +38,7 @@
 	EV_mopendoor,
 	EV_mclosedoor,
 	EV_compute
+};
+
+#endif /* event_enum_h */
+

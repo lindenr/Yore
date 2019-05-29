@@ -5,11 +5,14 @@
 
 #define NUM_KEYS ((int)(sizeof(Keys)/sizeof(*Keys)))
 
+#include "auto/event.enum.h"
+
 struct KStruct
 {
 	char key;                         /* TODO make rebindable */
 	int (*action) (MonsID);
-	int (*cand) (MonsID);
+//	int (*cand) (MonsID, Vector);
+	enum Ev_type ev;
 	//const char *description;        /* for key-rebinding and in-game help? */
 };
 
@@ -19,12 +22,10 @@ ItemID player_use_pack (MonsID, char *, uint32_t); /* ask player for an item    
 void ask_items    (MonsID player, V_ItemID, V_ItemID, const char *);
 
 int  p_move       (int *, int *, char);
-int  key_lookup   (MonsID, char);
+//int  key_lookup   (MonsID, char);
 void pl_poll      (MonsID);
 int  pl_attempt_move (MonsID, int, int);
 void pl_init      ();
-
-int  pl_charge_action (MonsID);
 
 void pl_choose_attr_gain (MonsID, int);
 

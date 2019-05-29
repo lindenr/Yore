@@ -430,8 +430,8 @@ void gr_refresh ()
 				continue;
 			if (z < gra->t-2 && z < gra->cz+gra->ct-1 && gra->data[grx_c + gra->A]) // could get rid of this?
 				continue;
-			int ipy = y*gra->glh - gra->cpy + (z-gra->cz)*gra->gldy;
-			int ipx = x*gra->glw - gra->cpx + (z-gra->cz)*gra->gldx;
+			int ipy = y*gra->glh - gra->cpy + (z-gra->cz-3)*gra->gldy;
+			int ipx = x*gra->glw - gra->cpx + (z-gra->cz-3)*gra->gldx;
 			if (ipy < -hmax || ipy >= gra->vph ||
 				ipx < -wmax || ipx >= gra->vpw)
 				continue;

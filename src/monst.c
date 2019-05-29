@@ -11,6 +11,7 @@
 #include "include/skills.h"
 #include "include/debug.h"
 #include "include/map.h"
+#include "include/vector.h"
 
 #include <stdio.h>
 
@@ -147,7 +148,7 @@ glyph mons_gl  (MonsID mons)
 	return '@';
 }
 
-int mons_charging (MonsID mons)
+/*int mons_charging (MonsID mons)
 {
 	return 0;
 }
@@ -155,7 +156,7 @@ int mons_charging (MonsID mons)
 int mons_bleeding (MonsID mons)
 {
 	return mons_internal (mons)->status.bleed.evID;
-}
+}*/
 
 int mons_level (int exp)
 {
@@ -477,8 +478,8 @@ int mons_can_bleed (MonsID mons)
 
 void mons_startbleed (MonsID mons)
 {
-	//if (mi->status.bleeding)
-	//	return;
+	if (mons_ev (mons, bleed))
+		return;
 	//mi->status.bleeding = 1;
 	ev_queue (1000, mbleed, mons);
 }
@@ -549,9 +550,8 @@ void mons_calm (MonsID mons)
 
 void mons_poll (MonsID mons) // TODO bail if mons busy!
 {
-	struct MStatus *st = &mons_internal(mons)->status;
-	if (st->move.evID || st->hit.evID || /*st->helpless ||*/ st->evade.evID || st->shield.evID)
-		return;
+	//if (mons_ev (mons, move) || mons_ev (mons, hit) || mons_ev (mons, evade) || mons_ev (mons, shield))
+	//	return;
 	switch (mons_ctrl (mons))
 	{
 	case CTR_NONE:
@@ -672,7 +672,7 @@ int mons_hitm (MonsID from, MonsID to, ItemID with)
 	int d, z, y, x;
 	mons_getloc (from, &d, &z, &y, &x);
 	struct Monster_internal *mi = mons_internal (to);
-	if ((mi->status.shield.ydir || mi->status.shield.xdir) &&
+	if (mons_ev (to, shield) &&
 	    mi->status.shield.ydir + mi->yloc == y &&
 	    mi->status.shield.xdir + mi->xloc == x)
 		return 0;
@@ -861,7 +861,7 @@ void AI_AGGRO_poll (MonsID ai)
 	//if (!to)
 	{
 		mons_calm (ai);
-		mons_poll (ai);
+		AI_TIMID_poll (ai);
 		return;
 	}
 /*

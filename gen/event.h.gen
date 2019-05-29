@@ -11,10 +11,10 @@
 | world_heartbeat
 | itrot
 	ItemID itemID
-| mthrow
+| mthrow mons.throw
 	MonsID monsID
 	ItemID itemID
-	int ydest
+	int ydest // TODO: should be ydir and xdir? what if monster is relocated before throwing
 	int xdest
 | proj_move item.flight
 	ItemID itemID
@@ -54,38 +54,38 @@
 	int ydir
 	int xdir
 | mpoll
-	MonsID monsID
+	MonsID monsID (nopoll)
 | mgen
 | mregen
 	MonsID monsID (nopoll)
 | mbleed mons.bleed
 	MonsID monsID
-| mwield
+| mwield mons.wield
 	MonsID monsID
 	int arm
 	ItemID itemID
-| mdowield
+> mdowield
 	MonsID monsID
 	int arm
 	ItemID itemID
-| mwear_armour
+| mwear_armour mons.wear
 	MonsID monsID
 	ItemID itemID
 	size_t offset
-| mtakeoff_armour
+| mtakeoff_armour mons.takeoff
 	MonsID monsID
 	ItemID itemID
-| mpickup
+| mpickup mons.pickup
 	MonsID monsID
 	V_ItemID pickup
-| mdrop
+| mdrop mons.drop
 	MonsID monsID
 	V_ItemID items
-| mstartcharge
+//| mstartcharge mons.charge
+//	MonsID monsID
+| mdocharge mons.charge
 	MonsID monsID
-| mdocharge
-	MonsID monsID
-| mstopcharge
+> mstopcharge
 	MonsID monsID
 | mfireball
 	MonsID monsID

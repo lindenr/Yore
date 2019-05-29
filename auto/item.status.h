@@ -1,4 +1,7 @@
-//generated!
+// Generated code - don't change directly or it will be overwritten.
+
+#ifndef item_status_h
+#define item_status_h
 
 struct
 {
@@ -13,3 +16,6 @@ struct
 	EvID evID;
 	Tick due;
 } compute;
+
+#endif /* item_status_h */
+

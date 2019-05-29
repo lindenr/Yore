@@ -33,58 +33,52 @@ def if_fun(x):
 		s['param_type'] in {'MonsID', 'ItemID'} and
 		'(optional)' not in s['param_options']
 		])
-	#, dict(ev_name = x['ev_name'], ev_params = [[s[0]] for s in x['ev_params'] if s[0].split()[0] in {'MonsID', 'ItemID'} and '(optional)' not in s[1]]))
 	if z == '':
 		return ''
 	return 'if ('+z+')\n\t\t\t\t'
 
-def mons_status(x):
-	if len(x['ev_params']) == 0 or x['ev_status'] == [] or x['ev_status'][0] != 'mons' or not x['ev_status_first']:
+def st_status(x, st):
+	if (len(x['ev_params']) == 0 or
+		x['ev_status'] == [] or
+		x['ev_status'][0] != st or
+		not x['ev_status_first']):
 		return ''
 	return """
 struct
 {{
 	EvID evID;
 	Tick due;{}
-}} {};""".format(''.join(['\n\t' + s['param_type'] + ' ' + s['param_name'] + ';' for s in x['ev_params'][1:]]), x['ev_status'][1])
+}} {};""".format(
+	''.join(['\n\t{} {};'.format (s['param_type'], s['param_name']) for s in x['ev_params'][1:]]),
+	x['ev_status'][1])
 
-def item_status(x):
-	if len(x['ev_params']) == 0 or x['ev_status'] == [] or x['ev_status'][0] != 'item' or not x['ev_status_first']:
-		return ''
-	return """
-struct
-{{
-	EvID evID;
-	Tick due;{}
-}} {};""".format(''.join(['\n\t' + s['param_type'] + ' ' + s['param_name'] + ';' for s in x['ev_params'][1:]]), x['ev_status'][1])
+def ev_status(x):
+	return '{3}_internal(ev->{0}.{1})->status.{2}'.format (
+					x['ev_name'],
+					x['ev_params'][0]['param_name'],
+					x['ev_status'][1],
+					x['ev_status'][0])
+
+def ev_is(x):
+	return '{}_is (ev->{}.{})'.format (
+		x['ev_status'][0],
+		x['ev_name'],
+		x['ev_params'][0]['param_name'])
 
 def check_state(x):
 	if x['ev_status'] == []:
 		return ''
-	if x['ev_status'][0] == 'mons':
-		return '''
-			if (qev->ID != mons_internal(ev->{0}.{1})->status.{2}.evID)
-				return;'''.format (x['ev_name'], x['ev_params'][0]['param_name'], x['ev_status'][1])
-	elif x['ev_status'][0] == 'item':
-		return '''
-			if (qev->ID != it_internal(ev->{0}.{1})->status.{2}.evID)
-				return;'''.format (x['ev_name'], x['ev_params'][0]['param_name'], x['ev_status'][1])
-	assert (0)
+	return '''
+			if ((!{}) ||
+				qev->ID != {}.evID)
+				return;'''.format (ev_is (x), ev_status (x))
 
 def finish_state(x):
 	if not x['ev_status_last']:
 		return ''
-	if x['ev_status'][0] == 'mons':
-		return '''
-			if (mons_is (ev->{0}.{1}))
-				mons_internal (ev->{0}.{1})->status.{2}.evID = 0;'''.format (
-					x['ev_name'], x['ev_params'][0]['param_name'], x['ev_status'][1])
-	if x['ev_status'][0] == 'item':
-		return '''
-			if (it_is (ev->{0}.{1}))
-				it_internal (ev->{0}.{1})->status.{2}.evID = 0;'''.format (
-					x['ev_name'], x['ev_params'][0]['param_name'], x['ev_status'][1])
-	assert (0)
+	return '''
+			if ({})
+				{}.evID = 0;'''.format (ev_is (x), ev_status (x))
 
 def case(x):
 	return """
@@ -92,29 +86,64 @@ def case(x):
 		{{{4}{5}
 			{3}ev_{0} ({1});{2}
 			return;
-		}}""".format (x['ev_name'], myjoin (', ', arg_string, x), post_string (x), if_fun (x), check_state(x), finish_state(x))
+		}}""".format (
+			x['ev_name'],
+			myjoin (', ', arg_string, x),
+			post_string (x),
+			if_fun (x),
+			check_state(x),
+			finish_state(x))
 
 def event_qdecl(x):
 	return """void ev_queue_{0} (Tick udelay{1});
 """.format(x['ev_name'], ''.join([', ' + s['param_decl'] for s in x['ev_params']]))
 
 def event_queue(x):
-	status_str = ''
-	var_str = ''
-	if x['ev_status'] != [] and x['ev_status_first']:
+	if x['ev_status'] == []:
+		status_str = ''
+		var_str = ''
+	else:
 		var_str = 'struct QEv *qev = '
-		if x['ev_status'][0] == 'mons':
+		if x['ev_status_first']:
 			status_str = '''
-	mons_internal ({0})->status.{1} = (typeof(mons_internal ({0})->status.{1})) {{qev->ID, qev->tick{2}}};'''.format(x['ev_params'][0]['param_name'], x['ev_status'][1], ''.join([', ' + s['param_name'] for s in x['ev_params'][1:]]), x['ev_name'])
-		if x['ev_status'][0] == 'item':
+	{3}_internal ({0})->status.{1} = (typeof({3}_internal ({0})->status.{1})) {{qev->ID, qev->tick{2}}};'''
+		else:	
 			status_str = '''
-	it_internal ({0})->status.{1} = (typeof(it_internal ({0})->status.{1})) {{qev->ID, qev->tick{2}}};'''.format(x['ev_params'][0]['param_name'], x['ev_status'][1], ''.join([', ' + s['param_name'] for s in x['ev_params'][1:]]), x['ev_name'])
+	{3}_internal ({0})->status.{1}.evID = qev->ID;'''
+		status_str = status_str.format(
+			x['ev_params'][0]['param_name'],
+			x['ev_status'][1],
+			''.join([', ' + s['param_name'] for s in x['ev_params'][1:]]),
+			x['ev_status'][0])
 	return """
 void ev_queue_{0} (Tick udelay{3})
 {{
 	{2}ev_queue_aux (udelay, (union Event) {{ .{0} = {{EV_{0}{4}}}}});{1}
 }}
-""".format(x['ev_name'], status_str, var_str, ''.join([', ' + s['param_decl'] for s in x['ev_params']]), ''.join([', ' + s['param_name'] for s in x['ev_params']]))
+""".format(
+	x['ev_name'],
+	status_str,
+	var_str,
+	''.join([', ' + s['param_decl'] for s in x['ev_params']]),
+	''.join([', ' + s['param_name'] for s in x['ev_params']]))
+
+def ev_mons_can(x):
+	return '''
+case EV_{0}:
+{{
+	return 1;
+}}'''.format(x['ev_name'])
+
+def my_fwrite(name, cont):
+	open('auto/'+name, 'w').write('''// Generated code - don't change directly or it will be overwritten.
+
+#ifndef {0}
+#define {0}
+{1}
+
+#endif /* {0} */
+
+'''.format (name.replace('.', '_'), cont))
 
 def main():
 	in_file = open('gen/event.h.gen')
@@ -131,14 +160,19 @@ def main():
 					ev_params = [],
 					ev_status = [],
 					ev_status_first = False,
-					ev_status_last = False))
+					ev_status_last = False,
+					ev_options = set()))
 			else:
+				st = a[2].split('.')
+				if st[0] == 'item':
+					st[0] = 'it'
 				parsed.append (dict(
 					ev_name = a[1],
 					ev_params = [],
-					ev_status = a[2].split('.'),
+					ev_status = st,
 					ev_status_first = True,
-					ev_status_last = True))
+					ev_status_last = True,
+					ev_options = set(a[3:])))
 			continue
 		elif line[0] == '>':
 			parsed[-1]['ev_status_last'] = False
@@ -148,7 +182,8 @@ def main():
 				ev_params = [],
 				ev_status = parsed[-1]['ev_status'],
 				ev_status_first = False,
-				ev_status_last = True))
+				ev_status_last = True,
+				ev_options = parsed[-1]['ev_options']))
 			continue
 		elif len(parsed) == 0:
 			print("Entry must start with '|'")
@@ -164,39 +199,33 @@ def main():
 			param_name = segs[-1],
 			param_decl = ' '.join(segs),
 			param_options = options))
-	out_1 = open('auto/event.enum.h', 'w')
-	out_1.write ('//generated!\n' + ',\n'.join(['\tEV_'+x['ev_name'] for x in parsed]))
-	out_2 = open('auto/event.union.h', 'w')
-	out_2.write ('//generated!\n' + ''.join([
+	my_fwrite('event.enum.h',
+'''enum Ev_type
+{{
+{}
+}};'''.format (',\n'.join(['\tEV_'+x['ev_name'] for x in parsed])))
+	my_fwrite ('event.union.h', ''.join([
 """	struct
 	{
-		EV_TYPE type;
+		Ev_type type;
 """ + "".join(['\t\t' + s['param_decl'] + ';\n' for s in x['ev_params']]) + "\t} " + x['ev_name'] + ";\n" for x in parsed]))
-	out_3 = open('auto/event.switch.h', 'w')
 	switch = ''.join ([case(x) for x in parsed])
-	out_3.write(
-"""//generated!
-
+	my_fwrite ('event.switch.h', """
 void ev_do (const struct QEv *qev)
 {{
 	const union Event *ev = &qev->ev;
 	switch (ev->type)
 	{{{}
 	}}
-}}
-
-""".format(switch))
+}}""".format(switch))
 	#print ('\n'.join(['void ev_{} ({})'.format(x['ev_name'], myjoin (', ', darg_string, x)) for x in parsed]))
-	out_4 = open('auto/monst.status.h', 'w')
-	out_4.write('//generated!\n' + ''.join([mons_status(x) for x in parsed]))
-	out_5 = open('auto/event.qdecl.h', 'w')
-	out_5.write('//generated!\n' + ''.join([event_qdecl(x) for x in parsed]))
-	out_6 = open('auto/event.queue.h', 'w')
-	out_6.write('''//generated!
-''' + ''.join([event_queue(x) for x in parsed]))
-	out_7 = open('auto/item.status.h', 'w')
-	out_7.write('''//generated!
-''' + ''.join([item_status(x) for x in parsed]))
+	my_fwrite ('monst.status.h', ''.join([st_status(x, 'mons') for x in parsed]))
+	my_fwrite ('event.qdecl.h', ''.join([event_qdecl(x) for x in parsed]))
+	my_fwrite ('event.queue.h', ''.join([event_queue(x) for x in parsed]))
+	my_fwrite ('item.status.h', ''.join([st_status(x, 'it') for x in parsed]))
+	my_fwrite ('event.mons_can.h', ''.join([ev_mons_can(x) for x in parsed]))
+	#out_8.write('''//generated
 
 if __name__ == "__main__":
 	main()
+
