@@ -580,11 +580,12 @@ void show_path_on_overlay (enum P_MV action, int dlevel, int fz, int fy, int fx,
 	{
 		if (!overlay)
 		{
-			overlay = grx_init (1, map_graph->h, map_graph->w,
-				12, 8, 0, 0,
-				(fz+3)*map_graph->gldy, (fz+3)*map_graph->gldx, map_graph->vph, map_graph->vpw, 1);
+			overlay = gra_init (map_graph->h, map_graph->w,
+				0, 0, map_graph->vph, map_graph->vpw);
 			grx_cshow (overlay);
 		}
+		overlay->cpy = fz*map_graph->gldy;
+		overlay->cpx = fz*map_graph->gldx;
 		gra_show (overlay);
 		gra_movecam (overlay, map_graph->cpy, map_graph->cpx);
 	}
