@@ -11,21 +11,22 @@
 #include "include/player.h"
 #include "include/skills.h"
 #include "include/heap.h"
-#include "include/map.h"
 #include "include/debug.h"
+#include "include/world.h"
 
 #include <stdio.h>
 
-struct Heap *events;
-
-Tick curtick = 0;
-static EvID curQID = 0; /* no event has ID 0 */
 struct QEv *ev_queue_aux (Tick udelay, union Event ev)
 {
-	Tick when = curtick + udelay;
-	++ curQID;
-	struct QEv qe = {curQID, when, ev};
-	return h_push (events, &qe);
+	Tick when = world.tick + udelay;
+	++ world.evID;
+	struct QEv qe = {world.evID, when, ev};
+	return h_push (world.events, &qe);
+}
+
+void ev_debug (int tick, const char *ev, const char *args)
+{
+	//printf ("%llu % *d: %*s  (%s)\n", world.tick, 5, tick, 18, ev, args);
 }
 
 #include "auto/event.queue.h"
@@ -43,49 +44,13 @@ int ev_mons_can (MonsID mons, Ev_type ev)
 
 static int ev_should_refresh = 0;
 
-void ev_world_init ()
-{
-#ifndef SIM
-	ev_queue (0, player_init);
-	generate_map (dlv_lvl (1), LEVEL_3D);
-#else
-	generate_map (dlv_lvl (1), LEVEL_SIM);
-	update_knowledge (NULL);
-	//gra_centcam (map_graph, 50, 150);
-#endif /* SIM */
-	ev_queue (0, world_heartbeat);
-}
-
-void ev_player_init ()
-{
-	MonsID mons = gen_player (1, 50, 50, player_name);
-	dlv_fill_player_dist (cur_dlevel);
-	update_knowledge (mons);
-
-#ifdef TWOPLAYER
-	gen_player (1, 52, 53, "Player 2");
-	dlv_fill_player_dist (cur_dlevel);
-	update_knowledge (mons);
-#endif
-	
-	//gen_boss (1, 57, 60);
-
-	int i;
-	for (i = 0; i < 60; ++ i)
-	{
-		//gen_mons_in_level ();
-		//gen_mons_near_player ();
-	}
-	//draw_map ();
-}
-
-void ev_world_heartbeat ()
+void ev_dlevel_heartbeat (int dlevel)
 {
 	/* monster generation */
 	//if (onein (2))
-		ev_queue (0, mgen);
+		ev_queue (0, mgen, dlevel);
 	/* next heartbeat */
-	ev_queue (1000, world_heartbeat);
+	ev_queue (1000, dlevel_heartbeat, dlevel);
 #ifdef SIM
 	//
 #endif /* SIM */
@@ -174,8 +139,7 @@ void ev_proj_move (ItemID item, struct BresState bres, int speed, MonsID from)
 		return;
 	}
 	bres_iter (&bres);
-	struct DLevel *lvl = dlv_lvl (dlvl.dlevel);
-	if (!map_passable (lvl, dlvl.zloc, bres.cy, bres.cx))
+	if (!dlv_passable (dlvl.dlevel, dlvl.zloc, bres.cy, bres.cx))
 	{
 		proj_hit_barrier (item);
 		return;
@@ -184,7 +148,7 @@ void ev_proj_move (ItemID item, struct BresState bres, int speed, MonsID from)
 	dlvl.xloc = bres.cx;
 	speed -= 1;
 	it_put (item, (union ItemLoc) {.dlvl = dlvl});
-	MonsID mons = lvl->monsIDs[dlv_index (lvl, dlvl.zloc, dlvl.yloc, dlvl.xloc)];
+	MonsID mons = dlv_mons (dlvl.dlevel, dlvl.zloc, dlvl.yloc, dlvl.xloc);
 	if (mons)
 	{
 		proj_hit_monster (item, mons, from);
@@ -218,28 +182,31 @@ void ev_item_explode (ItemID item, int force)
 
 void ev_line_explode (int dlevel, int zloc, struct BresState bres, int dist)
 {
-	struct DLevel *lvl = dlv_lvl (dlevel);
 	int ydist = bres.cy - bres.fy, xdist = bres.cx - bres.fx;
 	if (ydist * ydist + xdist * xdist >= dist * dist)
 	{
 		ev_queue (50, line_explode, dlevel, zloc, bres, dist + 1);
 		return;
 	}
-	dlv_tile_burn (lvl, zloc, bres.cy, bres.cx);
-	int i = dlv_index (lvl, zloc, bres.cy, bres.cx);
-	if (lvl->num_fires[i])
+	dlv_tile_burn (dlevel, zloc, bres.cy, bres.cx);
+	//int i = dlv_index (lvl, zloc, bres.cy, bres.cx);
+	int nf = dlv_num_fires (dlevel, zloc, bres.cy, bres.cx);
+	if (nf)
 	{
-		lvl->num_fires[i] --;
-		draw_map_buf (lvl, i);
+		dlv_set_fires (dlevel, zloc, bres.cy, bres.cx, nf-1);
+		//lvl->num_fires[i] --;
+		//draw_map_buf (lvl, i);
 	}
 	if (bres.done)
 		return;
 	bres_iter (&bres);
-	if (!map_passable (lvl, zloc, bres.cy, bres.cx))
+	if (!dlv_passable (dlevel, zloc, bres.cy, bres.cx))
 		return;
-	i = dlv_index (lvl, zloc, bres.cy, bres.cx);
-	lvl->num_fires[i] ++;
-	draw_map_buf (lvl, i);
+	nf = dlv_num_fires (dlevel, zloc, bres.cy, bres.cx);
+	dlv_set_fires (dlevel, zloc, bres.cy, bres.cx, nf+1);
+	//i = dlv_index (lvl, zloc, bres.cy, bres.cx);
+	//lvl->num_fires[i] ++;
+	//draw_map_buf (lvl, i);
 	ev_queue (50, line_explode, dlevel, zloc, bres, dist + 1);
 	ev_should_refresh = 1;
 }
@@ -298,7 +265,7 @@ void ev_mdohit (MonsID fr, int arm, int zdir, int ydir, int xdir)
 	int zdest = z + zdir;
 	int ydest = y + ydir;
 	int xdest = x + xdir;
-	MonsID to = dlv_mvmons (mons_dlevel (fr), zdest, ydest, xdest); /* get to-mons */
+	MonsID to = dlv_mons (d, zdest, ydest, xdest); /* get to-mons */
 	if (!to)
 	{
 		//eff_mons_swings_wildly (fr); TODO
@@ -346,9 +313,9 @@ void ev_mpoll (MonsID mons)
 	mons_poll (mons);
 }
 
-void ev_mgen ()
+void ev_mgen (int dlevel)
 {
-	//mons = gen_mons_near_player ();
+	//mons = gen_mons_near_player (dlevel);
 }
 
 void ev_mregen (MonsID mons)
@@ -470,10 +437,6 @@ void ev_mdrop (MonsID mons, V_ItemID items)
 	v_free (items);
 }
 
-/*void ev_mstartcharge (MonsID mons)
-{
-}*/
-
 void ev_mdocharge (MonsID mons)
 {
 }
@@ -547,11 +510,13 @@ void ev_compute (ItemID item)
 	struct ItemInDlvl dl;
 	if (!it_dlvl (item, &dl))
 		return;
-	MonsID mons = dlv_lvl(dl.dlevel)->playerIDs->data[0];
-	int d, z, y, x;
-	mons_getloc (mons, &d, &z, &y, &x);
-	if (z == dl.zloc && abs(y - dl.yloc) < 6 && abs(x - dl.xloc) < 6)
-		it_shoot (item, z, y, x);
+	int y, x;
+	for (y = -6; y <= 6; ++ y) for (x = -6; x <= 6; ++ x)
+	{
+		MonsID mons = dlv_mons (dl.dlevel, dl.zloc, dl.yloc+y, dl.xloc+x);
+		if (mons)
+			it_shoot (item, dl.zloc, dl.yloc+y, dl.xloc+x);
+	}
 	ev_queue (600, compute, item);
 }
 
@@ -564,43 +529,36 @@ int qev_lt (struct QEv *q1, struct QEv *q2)
 	return q1->tick == q2->tick && q1->ID < q2->ID;
 }
 
-void ev_init ()
-{
-	events = h_dinit (sizeof(struct QEv), qev_lt);
-	ev_queue (0, world_init);
-}
-
 #ifndef SIM
 void ev_loop ()
 {
-	ev_init ();
 	while (U.playing == PLAYER_PLAYING)
 	{
-		////printf ("CURTICK=%d\n", curtick);
-		const struct QEv *qe = h_least (events);
-		if (curtick/50 < qe->tick/50 && ev_should_refresh)
+		////printf ("CURTICK=%d\n", world.tick);
+		const struct QEv *qe = h_least (world.events);
+		if (world.tick/50 < qe->tick/50 && ev_should_refresh)
 		{
 			ev_should_refresh = 0;
 			p_pane (0);
+			draw_map (0, 0);
 			gr_refresh ();
 			//gr_wait (20, 1);
 		}
-		curtick = qe->tick;
+		world.tick = qe->tick;
 
 		ev_do (qe);
-		h_pop (events, NULL);
+		h_pop (world.events, NULL);
 	}
 }
 #else
 #include "include/sim.h"
 void ev_loop ()
 {
-	ev_init ();
 	while (U.playing == PLAYER_PLAYING)
 	{
-		////printf ("CURTICK=%d\n", curtick);
-		const struct QEv *qe = h_least (events);
-		if (curtick/618 < qe->tick/618)
+		////printf ("CURTICK=%d\n", world.tick);
+		const struct QEv *qe = h_least (world.events);
+		if (world.tick/618 < qe->tick/618)
 		{
 			p_pane (NULL);
 			gr_refresh ();
@@ -618,10 +576,10 @@ void ev_loop ()
 				}
 			}
 		}
-		curtick = qe->tick;
+		world.tick = qe->tick;
 
 		ev_do (qe);
-		h_pop (events, NULL);
+		h_pop (world.events, NULL);
 	}
 }
 #endif /* SIM */

@@ -14,6 +14,7 @@
 #include "include/debug.h"
 #include "include/monst.h"
 #include "include/vector.h"
+#include "include/world.h"
 
 #include <string.h>
 #include <malloc.h>
@@ -51,10 +52,10 @@ void p_timeline ()
 			if (!mons)
 				continue;
 			if (mons->status.moving.ydir || mons->status.moving.xdir)
-				gra_mvaddch (gpred, (mons->status.moving.arrival - curtick) / ticks_per_tile, 0,
+				gra_mvaddch (gpred, (mons->status.moving.arrival - world.tick) / ticks_per_tile, 0,
 					ACS_PLUS | COL_TXT(15,15,0));
 			else if (mons->status.attacking.ydir || mons->status.attacking.xdir)
-				gra_mvaddch (gpred, (mons->status.attacking.arrival - curtick) / ticks_per_tile, 0,
+				gra_mvaddch (gpred, (mons->status.attacking.arrival - world.tick) / ticks_per_tile, 0,
 					ACS_PLUS | COL_TXT(15,0,0));
 		}
 		gra_mvaddch (gpred, (pl->speed+1)/ticks_per_tile, 0, 'M' | COL_TXT(0,15,0));
@@ -109,7 +110,7 @@ void p_pane (MonsID pl)
 			txt_mvaddch (max - i - 1, txt_w - 2, COL_BG_BLUE(10) | ' ');
 	}*/
 
-	gra_mvprint (gpan, 1, 3, "T %llu", curtick);
+	gra_mvprint (gpan, 1, 3, "T %llu", world.tick);
 	gra_mvaddch (gpan, 1, 1, '>' | COL_TXT(15,7,0));
 
 	if (pl)
@@ -196,7 +197,7 @@ void p_msg (const char *str, ...)
 	va_list args;
 	char out[100];
 
-	snprintf(out, 10, "(%llu) ", curtick);
+	snprintf(out, 10, "(%llu) ", world.tick);
 
 	va_start (args, str);
 	vsnprintf (out + strlen(out), 90, str, args);
@@ -548,7 +549,6 @@ int p_skills (MonsID player, enum PanelType type)
 }
 
 static Graph overlay = NULL;
-extern Graph map_graph;
 
 void show_disc_on_overlay (enum P_MV action, int dlevel, int fz, int fy, int fx, int tz, int ty, int tx)
 {/*
@@ -580,14 +580,14 @@ void show_path_on_overlay (enum P_MV action, int dlevel, int fz, int fy, int fx,
 	{
 		if (!overlay)
 		{
-			overlay = gra_init (map_graph->h, map_graph->w,
-				0, 0, map_graph->vph, map_graph->vpw);
+			overlay = gra_init (world.map->h, world.map->w,
+				0, 0, world.map->vph, world.map->vpw);
 			grx_cshow (overlay);
 		}
-		overlay->cpy = fz*map_graph->gldy;
-		overlay->cpx = fz*map_graph->gldx;
+		overlay->cpy = fz*world.map->gldy;
+		overlay->cpx = fz*world.map->gldx;
 		gra_show (overlay);
-		gra_movecam (overlay, map_graph->cpy, map_graph->cpx);
+		gra_movecam (overlay, world.map->cpy, world.map->cpx);
 	}
 	gra_clear (overlay);
 	gra_drawline (overlay, fy, fx, ty, tx, output_colours);
@@ -663,16 +663,6 @@ int p_mvchoose (MonsID player, int *zloc, int *yloc, int *xloc,
 			p_endnotify ();
 			return 0;
 		}
-		/*if (ymove == -1 && map_graph->csr_y > 0 && map_graph->csr_y - map_graph->cy > 0)
-			gra_cmove (map_graph, map_graph->csr_y-1, map_graph->csr_x);
-		else if (ymove == 1 && map_graph->csr_y < map_graph->h-1 &&
-			map_graph->csr_y - map_graph->cy < map_graph->vh-1)
-			gra_cmove (map_graph, map_graph->csr_y+1, map_graph->csr_x);
-		if (xmove == -1 && map_graph->csr_x > 0 && map_graph->csr_x - map_graph->cx > 0)
-			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x-1);
-		else if (xmove == 1 && map_graph->csr_x < map_graph->w-1 &&
-			map_graph->csr_x - map_graph->cx < map_graph->vw-1)
-			gra_cmove (map_graph, map_graph->csr_y, map_graph->csr_x+1);
 		//if (gra_nearedge (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x))
 		//	gra_centcam (map_graph, map_graph->cy + csr_y, map_graph->cx + csr_x);*/
 		c_y += ymove; c_x += xmove;
@@ -946,7 +936,7 @@ void eff_proj_hits_mons (ItemID item, MonsID mons, int damage)
 		p_msg ("The %s hits the %s for "COL_RED("%d")"!", it_typename (item), mons_typename (mons), damage);
 }
 
-void eff_mons_starts_hit (MonsID mons, int y, int x, Tick arrival)
+void eff_mons_starts_hit (MonsID mons, int y, int x)
 {
 	if (!player_sees_mons (mons))
 		return;

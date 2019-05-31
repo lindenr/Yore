@@ -104,7 +104,7 @@ void eff_item_absorbed (ItemID item);
 void eff_item_hits_wall (ItemID item);
 void eff_proj_misses_mons (ItemID item, MonsID mons);
 void eff_proj_hits_mons (ItemID item, MonsID mons, int damage);
-void eff_mons_starts_hit (MonsID mons, int y, int x, Tick arrival);
+void eff_mons_starts_hit (MonsID mons, int y, int x);
 void eff_mons_tiredly_misses_mons (MonsID fr, MonsID to);
 void eff_mons_misses_mons (MonsID fr, MonsID to);
 void eff_mons_just_misses_mons (MonsID fr, MonsID to);

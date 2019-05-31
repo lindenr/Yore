@@ -8,19 +8,9 @@ void ev_do (const struct QEv *qev)
 	const union Event *ev = &qev->ev;
 	switch (ev->type)
 	{
-		case EV_world_init:
+		case EV_dlevel_heartbeat:
 		{
-			ev_world_init ();
-			return;
-		}
-		case EV_player_init:
-		{
-			ev_player_init ();
-			return;
-		}
-		case EV_world_heartbeat:
-		{
-			ev_world_heartbeat ();
+			ev_dlevel_heartbeat (ev->dlevel_heartbeat.dlevel);
 			return;
 		}
 		case EV_itrot:
@@ -146,7 +136,7 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mgen:
 		{
-			ev_mgen ();
+			ev_mgen (ev->mgen.dlevel);
 			return;
 		}
 		case EV_mregen:
@@ -294,6 +284,11 @@ void ev_do (const struct QEv *qev)
 		}
 		case EV_mflash:
 		{
+			if ((!mons_is (ev->mflash.monsID)) ||
+				qev->ID != mons_internal(ev->mflash.monsID)->status.flash.evID)
+				return;
+			if (mons_is (ev->mflash.monsID))
+				mons_internal(ev->mflash.monsID)->status.flash.evID = 0;
 			if (mons_is (ev->mflash.monsID))
 				ev_mflash (ev->mflash.monsID, ev->mflash.speed, ev->mflash.duration);
 			if (mons_is (ev->mflash.monsID))

@@ -6,7 +6,6 @@
 #include "include/monst.h"
 #include "include/vector.h"
 #include "include/pack.h"
-#include "include/map.h"
 #include "include/graphics.h"
 #include "include/dlevel.h"*/
 #include "include/panel.h"

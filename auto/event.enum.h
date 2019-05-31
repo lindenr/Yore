@@ -4,9 +4,7 @@
 #define event_enum_h
 enum Ev_type
 {
-	EV_world_init,
-	EV_player_init,
-	EV_world_heartbeat,
+	EV_dlevel_heartbeat,
 	EV_itrot,
 	EV_mthrow,
 	EV_proj_move,

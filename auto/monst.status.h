@@ -85,6 +85,13 @@ struct
 	EvID evID;
 	Tick due;
 } charge;
+struct
+{
+	EvID evID;
+	Tick due;
+	int speed;
+	Tick duration;
+} flash;
 
 #endif /* monst_status_h */
 

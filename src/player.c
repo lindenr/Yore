@@ -10,55 +10,56 @@
 #include "include/string.h"
 #include "include/graphics.h"
 #include "include/monst.h"
+#include "include/world.h"
+#include "include/thing.h"
 
 static char it_descstr[IT_DESC_LEN];
 
-extern Graph map_graph;
 int Kcamup (MonsID player)
 {
-	//grx_movecam (map_graph, 0, map_graph->cy - 10, map_graph->cx, 0);
-	if (map_graph->gldy == 2)
+	//grx_movecam (world.map, 0, world.map->cy - 10, world.map->cx, 0);
+	if (world.map->gldy == 2)
 		return 0;
-	map_graph->gldy = 2;
+	world.map->gldy = 2;
 	int dlevel, z, y, x;
 	mons_getloc (player, &dlevel, &z, &y, &x);
-	//map_graph->cpy += 4*(z - map_graph->cz);
+	//world.map->cpy += 4*(z - world.map->cz);
 	return 0;
 }
 
 int Kcamdn (MonsID player)
 {
-	//grx_movecam (map_graph, 0, map_graph->cy + 10, map_graph->cx, 0);
-	if (map_graph->gldy == -2)
+	//grx_movecam (world.map, 0, world.map->cy + 10, world.map->cx, 0);
+	if (world.map->gldy == -2)
 		return 0;
-	map_graph->gldy = -2;
+	world.map->gldy = -2;
 	int dlevel, z, y, x;
 	mons_getloc (player, &dlevel, &z, &y, &x);
-	//map_graph->cpy -= 4*(z - map_graph->cz);
+	//world.map->cpy -= 4*(z - world.map->cz);
 	return 0;
 }
 
 int Kcamlt (MonsID player)
 {
-	//grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx - 10, 0);
-	if (map_graph->gldx == 1)
+	//grx_movecam (world.map, 0, world.map->cy, world.map->cx - 10, 0);
+	if (world.map->gldx == 1)
 		return 0;
-	map_graph->gldx = 1;
+	world.map->gldx = 1;
 	int dlevel, z, y, x;
 	mons_getloc (player, &dlevel, &z, &y, &x);
-	//map_graph->cpx += 2*(z - map_graph->cz);
+	//world.map->cpx += 2*(z - world.map->cz);
 	return 0;
 }
 
 int Kcamrt (MonsID player)
 {
-	//grx_movecam (map_graph, 0, map_graph->cy, map_graph->cx + 10, 0);
-	if (map_graph->gldx == -1)
+	//grx_movecam (world.map, 0, world.map->cy, world.map->cx + 10, 0);
+	if (world.map->gldx == -1)
 		return 0;
-	map_graph->gldx = -1;
+	world.map->gldx = -1;
 	int dlevel, z, y, x;
 	mons_getloc (player, &dlevel, &z, &y, &x);
-	//map_graph->cpx += -2*(z - map_graph->cz);
+	//world.map->cpx += -2*(z - world.map->cz);
 	return 0;
 }
 
@@ -80,8 +81,9 @@ int Kwait (MonsID player)
 
 int Kpickup (MonsID player)
 {
-	int n = mons_index (player);
-	V_ItemID ground = dlv_itemIDs (mons_dlevel (player))[n];
+	int d, z, y, x;
+	mons_getloc (player, &d, &z, &y, &x);
+	V_ItemID ground = dlv_items (d, z, y, x);
 
 	if (ground->len <= 0)
 		return 0;
@@ -240,16 +242,16 @@ int Kinv (MonsID player)
 
 int nlook_msg (struct String *str, MonsID player)
 {
+	int d, z, y, x;
+	mons_getloc (player, &d, &z, &y, &x);
+	V_ItemID items = dlv_items (d, z, y, x);
 	int k = 0;
-	int n = mons_index (player);
-	struct DLevel *lvl = mons_dlv (player);
-	V_ItemID itemIDs = lvl->itemIDs[n];
 	str_catf (str, "\n");
 
 	int i;
-	for (i = 0; i < itemIDs->len; ++ i)
+	for (i = 0; i < items->len; ++ i)
 	{
-		ItemID it = itemIDs->data[i];
+		ItemID it = items->data[i];
 		it_desc (it_descstr, it, 0);
 		str_catf (str, "%s\n", it_descstr);
 		++ k;
@@ -556,14 +558,15 @@ void pl_poll (MonsID player)
 	//	gra_centcam (map_graph, player->yloc, player->xloc);
 	//extern Graph map_graph;
 	//printf("%d %d %d   ", map_graph->cz, map_graph->cy, map_graph->cx);
+	draw_map (0, player);
 	while (1)
 	{
 		int dlevel, z, y, x;
 		mons_getloc (player, &dlevel, &z, &y, &x);
 		//grx_movecam (map_graph, z-3, -map_graph->gldy * z, -map_graph->gldx * z, 0);
 		nlook_auto (player);
-		grx_cmove (map_graph, z, y, x);
-		map_graph->cz = z-3;
+		grx_cmove (world.map, z, y, x);
+		world.map->cz = z-3;
 
 		char in = p_getch (player);
 
@@ -606,21 +609,16 @@ void adjust_cam (MonsID pl, int y, int x)
 /* returns whether the move was used up */
 int pl_attempt_move (MonsID pl, int y, int x) /* each either -1, 0 or 1 */
 {
-	struct DLevel *lvl = mons_dlv (pl);
 	int dlevel, zloc, yloc, xloc;
 	mons_getloc (pl, &dlevel, &zloc, &yloc, &xloc);
 	yloc += y;
 	xloc += x;
-	if (yloc < 0 || yloc >= lvl->h ||
-	    xloc < 0 || xloc >= lvl->w)
-		return 0;
-	int n = dlv_index (lvl, zloc, yloc, xloc);
 	/* melee attack! */
-	if (lvl->monsIDs[n])
+	MonsID mons = dlv_mons (dlevel, zloc, yloc, xloc);
+	if (mons)
 	{
 		if (!ev_mons_can (pl, EV_mdohit))
 			return 0;
-		MonsID mons = lvl->monsIDs[n];
 		CTR_MODE m = mons_ctrl (mons);
 		if (m == CTR_AI_HOSTILE || m == CTR_AI_AGGRO)
 		{

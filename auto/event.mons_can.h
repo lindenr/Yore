@@ -3,15 +3,7 @@
 #ifndef event_mons_can_h
 #define event_mons_can_h
 
-case EV_world_init:
-{
-	return 1;
-}
-case EV_player_init:
-{
-	return 1;
-}
-case EV_world_heartbeat:
+case EV_dlevel_heartbeat:
 {
 	return 1;
 }

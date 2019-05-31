@@ -2,6 +2,7 @@
 
 #include "include/thing.h"
 #include "include/words.h"
+#include "include/world.h"
 #include "include/monst.h"
 #include "include/panel.h"
 #include "include/vector.h"
@@ -84,12 +85,12 @@ void ityp_init ()
 
 int it_is (ItemID item)
 {
-	return all_items->data[item].ID == item;
+	return world.items->data[item].ID == item;
 }
 
 struct Item_internal *it_internal (ItemID item)
 {
-	return &all_items->data[item];
+	return &world.items->data[item];
 }
 
 enum ITEM_TYPE it_type (ItemID item)

@@ -6,9 +6,8 @@
 // if <type> is MonsID or ItemID it will automatically check for existence before the event unless (optional) is specified
 // if <type> is MonsID it will automatically poll the monster after the event unless (nopoll) is specified
 
-| world_init
-| player_init
-| world_heartbeat
+| dlevel_heartbeat
+	int dlevel
 | itrot
 	ItemID itemID
 | mthrow mons.throw
@@ -56,6 +55,7 @@
 | mpoll
 	MonsID monsID (nopoll)
 | mgen
+	int dlevel
 | mregen
 	MonsID monsID (nopoll)
 | mbleed mons.bleed
@@ -81,8 +81,6 @@
 | mdrop mons.drop
 	MonsID monsID
 	V_ItemID items
-//| mstartcharge mons.charge
-//	MonsID monsID
 | mdocharge mons.charge
 	MonsID monsID
 > mstopcharge
@@ -103,7 +101,7 @@
 	int ydest
 	int xdest
 	int radius
-| mflash
+| mflash mons.flash
 	MonsID monsID
 	int speed
 	Tick duration

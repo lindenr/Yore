@@ -3,19 +3,9 @@
 #ifndef event_queue_h
 #define event_queue_h
 
-void ev_queue_world_init (Tick udelay)
+void ev_queue_dlevel_heartbeat (Tick udelay, int dlevel)
 {
-	ev_queue_aux (udelay, (union Event) { .world_init = {EV_world_init}});
-}
-
-void ev_queue_player_init (Tick udelay)
-{
-	ev_queue_aux (udelay, (union Event) { .player_init = {EV_player_init}});
-}
-
-void ev_queue_world_heartbeat (Tick udelay)
-{
-	ev_queue_aux (udelay, (union Event) { .world_heartbeat = {EV_world_heartbeat}});
+	ev_queue_aux (udelay, (union Event) { .dlevel_heartbeat = {EV_dlevel_heartbeat, dlevel}});
 }
 
 void ev_queue_itrot (Tick udelay, ItemID itemID)
@@ -86,9 +76,9 @@ void ev_queue_mpoll (Tick udelay, MonsID monsID)
 	ev_queue_aux (udelay, (union Event) { .mpoll = {EV_mpoll, monsID}});
 }
 
-void ev_queue_mgen (Tick udelay)
+void ev_queue_mgen (Tick udelay, int dlevel)
 {
-	ev_queue_aux (udelay, (union Event) { .mgen = {EV_mgen}});
+	ev_queue_aux (udelay, (union Event) { .mgen = {EV_mgen, dlevel}});
 }
 
 void ev_queue_mregen (Tick udelay, MonsID monsID)
@@ -167,7 +157,8 @@ void ev_queue_mfrost (Tick udelay, MonsID monsID, int zdest, int ydest, int xdes
 
 void ev_queue_mflash (Tick udelay, MonsID monsID, int speed, Tick duration)
 {
-	ev_queue_aux (udelay, (union Event) { .mflash = {EV_mflash, monsID, speed, duration}});
+	struct QEv *qev = ev_queue_aux (udelay, (union Event) { .mflash = {EV_mflash, monsID, speed, duration}});
+	mons_internal (monsID)->status.flash = (typeof(mons_internal (monsID)->status.flash)) {qev->ID, qev->tick, speed, duration};
 }
 
 void ev_queue_mstopflash (Tick udelay, MonsID monsID)

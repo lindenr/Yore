@@ -243,9 +243,6 @@ void   mons_try_wield  (MonsID, ItemID);     /* wield an item                   
 void   mons_wield      (MonsID, int, ItemID);/* wield an item in an arm                  */
 void   mons_unwield    (MonsID, int);        /* unwield an item from a given arm         */
 
-/* charging */
-//int    mons_charging   (MonsID);
-
 /* misc */
 void   mons_corpse     (MonsID,              /* make itype corpse type of the monster    */
 	struct Item_internal *);
@@ -284,10 +281,7 @@ CTR_MODE mons_ctrl     (MonsID);
 int    mons_attk_bonus (MonsID, ItemID);     /* get extra damage a monster does          */
 enum MTYPE mons_type   (MonsID);             /* get monster type                         */
 int    mons_can_bleed  (MonsID);             /* can it bleed                             */
-//int    mons_bleeding   (MonsID);
-int    mons_index      (MonsID);             /* dlevel index of the monster              */
 int    mons_dlevel     (MonsID);
-struct DLevel *mons_dlv(MonsID);
 struct Pack *mons_pack (MonsID);
 void   mons_setweap    (MonsID, int, ItemID);
 ItemID mons_getweap    (MonsID, int arm);    /* get weapon wielded in arm                */
@@ -306,7 +300,7 @@ void   mons_ex_skill   (MonsID, Skill);      /* exercise a skill                
 void   mons_startbleed (MonsID);             /* start bleeding                           */
 
 /* player functions */
-int    mons_gen_type   (void);               /* get a valid monster type for fighting    */
+int    mons_gen_type   (int difficulty);     /* get a valid monster type for fighting    */
 
 /* AI functions */
 void   AI_TIMID_poll   (MonsID);             /* decide what to do if not attacking       */

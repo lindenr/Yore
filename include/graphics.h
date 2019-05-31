@@ -171,6 +171,7 @@ void gr_resize    (int, int);
 #define ACS_PILLAR   0x07
 #define ACS_CORRIDOR 0xB1
 #define ACS_DIMCORRIDOR 0xB0
+#define ACS_WALL     0xFF
 
 /* line graphics */
 #define ACS_VLINE    0xB3

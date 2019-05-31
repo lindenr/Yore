@@ -10,8 +10,8 @@
 #include "include/event.h"
 #include "include/skills.h"
 #include "include/debug.h"
-#include "include/map.h"
 #include "include/vector.h"
+#include "include/world.h"
 
 #include <stdio.h>
 
@@ -35,11 +35,11 @@ int nogen (int mons_id)
 const int explevel[] = {0, 20, 40, 80, 160, 320, 640, 1250, 2500, 5000, 10000};
 const int maxlevel = sizeof(explevel)/sizeof(explevel[0]);
 
-int mons_gen_type ()
+int mons_gen_type (int difficulty)
 {
 	//return MTYP_skeleton;
 	int i, array[MTYP_NUM_MONS];
-	int level = mons_level (cur_dlevel->playerIDs->data[0]);
+	int level = difficulty;
 	uint32_t p_exp = level < maxlevel ? explevel[level] : explevel[maxlevel-1]*2;
 	uint32_t total_weight = 0;
 
@@ -71,12 +71,12 @@ int mons_gets_exp (MonsID mons)
 
 int mons_is (MonsID mons)
 {
-	return mons && all_mons->data[mons].ID == mons;
+	return mons && world.mons->data[mons].ID == mons;
 }
 
 struct Monster_internal *mons_internal (MonsID mons)
 {
-	return &all_mons->data[mons];
+	return &world.mons->data[mons];
 }
 
 void mons_getloc (MonsID mons, int *d, int *z, int *y, int *x)
@@ -91,11 +91,6 @@ void mons_getloc (MonsID mons, int *d, int *z, int *y, int *x)
 int mons_speed (MonsID mons)
 {
 	return mons_internal (mons)->speed;
-}
-
-struct DLevel *mons_dlv (MonsID mons)
-{
-	return dlv_lvl (mons_internal (mons)->dlevel);
 }
 
 int mons_dlevel (MonsID mons)
@@ -211,13 +206,6 @@ int mons_get_MP (MonsID mons)
 	return mi->wis + 1;
 }
 
-int mons_index (MonsID mons)
-{
-	struct Monster_internal *mi = mons_internal (mons);
-	struct DLevel *lvl = dlv_lvl (mi->dlevel);
-	return dlv_index (lvl, mi->zloc, mi->yloc, mi->xloc);
-}
-
 int mons_can_wear (MonsID mons, ItemID it, size_t offset)
 {
 	struct Monster_internal *mi = mons_internal (mons);
@@ -299,12 +287,10 @@ int mons_try_takeoff (MonsID mons, ItemID item)
 
 void mons_try_hit (MonsID mons, int y, int x)
 {
-	//struct Monster_internal *mi = mons_internal (mons);
 	int delay = mons_speed (mons);
 	int arm = 0;
 	ev_queue (delay, mdohit, mons, arm, 0, y, x);
-	//mons_start_hit (mons, y, x, arm, curtick + delay);
-	eff_mons_starts_hit (mons, y, x, curtick + delay);
+	eff_mons_starts_hit (mons, y, x);
 }
 
 void mons_try_hitm (MonsID mons, int y, int x)
@@ -313,7 +299,7 @@ void mons_try_hitm (MonsID mons, int y, int x)
 	MonsID to = dlv_mvmons (mi->dlevel, mi->zloc, mi->yloc+y, mi->xloc+x);
 	struct MStatus *s = &to->status;
 	if (s->moving.arrival == 0 ||
-		s->moving.arrival >= curtick + mi->speed)
+		s->moving.arrival >= world.tick + mi->speed)
 	{
 		mons_try_hit (mi, y, x);
 		return;
@@ -335,30 +321,23 @@ int mons_can_move (MonsID mons, int z, int y, int x)
 		return 0;
 	int md, mz, my, mx;
 	mons_getloc (mons, &md, &mz, &my, &mx);
-	struct DLevel *lvl = mons_dlv (mons);
+	int dlevel = mons_dlevel (mons);
 	int zloc = mz + z, yloc = my + y, xloc = mx + x;
-	if (zloc < 0 || zloc >= lvl->t ||
-		yloc < 0 || yloc >= lvl->h ||
-	    xloc < 0 || xloc >= lvl->w)
+	if (dlv_mons (dlevel, zloc, yloc, xloc))
 		return 0;
-	int n = dlv_index (lvl, zloc, yloc, xloc);
-	int m = dlv_index (lvl, zloc-1, yloc, xloc);
-	if (lvl->monsIDs[n])
-		return 0;
-	return map_bpassable (lvl, n) && !map_bpassable (lvl, m);
+	return dlv_passable (dlevel, zloc, yloc, xloc) &&
+		!dlv_passable (dlevel, zloc-1, yloc, xloc);
 }
 
 int mons_getmovedelay (MonsID mons)
 {
-	struct Monster_internal *mi = mons_internal (mons);
-	return /*mi->status.flashing.end ? mi->status.flashing.speed :*/ mi->speed;
+	return mons_ev (mons, flash) ? mons_speed (mons)/5+1 : mons_speed (mons);
 }
 
 void mons_try_move (MonsID mons, int z, int y, int x)
 {
 	int delay = mons_getmovedelay (mons);
 	ev_queue (delay, mdomove, mons, z, y, x);
-	//mons_start_move (mons, z, y, x, curtick + delay);
 }
 
 void mons_try_wait (MonsID mons)
@@ -371,22 +350,22 @@ void mons_try_wield (MonsID mons, ItemID item)
 	ev_queue (mons_speed (mons)/2, mwield, mons, 0, item);
 }
 
-void mons_tilefrost (MonsID mons, int zloc, int yloc, int xloc)
+void mons_tilefrost (MonsID mons, int z, int y, int x)
 {
-	struct DLevel *lvl = mons_dlv (mons);
-	int n = dlv_index (lvl, zloc, yloc, xloc);
-	if (lvl->monsIDs[n])
+	int dlevel = mons_dlevel (mons);
+	if (dlv_mons (dlevel, z, y, x))
 	{//TODO anger monster
 	}
 	int i;
-	V_ItemID items = lvl->itemIDs[n];
+	V_ItemID items = dlv_items (dlevel, z, y, x);
 	for (i = 0; i < items->len; ++ i)
 	{
 		ItemID item = items->data[i];
 		if (!it_freeze (item))
 		{
 			/* it has disappeared */
-			-- i;
+			-- i; // TODO deep copy vector of item IDs? then iterate through copied list
+			// so no need to depend on effect of it_freeze()
 		}
 	}
 }
@@ -438,21 +417,7 @@ void mons_try_evade (MonsID mons, int y, int x)
 {
 	int delay = mons_speed (mons)/3;
 	ev_queue (delay, mdoevade, mons, 0, y, x);
-	//mons_start_evade (mi, y, x, curtick + delay, curtick + delay + mons_speed (mons));
 }
-/*
-void mons_start_hit (MonsID mons, int y, int x, int arm, Tick arrival)
-{
-	//eff_mons_starts_hit (mi, y, x, arrival);
-	//mi->status.attacking = (typeof(mi->status.attacking)) {y, x, arm, arrival};
-	//draw_map_mons (mi);
-}
-
-void mons_stop_hit (MonsID mons)
-{
-	//mi->status.attacking = (typeof(mi->status.attacking)) {0, 0, -1, 0};
-	//draw_map_mons (mi);
-}*/
 
 int mons_take_damage (MonsID mons, MonsID fr, int dmg, enum DMG_TYPE type)
 {
@@ -478,15 +443,14 @@ int mons_can_bleed (MonsID mons)
 
 void mons_startbleed (MonsID mons)
 {
+	// TODO move to generated code
 	if (mons_ev (mons, bleed))
 		return;
-	//mi->status.bleeding = 1;
 	ev_queue (1000, mbleed, mons);
 }
 
 void mons_stopbleed (MonsID mons)
 {
-	//mi->status.bleeding = 0;
 }
 
 void mons_kill (MonsID fr, MonsID to)
@@ -548,10 +512,8 @@ void mons_calm (MonsID mons)
 	eff_mons_calms (mons);
 }
 
-void mons_poll (MonsID mons) // TODO bail if mons busy!
+void mons_poll (MonsID mons)
 {
-	//if (mons_ev (mons, move) || mons_ev (mons, hit) || mons_ev (mons, evade) || mons_ev (mons, shield))
-	//	return;
 	switch (mons_ctrl (mons))
 	{
 	case CTR_NONE:
@@ -785,13 +747,13 @@ const char *mons_typename (MonsID mons)
 	return mons_internal (mons)->mname;
 }
 
-int AI_weapcmp (MonsID ai, ItemID w1, ItemID w2)
+int AI_weapgt (MonsID ai, ItemID w1, ItemID w2)
 {
-	//if (it_no(w2))
-	//	return !it_no(w1);
-	//if (it_no(w1))
-	//	return -1;
-	return ((uintptr_t)w1) > ((uintptr_t)w2);
+	if (!w2)
+		return !!w1;
+	if (!w1)
+		return -1;
+	return w1 > w2;
 }
 
 void AI_TIMID_poll (MonsID ai)
@@ -878,7 +840,7 @@ void AI_AGGRO_poll (MonsID ai)
 		ItemID item = &ai->pack->items[i];
 		if (it_no(item))
 			continue;
-		if (AI_weapcmp (ai, item, bestweap) > 0)
+		if (AI_weapgt (ai, item, bestweap) > 0)
 			bestweap = item;
 	}
 	if (bestweap != curweap)

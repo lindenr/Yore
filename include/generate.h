@@ -15,17 +15,17 @@ enum LEVEL_TYPE
 };
 
 extern char *real_player_name;
-void generate_map (struct DLevel *, enum LEVEL_TYPE);
-MonsID mons_gen (struct DLevel *, int, int32_t);
-int is_safe_gen  (struct DLevel *, int z, int y, int x);
+void generate_map (int dlevel, enum LEVEL_TYPE);
+MonsID mons_gen (int dlevel, int, int32_t);
+int is_safe_gen  (int dlevel, int z, int y, int x);
 
 // TODO remove
 void generate_auto (double *, int, int, uint16_t*, int, int, double);
 
-MonsID gen_player (int z, int y, int x, char *name);
-MonsID gen_mons_in_level ();
-MonsID gen_mons_near_player ();
-MonsID gen_boss (int z, int y, int x);
+MonsID gen_player (int dlevel, int z, int y, int x, char *name);
+MonsID gen_mons_in_level (int dlevel, int difficulty);
+MonsID gen_mons_near_player (int dlevel, int difficulty);
+MonsID gen_boss (int dlevel, int z, int y, int x);
 
 enum MTYPE;
 void init_mons (struct Monster_internal *mons, enum MTYPE type);

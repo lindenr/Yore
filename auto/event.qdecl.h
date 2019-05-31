@@ -2,9 +2,7 @@
 
 #ifndef event_qdecl_h
 #define event_qdecl_h
-void ev_queue_world_init (Tick udelay);
-void ev_queue_player_init (Tick udelay);
-void ev_queue_world_heartbeat (Tick udelay);
+void ev_queue_dlevel_heartbeat (Tick udelay, int dlevel);
 void ev_queue_itrot (Tick udelay, ItemID itemID);
 void ev_queue_mthrow (Tick udelay, MonsID monsID, ItemID itemID, int ydest, int xdest);
 void ev_queue_proj_move (Tick udelay, ItemID itemID, struct BresState bres, int speed, MonsID frID);
@@ -17,7 +15,7 @@ void ev_queue_mdoshield (Tick udelay, MonsID monsID, int ydir, int xdir);
 void ev_queue_munshield (Tick udelay, MonsID monsID);
 void ev_queue_mdohit (Tick udelay, MonsID frID, int arm, int zdir, int ydir, int xdir);
 void ev_queue_mpoll (Tick udelay, MonsID monsID);
-void ev_queue_mgen (Tick udelay);
+void ev_queue_mgen (Tick udelay, int dlevel);
 void ev_queue_mregen (Tick udelay, MonsID monsID);
 void ev_queue_mbleed (Tick udelay, MonsID monsID);
 void ev_queue_mwield (Tick udelay, MonsID monsID, int arm, ItemID itemID);

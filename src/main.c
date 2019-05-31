@@ -9,9 +9,9 @@
 #include "include/graphics.h"
 #include "include/event.h"
 #include "include/save.h"
-#include "include/dlevel.h"
 #include "include/heap.h"
 #include "include/player.h"
+#include "include/world.h"
 
 #include <stdio.h>
 #include <stddef.h>
@@ -71,25 +71,21 @@ void on_quit ()
 }
 
 //glyph fire_glyph (int);
-extern Graph map_graph;
 int main (int argc, char *argv[])
 {
 	int i;
 	gr_init (640, 1200);
 	gr_onresize = p_init;
 	gr_quit = on_quit;
-	map_graph = grx_init (11, 50, 50, GLH, GLW, -2, -1, 0, 0, gr_ph - PANE_PH, gr_pw - GLW, 7);
-	map_graph->vis = 0;
 	
 	p_init ();
-	dlv_init ();
 	rng_init ();
 	ityp_init ();
 	pl_init ();
 
 	if (argc > 1)
 	{
-		generate_map (dlv_lvl(1), LEVEL_TOWN);
+		generate_map (1, LEVEL_TOWN);
 		return 0;
 	}
 	U.playing = PLAYER_STARTING;
@@ -110,7 +106,7 @@ int main (int argc, char *argv[])
 
 	gra_mvprint (introbox, 8, 6, "Who are you? ");
 	introbox->def = COL_TXT_BRIGHT;
-	player_name = malloc(41);
+	char *player_name = malloc(41);
 	player_name[0] = '\0';
 
 	for (i = 0;
@@ -129,12 +125,13 @@ int main (int argc, char *argv[])
 		goto quit_game;
 
 	/* So you really want to play? */
-	grx_cshow (map_graph);
+	world_init (player_name); /* or alternatively load save file TODO */
+	world.map = grx_init (11, 50, 150, GLH, GLW, -2, -1, 0, 0, gr_ph - PANE_PH, gr_pw - GLW, 7);
+	grx_cshow (world.map);
 
 	U.playing = PLAYER_PLAYING;
 
 	//gra_centcam (map_graph, player->yloc, player->xloc);
-	grx_show (map_graph);
 
 	//if (argc > 1) restore("Yore-savegame.sav");
 	/*for (i = 0; i < 200; ++ i)
@@ -146,17 +143,17 @@ int main (int argc, char *argv[])
 
   quit_game:
 	if (U.playing == PLAYER_LOSTGAME)
-		printf("Goodbye %s...\n", player_name);
+		printf("Goodbye %s...\n", world.player_name);
 	else if (U.playing == PLAYER_SAVEGAME)
 	{
-		printf("Saving game for %s...", player_name);
+		printf("Saving game for %s...", world.player_name);
 		save (NULL);
 		printf(" done!\n");
 	}
 	else if (U.playing == PLAYER_STARTING)
 		printf("Give it a try next time...\n");
 	else if (U.playing == PLAYER_WONGAME)
-		printf("Congratulations %s...\n", player_name);
+		printf("Congratulations %s...\n", world.player_name);
 
 	exit(0);
 }

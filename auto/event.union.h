@@ -5,15 +5,8 @@
 	struct
 	{
 		Ev_type type;
-	} world_init;
-	struct
-	{
-		Ev_type type;
-	} player_init;
-	struct
-	{
-		Ev_type type;
-	} world_heartbeat;
+		int dlevel;
+	} dlevel_heartbeat;
 	struct
 	{
 		Ev_type type;
@@ -99,6 +92,7 @@
 	struct
 	{
 		Ev_type type;
+		int dlevel;
 	} mgen;
 	struct
 	{
