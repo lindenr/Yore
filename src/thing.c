@@ -37,7 +37,8 @@ void item_rem (ItemID item)
 		return;
 	case LOC_DLVL:
 		items = dlv_items (dlvl.dlevel, dlvl.zloc, dlvl.yloc, dlvl.xloc);
-		rem_ItemID (items, item);
+		if (items)
+			rem_ItemID (items, item);
 		return;
 	case LOC_INV:
 		pack_rem (mons_pack (inv.monsID), inv.invnum);
@@ -69,7 +70,14 @@ void it_locate (ItemID item, union ItemLoc loc)
 	case LOC_NONE:
 		break;
 	case LOC_DLVL:
-		v_push (dlv_items (dlvl.dlevel, dlvl.zloc, dlvl.yloc, dlvl.xloc), &item);
+		;V_ItemID items = dlv_items (dlvl.dlevel, dlvl.zloc, dlvl.yloc, dlvl.xloc);
+		if (!items)
+		{
+			// TODO
+			it_destroy (item);
+			return;
+		}
+		v_push (items, &item);
 		if (it_sort (item) == ITSORT_TURRET && !it_event (item, compute))
 			ev_queue (100, compute, item);
 		return;
@@ -264,10 +272,10 @@ glyph fire_glyph (int f)
 }
 
 static gflags map_flags;
-glyph glyph_to_draw (int dlevel, int z, int y, int x, int looking)
+glyph glyph_to_draw (struct DCell *cell, int looking)
 {
 	map_flags = 0;
-	int nf = dlv_num_fires (dlevel, z, y, x);
+	int nf = cell->num_fires;//dlv_num_fires (dlevel, z, y, x);
 	if (looking && /*lvl->seen[w] == 2 &&*/ nf)
 		return fire_glyph (nf);
 	/* draw walls */
@@ -309,32 +317,32 @@ glyph glyph_to_draw (int dlevel, int z, int y, int x, int looking)
 	//	return lvl->remembered[w];
 	
 	/* draw monster */
-	MonsID mons = dlv_mons (dlevel, z, y, x);
+	DTile t = cell->tile;//dlv_tile (dlevel, z, y, x);
+	glyph bg = tile_types[t].gl & COL_BG_MASK;
+	MonsID mons = cell->mons;//dlv_mons (dlevel, z, y, x);
 	// how draw for 3d?
 	if (mons && looking)
 	{
-		map_flags = 1 ;//|
-		//	(1<<12) | ((1+mons->status.moving.ydir)*3 + (1+mons->status.moving.xdir))<<8 |
+		map_flags = 1;
+		if (mons_ev (mons, move))
+			map_flags |= (1<<12) | ((1+mons_internal(mons)->status.move.ydir)*3 + (1+mons_internal(mons)->status.move.xdir))<<8;
 		//	(1<<17) | ((1+mons->status.attacking.ydir)*3 + (1+mons->status.attacking.xdir))<<13;
-		return mons_gl (mons);
+		return mons_gl (mons) | bg;
 	}
 
 	/* draw topmost item in pile */
 	int i;
-	V_ItemID items = dlv_items (dlevel, z, y, x);
+	V_ItemID items = cell->items;//dlv_items (dlevel, z, y, x);
 	for (i = 0; i < items->len; ++ i)
 	{
 		ItemID item = items->data[items->len-1-i];
 		if (it_event (item, flight))
 			return it_gl (item) | COL_BG (5,5,5);
 		if (it_loc (item) == LOC_DLVL)
-			return it_gl (item);
+			return it_gl (item) | bg;
 	}
 
-	DTile t = dlv_tile (dlevel, z, y, x);
 	return tile_types[t].gl;
-	if (t >= DGN_WALL && t <= DGN_WALL2)
-		return 0x888111fe;
 }
 
 /* Draws player knowledge on to lvl arrays,
@@ -386,14 +394,19 @@ void update_knowledge (MonsID player)
 
 void draw_map (int dlevel, MonsID player)
 {
-	grx_clear (world.map);
+	//grx_clear (world.map);
+	gr_clear ();
 	int z, y, x;
 	int Z = 0, Y = 0, X = 0;
-	for (z = 0; z < world.map->t; ++ z) for (y = 0; y < world.map->h; ++ y) for (x = 0; x < world.map->w; ++ x)
+	z = world.map->cz;
+	if (z < 0)
+		z = 0;
+	for (; z < world.map->t && z < world.map->cz + world.map->ct; ++ z)
+		for (y = 0; y < world.map->h; ++ y) for (x = 0; x < world.map->w; ++ x)
 	{
-		glyph gl = glyph_to_draw (dlevel, Z+z, Y+y, X+x, 1);
+		glyph gl = glyph_to_draw (dlv_cell (dlevel, Z+z, Y+y, X+x), 1);
 		grx_mvaddch (world.map, z, y, x, gl);
-		//world.map->flags[w] |= map_flags;
+		world.map->flags[z*world.map->A + y*world.map->w + x] = map_flags;
 	}
 #if 0
 	int w;

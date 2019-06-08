@@ -12,6 +12,8 @@ struct Vector
 /* init/free */
 void  *v_dinit (size_t);
 void  *v_init  (size_t, size_t);
+void  *v_clone_ (Vector);
+#define v_clone(v) v_clone_ ((void*)(v))
 void   v_free_ (Vector);
 #define v_free(v) v_free_((void*)(v))
 

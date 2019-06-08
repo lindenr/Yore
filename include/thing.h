@@ -13,8 +13,6 @@ void    draw_map_xyz   (int, int z, int y, int x);
 void    draw_map_buf   (int, int idx);
 void    update_knowledge (MonsID);
 
-glyph   glyph_to_draw  (int d, int z, int y, int x, int looking);
-
 ItemID  it_create      (struct Item_internal *, union ItemLoc loc);
 void    it_put         (ItemID, union ItemLoc loc);
 void    it_destroy     (ItemID);

@@ -140,18 +140,11 @@ int mons_armour (MonsID mons)
 
 glyph mons_gl  (MonsID mons)
 {
-	return '@';
+	struct Monster_internal *mi = mons_internal (mons);
+	if (mi->ctr.mode == CTR_PL)
+		return ((mi->gl&0xFFF00000)>>12)|(mi->gl&255);
+	return mi->gl;
 }
-
-/*int mons_charging (MonsID mons)
-{
-	return 0;
-}
-
-int mons_bleeding (MonsID mons)
-{
-	return mons_internal (mons)->status.bleed.evID;
-}*/
 
 int mons_level (int exp)
 {
@@ -321,12 +314,11 @@ int mons_can_move (MonsID mons, int z, int y, int x)
 		return 0;
 	int md, mz, my, mx;
 	mons_getloc (mons, &md, &mz, &my, &mx);
-	int dlevel = mons_dlevel (mons);
 	int zloc = mz + z, yloc = my + y, xloc = mx + x;
-	if (dlv_mons (dlevel, zloc, yloc, xloc))
+	if (dlv_mons (md, zloc, yloc, xloc))
 		return 0;
-	return dlv_passable (dlevel, zloc, yloc, xloc) &&
-		!dlv_passable (dlevel, zloc-1, yloc, xloc);
+	return dlv_passable (md, zloc, yloc, xloc) &&
+		!dlv_passable (md, zloc-1, yloc, xloc);
 }
 
 int mons_getmovedelay (MonsID mons)
@@ -358,16 +350,18 @@ void mons_tilefrost (MonsID mons, int z, int y, int x)
 	}
 	int i;
 	V_ItemID items = dlv_items (dlevel, z, y, x);
-	for (i = 0; i < items->len; ++ i)
+	V_ItemID to_freeze = v_clone (items);
+	for (i = 0; i < to_freeze->len; ++ i)
 	{
-		ItemID item = items->data[i];
-		if (!it_freeze (item))
-		{
-			/* it has disappeared */
-			-- i; // TODO deep copy vector of item IDs? then iterate through copied list
-			// so no need to depend on effect of it_freeze()
-		}
+		ItemID item = to_freeze->data[i];
+		it_freeze (item);
 	}
+	v_free (to_freeze);
+}
+
+void mons_burn (MonsID mons)
+{
+	// TODO
 }
 
 ItemID mons_getweap (MonsID mons, int arm)
@@ -457,13 +451,6 @@ void mons_kill (MonsID fr, MonsID to)
 {
 	if (fr)
 		eff_mons_kills_mons (fr, to);
-	if (mons_isplayer(to))
-	{
-		p_msgbox ("You die...");
-		U.playing = PLAYER_LOSTGAME;
-		mons_destroy (to);
-		return;
-	}
 	int exp_gain = mons_exp (to);
 	mons_dead (to);
 	mons_get_exp (fr, exp_gain);
@@ -471,6 +458,14 @@ void mons_kill (MonsID fr, MonsID to)
 
 void mons_dead (MonsID mons)
 {
+	if (mons_isplayer (mons))
+	{
+		draw_map (0, 0);
+		p_msgbox ("You die...");
+		U.playing = PLAYER_LOSTGAME;
+		mons_destroy (mons);
+		return;
+	}
 	int i;
 	struct Pack *p = mons_pack (mons);
 	for (i = 0; i < MAX_ITEMS_IN_PACK; ++ i)
@@ -514,6 +509,20 @@ void mons_calm (MonsID mons)
 
 void mons_poll (MonsID mons)
 {
+	if (mons_ev (mons, throw) ||
+		mons_ev (mons, move) ||
+		mons_ev (mons, evade) ||
+		mons_ev (mons, shield) ||
+		mons_ev (mons, hit) ||
+		mons_ev (mons, bleed) ||
+		mons_ev (mons, wield) ||
+		mons_ev (mons, wear) ||
+		mons_ev (mons, takeoff) ||
+		mons_ev (mons, pickup) ||
+		mons_ev (mons, wear) ||
+		mons_ev (mons, charge) ||
+		mons_ev (mons, flash))
+		return;
 	switch (mons_ctrl (mons))
 	{
 	case CTR_NONE:
@@ -761,6 +770,10 @@ void AI_TIMID_poll (MonsID ai)
 	int y = rn(3)-1, x = rn(3)-1;
 	if (mons_can_move (ai, 0, y, x))
 		mons_try_move (ai, 0, y, x);
+	else if (mons_can_move (ai, 1, y, x))
+		mons_try_move (ai, 1, y, x);
+	else if (mons_can_move (ai, -1, y, x))
+		mons_try_move (ai, -1, y, x);
 	else
 		mons_try_wait (ai);
 }

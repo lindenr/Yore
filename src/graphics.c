@@ -6,6 +6,10 @@
 
 #include "SDL.h"
 
+#ifdef GR_DRAW_GPU
+#include <GL/glew.h>
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -24,17 +28,25 @@ void (*gr_quit) () = NULL;
 
 /* The following static variables are for internal use */
 
-/* Screen data */
-static Uint32 *gr_pixels;
-static int gr_pitch;
-
-/* Tiles data */
-static uint8_t *tiles_data;
-
-/* SDL globals */
 static SDL_Window *sdlWindow;
+
+#ifdef GR_DRAW_GPU
+static SDL_GLContext glContext;
+static GLuint glShader;
+static GLuint grTiles, grData;
+static uint32_t *gr_render_data;
+static int gr_render_h, gr_render_w, gr_render_t;
+static GLchar gr_shader_log[1024];
+static GLint success;
+#endif
+
+#ifdef GR_DRAW_CPU
 static SDL_Renderer *sdlRenderer;
 static SDL_Texture *sdlTexture;
+static Uint32 *gr_pixels;
+static int gr_pitch;
+static uint8_t *tiles_data;
+#endif
 
 /* all the active graphs */
 static V_Graph graphs = NULL;
@@ -44,7 +56,7 @@ static V_Graph graphs = NULL;
 static char temp_buffer[BUFFER_LEN];
 
 /* timing parameters for held keys */
-static uint32_t gr_kinitdelay = 180, gr_kdelay = 40;
+static uint32_t gr_kinitdelay = 180, gr_kdelay = 0;
 
 /* state for keys being held down */
 static uint32_t key_fire_ms = 0;
@@ -59,7 +71,11 @@ static char peeked = GRK_EOF;
 static int gr_skip_anim = 0;
 
 #ifdef DEBUG_GETCH_TIME
-static uint32_t lastref = 0;
+static uint32_t debug_getch_time = 0;
+#endif
+#ifdef DEBUG_REFRESH_TIME
+static uint32_t debug_ref_time = 0;
+static uint32_t debug_ref_times[20];
 #endif
 
 int grx_index (Graph gra, int zloc, int yloc, int xloc)
@@ -94,15 +110,30 @@ void grx_centcam (Graph gra, int zloc, int yloc, int xloc)
 		xloc*gra->glw - gra->vpw/2, 0);
 }
 
+/*struct outCol
+{
+	char a[8];
+};*/
 void grx_baddch (Graph gra, int buf, glyph gl)
 {
+#ifdef GR_DRAW_CPU
 	/* what do you actually want to draw? */
 	if (gl > 0 && gl < 256)
 		gl |= gra->def & 0xFFFFFF00;
 	/* update current to new */
 	gra->data[buf] = gl;
+#endif
+#ifdef GR_DRAW_GPU
+	if (!gl)
+		return;
+	int x = buf%gra->w;// + (gra->vpx/8) - gra->cpx/8;
+	int y = (buf/gra->w)%gra->h;// + (gra->vpy/12) - gra->cpy/12;
+	int z = 0;
+	grx_mvaddch (gra, z, y, x, gl);
+#endif
 }
 
+#if 0
 void grx_bgaddch (Graph gra, int buf, glyph gl)
 {
 	/* what do you actually want to draw? */
@@ -113,17 +144,48 @@ void grx_bgaddch (Graph gra, int buf, glyph gl)
 	/* update current to new */
 	gra->data[buf] = gl;
 }
+#endif
+
+/*void grx_mvaddchcol (Graph gra, int zloc, int yloc, int xloc, char ch, char bgr, char bgg, char bgb,
+	char fgr, char fgg, char fgb)
+{
+	int x = xloc + (gra->vpx/8) - gra->cpx/8;
+	int y = yloc + (gra->vpy/12) - gra->cpy/12;
+	if (x >= 0 && x < 150 && y >= 0 && y < 50)
+		*(struct outCol*)&gr_render_data[2*(x+150*y)] = (struct outCol)
+			{{ch, bgr, bgg, bgb, fgr, fgg, fgb, 0}};
+}*/
 
 void grx_mvaddch (Graph gra, int zloc, int yloc, int xloc, glyph gl)
 {
+#ifdef GR_DRAW_GPU
+	if (!gl)
+		return;
+	if (gl > 0 && gl < 256)
+		gl |= gra->def & 0xFFFFFF00;
+	int x = xloc + (gra->vpx/8) - gra->cpx/8;
+	int y = yloc + (gra->vpy/12) - gra->cpy/12;
+	int z = zloc - gra->cz;
+	if (gra->t == 1)
+		z = 7;
+	if (x >= 0 && x < gr_render_w && y >= 0 && y < gr_render_h && z >= 0 && z < gr_render_t)
+		gr_render_data[x+gr_render_w*(y + gr_render_h*z)] = gl;
+	/*	*(struct outCol*)&gr_render_data[2*(x+150*y)] = (struct outCol){{
+			gl&0xff,
+			0x11*(0xf&(gl>>8)),  0x11*(0xf&(gl>>12)), 0x11*(0xf&(gl>>16)),
+			0x11*(0xf&(gl>>20)), 0x11*(0xf&(gl>>24)), 0x11*(0xf&(gl>>28)),
+			0}};*/
+#endif
+#ifdef GR_DRAW_CPU
 	int buf = grx_index (gra, zloc, yloc, xloc);
 	if (buf != -1)
 		grx_baddch (gra, buf, gl);
+#endif
 }
 
 void grx_mvaprint (Graph gra, int zloc, int yloc, int xloc, const char *str)
 {
-	int i, buf = grx_index (gra, zloc, yloc, xloc), len = strlen(str);
+	int i, buf = grx_index (gra, zloc, yloc, xloc), len = strlen (str);
 
 	for (i = 0; i < len && i+buf > 0 && i+buf < gra->v; ++ i)
 		grx_baddch (gra, i+buf, str[i]);
@@ -273,6 +335,8 @@ void grx_show (Graph gra)
 	gra->vis = 1;
 }
 
+#ifdef GR_DRAW_CPU
+
 #define PIXEL_VALUE(a,b,c) (((a)<<16) | ((b)<<8) | ((c)<<0) | 0xFF000000)
 #define setpixel(y,x) {*(uint32_t*) ((uint8_t*) pixels + 4*(x) + gr_pitch*(y)) = col;}
 void gr_drawboxes (int py, int px, int glh, int glw, gflags f)
@@ -327,14 +391,14 @@ end_moving:
 end_attacking:;
 }
 
-#define ST(x) ((x)*0x11) // seventeen
+#define ST(x) ((x)*0x11 + lighten*13) // seventeen
 #define GL_TRD ST((gl&0xF0000000)>>28)
 #define GL_TGN ST((gl&0x0F000000)>>24)
 #define GL_TBL ST((gl&0x00F00000)>>20)
 #define GL_BRD ST((gl&0x000F0000)>>16)
 #define GL_BGN ST((gl&0x0000F000)>>12)
 #define GL_BBL ST((gl&0x00000F00)>>8)
-void blit_glyph (glyph gl, int py, int px, int glh, int glw,
+void blit_glyph (glyph gl, int py, int px, int glh, int glw, int lighten,
 	int ey, int ex, int ed, int dy, int dx) /* edges: y, x, diagonal; directions: y, x */
 {
 	unsigned char ch = (unsigned char) gl;
@@ -365,14 +429,22 @@ void blit_glyph (glyph gl, int py, int px, int glh, int glw,
 	}
 }
 
-void blit_glyph_2d (glyph gl, int py, int px, int glh, int glw)
+void blit_glyph_2d (glyph gl, int py, int px, int glh, int glw, int lighten)
 {
 	unsigned char ch = (unsigned char) gl;
 
 	int y, x;
 	int bitloc = ch*glh*glw;
-	uint32_t fgcol = PIXEL_VALUE (GL_TRD, GL_TGN, GL_TBL),
-		bgcol = PIXEL_VALUE (GL_BRD, GL_BGN, GL_BBL);
+	uint32_t R = GL_TRD, G = GL_TGN, B = GL_TBL;
+	R = R > 255 ? 255 : R;
+	G = G > 255 ? 255 : G;
+	B = B > 255 ? 255 : B;
+	uint32_t fgcol = PIXEL_VALUE (R, G, B);
+	R = GL_BRD, G = GL_BGN, B = GL_BBL;
+	R = R > 255 ? 255 : R;
+	G = G > 255 ? 255 : G;
+	B = B > 255 ? 255 : B;
+	uint32_t bgcol = PIXEL_VALUE (R, G, B);
 	for (y = 0; y < glh; ++ y) for (x = 0; x < glw; ++ x, ++ bitloc)
 	{
 		if (px + x < 0 || px + x >= gr_pw ||
@@ -390,7 +462,9 @@ void blit_glyph_2d (glyph gl, int py, int px, int glh, int glw)
 void gr_refresh ()
 {
 	int i;
-	//uint32_t asdf = gr_getms();
+#ifdef DEBUG_REFRESH_TIME
+//	debug_ref_time = gr_getms();
+#endif
 	for (i = 0; i < graphs->len; ++ i)
 	{
 		Graph gra = graphs->data[i];
@@ -416,7 +490,10 @@ void gr_refresh ()
 			dz = 2*gra->A, dy = 0, dx = -1, grx_c = gra->A - 1;*/
 		int sny = (gra->gldy > 0) - (gra->gldy < 0);
 		int snx = (gra->gldx > 0) - (gra->gldx < 0);
-		for (z = gra->cz; z < gra->cz+gra->ct && z < gra->t; ++ z, grx_c += dz)
+		z = gra->cz;
+		if (z < 0)
+			z = 0;
+		for (; z < gra->cz+gra->ct && z < gra->t; ++ z, grx_c += dz)
 			for (y = 0; y < gra->h; ++ y, grx_c += dy)
 				for (x = 0; x < gra->w; ++ x, grx_c += dx)
 		{
@@ -424,12 +501,12 @@ void gr_refresh ()
 			if (z < 0 || z >= gra->t || y < 0 || y >= gra->h || x < 0 || x >= gra->w)
 				continue;
 			glyph gl = gra->data[grx_c];
-			if (gra->csr_state && grx_c == gra->csr_b)
-				gl = 0x000FFF00 | (gl&0xFF);
 			if (!gl)
 				continue;
-			if (z < gra->t-2 && z < gra->cz+gra->ct-1 && gra->data[grx_c + gra->A]) // could get rid of this?
-				continue;
+			if (gra->csr_state && grx_c == gra->csr_b)
+				gl = 0x000FFF00 | (gl&0xFF);
+			//if (z < gra->t-2 && z < gra->cz+gra->ct-1 && gra->data[grx_c + gra->A]) // could get rid of this?
+			//	continue;
 			int ipy = y*gra->glh - gra->cpy + (z-gra->cz-3)*gra->gldy;
 			int ipx = x*gra->glw - gra->cpx + (z-gra->cz-3)*gra->gldx;
 			if (ipy < -hmax || ipy >= gra->vph ||
@@ -440,10 +517,11 @@ void gr_refresh ()
 			if (py < -hmax || py >= gr_ph ||
 				px < -wmax || px >= gr_pw)
 				continue;
+			int lighten = 0;
 			if ((gl&0x000FFF00) != 0x000FFF00)
-				gl += (z - gra->cz)*0x00011100;
+				lighten = z - gra->cz;
 			if (gra->t == 1)
-				blit_glyph_2d (gl, py, px, gra->glh, gra->glw);
+				blit_glyph_2d (gl, py, px, gra->glh, gra->glw, 0);
 			else
 			{
 				int ey, ex;
@@ -453,17 +531,16 @@ void gr_refresh ()
 					(gra->gldx > 0 && x < gra->w-1 && gra->data[grx_c+1] == 0);
 				int ed = (y && x && y < gra->h-1 && x < gra->w-1 && gra->data[grx_c+snx+sny*gra->w] == 0);
 				if (ey || ex || ed)
-					blit_glyph (gl, py, px, gra->glh, gra->glw, ey, ex, ed, gra->gldy, gra->gldx);
+					blit_glyph (gl, py, px, gra->glh, gra->glw, lighten, ey, ex, ed, gra->gldy, gra->gldx);
 				else
-					blit_glyph_2d (gl, py, px, gra->glh, gra->glw);
+					blit_glyph_2d (gl, py, px, gra->glh, gra->glw, lighten);
 			}
-			/* TODO draw boxes: something like
-				gflags f = gr_flags[gr_c];
-				if (f)
-					gr_drawboxes (y, x, h, f); */
+			gflags f = gra->flags[grx_c];
+			if (f)
+				gr_drawboxes (py, px, gra->glh, gra->glw, f);
 		}
 #ifdef DEBUG_REFRESH_TIME
-		fprintf(stderr, "%ums ", gr_getms() - asdf);
+//		fprintf(stderr, "%ums ", gr_getms() - debug_ref_time);
 #endif
 	}
 
@@ -472,24 +549,76 @@ void gr_refresh ()
 	if (gr_onrefresh)
 		gr_onrefresh ();
 #ifdef DEBUG_REFRESH_TIME
-	fprintf(stderr, "| onrefresh: %ums", gr_getms() - asdf);
+//	fprintf(stderr, "| onrefresh: %ums", gr_getms() - debug_ref_time);
 #endif
 
 	SDL_UpdateTexture (sdlTexture, NULL, gr_pixels, gr_pitch);
 #ifdef DEBUG_REFRESH_TIME
-	fprintf(stderr, "| ud texture: %ums", gr_getms() - asdf);
+//	fprintf(stderr, "| ud texture: %ums", gr_getms() - debug_ref_time);
+#endif
+#ifdef DEBUG_GETCH_TIME
+	fprintf(stderr, "Time since last getch: %dms\n", gr_getms() - debug_getch_time);
 #endif
 	SDL_RenderClear (sdlRenderer);
 	SDL_RenderCopy (sdlRenderer, sdlTexture, NULL, NULL);
 	SDL_RenderPresent (sdlRenderer);
 
 #ifdef DEBUG_REFRESH_TIME
-	fprintf(stderr, "| total: %ums\n", gr_getms() - asdf);
+	uint32_t time = gr_getms () - debug_ref_time;
+	//fprintf(stderr, "| total: %ums\n", gr_getms() - debug_ref_time);
+	if (time < 20)
+		debug_ref_times[time]++;
+	debug_ref_time = gr_getms ();
 #endif
-	//fprintf(stderr, "| total: %ums\n", gr_getms() - asdf);
+	//fprintf(stderr, "| total: %ums\n", gr_getms() - debug_ref_time);
 	//if ((numrefs++) >= 0)
-	//	total_reftime += gr_getms() - asdf;
+	//	total_reftime += gr_getms() - debug_ref_time;
 	memclr (gr_pixels, gr_pitch * gr_ph);
+}
+#endif
+
+#ifdef GR_DRAW_GPU
+void gr_refresh ()
+{
+	//uint32_t asdf = gr_getms();
+	glActiveTexture (GL_TEXTURE1);
+	glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage3D (GL_TEXTURE_3D, 0, GL_RGBA, gr_render_w, gr_render_h, gr_render_t, 0, GL_RGBA, GL_UNSIGNED_BYTE, gr_render_data);
+	//fprintf(stderr, "%d ", gr_getms()-asdf);
+
+	/*glValidateProgram (glShader);
+	glGetProgramiv (glShader, GL_VALIDATE_STATUS, &success);
+	if (!success) {
+		glGetProgramInfoLog (glShader, sizeof(gr_shader_log), NULL, gr_shader_log);
+		fprintf (stderr, "Invalid shader program: '%s'\n", gr_shader_log);
+		exit (1);
+	}*/
+	//fprintf(stderr, "%d ", gr_getms()-asdf);
+
+	glDrawArrays (GL_TRIANGLES, 0, 6);
+	//fprintf(stderr, "%d ", gr_getms()-asdf);
+	SDL_GL_SwapWindow (sdlWindow);
+	//fprintf(stderr, "%d\n", gr_getms()-asdf);
+
+#ifdef DEBUG_GETCH_TIME
+	fprintf(stderr, "Time since last getch: %dms\n", gr_getms() - debug_getch_time);
+#endif
+#ifdef DEBUG_REFRESH_TIME
+	uint32_t time = gr_getms() - debug_ref_time;
+	//fprintf(stderr, "Time since last refresh: %dms\n", time);
+	if (time < 20)
+		debug_ref_times[time]++;
+	debug_ref_time = gr_getms ();
+#endif
+}
+#endif
+
+void gr_clear ()
+{
+#ifdef GR_DRAW_GPU
+	memset (gr_render_data, 0, gr_render_w*gr_render_h*gr_render_t*sizeof(*gr_render_data));
+#endif
 }
 
 void grx_clear (Graph gra)
@@ -539,9 +668,6 @@ char gr_getch_aux (int text, int tout_num, int get)
 	return fake_input[input_cur-1];
 #endif
 	uint32_t ticks = gr_getms ();
-#ifdef DEBUG_GETCH_TIME
-	fprintf(stderr, "Time since last getch: %dms\n", ticks - lastref);
-#endif
 	gr_refresh ();
 
 	if (peeked != GRK_EOF)
@@ -577,7 +703,7 @@ char gr_getch_aux (int text, int tout_num, int get)
 			{
 				key_fire_ms = ticks + gr_kdelay;
 				#ifdef DEBUG_GETCH_TIME
-				lastref = ticks;
+				debug_getch_time = ticks;
 				#endif
 				return cur_key_down;
 			}
@@ -602,7 +728,7 @@ char gr_getch_aux (int text, int tout_num, int get)
 				{
 					++ num_keys_down;
 					if (num_keys_down == 1 && (!text) &&
-					    (sdlEvent.key.keysym.mod & (KMOD_LCTRL | KMOD_RCTRL)))
+						(sdlEvent.key.keysym.mod & (KMOD_LCTRL | KMOD_RCTRL)))
 					{
 						input_key = GR_CTRL(code);
 						break;
@@ -663,7 +789,7 @@ char gr_getch_aux (int text, int tout_num, int get)
 			ticks = gr_getms ();
 			key_fire_ms = ticks + gr_kinitdelay;
 			#ifdef DEBUG_GETCH_TIME
-			lastref = ticks;
+			debug_getch_time = ticks;
 			#endif
 			if (!get)
 				peeked = input_key;
@@ -727,9 +853,11 @@ void gr_resize (int ph, int pw)
 	gr_ph = ph;
 	gr_pw = pw;
 	
+#ifdef GR_DRAW_CPU
 	gr_pitch = sizeof (Uint32) * gr_pw;
 	gr_pixels = realloc (gr_pixels, gr_pitch * gr_ph);
 	memclr (gr_pixels, gr_pitch * gr_ph);
+#endif
 
 	if (gr_onresize)
 		gr_onresize ();
@@ -742,7 +870,7 @@ if (temp)\
 	goto success;\
 printf("Couldn't find tiles at %s.\n", filepath)
 
-void gr_load_tiles ()
+SDL_Surface *gr_load_file ()
 {
 	char filepath[100] = "";
 	void *temp = NULL;
@@ -755,6 +883,13 @@ void gr_load_tiles ()
 	exit (1);
 	
   success:;
+	return temp;
+}
+
+#ifdef GR_DRAW_CPU
+void gr_load_tiles ()
+{
+	SDL_Surface *temp = gr_load_file ();
 	SDL_Surface *tiles = SDL_ConvertSurfaceFormat (temp, SDL_GetWindowPixelFormat (sdlWindow), 0);
 	SDL_FreeSurface (temp);
 	uint32_t gl_fgcolour = SDL_MapRGB (tiles->format, 253, 253, 253);
@@ -775,16 +910,98 @@ void gr_load_tiles ()
 		SDL_UnlockSurface (tiles);
 	SDL_FreeSurface (tiles);
 }
+#endif
+#ifdef GR_DRAW_GPU
+void gr_load_tiles ()
+{
+	SDL_Surface *tiles = gr_load_file();
+
+	glGenTextures (1, &grTiles);
+	glActiveTexture (GL_TEXTURE0);
+	glBindTexture (GL_TEXTURE_2D, grTiles);
+
+	int Mode = GL_RGB;
+
+	if(tiles->format->BytesPerPixel == 4) {
+		Mode = GL_RGBA;
+	}
+
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D (GL_TEXTURE_2D, 0, Mode, tiles->w, tiles->h, 0, Mode, GL_UNSIGNED_BYTE, tiles->pixels);
+	SDL_FreeSurface (tiles);
+}
+#endif
 
 void gr_cleanup ()
 {
 	SDL_StopTextInput();
+#ifdef GR_DRAW_CPU
 	SDL_DestroyRenderer (sdlRenderer);
+#endif
+#ifdef GR_DRAW_GPU
+	SDL_GL_DeleteContext (glContext);
+#endif
 	SDL_DestroyWindow (sdlWindow);
 	SDL_Quit ();
 	//fprintf (stderr, "average refresh time: %fms, %dms over %d frames\n",
 	//	((float)total_reftime)/numrefs, total_reftime, numrefs);
+	int i, total = 0, sum = 0;
+	for (i = 0; i < 20; ++ i)
+	{
+		if (debug_ref_times[i])
+			printf ("%d ms: %u\n", i, debug_ref_times[i]);
+		total += debug_ref_times[i];
+		sum += debug_ref_times[i]*i;
+	}
+	printf ("Total frames: %d\n", total);
+	printf ("Avg delay:    %f\n", sum/(float)total);
 }
+
+#ifdef GR_DRAW_GPU
+static float vertices[6][2] =
+{
+	{ -1.f, -1.f },
+	{  1.f, -1.f },
+	{  1.f,  1.f },
+	{  1.f,  1.f },
+	{ -1.f,  1.f },
+	{ -1.f, -1.f }
+};
+
+GLuint shader_init (const char *filename, GLenum sh_type)
+{
+	const GLchar *sh_src[1];
+	char *sh_src_aux = malloc (10000);
+	FILE *sh_file = fopen (filename, "r");
+	size_t len = fread (sh_src_aux, 1, 10000, sh_file);
+	fclose (sh_file);
+	if (len == 10000)
+	{
+		fprintf (stderr, "Shader %s too large!\n", filename);
+		exit (1);
+	}
+	else if (len == 0)
+	{
+		fprintf (stderr, "Shader %s empty!\n", filename);
+		exit (1);
+	}
+	sh_src_aux[len-1] = 0;
+	sh_src[0] = sh_src_aux;
+	GLuint shader = glCreateShader (sh_type);
+	glShaderSource (shader, 1, sh_src, NULL);
+	glCompileShader (shader);
+	glGetShaderiv (shader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog (shader, sizeof(gr_shader_log), NULL, gr_shader_log);
+		fprintf (stderr, "Error compiling shader (%s): %s\n", filename, gr_shader_log);
+		exit (1);
+	}
+	free (sh_src_aux);
+	return shader;
+}
+#endif
 
 void gr_init (int ph, int pw)
 {
@@ -796,26 +1013,92 @@ void gr_init (int ph, int pw)
 
 	atexit (gr_cleanup);
 	sdlWindow = SDL_CreateWindow ("Yore", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		pw, ph, 0);
+		pw, ph,
+#ifdef GR_DRAW_GPU
+		SDL_WINDOW_OPENGL |
+#endif
+		0);
 	if (sdlWindow == NULL)
 	{
 		fprintf (stderr, "SDL error: window is NULL\n");
 		exit (1);
 	}
 
-	sdlRenderer = SDL_CreateRenderer (sdlWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+#ifdef GR_DRAW_GPU
+	glContext = SDL_GL_CreateContext (sdlWindow);
+	if (glContext == NULL)
+	{
+		fprintf (stderr, "SDL error: GL context is NULL\n");
+		exit (1);
+	}
+
+	glewInit ();
+	SDL_GL_SetSwapInterval (0);
+
+	/* triangles to render */
+	GLuint vertex_buffer = 0;
+	glGenBuffers (1, &vertex_buffer);
+	glBindBuffer (GL_ARRAY_BUFFER, vertex_buffer);
+	glBufferData (GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glEnable (GL_TEXTURE_3D);
+
+	gr_load_tiles ();
+	glGenTextures (1, &grData);
+	glActiveTexture (GL_TEXTURE1);
+	glBindTexture (GL_TEXTURE_3D, grData);
+
+	/* shader stuff */
+	GLuint vertex_shader = shader_init ("shaders/shader.vert", GL_VERTEX_SHADER);
+	GLuint fragment_shader = shader_init ("shaders/shader.frag", GL_FRAGMENT_SHADER);
+
+	glShader = glCreateProgram ();
+	glAttachShader (glShader, vertex_shader);
+	glAttachShader (glShader, fragment_shader);
+
+	glLinkProgram (glShader);
+	glGetProgramiv (glShader, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog (glShader, sizeof(gr_shader_log), NULL, gr_shader_log);
+		fprintf (stderr, "Error linking shaders: '%s'\n", gr_shader_log);
+		exit (1);
+	}
+
+	glUseProgram (glShader);
+
+	glUniform1i (glGetUniformLocation (glShader, "tiles"), 0);
+	glUniform1i (glGetUniformLocation (glShader, "gr_data"), 1);
+
+	GLint gl_pos_loc = glGetAttribLocation (glShader, "pos");
+	glEnableVertexAttribArray (gl_pos_loc);
+	glVertexAttribPointer (gl_pos_loc, 2, GL_FLOAT, GL_FALSE,
+		sizeof(vertices[0]), (void*) 0);
+
+	glClearColor (0,0,0,1);
+	glClear (GL_COLOR_BUFFER_BIT);
+
+	gr_render_w = pw/8+2;
+	gr_render_h = ph/12+2;
+	gr_render_t = 8;
+	gr_render_data = malloc (gr_render_w*gr_render_h*gr_render_t*sizeof(*gr_render_data));
+	gr_clear ();
+#endif
+
+#ifdef GR_DRAW_CPU
+	sdlRenderer = SDL_CreateRenderer (sdlWindow, -1, SDL_RENDERER_ACCELERATED);// | SDL_RENDERER_PRESENTVSYNC);
 	if (sdlRenderer == NULL)
 	{
 		fprintf (stderr, "SDL error: renderer is NULL\n");
 		exit (1);
 	}
-	SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor (sdlRenderer, 0, 0, 0, 255);
 	SDL_RenderClear (sdlRenderer);
 	SDL_SetRenderDrawBlendMode (sdlRenderer, SDL_BLENDMODE_NONE);
-	SDL_StartTextInput();
 	sdlTexture = SDL_CreateTexture (sdlRenderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, pw, ph);
-
 	gr_load_tiles ();
+#endif
+	SDL_StartTextInput ();
+
 	gr_resize (ph, pw);
 }
 

@@ -163,7 +163,7 @@ void ev_do (const struct QEv *qev)
 			if ((!mons_is (ev->mwield.monsID)) ||
 				qev->ID != mons_internal(ev->mwield.monsID)->status.wield.evID)
 				return;
-			if (mons_is (ev->mwield.monsID) && it_is (ev->mwield.itemID))
+			if (mons_is (ev->mwield.monsID))
 				ev_mwield (ev->mwield.monsID, ev->mwield.arm, ev->mwield.itemID);
 			if (mons_is (ev->mwield.monsID))
 				mons_poll (ev->mwield.monsID);

@@ -146,7 +146,7 @@ def my_fwrite(name, cont):
 '''.format (name.replace('.', '_'), cont))
 
 def main():
-	in_file = open('gen/event.h.gen')
+	in_file = open('gen/events.gen')
 	parsed = []
 	for line in in_file:
 		line = re.sub (r'//.*', '', line).strip()

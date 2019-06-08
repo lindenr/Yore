@@ -13,6 +13,8 @@ enum DTile
 	DGN_WALL2,
 	DGN_ROCK,
 	DGN_AIR,
+	DGN_WATER,
+	DGN_ICE,
 	DGN_DOWNSTAIR,
 	DGN_UPSTAIR,
 	DGN_TREE,
@@ -37,13 +39,15 @@ struct DLevel
 {
 	int dlevel;
 	int t, h, w, a, v;
-	DTile *tiles;    // state for each tile
-	V_ItemID *itemIDs; // a vector of item IDs for each tile
-	MonsID *monsIDs; // a monster ID for each tile (0 = no monster)
-	//V_MonsID playerIDs;
+	struct DCell
+	{
+		DTile tile;
+		V_ItemID items;
+		MonsID mons;
+		int num_fires;
+	} *cells;
 	int *player_dist;
 	int *escape_dist;
-	int *num_fires;
 
 /* Output of the bresenham algorithm (drawing.c): 0 if we can't see it (outside 
  * our field of vision); 1 if we remember it; and 2 if we are looking at it.
@@ -63,9 +67,10 @@ struct DLevel
 };
 
 int dlv_init (int up, int dn, int t, int h, int w);
-//void dlv_set  (int);
 
 struct DLevel *dlv_internal (int);
+struct DCell  *dlv_cell (int, int, int, int);
+int dlv_index (int, int, int, int);
 V_ItemID dlv_items  (int dlevel, int z, int y, int x);
 uint8_t *dlv_attr   (int);
 //int      dlv_dn     (int);

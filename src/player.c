@@ -544,7 +544,7 @@ int key_lookup (MonsID player, char ch)
 	{
 		if (ch == Keys[i].key)
 		{
-			if (ev_mons_can (player, Keys[i].ev))
+			if (Keys[i].ev == -1 || ev_mons_can (player, Keys[i].ev))
 				return (*Keys[i].action) (player);
 			return 0;
 		}
@@ -558,15 +558,15 @@ void pl_poll (MonsID player)
 	//	gra_centcam (map_graph, player->yloc, player->xloc);
 	//extern Graph map_graph;
 	//printf("%d %d %d   ", map_graph->cz, map_graph->cy, map_graph->cx);
+	int dlevel, z, y, x;
+	mons_getloc (player, &dlevel, &z, &y, &x);
+	world.map->cz = z-3;
 	draw_map (0, player);
 	while (1)
 	{
-		int dlevel, z, y, x;
-		mons_getloc (player, &dlevel, &z, &y, &x);
 		//grx_movecam (map_graph, z-3, -map_graph->gldy * z, -map_graph->gldx * z, 0);
 		nlook_auto (player);
 		grx_cmove (world.map, z, y, x);
-		world.map->cz = z-3;
 
 		char in = p_getch (player);
 
@@ -646,7 +646,9 @@ int pl_attempt_move (MonsID pl, int y, int x) /* each either -1, 0 or 1 */
 		adjust_cam (pl, y, x);
 		return 1;
 	}
-	adjust_cam (pl, y, x);
+	//adjust_cam (pl, y, x);
+	// adjust if moving into a wall
+	// don't adjust if stopped moving off edge
 	return 0;
 }
 

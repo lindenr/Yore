@@ -22,10 +22,7 @@ int dlv_init (int uplevel, int dnlevel, int z, int y, int x)
 	struct DLevel new_level = {
 		dlevel,
 		z, y, x, y*x, v,
-		malloc (sizeof(DTile) * v),
-		malloc (sizeof(V_ItemID) * v),
-		malloc (sizeof(MonsID) * v),
-		malloc (sizeof(int) * v),
+		malloc (sizeof(struct DCell) * v),
 		malloc (sizeof(int) * v),
 		malloc (sizeof(int) * v),
 		malloc (sizeof(uint8_t) * v),
@@ -42,13 +39,15 @@ int dlv_init (int uplevel, int dnlevel, int z, int y, int x)
 		lvl->uplevel = dlevel;*/
 	for (i = 0; i < v; ++ i)
 	{
-		new_level.itemIDs[i] = v_dinit (sizeof(ItemID));
+		new_level.cells[i] = (struct DCell) {
+			0,
+			v_dinit (sizeof(ItemID)),
+			0,
+			0
+		};
 		new_level.player_dist[i] = -1;
 		new_level.escape_dist[i] = -1;
 	}
-	memset (new_level.tiles, 0, sizeof(DTile)*v);
-	memset (new_level.monsIDs, 0, sizeof(MonsID)*v);
-	memset (new_level.num_fires, 0, sizeof(int)*v);
 	memset (new_level.seen, 0, sizeof(uint8_t)*v);
 	memset (new_level.attr, 0, sizeof(uint8_t)*v);
 	memset (new_level.remembered, 0, sizeof(glyph)*v);
@@ -58,14 +57,14 @@ int dlv_init (int uplevel, int dnlevel, int z, int y, int x)
 	return dlevel;
 }
 
-int dlv_index (int dlevel, int z, int y, int x)
+struct DCell *dlv_cell (int dlevel, int z, int y, int x)
 {
 	struct DLevel *lvl = dlv_internal (dlevel);
 	if (z < 0 || z >= lvl->t ||
 		y < 0 || y >= lvl->h ||
 		x < 0 || x >= lvl->w)
-		return -1;
-	return lvl->a * z + lvl->w * y + x;
+		return NULL;
+	return &lvl->cells[lvl->a * z + lvl->w * y + x];
 }
 
 struct DLevel *dlv_internal (int dlevel)
@@ -81,7 +80,10 @@ struct DLevel *dlv_internal (int dlevel)
 
 V_ItemID dlv_items (int dlevel, int z, int y, int x)
 {
-	return dlv_internal (dlevel)->itemIDs[dlv_index (dlevel, z, y, x)];
+	struct DCell *c = dlv_cell (dlevel, z, y, x);
+	if (!c)
+		return NULL;
+	return c->items;
 }
 
 /*uint8_t *dlv_attr (int dlevel)
@@ -101,41 +103,41 @@ int dlv_dn (int dlevel)
 
 void dlv_settile (int dlevel, int z, int y, int x, DTile tile)
 {
-	dlv_internal (dlevel)->tiles[dlv_index (dlevel, z, y, x)] = tile;
+	dlv_cell (dlevel, z, y, x)->tile = tile;
 }
 
 DTile dlv_tile (int dlevel, int z, int y, int x)
 {
-	int i = dlv_index (dlevel, z, y, x);
-	if (i == -1)
-		return DGN_ROCK;
-	return dlv_internal (dlevel)->tiles[i];
+	struct DCell *c = dlv_cell (dlevel, z, y, x);
+	if (!c)
+		return DGN_AIR;
+	return c->tile;
 }
 
 MonsID dlv_mons (int dlevel, int z, int y, int x)
 {
-	int i = dlv_index (dlevel, z, y, x);
-	if (i == -1)
+	struct DCell *c = dlv_cell (dlevel, z, y, x);
+	if (!c)
 		return 0;
-	return dlv_internal (dlevel)->monsIDs [i];
+	return c->mons;
 }
 
 void dlv_setmons (int dlevel, int z, int y, int x, MonsID mons)
 {
-	dlv_internal (dlevel)->monsIDs [dlv_index (dlevel, z, y, x)] = mons;
+	dlv_cell (dlevel, z, y, x)->mons = mons;
 }
 
 int dlv_num_fires (int dlevel, int z, int y, int x)
 {
-	int i = dlv_index (dlevel, z, y, x);
-	if (i == -1)
+	struct DCell *c = dlv_cell (dlevel, z, y, x);
+	if (!c)
 		return 0;
-	return dlv_internal (dlevel)->num_fires [i];
+	return c->num_fires;
 }
 
 void dlv_set_fires (int dlevel, int z, int y, int x, int nf)
 {
-	dlv_internal (dlevel)->num_fires [dlv_index (dlevel, z, y, x)] = nf;
+	dlv_cell (dlevel, z, y, x)->num_fires = nf;
 }
 
 #define M_OPQ  0
@@ -158,6 +160,8 @@ struct DTile_type tile_types[] = {
 	MAPITEM("wall",      0x999342FE,                          M_OPQ ),
 	MAPITEM("rock",      ' ',                               M_OPQ ),
 	MAPITEM("air",       0,                          M_TSPT ),
+	MAPITEM("water",     0x00F007F7,                        M_TSPT ),
+	MAPITEM("ice",     0x66F22F00|ACS_BIGDOT,                        M_TSPT ),
 	MAPITEM("downstair", '>',                               M_TSPT),
 	MAPITEM("upstair",   '<',                               M_TSPT),
 	MAPITEM("tree",      5  |COL_TXT(2,1,0)|COL_BG(0,0,0),  M_TSPT),
@@ -183,8 +187,8 @@ int cmp_tile (const struct TileDist *t1, const struct TileDist *t2)
 
 void dlv_tile_burn (int dlevel, int zloc, int yloc, int xloc)
 {
-	// mons_burn (mons); TODO
 	MonsID mons = dlv_mons (dlevel, zloc, yloc, xloc);
+	mons_burn (mons);
 	if (mons)
 	{
 		int damage = rn(3);

@@ -58,12 +58,12 @@
 	int dlevel
 | mregen
 	MonsID monsID (nopoll)
-| mbleed mons.bleed
+| mbleed mons.bleed (no-restart)
 	MonsID monsID
 | mwield mons.wield
 	MonsID monsID
 	int arm
-	ItemID itemID
+	ItemID itemID (optional)
 > mdowield
 	MonsID monsID
 	int arm

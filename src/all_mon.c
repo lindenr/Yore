@@ -6,7 +6,7 @@
 #include "include/monst.h"
 
 #define MONST(nm,ch,size,at,fl,cl,str,con,wis,agi,spd,ex) \
-{0,0,-1,-1,-1,-1,nm,ch|cl|0x33100,{.mode=CTR_NONE},0,ex,0,NULL, \
+{0,0,-1,-1,-1,-1,nm,ch|cl,{.mode=CTR_NONE},0,ex,0,NULL, \
 1, 1, 1, 1, 1, 1, str, con, wis, agi, spd, {{0,}}, {1, 1, 2, 2, {0,},{0,},{0,},{0,},{0,},{0,}},\
 DEF_MSTATUS,(fl)|(FL_SIZE(size)),NULL}
 

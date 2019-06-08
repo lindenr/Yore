@@ -5,10 +5,13 @@
 
 //#define DEBUG_GETCH_TIME // print time between getch's
 //#define DEBUG_GETCH_TIME_GR // print time between getch's in game
-//#define DEBUG_REFRESH_TIME // print framerate info
+#define DEBUG_REFRESH_TIME // print framerate info
 //#define DEBUG_REFRESH_TIME_GR // print framerate info in game
 //#define TWOPLAYER // two player characters
-//#define FAKE_INPUT // spoofs input for profiling
+#define FAKE_INPUT // spoofs input for profiling
+
+#define GR_DRAW_GPU // shaders for rendering (recommended)
+//#define GR_DRAW_CPU // draw on CPU (slower)
 
 //#define SIM
 

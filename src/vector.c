@@ -9,7 +9,6 @@
 #include <stdarg.h>
 #include <malloc.h>
 
-
 #define V_DEFAULT_LENGTH 2
 void *v_dinit (size_t siz)
 {
@@ -23,6 +22,19 @@ void *v_init (size_t siz, size_t mlen)
 	vec->siz = siz;
 	vec->len = 0;
 	vec->mlen = mlen;
+	return vec;
+}
+
+void *v_clone_ (Vector from)
+{
+	Vector vec = malloc (sizeof(*vec));
+	*vec = (struct Vector) {
+		malloc (from->siz * from->mlen),
+		from->siz,
+		from->len,
+		from->mlen
+	};
+	memcpy (vec->data, from->data, from->siz*from->len);
 	return vec;
 }
 

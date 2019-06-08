@@ -36,8 +36,8 @@ void world_init (char *player_name)
 
 	int dlevel = dlv_init (-1, -1, 11, 50, 150);
 	struct Item_internal myitem = new_item (ITYP_FIRE_TURRET);
-	it_create (&myitem, (union ItemLoc) { .dlvl = {LOC_DLVL, dlevel, 0, 17, 75}});
-	MonsID mons = gen_player (dlevel, 0, 24, 61, world.player_name);
+	it_create (&myitem, (union ItemLoc) { .dlvl = {LOC_DLVL, dlevel, 2, 20, 81}});
+	MonsID mons = gen_player (dlevel, 3, 20, 51, world.player_name);
 	//dlv_fill_player_dist (dlevel);
 	update_knowledge (mons);
 }

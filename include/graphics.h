@@ -63,6 +63,8 @@ void grx_free (Graph);
 #define gra_free(g) (grx_free ((g)))
 
 /* Output */
+void gr_clear ();
+
 void grx_movecam (Graph, int z, int y, int x, int t);
 #define gra_movecam(g,y,x) (grx_movecam ((g), 0, (y), (x), 1))
 void grx_centcam (Graph, int z, int y, int x);
@@ -75,6 +77,7 @@ void grx_invert (Graph, int z, int y, int x);
 glyph grx_glinvert (Graph, glyph);
 #define gra_glinvert(g,gl) (grx_invert ((g), (gl)))
 
+void grx_mvaddchcol (Graph, int z, int y, int x, char, char, char, char, char, char, char);
 void grx_mvaddch (Graph, int z, int y, int x, glyph);
 #define gra_mvaddch(g,y,x,gl) (grx_mvaddch ((g), 0, (y), (x), (gl)))
 void grx_baddch (Graph, int, glyph);

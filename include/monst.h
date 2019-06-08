@@ -288,6 +288,7 @@ ItemID mons_getweap    (MonsID, int arm);    /* get weapon wielded in arm       
 
 /* other effects */
 void   mons_tilefrost  (MonsID, int, int, int);/* induce a frost effect                   */
+void   mons_burn       (MonsID);
 int    mons_take_damage(MonsID, MonsID,      /* returns whether to-monster still alive   */
 	int, enum DMG_TYPE);
 void   mons_kill       (MonsID, MonsID);     /* kill a given monster                     */

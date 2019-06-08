@@ -1,6 +1,6 @@
 TARGET = Yore
-CLFLAGS = -Wall -Werror -g -O0 #fast #-fsanitize=address
-LIBS = -lm $(shell sdl2-config --libs) $(CLFLAGS)
+CLFLAGS = -Wall -Werror -Ofast #-fsanitize=address
+LIBS = -lm $(shell sdl2-config --libs) $(CLFLAGS) -lGL -lGLEW
 CC = gcc
 CFLAGS = -I$(CURDIR) -funsigned-char $(shell sdl2-config --cflags) $(CLFLAGS)
 

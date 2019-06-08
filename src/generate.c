@@ -300,7 +300,7 @@ void gen_room (char *out, int z, int y, int x, int t, int h, int w)
 
 void generate_map (int dlevel, enum LEVEL_TYPE type)
 {
-	gen_h = 50; gen_w = 150; gen_t = 10;
+	gen_h = 50; gen_w = 150; gen_t = 11;
 	gen_a = gen_h * gen_w;
 
 	if (type == LEVEL_NORMAL)
@@ -395,12 +395,24 @@ void generate_map (int dlevel, enum LEVEL_TYPE type)
 			else if (z == x/2 - 5 && 10 <= y && y <= 15)
 				dlv_settile (dlevel, rn(3), i);*/
 			double Y = (y+2.0*sin(0.1*x + sin(0.2*x)) + 3.0*sin(0.05*y));
-			int h = (1.0+sin(0.2 * x + sin(0.15*x))) * (1.0+sin(0.2 * Y)) +
-			(1.1+sin(0.125 * x+0.11*Y));
-			if (z < h)
+			//Y += 200.0;
+			double X = x;
+			double fudge = 1.0;
+			Y *= fudge;
+			X *= fudge;
+			int h = 1.2*((1.0+sin(0.2 * X + sin(0.15*X))) * (1.0+sin(0.2 * Y)) +
+			(2.1+sin(0.125 * X+0.11*Y)));
+			if (z <= 1 && h == 1)
+				dlv_settile (dlevel, z, y, x, DGN_WATER);
+			else if (z < h)
 				dlv_settile (dlevel, z, y, x, DGN_ROCK);
 			else if (z == h)
-				dlv_settile (dlevel, z, y, x, DGN_GROUND);
+			{
+				if (z >= 7)
+					dlv_settile (dlevel, z, y, x, DGN_ICE);
+				else
+					dlv_settile (dlevel, z, y, x, DGN_GRASS1);
+			}
 			else
 				dlv_settile (dlevel, z, y, x, DGN_AIR);
 		}
@@ -455,11 +467,9 @@ void generate_map (int dlevel, enum LEVEL_TYPE type)
 /* can a monster be generated here? (no monsters or walls in the way) */
 int is_safe_gen (int dlevel, int z, int y, int x)
 {
-	if (dlv_mons(dlevel, z, y, x))
+	if (dlv_mons (dlevel, z, y, x))
 		return 0;
-	if (dlv_tile(dlevel, z, y, x) == DGN_GROUND)
-		return 0;
-	return 1;
+	return dlv_passable (dlevel, z, y, x) && !dlv_passable (dlevel, z-1, y, x);
 }
 
 void init_mons (struct Monster_internal *mons, enum MTYPE type)
@@ -487,8 +497,8 @@ MonsID gen_player (int dlevel, int zloc, int yloc, int xloc, char *name)
 	//int num = rn(40)+20;
 	struct Item_internal myitem = new_item (ITYP_GOLD_PIECE);
 	it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, 0}});
-	struct Item_internal myaxe = new_item (ITYP_DAGGER);
-	item = it_create (&myaxe, (union ItemLoc) { .dlvl = {LOC_INV, pl, 1}});
+	myitem = new_item (ITYP_DAGGER);
+	item = it_create (&myitem, (union ItemLoc) { .dlvl = {LOC_INV, pl, 1}});
 	mons_wield (pl, 0, item);
 	//struct Skill skill = {SK_USE_DAGGER, 0, 1};
 	//mons_skill_push (pl, &skill); TODO
@@ -502,6 +512,8 @@ MonsID gen_player (int dlevel, int zloc, int yloc, int xloc, char *name)
 	int i;
 	for (i = 4; i < 10; ++ i)
 		item = it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, i}});
+	myitem = new_item (ITYP_FIRE_AXE);
+	it_create (&myitem, (union ItemLoc) { .inv = {LOC_INV, pl, i}});
 	/*int i;
 	for (i = 4; i < 40; ++ i)
 	{
@@ -526,10 +538,10 @@ MonsID gen_mons (int dlevel, int difficulty, int near_player)
 {
 	int i;
 	uint32_t xloc, yloc;
-	int zloc = 1;
+	int zloc;
 	for (i = 0; i < 5; ++ i)
 	{
-		xloc = rn(gen_w), yloc = rn(gen_h);
+		xloc = rn(gen_w), yloc = rn(gen_h), zloc = rn(5)+2;
 		//if (near_player && cur_dlevel->player_dist[map_buffer(yloc, xloc)] == -1)
 		//	continue;
 		if (is_safe_gen (dlevel, zloc, yloc, xloc))
@@ -570,8 +582,6 @@ MonsID gen_boss (int dlevel, int zloc, int yloc, int xloc)
 		p.ctr.mode = CTR_AI_TIMID;
 	p.level = 1; //mons[p.type].exp? TODO
 	MonsID mons = mons_create (dlevel, zloc, yloc, xloc, &p);
-	//struct Item_internal myaxe = new_item (ITYP_FIRE_AXE);
-	//it_create (&myaxe, (union ItemLoc) { .inv = {LOC_INV, th->ID, 0}});
 	return mons;
 }
 

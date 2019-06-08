@@ -5,7 +5,7 @@
 #include <time.h>
 #include <stdlib.h>
 
-#define rng_init()  srand(time(0))
+#define rng_init()  srand(0)//time(0))
 #define rnd(a,b)    dice_roll((a), (b))
 #define rn(n)       ((int)(rand()%(n)))
 #define onein(n)    (!rn(n))

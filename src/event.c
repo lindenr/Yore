@@ -33,6 +33,7 @@ void ev_debug (int tick, const char *ev, const char *args)
 
 int ev_mons_can (MonsID mons, Ev_type ev)
 {
+	//printf("%d\n", ev);
 	switch (ev)
 	{
 #include "auto/event.mons_can.h"
@@ -47,7 +48,7 @@ static int ev_should_refresh = 0;
 void ev_dlevel_heartbeat (int dlevel)
 {
 	/* monster generation */
-	//if (onein (2))
+	if (onein (5))
 		ev_queue (0, mgen, dlevel);
 	/* next heartbeat */
 	ev_queue (1000, dlevel_heartbeat, dlevel);
@@ -148,14 +149,15 @@ void ev_proj_move (ItemID item, struct BresState bres, int speed, MonsID from)
 	dlvl.xloc = bres.cx;
 	speed -= 1;
 	it_put (item, (union ItemLoc) {.dlvl = dlvl});
+	ev_should_refresh = 1;
 	MonsID mons = dlv_mons (dlvl.dlevel, dlvl.zloc, dlvl.yloc, dlvl.xloc);
 	if (mons)
 	{
 		proj_hit_monster (item, mons, from);
-		speed = 0;
+		proj_done (item);
+		return;
 	}
 	ev_queue (60, proj_move, item, bres, speed, from);
-	ev_should_refresh = 1;
 }
 
 void ev_item_explode (ItemID item, int force)
@@ -294,8 +296,7 @@ void ev_mdohit (MonsID fr, int arm, int zdir, int ydir, int xdir)
 	eff_mons_hits_mons (fr, to, damage);
 	if (mons_gets_exp (fr))
 		mons_exercise (fr, with);
-	if (!mons_take_damage (to, fr, damage, it_dtyp (with)))
-		return;
+	mons_take_damage (to, fr, damage, it_dtyp (with));
 	if (with && (it_flag (with, ITF_FIRE_EFFECT)))
 	{
 		int i, j;
@@ -303,7 +304,7 @@ void ev_mdohit (MonsID fr, int arm, int zdir, int ydir, int xdir)
 		{
 			struct BresState bres;
 			bres_init (&bres, ydest, xdest, ydest + 2*ydir + i, xdest + 2*xdir + j);
-			ev_queue (10 + rn(40), line_explode, mons_dlevel(fr), z, bres, 0);
+			ev_queue (10 + rn(40), line_explode, d, z, bres, 0);
 		}
 	}
 }
@@ -315,7 +316,7 @@ void ev_mpoll (MonsID mons)
 
 void ev_mgen (int dlevel)
 {
-	//mons = gen_mons_near_player (dlevel);
+	gen_mons_near_player (dlevel, 1);
 }
 
 void ev_mregen (MonsID mons)

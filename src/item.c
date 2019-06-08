@@ -85,7 +85,7 @@ void ityp_init ()
 
 int it_is (ItemID item)
 {
-	return world.items->data[item].ID == item;
+	return item && world.items->data[item].ID == item;
 }
 
 struct Item_internal *it_internal (ItemID item)

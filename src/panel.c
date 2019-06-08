@@ -462,7 +462,7 @@ int p_skills (MonsID player, enum PanelType type)
 			break;
 		case SK_CHARGE:
 			gra_hide (sc_status);
-			if (mons_charging (player))
+			if (mons_ev (player, charge))
 			{
 				//sk_charge (player, 0, 0, sk);
 				ev_queue (0, mstopcharge, player);

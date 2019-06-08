@@ -55,6 +55,7 @@ int game_intro ()
 
   fin:
 	gra_free (ibox);
+	gr_clear ();
 	return ret;
 }
 
@@ -73,8 +74,8 @@ void on_quit ()
 //glyph fire_glyph (int);
 int main (int argc, char *argv[])
 {
-	int i;
 	gr_init (640, 1200);
+	//gr_init (768, 1366);
 	gr_onresize = p_init;
 	gr_quit = on_quit;
 	
@@ -108,21 +109,19 @@ int main (int argc, char *argv[])
 	introbox->def = COL_TXT_BRIGHT;
 	char *player_name = malloc(41);
 	player_name[0] = '\0';
+	gra_getstr (introbox, 8, 19, player_name, 40);
 
-	for (i = 0;
-		 i < 10 && player_name[0] == '\0';
-		 ++i)
+	while (!player_name[0])
 	{
-		if (0 < i && i <= 5)
-			gra_mvprint (introbox, 10, 6, "Please type in your name.");
-		else if (i)
-			gra_mvprint (introbox, 10, 6, "Please type in your name!");
+		gra_mvprint (introbox, 10, 6, "Please type in your name.");
 		gra_getstr (introbox, 8, 19, player_name, 40);
 	}
 	gra_free (introbox);
 
 	if (!player_name[0])
 		goto quit_game;
+
+	gr_clear ();
 
 	/* So you really want to play? */
 	world_init (player_name); /* or alternatively load save file TODO */
