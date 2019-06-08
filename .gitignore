@@ -1,7 +1,7 @@
 # Executable
 Yore
 # object files
-obj/*.o
+#obj/*.o
 # Save files (testing)
 *.sav
 .*.swp
