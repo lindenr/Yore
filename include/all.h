@@ -10,10 +10,12 @@
 //#define TWOPLAYER // two player characters
 #define FAKE_INPUT // spoofs input for profiling
 
-#define GR_DRAW_GPU // shaders for rendering (recommended)
-//#define GR_DRAW_CPU // draw on CPU (slower)
+//#define GR_DRAW_GPU // shaders for rendering (recommended)
+#define GR_DRAW_CPU // draw on CPU (slower)
 
 //#define SIM
+
+#define SSE4_1
 
 /* #define AMERICAN */
 #define USING_COL
