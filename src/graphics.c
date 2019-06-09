@@ -10,6 +10,10 @@
 #include <GL/glew.h>
 #endif
 
+#if defined(SSE4_1)
+#include <smmintrin.h>
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -429,6 +433,9 @@ void blit_glyph (glyph gl, int py, int px, int glh, int glw, int lighten,
 	}
 }
 
+int min (int a, int b) { return a < b ? a : b; }
+int max (int a, int b) { return a > b ? a : b; }
+
 void blit_glyph_2d (glyph gl, int py, int px, int glh, int glw, int lighten)
 {
 	unsigned char ch = (unsigned char) gl;
@@ -445,17 +452,41 @@ void blit_glyph_2d (glyph gl, int py, int px, int glh, int glw, int lighten)
 	G = G > 255 ? 255 : G;
 	B = B > 255 ? 255 : B;
 	uint32_t bgcol = PIXEL_VALUE (R, G, B);
-	for (y = 0; y < glh; ++ y) for (x = 0; x < glw; ++ x, ++ bitloc)
-	{
-		if (px + x < 0 || px + x >= gr_pw ||
-			py + y < 0 || py + y >= gr_ph)
-			continue;
-
-		if (tiles_data [bitloc])
-			gr_pixels [px + x + gr_pw * (py+y)] = fgcol;
-		else
-			gr_pixels [px + x + gr_pw * (py+y)] = bgcol;
-	}
+    int xlo = max(-px, 0);
+    int xhi = min(glw, gr_pw - px);
+    int ylo = max(-py, 0);
+    int yhi = min(glh, gr_ph - py);
+#if defined(SSE4_1)
+    __m128i fg = _mm_set1_epi32(fgcol);
+    __m128i bg = _mm_set1_epi32(bgcol);
+    for (y = ylo; y < yhi; ++ y) {
+        uint8_t *tiles_row = tiles_data + bitloc + glw * y;
+        uint32_t *gr_row = gr_pixels + gr_pw * (py+y) + px;
+        for (x = xlo; x+8 <= xhi; x += 8)
+        {
+            __m128i mask8 = _mm_loadl_epi64((void *) (& tiles_row [x]));
+            __m128i mask32_lo = _mm_cvtepi8_epi32(mask8);
+            __m128i mask32_hi = _mm_cvtepi8_epi32(_mm_srli_epi64(mask8, 32));
+            __m128i data32_lo = _mm_blendv_epi8(bg, fg, mask32_lo);
+            __m128i data32_hi = _mm_blendv_epi8(bg, fg, mask32_hi);
+            _mm_storeu_si128((void *) (& gr_row [x]), data32_lo);
+            _mm_storeu_si128((void *) (& gr_row [x + 4]), data32_hi);
+        }
+        for (; x < xhi; ++ x)
+        {
+            gr_row [x] = tiles_row [x] ? fgcol : bgcol;
+        }
+    }
+#else
+    for (y = ylo; y < yhi; ++ y) {
+        uint8_t *tiles_row = tiles_data + bitloc + glw * y;
+        uint32_t *gr_row = gr_pixels + gr_pw * (py+y) + px;
+        for (x = xlo; x < xhi; ++ x)
+        {
+            gr_row [x] = tiles_row [x] ? fgcol : bgcol;
+        }
+    }
+#endif
 }
 
 //static int total_reftime = 0, numrefs = -10;
@@ -904,7 +935,7 @@ void gr_load_tiles ()
 		int y = (ch/16) * GLH + (i/GLW)%GLH;
 		int x = (ch%16) * GLW + i%GLW;
 		tiles_data[i] =
-			(* (uint32_t *) ((uint8_t *) tiles->pixels + tiles->pitch * y + 4*x) == gl_fgcolour);
+			(* (uint32_t *) ((uint8_t *) tiles->pixels + tiles->pitch * y + 4*x) == gl_fgcolour ? -1 : 0);
 	}
 	if (SDL_MUSTLOCK (tiles))
 		SDL_UnlockSurface (tiles);
